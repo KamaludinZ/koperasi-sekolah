@@ -5,6 +5,7 @@ namespace Tests\Feature\Auth;
 use App\Livewire\Auth\Login;
 use App\Support\Menu;
 use Database\Seeders\ProductSeeder;
+use Database\Seeders\UserSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
 use Tests\TestCase;
@@ -16,7 +17,7 @@ class RoleMenuTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->seed(ProductSeeder::class);
+        $this->seed([ProductSeeder::class, UserSeeder::class]);
     }
 
     private function actingAsMock(string $role): void

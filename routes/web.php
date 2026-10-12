@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Anggota\MemberController;
 use App\Http\Controllers\Anggota\SavingsController;
+use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\LogoutController;
 use App\Http\Controllers\Barang\ProductController;
 use App\Http\Controllers\BerandaController;
@@ -28,6 +29,7 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', BerandaController::class)->name('beranda');
 
 Route::get('/masuk', Login::class)->name('login');
+Route::post('/masuk', LoginController::class)->middleware('throttle:30,1')->name('login.store');
 Route::post('/keluar', LogoutController::class)->name('logout');
 Route::get('/akun/kata-sandi', Akun\Password::class)->name('akun.password');
 

@@ -88,9 +88,16 @@ class MockData
         return $ok ? $user : null;
     }
 
-    /** Petugas yang sedang masuk (tiruan, disimpan di session). */
+    /**
+     * Petugas yang sedang masuk. Utamakan akun sungguhan (Auth); akun tiruan di session
+     * hanya cadangan selama halaman kelola pengguna belum memakai database.
+     */
     public static function currentUser(): ?array
     {
+        if ($user = auth()->user()) {
+            return \App\Services\AuthService::toArray($user->loadMissing('role'));
+        }
+
         return session('mock.user');
     }
 

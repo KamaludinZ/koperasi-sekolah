@@ -13,6 +13,7 @@ use App\Services\SavingsService;
 use App\Support\MockData;
 use Database\Seeders\ProductSeeder;
 use Illuminate\Database\QueryException;
+use Database\Seeders\UserSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Livewire\Livewire;
@@ -28,6 +29,7 @@ class AuditLogTest extends TestCase
     {
         parent::setUp();
         $this->seed(ProductSeeder::class);
+        $this->seed(UserSeeder::class);
     }
 
     private function last(string $event): ?ActivityLog

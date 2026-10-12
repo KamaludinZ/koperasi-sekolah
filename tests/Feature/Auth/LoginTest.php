@@ -4,6 +4,7 @@ namespace Tests\Feature\Auth;
 
 use App\Livewire\Auth\Login;
 use Database\Seeders\ProductSeeder;
+use Database\Seeders\UserSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
 use Tests\TestCase;
@@ -13,6 +14,12 @@ class LoginTest extends TestCase
     use RefreshDatabase;
 
     protected ?string $mockRole = null;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+        $this->seed(UserSeeder::class);
+    }
 
     public function test_login_page_renders_with_demo_accounts(): void
     {
@@ -33,7 +40,8 @@ class LoginTest extends TestCase
             ->assertHasNoErrors()
             ->assertRedirect(route('kasir'));
 
-        $this->assertSame('kasir', session('mock.user.role'));
+        $this->assertSame('kasir', auth()->user()->roleName());
+        $this->assertNotNull(auth()->user()->last_login_at);
     }
 
     public function test_wrong_password_and_validation(): void
@@ -49,7 +57,7 @@ class LoginTest extends TestCase
             ->assertSee('Email atau kata sandi salah.')
             ->assertSet('password', '');
 
-        $this->assertNull(session('mock.user'));
+        $this->assertGuest();
     }
 
     public function test_inactive_account_is_rejected(): void
@@ -69,7 +77,7 @@ class LoginTest extends TestCase
         }
 
         $c->set('password', 'password')->call('login')->assertSee('Terlalu banyak percobaan');
-        $this->assertNull(session('mock.user'));
+        $this->assertGuest();
 
         $this->travel(Login::LOCK_SECONDS + 1)->seconds();
         $c->set('password', 'password')->call('login')->assertRedirect(route('kasir'));
@@ -86,5 +94,38 @@ class LoginTest extends TestCase
         $this->post('/keluar')->assertRedirect(route('login'));
         $this->assertNull(session('mock.user'));
         $this->get('/masuk')->assertSee('Anda sudah keluar');
+    }
+
+    public function test_json_login_endpoint(): void
+    {
+        $this->postJson('/masuk', ['email' => 'pengurus@koperasi.test', 'password' => 'password'])
+            ->assertOk()
+            ->assertJsonPath('data.role', 'pengurus')
+            ->assertJsonPath('redirect', route('laporan'))
+            ->assertJsonMissingPath('data.password');
+        $this->assertAuthenticated();
+
+        $this->post('/keluar');
+        $this->assertGuest();
+
+        $this->postJson('/masuk', ['email' => 'pengurus@koperasi.test', 'password' => 'salah'])
+            ->assertJsonValidationErrors(['email' => 'Email atau kata sandi salah.']);
+        $this->postJson('/masuk', ['email' => 'nonaktif@koperasi.test', 'password' => 'password'])
+            ->assertJsonValidationErrors(['email' => 'Akun ini dinonaktifkan. Hubungi admin koperasi.']);
+        $this->postJson('/masuk', [])->assertJsonValidationErrors(['email', 'password']);
+    }
+
+    public function test_form_login_redirects_to_intended_page(): void
+    {
+        $this->get('/anggota')->assertRedirect(route('login'));
+        $this->post('/masuk', ['email' => 'kasir@koperasi.test', 'password' => 'password'])->assertRedirect(url('/anggota'));
+    }
+
+    public function test_real_session_drives_menu_and_guard(): void
+    {
+        $this->post('/masuk', ['email' => 'kasir@koperasi.test', 'password' => 'password']);
+
+        $this->get('/kasir')->assertOk()->assertSee('Bu Rina');
+        $this->get('/laporan')->assertForbidden();
     }
 }

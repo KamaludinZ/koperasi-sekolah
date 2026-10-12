@@ -2,7 +2,6 @@
 
 namespace Tests\Feature\Pengguna;
 
-use App\Livewire\Auth\Login;
 use App\Livewire\Pengguna\Index;
 use App\Support\MockData;
 use Database\Seeders\ProductSeeder;
@@ -41,7 +40,7 @@ class IndexTest extends TestCase
         $this->get('/pengguna')->assertForbidden();
     }
 
-    public function test_create_user_who_can_then_log_in(): void
+    public function test_create_user(): void
     {
         Livewire::test(Index::class)
             ->call('create')
@@ -55,10 +54,7 @@ class IndexTest extends TestCase
             ->assertSee('Akun Bu Ani dibuat sebagai Pengurus.');
 
         $this->assertSame('ani@koperasi.test', collect(MockData::users())->firstWhere('name', 'Bu Ani')['email']);
-
-        session()->forget('mock.user');
-        Livewire::test(Login::class)->set('email', 'ani@koperasi.test')->set('password', 'rahasia123')
-            ->call('login')->assertRedirect(route('laporan'));
+        // Login dengan akun baru diuji setelah halaman ini memakai database (task backend kelola pengguna).
     }
 
     public function test_validation(): void
@@ -94,16 +90,5 @@ class IndexTest extends TestCase
         Livewire::test(Index::class)->call('edit', 1)->set('form.role', 'kasir')->call('save')
             ->assertHasErrors('form.role');
         $this->assertSame('admin', MockData::findUser(1)['role']);
-    }
-
-    public function test_last_login_is_recorded(): void
-    {
-        session()->forget('mock.user');
-        $this->travelTo('2026-10-14 08:00:00');
-        Livewire::test(Login::class)->set('email', 'nonaktif@koperasi.test')->set('password', 'password')->call('login');
-        $this->assertNull(MockData::findUser(4)['last_login_at']);
-
-        Livewire::test(Login::class)->set('email', 'pengurus@koperasi.test')->set('password', 'password')->call('login');
-        $this->assertSame('2026-10-14 08:00:00', MockData::findUser(3)['last_login_at']);
     }
 }
