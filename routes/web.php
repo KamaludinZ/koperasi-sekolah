@@ -15,6 +15,7 @@ use App\Http\Controllers\Kasir\ProductSearchController;
 use App\Http\Controllers\Kasir\TransactionReceiptController;
 use App\Http\Controllers\Laporan\SalesExportController;
 use App\Http\Controllers\Laporan\SalesReportController;
+use App\Http\Controllers\Pengaturan\LogoController;
 use App\Http\Controllers\Pengaturan\SettingsController;
 use App\Http\Controllers\Pengguna\UserController;
 use App\Http\Controllers\Transaksi\TransactionDetailController;
@@ -30,12 +31,14 @@ use App\Livewire\Notifikasi;
 use App\Livewire\Pengaturan;
 use App\Livewire\Pengguna;
 use App\Livewire\Transaksi;
+use App\Services\LogoService;
 use App\Services\SettingsService;
 use Illuminate\Support\Facades\Route;
 
 // Halaman petugas dijaga per menu: `menu:<kunci>` = wajib masuk + peran boleh membuka menu
 // itu (App\Support\Menu, tabel roles.permissions); `peran:<nama>` = pembatas tambahan.
 Route::get('/', BerandaController::class)->name('beranda');
+Route::get('/logo/{file}', [LogoController::class, 'show'])->where('file', LogoService::FILE_PATTERN)->name('logo');
 
 Route::get('/masuk', Login::class)->name('login');
 Route::post('/masuk', LoginController::class)->middleware('throttle:30,1')->name('login.store');
@@ -183,8 +186,8 @@ Route::middleware('menu:pengaturan')->group(function () {
     Route::get('/pengaturan/data', [SettingsController::class, 'index'])->name('pengaturan.data');
     Route::get('/pengaturan/data/{section}', [SettingsController::class, 'show'])->whereIn('section', SettingsService::SECTIONS)->name('pengaturan.data.show');
     Route::middleware('throttle:30,1')->group(function () {
-        Route::post('/pengaturan/data/profile/logo', [SettingsController::class, 'uploadLogo'])->name('pengaturan.logo.store');
-        Route::delete('/pengaturan/data/profile/logo', [SettingsController::class, 'deleteLogo'])->name('pengaturan.logo.destroy');
+        Route::post('/pengaturan/data/profile/logo', [LogoController::class, 'store'])->name('pengaturan.logo.store');
+        Route::delete('/pengaturan/data/profile/logo', [LogoController::class, 'destroy'])->name('pengaturan.logo.destroy');
         Route::put('/pengaturan/data/{section}', [SettingsController::class, 'update'])->whereIn('section', SettingsService::SECTIONS)->name('pengaturan.data.update');
         Route::post('/pengaturan/data/{section}/reset', [SettingsController::class, 'reset'])->whereIn('section', SettingsService::SECTIONS)->name('pengaturan.data.reset');
     });

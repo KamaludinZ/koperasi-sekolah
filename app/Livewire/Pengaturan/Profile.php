@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Pengaturan;
 
+use App\Services\LogoService;
 use App\Support\MockData;
 use App\Support\OpeningHours;
 use App\Livewire\Concerns\NotifiesSave;
@@ -14,7 +15,7 @@ use Livewire\WithFileUploads;
 /**
  * Form Profil Koperasi: nama, nama singkat, madrasah, alamat, kontak, motto, logo,
  * dan jam buka per hari; dengan pratinjau langsung di struk & beranda.
- * Disimpan ke tabel settings lewat SettingsService; logo sebagai data URI.
+ * Disimpan ke tabel settings lewat SettingsService; logo sebagai berkas lewat LogoService.
  */
 #[Layout('components.layouts.app')]
 #[Title('Profil Koperasi')]
@@ -37,7 +38,11 @@ class Profile extends Component
 
     public string $motto = '';
 
+    /** URL logo yang tersimpan (untuk pratinjau). */
     public ?string $logo = null;
+
+    /** Logo tersimpan ditandai untuk dihapus saat disimpan. */
+    public bool $logoRemoved = false;
 
     /** @var TemporaryUploadedFile|null */
     public $logoUpload = null;
@@ -71,7 +76,7 @@ class Profile extends Component
             'phone' => ['nullable', 'string', 'max:20', 'regex:/^[0-9+\-\s()]{6,20}$/'],
             'email' => ['nullable', 'email', 'max:150'],
             'motto' => ['nullable', 'string', 'max:150'],
-            'logoUpload' => ['nullable', 'image', 'mimes:png,jpg,jpeg,webp', 'max:512', 'dimensions:min_width=64,min_height=64'],
+            'logoUpload' => ['nullable', ...array_slice(LogoService::rules(), 1)],
             'schedule.*.open' => ['boolean'],
             'schedule.*.from' => ['required_if:schedule.*.open,true', 'date_format:H:i'],
             'schedule.*.to' => ['required_if:schedule.*.open,true', 'date_format:H:i', function ($attr, $value, $fail) {
@@ -90,10 +95,7 @@ class Profile extends Component
             'max' => 'Maksimal :max karakter.',
             'phone.regex' => 'Nomor telepon tidak valid.',
             'email.email' => 'Format email belum benar.',
-            'logoUpload.image' => 'Logo harus berupa gambar.',
-            'logoUpload.mimes' => 'Gunakan PNG, JPG, atau WEBP.',
-            'logoUpload.max' => 'Ukuran logo maksimal 512 KB.',
-            'logoUpload.dimensions' => 'Logo minimal 64×64 piksel.',
+            ...LogoService::messages('logoUpload'),
             'date_format' => 'Format jam HH:MM.',
         ];
     }
@@ -107,6 +109,7 @@ class Profile extends Component
     {
         $this->logo = null;
         $this->logoUpload = null;
+        $this->logoRemoved = true;
     }
 
     public function save(): void
@@ -115,17 +118,22 @@ class Profile extends Component
         $this->saveWithToast(function () {
             $this->validate();
 
+            $logos = app(LogoService::class);
             if ($this->logoUpload) {
-                $this->logo = 'data:'.$this->logoUpload->getMimeType().';base64,'.base64_encode($this->logoUpload->get());
+                $logos->store($this->logoUpload);
                 $this->logoUpload = null;
+            } elseif ($this->logoRemoved) {
+                $logos->delete();
             }
+            $this->logoRemoved = false;
 
             MockData::saveSettings('profile', [
                 'name' => trim($this->name), 'short_name' => trim($this->short_name), 'school' => trim($this->school),
                 'address' => trim($this->address), 'phone' => trim($this->phone), 'email' => trim($this->email) ?: null,
-                'motto' => trim($this->motto), 'logo' => $this->logo,
+                'motto' => trim($this->motto),
                 'schedule' => collect($this->schedule)->map(fn ($h) => $h['open'] ? ['open' => $h['from'], 'close' => $h['to']] : null)->all(),
             ]);
+            $this->logo = MockData::profile()['logo'];
             $this->saved = true;
         }, 'Profil koperasi disimpan. Struk dan beranda langsung memakai data baru.');
         $this->dispatch('profile-saved');

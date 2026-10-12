@@ -1,6 +1,6 @@
 {
   "repo": "Koperasi Sekolah",
-  "generatedForCommit": "805a86bb5a096059492f745b31bc8a3d26848dd5",
+  "generatedForCommit": "21dcbab145b574a240947fb4173740f2844c291f",
   "files": [
     {
       "path": ".claude/skills/ngodingpakeai/SKILL.md",
@@ -145,6 +145,12 @@
       "reason": "needs_summary",
       "language": "php",
       "size": 4404
+    },
+    {
+      "path": "app/Http/Controllers/Pengaturan/SettingsController.php",
+      "reason": "new",
+      "language": "php",
+      "size": 3917
     },
     {
       "path": "app/Http/Controllers/Pengguna/UserController.php",
@@ -298,25 +304,25 @@
     },
     {
       "path": "app/Livewire/Pengaturan/Index.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 2034
     },
     {
       "path": "app/Livewire/Pengaturan/Profile.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 5211
     },
     {
       "path": "app/Livewire/Pengaturan/Receipt.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 4720
     },
     {
       "path": "app/Livewire/Pengaturan/Tax.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 4135
     },
@@ -340,7 +346,7 @@
     },
     {
       "path": "app/Models/ActivityLog.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 1974
     },
@@ -376,7 +382,7 @@
     },
     {
       "path": "app/Models/Setting.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 2950
     },
@@ -520,9 +526,9 @@
     },
     {
       "path": "app/Services/SettingsService.php",
-      "reason": "new",
+      "reason": "changed",
       "language": "php",
-      "size": 7773
+      "size": 13396
     },
     {
       "path": "app/Services/StockService.php",
@@ -550,7 +556,7 @@
     },
     {
       "path": "app/Support/MockData.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 18802
     },
@@ -1218,23 +1224,23 @@
       "path": "resources/views/livewire/pengaturan/index.blade.php",
       "reason": "changed",
       "language": "php",
-      "size": 10255
+      "size": 10293
     },
     {
       "path": "resources/views/livewire/pengaturan/profile.blade.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 11631
     },
     {
       "path": "resources/views/livewire/pengaturan/receipt.blade.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 6167
     },
     {
       "path": "resources/views/livewire/pengaturan/tax.blade.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 9666
     },
@@ -1282,9 +1288,9 @@
     },
     {
       "path": "routes/web.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 9230
+      "size": 10249
     },
     {
       "path": "storage/app/.gitignore",
@@ -1348,7 +1354,7 @@
     },
     {
       "path": "storage/framework/views/07a03143a30b2736a2abb64305bd8f08.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 11966
     },
@@ -1359,70 +1365,10 @@
       "size": 4885
     },
     {
-      "path": "storage/framework/views/0b04fd527690ddbd8902a81afa5811cd.php",
-      "reason": "needs_summary",
-      "language": "php",
-      "size": 4848
-    },
-    {
-      "path": "storage/framework/views/0e5a3bbae451136886b5406f2c4ccb78.php",
-      "reason": "needs_summary",
-      "language": "php",
-      "size": 2371
-    },
-    {
       "path": "storage/framework/views/105478d816809f0b7cfb0c3ebbe75c7f.php",
       "reason": "needs_summary",
       "language": "php",
       "size": 3114
-    },
-    {
-      "path": "storage/framework/views/11762cee78b18a71c9360376789f4806.php",
-      "reason": "needs_summary",
-      "language": "php",
-      "size": 11605
-    },
-    {
-      "path": "storage/framework/views/11d434ee5e77058e2fdf66d3577683cf.php",
-      "reason": "needs_summary",
-      "language": "php",
-      "size": 6271
-    },
-    {
-      "path": "storage/framework/views/13c2d9fe6d7bb641fdad74e20bc098dd.php",
-      "reason": "needs_summary",
-      "language": "php",
-      "size": 11018
-    },
-    {
-      "path": "storage/framework/views/160bba15280f8f676d5e4e66491409ee.php",
-      "reason": "needs_summary",
-      "language": "php",
-      "size": 5753
-    },
-    {
-      "path": "storage/framework/views/1851cf9990fefa450fc355457ff302f3.php",
-      "reason": "needs_summary",
-      "language": "php",
-      "size": 4762
-    },
-    {
-      "path": "storage/framework/views/1d5be02e6e70825d9623df45e079ab47.php",
-      "reason": "needs_summary",
-      "language": "php",
-      "size": 8250
-    },
-    {
-      "path": "storage/framework/views/1d833eae43c36f42502a8576aa630ef1.php",
-      "reason": "needs_summary",
-      "language": "php",
-      "size": 3045
-    },
-    {
-      "path": "storage/framework/views/1dd9bd3a7861ceb052968a2d0306f124.php",
-      "reason": "needs_summary",
-      "language": "php",
-      "size": 11465
     },
     {
       "path": "storage/framework/views/1e0bfda9e08442f5c5fb156eea6bde3e.php",
@@ -1431,100 +1377,16 @@
       "size": 1974
     },
     {
-      "path": "storage/framework/views/1e1e5fda6b47e091c894e31e12597b05.php",
-      "reason": "needs_summary",
-      "language": "php",
-      "size": 7742
-    },
-    {
-      "path": "storage/framework/views/1f95b45cf229cd9bec1caabe9db4eb98.php",
-      "reason": "needs_summary",
-      "language": "php",
-      "size": 2119
-    },
-    {
-      "path": "storage/framework/views/22698be6eea40dc37aa865c319a84d9a.php",
-      "reason": "needs_summary",
-      "language": "php",
-      "size": 10531
-    },
-    {
-      "path": "storage/framework/views/2586e6f6344c06217e4dc8ea72f070dc.php",
-      "reason": "needs_summary",
-      "language": "php",
-      "size": 811
-    },
-    {
-      "path": "storage/framework/views/26b179454db473316c892c0f667a6b38.php",
-      "reason": "needs_summary",
-      "language": "php",
-      "size": 912
-    },
-    {
       "path": "storage/framework/views/28c267bfd327fcb162e337d394bf553e.php",
       "reason": "needs_summary",
       "language": "php",
       "size": 12352
     },
     {
-      "path": "storage/framework/views/28cc9093b56842d8921da0f069465f76.php",
-      "reason": "needs_summary",
-      "language": "php",
-      "size": 780
-    },
-    {
-      "path": "storage/framework/views/2946d8c18956e6e8840b9e14322ac427.php",
-      "reason": "needs_summary",
-      "language": "php",
-      "size": 912
-    },
-    {
-      "path": "storage/framework/views/29836b24de4bb546555c463a428c6a4a.php",
-      "reason": "needs_summary",
-      "language": "php",
-      "size": 442
-    },
-    {
-      "path": "storage/framework/views/2aafcfddc31c08e131496a792bf3d82c.php",
-      "reason": "needs_summary",
-      "language": "php",
-      "size": 9984
-    },
-    {
-      "path": "storage/framework/views/2f6cbfed59fa6c46c9092cc9033046d1.php",
-      "reason": "needs_summary",
-      "language": "php",
-      "size": 3950
-    },
-    {
       "path": "storage/framework/views/2fa8e6b51ec5a9a7a5f66aa2d576d8a3.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 25384
-    },
-    {
-      "path": "storage/framework/views/32bb7b3514f921e97abf58882af7f21d.php",
-      "reason": "needs_summary",
-      "language": "php",
-      "size": 3074
-    },
-    {
-      "path": "storage/framework/views/32f1fb599bdea709c9dffe79c0acee84.php",
-      "reason": "needs_summary",
-      "language": "php",
-      "size": 1262
-    },
-    {
-      "path": "storage/framework/views/34d0013a19927a027e68062fc19808a7.php",
-      "reason": "needs_summary",
-      "language": "php",
-      "size": 2120
-    },
-    {
-      "path": "storage/framework/views/39851c05e1be40e4c4d0463b372dac9b.php",
-      "reason": "needs_summary",
-      "language": "php",
-      "size": 643
     },
     {
       "path": "storage/framework/views/45af3206c0648017c6278009068209d3.php",
@@ -1533,28 +1395,10 @@
       "size": 1978
     },
     {
-      "path": "storage/framework/views/45bb91e9619d3353f0a7411619edb131.php",
-      "reason": "needs_summary",
-      "language": "php",
-      "size": 7810
-    },
-    {
       "path": "storage/framework/views/4943bc92ebba41e8b0e508149542e0ad.blade.php",
       "reason": "needs_summary",
       "language": "php",
       "size": 571
-    },
-    {
-      "path": "storage/framework/views/4acf0644618fc848ed12107f69ba94ea.php",
-      "reason": "needs_summary",
-      "language": "php",
-      "size": 1325
-    },
-    {
-      "path": "storage/framework/views/4d4642d3aa1908ab42af95ffb2975938.php",
-      "reason": "needs_summary",
-      "language": "php",
-      "size": 482
     },
     {
       "path": "storage/framework/views/52f5e0e2173f932d2ee123ac25c31cea.php",
@@ -1563,76 +1407,10 @@
       "size": 8848
     },
     {
-      "path": "storage/framework/views/5c3c5bd6f0c6fe410e382ee48eb40cca.php",
-      "reason": "needs_summary",
-      "language": "php",
-      "size": 3192
-    },
-    {
-      "path": "storage/framework/views/5eac227866812274bae7e1a89132cd16.php",
-      "reason": "needs_summary",
-      "language": "php",
-      "size": 11282
-    },
-    {
-      "path": "storage/framework/views/62ad952d60270394dee1419fc0dd059c.php",
-      "reason": "needs_summary",
-      "language": "php",
-      "size": 404
-    },
-    {
-      "path": "storage/framework/views/63be5200e7bcf5e90d7da1e77de7aa8c.php",
-      "reason": "needs_summary",
-      "language": "php",
-      "size": 10343
-    },
-    {
-      "path": "storage/framework/views/65e4c2735458f685667e565a812b1c5a.php",
-      "reason": "needs_summary",
-      "language": "php",
-      "size": 4426
-    },
-    {
-      "path": "storage/framework/views/6a716ed1600058dab4cb93986b8327e6.php",
-      "reason": "needs_summary",
-      "language": "php",
-      "size": 998
-    },
-    {
-      "path": "storage/framework/views/6bcbae0c3b166177cf9cf452b31178b2.php",
-      "reason": "needs_summary",
-      "language": "php",
-      "size": 22811
-    },
-    {
       "path": "storage/framework/views/6fe74085a42e869e555fe0022f0ba4e5.php",
       "reason": "needs_summary",
       "language": "php",
       "size": 1934
-    },
-    {
-      "path": "storage/framework/views/70f2929fb33c27a0347a1cd09b275007.php",
-      "reason": "needs_summary",
-      "language": "php",
-      "size": 4266
-    },
-    {
-      "path": "storage/framework/views/7194bef343130897aa58458b1e7e0f4a.php",
-      "reason": "needs_summary",
-      "language": "php",
-      "size": 16894
-    },
-    {
-      "path": "storage/framework/views/74d2a7410f732f8a8022c7c8d07baca0.php",
-      "reason": "needs_summary",
-      "language": "php",
-      "size": 8870
-    },
-    {
-      "path": "storage/framework/views/74e737c055f8622aa8ca327b6c561edf.php",
-      "reason": "needs_summary",
-      "language": "php",
-      "size": 543
     },
     {
       "path": "storage/framework/views/798b34bc9486b4ac75524eea46040336.php",
@@ -1641,76 +1419,10 @@
       "size": 16005
     },
     {
-      "path": "storage/framework/views/7d6ee953c1fd25d7fea970d7e113ae58.php",
-      "reason": "needs_summary",
-      "language": "php",
-      "size": 6123
-    },
-    {
-      "path": "storage/framework/views/7e034ab28a358b7578bb8aa045cceb82.php",
-      "reason": "needs_summary",
-      "language": "php",
-      "size": 892
-    },
-    {
-      "path": "storage/framework/views/8579f4a2b45b5c9d231980dd0f1a02cd.php",
-      "reason": "needs_summary",
-      "language": "php",
-      "size": 429
-    },
-    {
-      "path": "storage/framework/views/85dd96443690e28827b4c678cef21e2b.php",
-      "reason": "needs_summary",
-      "language": "php",
-      "size": 4855
-    },
-    {
-      "path": "storage/framework/views/8786f20facb94f4b70f7458552f91d93.php",
-      "reason": "needs_summary",
-      "language": "php",
-      "size": 2181
-    },
-    {
-      "path": "storage/framework/views/88632d7fe2fb331fa5a6fc2bd8a24ee0.php",
-      "reason": "needs_summary",
-      "language": "php",
-      "size": 23439
-    },
-    {
-      "path": "storage/framework/views/8a94dcdbd8c1d89c01f7772f2c35d57e.php",
-      "reason": "needs_summary",
-      "language": "php",
-      "size": 3225
-    },
-    {
-      "path": "storage/framework/views/8fd2599680f05a81b5d3ab9fa89e7775.php",
-      "reason": "needs_summary",
-      "language": "php",
-      "size": 12236
-    },
-    {
-      "path": "storage/framework/views/90358dd57ea6e95ad2e440e766b7658a.php",
-      "reason": "needs_summary",
-      "language": "php",
-      "size": 7083
-    },
-    {
       "path": "storage/framework/views/915a8066dbfdfee9fc6e01ff537e877e.php",
       "reason": "needs_summary",
       "language": "php",
       "size": 2156
-    },
-    {
-      "path": "storage/framework/views/9185232acdd7328fc5c5fae1b26ceaeb.php",
-      "reason": "needs_summary",
-      "language": "php",
-      "size": 385
-    },
-    {
-      "path": "storage/framework/views/92486d8352a057b32f35a2c32eb6ed80.php",
-      "reason": "needs_summary",
-      "language": "php",
-      "size": 10320
     },
     {
       "path": "storage/framework/views/92583c14c7d686b3adb28a0f23b70c9d.php",
@@ -1719,94 +1431,16 @@
       "size": 6901
     },
     {
-      "path": "storage/framework/views/96a5c01c79fec61e18e85a8f2223b97c.php",
-      "reason": "needs_summary",
-      "language": "php",
-      "size": 7201
-    },
-    {
-      "path": "storage/framework/views/96fa52268d45b9155659c4f423407271.php",
-      "reason": "needs_summary",
-      "language": "php",
-      "size": 542
-    },
-    {
-      "path": "storage/framework/views/98196b70123f55eadb7796163bc1710c.php",
-      "reason": "needs_summary",
-      "language": "php",
-      "size": 8894
-    },
-    {
-      "path": "storage/framework/views/9b9ec40e246d05056152999706d0b807.php",
-      "reason": "needs_summary",
-      "language": "php",
-      "size": 3274
-    },
-    {
       "path": "storage/framework/views/a168b0ebcff266df6b662fc4b6d06e88.blade.php",
       "reason": "needs_summary",
       "language": "php",
       "size": 25
     },
     {
-      "path": "storage/framework/views/a4fdd64daeb1143660a822495a2a229f.php",
-      "reason": "needs_summary",
-      "language": "php",
-      "size": 1229
-    },
-    {
       "path": "storage/framework/views/a51ae40c3dfc9fc6954fc74dc16d2bb3.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 16912
-    },
-    {
-      "path": "storage/framework/views/a695449510b89e729776eee3bc08a422.php",
-      "reason": "needs_summary",
-      "language": "php",
-      "size": 2132
-    },
-    {
-      "path": "storage/framework/views/a6c15270aa440dedb7040a1e4b8a0a59.php",
-      "reason": "needs_summary",
-      "language": "php",
-      "size": 1050
-    },
-    {
-      "path": "storage/framework/views/abd90ee03645b71d966c07a61524a3aa.php",
-      "reason": "needs_summary",
-      "language": "php",
-      "size": 30223
-    },
-    {
-      "path": "storage/framework/views/ac3a893c991609c316069868afe86e16.php",
-      "reason": "needs_summary",
-      "language": "php",
-      "size": 10352
-    },
-    {
-      "path": "storage/framework/views/aea2a48e67812731a199ee3c00596091.php",
-      "reason": "needs_summary",
-      "language": "php",
-      "size": 8744
-    },
-    {
-      "path": "storage/framework/views/b2377400398fee12df516a1ac4ebb852.php",
-      "reason": "needs_summary",
-      "language": "php",
-      "size": 6919
-    },
-    {
-      "path": "storage/framework/views/b4f58d4b4f3575dfa96fb1b63398ccf4.php",
-      "reason": "needs_summary",
-      "language": "php",
-      "size": 10891
-    },
-    {
-      "path": "storage/framework/views/ba5979f1a69d9d3595f4444d9321bfb6.php",
-      "reason": "needs_summary",
-      "language": "php",
-      "size": 14327
     },
     {
       "path": "storage/framework/views/bb2941f959f36c967c040104018a3c16.php",
@@ -1821,40 +1455,10 @@
       "size": 5801
     },
     {
-      "path": "storage/framework/views/c4e33ba9a09a03f89add24689ec89a23.php",
-      "reason": "needs_summary",
-      "language": "php",
-      "size": 721
-    },
-    {
-      "path": "storage/framework/views/c9b94a08e7ffa2ef06c77dd130201c3d.php",
-      "reason": "needs_summary",
-      "language": "php",
-      "size": 2295
-    },
-    {
-      "path": "storage/framework/views/cd1e5807c8d381f9f932c37db5683882.php",
-      "reason": "needs_summary",
-      "language": "php",
-      "size": 10387
-    },
-    {
       "path": "storage/framework/views/d029070fa3c789f7eff350fd958808e0.php",
       "reason": "needs_summary",
       "language": "php",
       "size": 2172
-    },
-    {
-      "path": "storage/framework/views/d06b484ac3f5d883543cac1cd4df750f.php",
-      "reason": "needs_summary",
-      "language": "php",
-      "size": 786
-    },
-    {
-      "path": "storage/framework/views/d3497f4380babe0adfd83c74c30a3f21.php",
-      "reason": "needs_summary",
-      "language": "php",
-      "size": 3871
     },
     {
       "path": "storage/framework/views/d5ff72f7e480c66134634094300a5d00.php",
@@ -1863,28 +1467,10 @@
       "size": 4117
     },
     {
-      "path": "storage/framework/views/d89e9e917234371ccfdf5fc36b78f03a.php",
-      "reason": "needs_summary",
-      "language": "php",
-      "size": 404
-    },
-    {
       "path": "storage/framework/views/dfe96e39dbb5fa9c1a978dfd99841e8b.php",
       "reason": "needs_summary",
       "language": "php",
       "size": 13817
-    },
-    {
-      "path": "storage/framework/views/e0569279937090ca1a86c8a5212a66d4.php",
-      "reason": "needs_summary",
-      "language": "php",
-      "size": 2903
-    },
-    {
-      "path": "storage/framework/views/e17ceb89e1cd3f5fe664f3412bead3d6.php",
-      "reason": "needs_summary",
-      "language": "php",
-      "size": 13603
     },
     {
       "path": "storage/framework/views/e27f66cac0fd83c2264fcbb4d52c1aff.php",
@@ -1899,18 +1485,6 @@
       "size": 791
     },
     {
-      "path": "storage/framework/views/e6654a4ef845c5cde76f8579fc87f507.php",
-      "reason": "needs_summary",
-      "language": "php",
-      "size": 441
-    },
-    {
-      "path": "storage/framework/views/e96e50fea85e512ee3d5e40a5ba39718.php",
-      "reason": "needs_summary",
-      "language": "php",
-      "size": 5648
-    },
-    {
       "path": "storage/framework/views/e986b8e48560967a8893ef75044d6f37.php",
       "reason": "needs_summary",
       "language": "php",
@@ -1923,24 +1497,6 @@
       "size": 561
     },
     {
-      "path": "storage/framework/views/f221adf23ef3637c5e8dd1196a6a56c1.php",
-      "reason": "needs_summary",
-      "language": "php",
-      "size": 14417
-    },
-    {
-      "path": "storage/framework/views/f42e6bc937ce5b928a5231f224c3a42b.php",
-      "reason": "needs_summary",
-      "language": "php",
-      "size": 20348
-    },
-    {
-      "path": "storage/framework/views/f565a13e47f0601a1d3963a4aadee034.php",
-      "reason": "needs_summary",
-      "language": "php",
-      "size": 7842
-    },
-    {
       "path": "storage/framework/views/f916cdf3b46281b029d52410e78f1e6b.php",
       "reason": "needs_summary",
       "language": "php",
@@ -1950,13 +1506,7 @@
       "path": "storage/framework/views/fd279c3631879b2bbbc2283c282a7b6d.php",
       "reason": "changed",
       "language": "php",
-      "size": 16218
-    },
-    {
-      "path": "storage/framework/views/fde31759f320edf659255ac23d0d7883.php",
-      "reason": "needs_summary",
-      "language": "php",
-      "size": 4510
+      "size": 16256
     },
     {
       "path": "tests/Feature/Anggota/IndexTest.php",
@@ -2289,8 +1839,14 @@
       "size": 1958
     },
     {
-      "path": "tests/Feature/Pengaturan/SettingsServiceTest.php",
+      "path": "tests/Feature/Pengaturan/SettingsEndpointTest.php",
       "reason": "new",
+      "language": "php",
+      "size": 6669
+    },
+    {
+      "path": "tests/Feature/Pengaturan/SettingsServiceTest.php",
+      "reason": "needs_summary",
       "language": "php",
       "size": 3938
     },

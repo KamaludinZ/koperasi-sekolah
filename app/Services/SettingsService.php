@@ -8,6 +8,7 @@ use App\Support\OpeningHours;
 use App\Support\PriceCalculator;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use Throwable;
 
 /**
@@ -82,12 +83,13 @@ class SettingsService
         return $this->all()[$section];
     }
 
-    /** Profil koperasi + jam buka yang sudah dikelompokkan + tulisan penutup struk. */
+    /** Profil koperasi (logo sebagai URL) + jam buka yang sudah dikelompokkan + tulisan penutup struk. */
     public function profile(): array
     {
         $all = $this->all();
         $profile = $all['profile'];
         $profile['schedule'] = $this->normalizeSchedule($profile['schedule']);
+        $profile['logo'] = LogoService::url($profile['logo']); // nama berkas → URL siap pakai di <img>
         $profile['hours'] = OpeningHours::group($profile['schedule']);
         $profile['receipt_footer'] = $all['receipt']['footer'];
 
@@ -260,11 +262,15 @@ class SettingsService
 
         $deleted = Setting::where('group', $section)->pluck('key');
         if ($deleted->isNotEmpty()) {
+            $logo = $section === 'profile' ? $this->section('profile')['logo'] : null;
             Setting::whereIn('key', $deleted)->delete();
             $deleted->each(fn ($k) => Cache::forget("setting:{$k}"));
             AuditLog::record('setting.reset', 'pengaturan', self::SECTION_LABELS[$section].' dikembalikan ke bawaan',
                 null, ['section' => $section], null, $this->actor($by));
             $this->flush();
+            if ($logo && preg_match('/^'.LogoService::FILE_PATTERN.'$/', $logo)) {
+                Storage::disk(LogoService::DISK)->delete(LogoService::path($logo));
+            }
         }
 
         return $this->all();

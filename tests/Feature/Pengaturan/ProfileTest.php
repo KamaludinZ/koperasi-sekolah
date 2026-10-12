@@ -10,6 +10,7 @@ use Database\Seeders\ProductSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Storage;
 use Livewire\Livewire;
 use Tests\TestCase;
 
@@ -69,16 +70,21 @@ class ProfileTest extends TestCase
 
     public function test_logo_upload_and_remove(): void
     {
+        Storage::fake('local');
         $c = Livewire::test(Profile::class)
             ->set('logoUpload', UploadedFile::fake()->image('logo.png', 200, 200))
             ->assertHasNoErrors()
             ->call('save')
             ->assertHasNoErrors();
-        $this->assertStringStartsWith('data:image/png;base64,', MockData::profile()['logo']);
-        $this->get('/pengaturan')->assertSee('5 dari 5 sudah lengkap');
+        $url = MockData::profile()['logo'];
+        $this->assertMatchesRegularExpression('#/logo/logo-[A-Za-z0-9]{16}\.png$#', $url);
+        $c->assertSet('logo', $url);
+        Storage::disk('local')->assertExists('koperasi/'.basename($url));
+        $this->get('/pengaturan')->assertSee('5 dari 5 sudah lengkap')->assertSee($url);
 
         $c->call('removeLogo')->call('save');
         $this->assertNull(MockData::profile()['logo']);
+        Storage::disk('local')->assertMissing('koperasi/'.basename($url));
 
         Livewire::test(Profile::class)->set('logoUpload', UploadedFile::fake()->create('logo.pdf', 10, 'application/pdf'))->assertHasErrors('logoUpload');
         Livewire::test(Profile::class)->set('logoUpload', UploadedFile::fake()->image('kecil.png', 20, 20))->assertHasErrors('logoUpload');

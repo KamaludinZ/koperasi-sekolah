@@ -5,7 +5,6 @@ namespace Tests\Feature\Pengaturan;
 use App\Models\ActivityLog;
 use App\Services\SettingsService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Http\UploadedFile;
 use Tests\TestCase;
 
 class SettingsEndpointTest extends TestCase
@@ -106,21 +105,6 @@ class SettingsEndpointTest extends TestCase
         $this->putJson('/pengaturan/data/receipt', ['paper' => '80mm'])->assertOk();
 
         $this->postJson('/pengaturan/data/receipt/reset')->assertOk()->assertJsonPath('data.paper', '58mm');
-    }
-
-    public function test_logo_upload_and_delete(): void
-    {
-        $this->postJson('/pengaturan/data/profile/logo', ['logo' => UploadedFile::fake()->image('logo.png', 32, 32)])
-            ->assertJsonValidationErrors(['logo' => 'Logo minimal 64×64 piksel.']);
-        $this->postJson('/pengaturan/data/profile/logo', ['logo' => UploadedFile::fake()->create('logo.pdf', 10, 'application/pdf')])
-            ->assertJsonValidationErrors('logo');
-
-        $res = $this->postJson('/pengaturan/data/profile/logo', ['logo' => UploadedFile::fake()->image('logo.png', 128, 128)])->assertOk();
-        $this->assertStringStartsWith('data:image/png;base64,', $res->json('data.logo'));
-
-        $this->deleteJson('/pengaturan/data/profile/logo')->assertOk()->assertJsonPath('data.logo', null);
-        $log = ActivityLog::where('event', 'setting.updated')->latest('id')->first();
-        $this->assertStringNotContainsString('base64', json_encode($log->properties));
     }
 
     public function test_logo_cannot_be_set_through_update(): void
