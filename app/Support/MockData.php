@@ -3,6 +3,7 @@
 namespace App\Support;
 
 use App\Models\Notification;
+use App\Services\AnnouncementService;
 use App\Services\NotificationService;
 use App\Services\SettingsService;
 
@@ -63,46 +64,34 @@ class MockData
     }
 
     /**
-     * Pengumuman (notifikasi bertipe pengumuman buatan petugas), terbaru dulu.
+     * Pengumuman buatan petugas, terbaru dulu (lihat AnnouncementService).
      *
      * @return list<array{id: int, title: string, message: string, target: string, show_public: bool, expires_at: ?string, author: ?string, created_at: string}>
      */
     public static function announcements(): array
     {
-        return Notification::with('author:id,name')->where('type', 'pengumuman')->whereNotNull('created_by')
-            ->latest()->orderByDesc('id')->get()
-            ->map(fn (Notification $n) => collect(NotificationService::toArray($n))
-                ->only(['id', 'title', 'message', 'target', 'show_public', 'expires_at', 'author', 'created_at'])->all())
-            ->all();
+        return app(AnnouncementService::class)->list();
     }
 
     public static function saveAnnouncement(array $data): array
     {
-        $n = Notification::create([
-            'type' => 'pengumuman',
-            'title' => $data['title'],
-            'message' => $data['message'],
-            'target' => $data['target'],
-            'show_public' => (bool) ($data['show_public'] ?? false),
-            'expires_at' => $data['expires_at'] ?? null,
-            'created_by' => auth()->id(),
-        ])->load('author:id,name');
-
-        return collect(NotificationService::toArray($n))
-            ->only(['id', 'title', 'message', 'target', 'show_public', 'expires_at', 'author', 'created_at'])->all();
+        return AnnouncementService::toArray(app(AnnouncementService::class)->create($data, auth()->user()));
     }
 
     public static function deleteAnnouncement(int $id): bool
     {
-        return (bool) Notification::where('type', 'pengumuman')->whereKey($id)->delete();
+        $n = Notification::where('type', 'pengumuman')->find($id);
+        if ($n) {
+            app(AnnouncementService::class)->delete($n, auth()->user());
+        }
+
+        return (bool) $n;
     }
 
     /** Pengumuman aktif untuk beranda publik. */
     public static function publicAnnouncements(): array
     {
-        return collect(self::announcements())
-            ->filter(fn ($a) => $a['show_public'] && (! $a['expires_at'] || $a['expires_at'] >= now()->toDateString()))
-            ->values()->all();
+        return app(AnnouncementService::class)->publicList();
     }
 
     public static function markNotifications(array $ids, bool $read = true): void

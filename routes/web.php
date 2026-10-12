@@ -15,6 +15,7 @@ use App\Http\Controllers\Kasir\ProductSearchController;
 use App\Http\Controllers\Kasir\TransactionReceiptController;
 use App\Http\Controllers\Laporan\SalesExportController;
 use App\Http\Controllers\Laporan\SalesReportController;
+use App\Http\Controllers\Notifikasi\AnnouncementController;
 use App\Http\Controllers\Notifikasi\NotificationController;
 use App\Http\Controllers\Pengaturan\LogoController;
 use App\Http\Controllers\Pengaturan\SettingsController;
@@ -58,6 +59,14 @@ Route::middleware(['menu', 'auth', 'throttle:60,1'])->group(function () {
 Route::get('/notifikasi/pengumuman', Notifikasi\Announcements::class)
     ->middleware(['menu', 'auth', 'peran:admin,pengurus'])
     ->name('notifikasi.pengumuman');
+Route::middleware(['menu', 'auth', 'peran:admin,pengurus'])->group(function () {
+    Route::get('/notifikasi/pengumuman/data', [AnnouncementController::class, 'index'])->name('notifikasi.pengumuman.data');
+    Route::middleware('throttle:30,1')->group(function () {
+        Route::post('/notifikasi/pengumuman', [AnnouncementController::class, 'store'])->name('notifikasi.pengumuman.store');
+        Route::put('/notifikasi/pengumuman/{pengumuman}', [AnnouncementController::class, 'update'])->whereNumber('pengumuman')->name('notifikasi.pengumuman.update');
+        Route::delete('/notifikasi/pengumuman/{pengumuman}', [AnnouncementController::class, 'destroy'])->whereNumber('pengumuman')->name('notifikasi.pengumuman.destroy');
+    });
+});
 Route::middleware('auth')->group(function () {
     Route::put('/akun/kata-sandi', PasswordController::class)
         ->middleware('throttle:10,1')

@@ -76,9 +76,12 @@
                                     {{ \App\Livewire\Notifikasi\Index::TARGETS[$a['target']] ?? $a['target'] }}
                                     @if ($a['show_public']) · <span class="text-emerald-700">beranda publik</span>@endif
                                     @if ($expired) · berakhir @elseif ($a['expires_at']) · s.d. {{ \Illuminate\Support\Carbon::parse($a['expires_at'])->translatedFormat('d M') }}@endif
+                                    @if ($a['author']) · {{ $a['author'] }}@endif
                                 </p>
                             </div>
-                            <button type="button" wire:click="delete({{ $a['id'] }})" wire:confirm="Hapus pengumuman ini?" class="shrink-0 rounded-md px-2 py-1 text-xs font-medium text-red-700 hover:bg-red-50">Hapus</button>
+                            @if ($this->canManage($a))
+                                <button type="button" wire:click="delete({{ $a['id'] }})" wire:confirm="Hapus pengumuman ini?" class="shrink-0 rounded-md px-2 py-1 text-xs font-medium text-red-700 hover:bg-red-50">Hapus</button>
+                            @endif
                         </li>
                     @empty
                         <li class="px-3 py-6 text-center text-sm text-stone-500">Belum ada pengumuman.</li>

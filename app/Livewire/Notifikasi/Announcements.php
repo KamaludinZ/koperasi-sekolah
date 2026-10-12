@@ -3,7 +3,9 @@
 namespace App\Livewire\Notifikasi;
 
 use App\Livewire\Concerns\NotifiesSave;
-use App\Support\MockData;
+use App\Models\Notification;
+use App\Services\AnnouncementService;
+use Illuminate\Auth\Access\AuthorizationException;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
@@ -20,12 +22,7 @@ class Announcements extends Component
 {
     use NotifiesSave;
 
-    public const TARGETS = [
-        'semua' => 'Semua (petugas & anggota)',
-        'anggota' => 'Anggota (siswa & guru)',
-        'kasir' => 'Petugas kasir',
-        'pengurus' => 'Pengurus',
-    ];
+    public const TARGETS = AnnouncementService::TARGETS;
 
     public string $title = '';
 
@@ -40,30 +37,23 @@ class Announcements extends Component
     #[Computed]
     public function announcements(): array
     {
-        return MockData::announcements();
+        return app(AnnouncementService::class)->list();
+    }
+
+    /** Admin: semua pengumuman; Pengurus: hanya buatannya. */
+    public function canManage(array $announcement): bool
+    {
+        return auth()->user()?->hasRole('admin') || $announcement['author_id'] === auth()->id();
     }
 
     protected function rules(): array
     {
-        return [
-            'title' => ['required', 'string', 'min:5', 'max:80'],
-            'message' => ['required', 'string', 'min:10', 'max:500'],
-            'target' => ['required', 'in:'.implode(',', array_keys(self::TARGETS))],
-            'show_public' => ['boolean'],
-            'expires_at' => ['nullable', 'date_format:Y-m-d', 'after_or_equal:today'],
-        ];
+        return AnnouncementService::rules();
     }
 
     protected function messages(): array
     {
-        return [
-            'title.required' => 'Judul wajib diisi.',
-            'title.min' => 'Judul minimal :min karakter.',
-            'message.required' => 'Isi pengumuman wajib diisi.',
-            'message.min' => 'Isi minimal :min karakter.',
-            'max' => 'Maksimal :max karakter.',
-            'expires_at.after_or_equal' => 'Tanggal berakhir tidak boleh sebelum hari ini.',
-        ];
+        return AnnouncementService::messages();
     }
 
     public function updatedTarget(): void
@@ -78,15 +68,7 @@ class Announcements extends Component
     {
         $this->saveWithToast(function () {
             $data = $this->validate();
-            $public = $data['show_public'] && in_array($data['target'], ['semua', 'anggota'], true);
-
-            MockData::saveAnnouncement([
-                'title' => trim($data['title']),
-                'message' => trim($data['message']),
-                'target' => $data['target'],
-                'show_public' => $public,
-                'expires_at' => $data['expires_at'] ?: null,
-            ]);
+            app(AnnouncementService::class)->create($data, auth()->user());
 
             $this->reset('title', 'message', 'target', 'expires_at');
             $this->show_public = true;
@@ -97,11 +79,22 @@ class Announcements extends Component
 
     public function delete(int $id): void
     {
-        if (MockData::deleteAnnouncement($id)) {
-            unset($this->announcements);
-            $this->dispatch('notifications-changed');
-            $this->toast('success', 'Pengumuman dihapus.');
+        $n = Notification::where('type', 'pengumuman')->whereNotNull('created_by')->find($id);
+        if (! $n) {
+            return;
         }
+
+        try {
+            app(AnnouncementService::class)->delete($n, auth()->user());
+        } catch (AuthorizationException $e) {
+            $this->toast('error', $e->getMessage());
+
+            return;
+        }
+
+        unset($this->announcements);
+        $this->dispatch('notifications-changed');
+        $this->toast('success', 'Pengumuman dihapus.');
     }
 
     public function render()
