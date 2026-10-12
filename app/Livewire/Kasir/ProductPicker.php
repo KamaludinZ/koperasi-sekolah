@@ -2,7 +2,7 @@
 
 namespace App\Livewire\Kasir;
 
-use App\Support\MockData;
+use App\Services\ProductCatalog;
 use Livewire\Attributes\Computed;
 use Livewire\Component;
 
@@ -27,24 +27,14 @@ class ProductPicker extends Component
     #[Computed]
     public function products(): array
     {
-        $term = mb_strtolower(trim($this->search));
-
-        return array_values(array_filter(MockData::activeProducts(), function (array $p) use ($term) {
-            if ($this->category !== '' && $p['category'] !== $this->category) {
-                return false;
-            }
-
-            return $term === ''
-                || str_contains(mb_strtolower($p['name']), $term)
-                || str_contains(mb_strtolower($p['code']), $term);
-        }));
+        return app(ProductCatalog::class)->search($this->search, $this->category);
     }
 
     public function pick(int $productId): void
     {
-        $product = MockData::findProduct($productId);
+        $product = app(ProductCatalog::class)->find($productId);
 
-        if (! $product || ! $product['is_active'] || $product['stock'] < 1) {
+        if (! $product || $product['stock'] < 1) {
             return;
         }
 
@@ -64,7 +54,7 @@ class ProductPicker extends Component
         }
 
         $results = $this->products;
-        $match = collect($results)->first(fn ($p) => mb_strtolower($p['code']) === $term)
+        $match = app(ProductCatalog::class)->findByCode($term)
             ?? (count($results) === 1 ? $results[0] : null);
 
         if ($match) {
@@ -77,7 +67,7 @@ class ProductPicker extends Component
     public function render()
     {
         return view('livewire.kasir.product-picker', [
-            'categories' => MockData::categories(),
+            'categories' => app(ProductCatalog::class)->categories(),
         ]);
     }
 }

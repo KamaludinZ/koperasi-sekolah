@@ -4,10 +4,20 @@ namespace Tests\Feature\Kasir;
 
 use App\Livewire\Kasir\Cart;
 use Livewire\Livewire;
+use Database\Seeders\ProductSeeder;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
 class CartTest extends TestCase
 {
+    use RefreshDatabase;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+        $this->seed(ProductSeeder::class);
+    }
+
     public function test_picked_products_accumulate_and_total_updates(): void
     {
         $cart = Livewire::test(Cart::class)

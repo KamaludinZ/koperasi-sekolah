@@ -1,6 +1,6 @@
 {
   "repo": "Koperasi Sekolah",
-  "generatedForCommit": "2d4b39e6ed2a65413914614bc6aa6cd33bdcc224",
+  "generatedForCommit": "b5a6f169e8568777a01c48672d140eac1aeca75f",
   "files": [
     {
       "path": ".claude/skills/ngodingpakeai/SKILL.md",
@@ -52,7 +52,7 @@
     },
     {
       "path": "app/Livewire/Barang/Index.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 5888
     },
@@ -85,6 +85,36 @@
       "reason": "needs_summary",
       "language": "php",
       "size": 2258
+    },
+    {
+      "path": "app/Models/Category.php",
+      "reason": "new",
+      "language": "php",
+      "size": 292
+    },
+    {
+      "path": "app/Models/Product.php",
+      "reason": "new",
+      "language": "php",
+      "size": 1188
+    },
+    {
+      "path": "app/Models/StockMovement.php",
+      "reason": "new",
+      "language": "php",
+      "size": 701
+    },
+    {
+      "path": "app/Models/Transaction.php",
+      "reason": "new",
+      "language": "php",
+      "size": 926
+    },
+    {
+      "path": "app/Models/TransactionItem.php",
+      "reason": "new",
+      "language": "php",
+      "size": 712
     },
     {
       "path": "app/Models/User.php",
@@ -243,6 +273,18 @@
       "size": 1812
     },
     {
+      "path": "database/migrations/2026_10_12_000001_create_categories_and_products_tables.php",
+      "reason": "new",
+      "language": "php",
+      "size": 1924
+    },
+    {
+      "path": "database/migrations/2026_10_12_000002_create_transactions_tables.php",
+      "reason": "new",
+      "language": "php",
+      "size": 1854
+    },
+    {
       "path": "database/seeders/DatabaseSeeder.php",
       "reason": "needs_summary",
       "language": "php",
@@ -316,7 +358,7 @@
     },
     {
       "path": "resources/views/livewire/barang/index.blade.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 12098
     },
@@ -334,7 +376,7 @@
     },
     {
       "path": "resources/views/livewire/barang/partials/pagination.blade.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 2716
     },
@@ -532,13 +574,13 @@
     },
     {
       "path": "storage/framework/views/f42e6bc937ce5b928a5231f224c3a42b.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 20345
     },
     {
       "path": "storage/framework/views/fde31759f320edf659255ac23d0d7883.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 4510
     },
@@ -562,7 +604,7 @@
     },
     {
       "path": "tests/Feature/Barang/PaginationTest.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 1326
     },
@@ -571,6 +613,12 @@
       "reason": "needs_summary",
       "language": "php",
       "size": 2152
+    },
+    {
+      "path": "tests/Feature/Database/ProductTransactionSchemaTest.php",
+      "reason": "new",
+      "language": "php",
+      "size": 2709
     },
     {
       "path": "tests/Feature/ExampleTest.php",

@@ -97,7 +97,8 @@ class MockData
         return $products[$data['id']];
     }
 
-    private static function seedProducts(): array
+    /** Data contoh awal — juga dipakai ProductSeeder. */
+    public static function seedProducts(): array
     {
         return [
             ['id' => 1, 'code' => 'ATK001', 'name' => 'Buku Tulis 38 Lembar', 'category' => 'Alat Tulis', 'price' => 4000, 'cost_price' => 3200, 'stock' => 120, 'min_stock' => 20, 'unit' => 'pcs'],

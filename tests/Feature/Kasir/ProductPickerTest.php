@@ -4,10 +4,20 @@ namespace Tests\Feature\Kasir;
 
 use App\Livewire\Kasir\ProductPicker;
 use Livewire\Livewire;
+use Database\Seeders\ProductSeeder;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
 class ProductPickerTest extends TestCase
 {
+    use RefreshDatabase;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+        $this->seed(ProductSeeder::class);
+    }
+
     public function test_filters_by_name_or_code(): void
     {
         Livewire::test(ProductPicker::class)

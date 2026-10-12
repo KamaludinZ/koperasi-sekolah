@@ -4,10 +4,20 @@ namespace Tests\Feature\Kasir;
 
 use App\Livewire\Kasir\Cart;
 use Livewire\Livewire;
+use Database\Seeders\ProductSeeder;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
 class PaymentTest extends TestCase
 {
+    use RefreshDatabase;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+        $this->seed(ProductSeeder::class);
+    }
+
     public function test_payment_panel_requires_items(): void
     {
         Livewire::test(Cart::class)

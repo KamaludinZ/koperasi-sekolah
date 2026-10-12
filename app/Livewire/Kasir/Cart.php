@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Kasir;
 
+use App\Services\ProductCatalog;
 use App\Support\MockData;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\On;
@@ -53,7 +54,7 @@ class Cart extends Component
     {
         $this->notice = null;
         $this->lastRemoved = null;
-        $product = $this->catalog()[$productId] ?? null;
+        $product = $this->catalog()[$productId] ?? app(ProductCatalog::class)->find($productId);
 
         if (! $product || $qty < 1) {
             unset($this->items[$productId]);
@@ -202,7 +203,7 @@ class Cart extends Component
 
     private function catalog(): array
     {
-        return collect(MockData::activeProducts())->keyBy('id')->all();
+        return app(ProductCatalog::class)->findMany(array_keys($this->items));
     }
 
     public function render()
