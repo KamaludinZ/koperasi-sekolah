@@ -109,6 +109,7 @@
                     <p class="font-mono text-xs text-stone-500">
                         {{ $lastTransaction['invoice_number'] }}
                         · <a href="{{ route('kasir.transactions.receipt', ['transaction' => $lastTransaction['id'], 'cetak' => 0]) }}" target="_blank" class="font-sans text-emerald-700 hover:underline">buka struk</a>
+                        · <a href="{{ route('kasir.transactions.receipt.pdf', ['transaction' => $lastTransaction['id'], 'unduh' => 1]) }}" class="font-sans text-emerald-700 hover:underline">unduh PDF</a>
                     </p>
                 </div>
                 <div class="text-right">

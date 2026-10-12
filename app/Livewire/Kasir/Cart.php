@@ -4,6 +4,7 @@ namespace App\Livewire\Kasir;
 
 use App\Services\CheckoutService;
 use App\Services\ProductCatalog;
+use App\Services\ReceiptPdfService;
 use App\Services\ReceiptPresenter;
 use App\Support\MockData;
 use Livewire\Attributes\Computed;
@@ -153,6 +154,12 @@ class Cart extends Component
         }
 
         $this->lastTransaction = app(ReceiptPresenter::class)->present($transaction);
+
+        try {
+            app(ReceiptPdfService::class)->store($transaction);
+        } catch (\Throwable $e) {
+            report($e); // struk PDF bisa dibuat ulang dari halaman struk
+        }
 
         $this->dispatch('transaction-completed', invoice: $transaction->invoice_number);
         $this->paying = false;
