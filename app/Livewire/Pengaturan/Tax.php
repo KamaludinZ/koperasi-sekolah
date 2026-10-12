@@ -13,7 +13,7 @@ use Livewire\Component;
  * Form Pajak & Pembulatan: aktifkan pajak, nama & tarif, sudah termasuk harga atau
  * ditambahkan, cara & kelipatan pembulatan, hanya tunai atau semua metode; dengan
  * kalkulator contoh (nominal bisa diubah) memakai PriceCalculator yang sama dengan kasir.
- * Tahap frontend: disimpan ke pengaturan tiruan (session).
+ * Disimpan ke tabel settings lewat SettingsService.
  */
 #[Layout('components.layouts.app')]
 #[Title('Pajak & Pembulatan')]

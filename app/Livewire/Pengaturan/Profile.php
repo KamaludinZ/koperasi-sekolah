@@ -14,7 +14,7 @@ use Livewire\WithFileUploads;
 /**
  * Form Profil Koperasi: nama, nama singkat, madrasah, alamat, kontak, motto, logo,
  * dan jam buka per hari; dengan pratinjau langsung di struk & beranda.
- * Tahap frontend: disimpan ke pengaturan tiruan (session); logo sebagai data URI.
+ * Disimpan ke tabel settings lewat SettingsService; logo sebagai data URI.
  */
 #[Layout('components.layouts.app')]
 #[Title('Profil Koperasi')]

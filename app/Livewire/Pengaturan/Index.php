@@ -14,7 +14,7 @@ use Livewire\Component;
 /**
  * Halaman utama Pengaturan Koperasi: ringkasan profil, struk, pajak & pembulatan,
  * jam buka, dan stok, dengan tautan ke halaman detail tiap bagian serta daftar
- * kelengkapan profil. Tahap frontend: pengaturan dari data tiruan (MockData::settings).
+ * kelengkapan profil. Pengaturan dari tabel settings (SettingsService).
  */
 #[Layout('components.layouts.app')]
 #[Title('Pengaturan Koperasi')]

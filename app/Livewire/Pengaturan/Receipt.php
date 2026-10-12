@@ -13,7 +13,7 @@ use Livewire\Component;
  * Form pengaturan struk: judul & sub-judul (kosong = ikut profil), alamat/telepon,
  * nama kasir/anggota, catatan, tulisan kaki, ukuran kertas — dengan pratinjau struk
  * langsung memakai partial struk yang sama dengan layar kasir.
- * Tahap frontend: disimpan ke pengaturan tiruan (session).
+ * Disimpan ke tabel settings lewat SettingsService.
  */
 #[Layout('components.layouts.app')]
 #[Title('Pengaturan Struk')]

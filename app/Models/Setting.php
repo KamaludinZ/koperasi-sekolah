@@ -41,6 +41,7 @@ class Setting extends Model
             'updated_by' => $userId,
         ]);
         Cache::forget("setting:{$key}");
+        Cache::forget(\App\Services\SettingsService::CACHE_KEY);
     }
 
     /** Semua nilai satu kelompok sebagai [nama => nilai], mis. group('tax') → ['rate' => 2.5, ...]. */

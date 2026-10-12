@@ -22,6 +22,7 @@ class ActivityLog extends Model
         'anggota' => 'Anggota',
         'pengguna' => 'Pengguna',
         'laporan' => 'Laporan',
+        'pengaturan' => 'Pengaturan',
     ];
 
     /** Kategori yang termasuk sirkulasi uang/barang. */

@@ -8,7 +8,7 @@
 <div class="flex min-h-0 flex-1 flex-col overflow-y-auto">
     <header class="border-b border-stone-200 bg-white px-4 pt-4 sm:px-6">
         <h1 class="text-lg font-semibold">Pengaturan Koperasi</h1>
-        <p class="text-xs text-stone-500">Atur pajak dan cara pembulatan total belanja. <span class="rounded bg-amber-100 px-1.5 py-0.5 text-[11px] font-medium text-amber-800">data tiruan</span></p>
+        <p class="text-xs text-stone-500">Atur pajak dan cara pembulatan total belanja.</p>
         <x-pengaturan.nav />
     </header>
 

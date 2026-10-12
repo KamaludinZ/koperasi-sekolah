@@ -1,6 +1,6 @@
 {
   "repo": "Koperasi Sekolah",
-  "generatedForCommit": "58441d0074f1684e241f973910abbc943cf89500",
+  "generatedForCommit": "ec27776088908a4c9779189586b76940735e539d",
   "files": [
     {
       "path": ".claude/skills/ngodingpakeai/SKILL.md",
@@ -106,7 +106,7 @@
     },
     {
       "path": "app/Http/Controllers/BerandaController.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 2619
     },
@@ -280,7 +280,7 @@
     },
     {
       "path": "app/Livewire/Notifikasi/Announcements.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 3424
     },
@@ -376,9 +376,9 @@
     },
     {
       "path": "app/Models/Setting.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 747
+      "size": 2885
     },
     {
       "path": "app/Models/StockMovement.php",
@@ -544,7 +544,7 @@
     },
     {
       "path": "app/Support/MockData.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 20982
     },
@@ -801,6 +801,12 @@
       "size": 2341
     },
     {
+      "path": "database/migrations/2026_10_12_000011_extend_settings_table.php",
+      "reason": "new",
+      "language": "php",
+      "size": 1768
+    },
+    {
       "path": "database/seeders/ActivityLogSeeder.php",
       "reason": "needs_summary",
       "language": "php",
@@ -904,7 +910,7 @@
     },
     {
       "path": "resources/views/beranda.blade.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 14772
     },
@@ -1186,7 +1192,7 @@
     },
     {
       "path": "resources/views/livewire/notifikasi/announcements.blade.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 7432
     },
@@ -1198,7 +1204,7 @@
     },
     {
       "path": "resources/views/livewire/notifikasi/index.blade.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 7615
     },
@@ -1270,7 +1276,7 @@
     },
     {
       "path": "routes/web.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 9230
     },
@@ -1408,7 +1414,7 @@
     },
     {
       "path": "storage/framework/views/1dd9bd3a7861ceb052968a2d0306f124.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 11465
     },
@@ -1672,7 +1678,7 @@
     },
     {
       "path": "storage/framework/views/8fd2599680f05a81b5d3ab9fa89e7775.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 12236
     },
@@ -1900,7 +1906,7 @@
     },
     {
       "path": "storage/framework/views/e986b8e48560967a8893ef75044d6f37.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 22925
     },
@@ -2110,15 +2116,21 @@
     },
     {
       "path": "tests/Feature/Database/ProductTransactionSchemaTest.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 3379
+      "size": 3377
     },
     {
       "path": "tests/Feature/Database/SavingsTransactionModelTest.php",
       "reason": "needs_summary",
       "language": "php",
       "size": 3228
+    },
+    {
+      "path": "tests/Feature/Database/SettingsSchemaTest.php",
+      "reason": "new",
+      "language": "php",
+      "size": 2682
     },
     {
       "path": "tests/Feature/Database/StockServiceTest.php",
@@ -2224,7 +2236,7 @@
     },
     {
       "path": "tests/Feature/Notifikasi/AnnouncementTest.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 4014
     },

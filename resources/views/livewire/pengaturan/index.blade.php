@@ -19,7 +19,7 @@
                 <p class="text-xs text-stone-500">
                     Identitas, struk, dan aturan dasar transaksi.
                     @if ($s['updated_at']) Terakhir diubah {{ \Illuminate\Support\Carbon::parse($s['updated_at'])->diffForHumans() }}@if ($s['updated_by']) oleh {{ $s['updated_by'] }}@endif. @endif
-                    <span class="rounded bg-amber-100 px-1.5 py-0.5 text-[11px] font-medium text-amber-800">data tiruan</span>
+
                 </p>
             </div>
         </div>
@@ -54,8 +54,8 @@
             <section class="{{ $card }} flex flex-col" aria-labelledby="set-receipt">
                 <p class="text-xs font-semibold tracking-wide text-emerald-700 uppercase" id="set-receipt">Struk pembelian</p>
                 <div class="mx-auto mt-3 w-full max-w-[58mm] rounded-sm border border-dashed border-stone-300 bg-stone-50 p-3 text-center font-mono text-[11px] leading-snug" aria-label="Contoh kepala & kaki struk">
-                    <p class="font-bold uppercase">{{ $r['header'] }}</p>
-                    <p>{{ $r['subheader'] }}</p>
+                    <p class="font-bold uppercase">{{ $r['header'] ?: $p['name'] }}</p>
+                    <p>{{ $r['subheader'] ?: $p['school'] }}</p>
                     <p class="my-1.5 border-t border-dashed border-stone-400"></p>
                     <p class="text-stone-400">… daftar barang …</p>
                     <p class="my-1.5 border-t border-dashed border-stone-400"></p>

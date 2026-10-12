@@ -2,9 +2,11 @@
 
 namespace App\Support;
 
+use App\Services\SettingsService;
+
 /**
  * Data contoh & pengaturan sementara. Barang/kategori kini ada di database
- * (lihat ProductSeeder); identitas koperasi & pajak menunggu tabel settings (fase 4).
+ * (lihat ProductSeeder); pengaturan koperasi diteruskan ke SettingsService (tabel settings).
  */
 class MockData
 {
@@ -13,94 +15,37 @@ class MockData
         return ['Alat Tulis', 'Makanan', 'Minuman', 'Seragam'];
     }
 
-    /** Identitas koperasi & teks struk: dari pengaturan tiruan bila sudah diubah (nanti tabel settings). */
+    /** Identitas koperasi, jam buka & tulisan penutup struk (tabel settings, lihat SettingsService). */
     public static function profile(): array
     {
-        $saved = session('mock.settings.profile');
-        $profile = $saved ?? self::defaultProfile();
-        $profile['hours'] = OpeningHours::group($profile['schedule']);
-        $profile['receipt_footer'] = session('mock.settings.receipt.footer') ?? $profile['receipt_footer'];
-
-        return $profile;
+        return app(SettingsService::class)->profile();
     }
 
-    private static function defaultProfile(): array
-    {
-        return [
-            'name' => 'Koperasi Siswa Al-Hikmah',
-            'short_name' => 'Kopsis Al-Hikmah',
-            'school' => 'Madrasah Tsanawiyah Negeri 1 Contoh',
-            'address' => 'Jl. Pendidikan No. 1, Kota Contoh',
-            'phone' => '0812-3456-7890',
-            'email' => null,
-            'logo' => null,
-            'schedule' => OpeningHours::DEFAULT,
-            'motto' => 'Jujur, amanah, dan saling menolong dalam kebaikan.',
-            'receipt_footer' => 'Terima kasih, semoga berkah. Jazakumullah khairan.',
-        ];
-    }
-
-    /**
-     * Pengaturan koperasi tiruan (tahap frontend fase 4), disimpan di session:
-     * profil, struk, pajak & pembulatan. Diganti tabel settings di tahap backend.
-     */
+    /** Pengaturan koperasi dari tabel settings: profile, receipt, tax, updated_at, updated_by. */
     public static function settings(): array
     {
-        return session('mock.settings') ?? [
-            'profile' => self::defaultProfile(),
-            'receipt' => self::defaultReceipt(),
-            'tax' => [
-                'label' => 'Pajak',
-                'enabled' => false,
-                'rate' => 0,
-                'included' => false,     // harga sudah termasuk pajak
-                'rounding' => 'none',    // none | up | nearest | down
-                'rounding_unit' => 100,  // 100 | 500 | 1000
-                'cash_only' => true,     // pembulatan hanya untuk tunai
-            ],
-            'updated_at' => null,
-            'updated_by' => null,
-        ];
+        return app(SettingsService::class)->all();
     }
 
     /** Pengaturan struk bawaan. Judul/sub-judul kosong = ikut nama koperasi & madrasah. */
     public static function defaultReceipt(): array
     {
-        return [
-            'header' => null,
-            'subheader' => null,
-            'show_address' => true,
-            'show_phone' => false,
-            'show_cashier' => true,
-            'show_member' => true,
-            'note' => null,
-            'footer' => self::defaultProfile()['receipt_footer'],
-            'paper' => '58mm',
-        ];
+        return SettingsService::DEFAULTS['receipt'];
     }
 
-    /** Pengaturan pajak & pembulatan saat ini (tiruan, session). */
     public static function tax(): array
     {
-        return self::settings()['tax'];
+        return app(SettingsService::class)->tax();
     }
 
-    /** Pengaturan struk saat ini (tiruan, session). */
     public static function receipt(): array
     {
-        return [...self::defaultReceipt(), ...(session('mock.settings.receipt') ?? [])];
+        return app(SettingsService::class)->receipt();
     }
 
     public static function saveSettings(string $section, array $values): array
     {
-        $all = self::settings();
-        $all[$section] = [...$all[$section], ...$values];
-        unset($all[$section]['hours']); // turunan dari schedule
-        $all['updated_at'] = now()->toDateTimeString();
-        $all['updated_by'] = auth()->user()?->name;
-        session(['mock.settings' => $all]);
-
-        return $all;
+        return app(SettingsService::class)->save($section, $values);
     }
 
     /**
@@ -211,10 +156,10 @@ class MockData
         return collect(self::notifications())->where('is_read', false)->count();
     }
 
-    /** Persentase pajak penjualan (nanti dari tabel settings). */
+    /** Persentase pajak penjualan efektif (0 bila pajak dimatikan). */
     public static function taxRate(): float
     {
-        return 0;
+        return app(SettingsService::class)->taxRate();
     }
 
     /**
