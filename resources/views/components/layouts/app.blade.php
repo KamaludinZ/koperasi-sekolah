@@ -13,7 +13,7 @@
 <body class="h-full bg-stone-100 text-stone-900 antialiased">
 @php
     $user = \App\Support\MockData::currentUser();
-    $menu = \App\Support\Menu::for($user['role'] ?? null);
+    $menu = \App\Support\Menu::forUser($user);
 @endphp
 <div class="flex h-full" x-data="{ nav: false }" x-on:keydown.escape.window="nav = false">
     {{-- Latar drawer navigasi (layar kecil) --}}

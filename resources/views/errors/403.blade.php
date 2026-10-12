@@ -1,7 +1,7 @@
 @extends('errors.layout')
 @php
     $user = session()->isStarted() ? \App\Support\MockData::currentUser() : null;
-    $home = $user ? \App\Support\Menu::homeRoute($user['role']) : 'beranda';
+    $home = $user ? \App\Support\Menu::homeRoute($user['role'], $user['permissions'] ?? null) : 'beranda';
     $reason = isset($exception) && $exception->getMessage() !== '' && $exception->getMessage() !== 'Forbidden' ? $exception->getMessage() : null;
 @endphp
 @section('code', '403')

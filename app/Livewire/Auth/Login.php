@@ -33,7 +33,7 @@ class Login extends Component
     public function mount(): void
     {
         if ($user = MockData::currentUser()) {
-            $this->redirectRoute(Menu::homeRoute($user['role']));
+            $this->redirectRoute(Menu::homeRoute($user['role'], $user['permissions'] ?? null));
         }
     }
 
@@ -57,7 +57,7 @@ class Login extends Component
             return;
         }
 
-        $this->redirectIntended(route(Menu::homeRoute($user->roleName())));
+        $this->redirectIntended(route(Menu::homeRoute($user->roleName(), $user->role?->permissions)));
     }
 
     public function render()

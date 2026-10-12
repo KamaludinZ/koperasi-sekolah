@@ -9,39 +9,28 @@ use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
- * Penjaga rute halaman petugas, ditentukan dari segmen URL pertama:
- * - menu (kasir, barang, transaksi, anggota, laporan, pengguna, pengaturan) & `akun` wajib masuk;
- *   belum masuk → ke /masuk (lalu kembali ke tujuan), atau 401 untuk permintaan JSON;
- * - menu di luar hak peran → 403 dengan pesan siapa yang boleh membukanya.
- * Beranda, /masuk, aset, dan /livewire tidak dijaga.
- * Tahap frontend: akun & peran dari session tiruan.
+ * Middleware rute `menu` / `menu:<kunci>`:
+ * - wajib masuk: belum masuk → /masuk (lalu kembali ke tujuan), JSON → 401;
+ * - dengan kunci menu: peran harus boleh membuka menu itu (roles.permissions) → bila tidak, 403
+ *   dengan pesan siapa yang boleh membukanya.
+ * Didaftarkan juga sebagai persistent middleware Livewire, jadi aksi komponen ikut dicek.
  */
 class EnsureMenuAccess
 {
-    /** Segmen yang wajib masuk tetapi bukan menu (bisa dibuka semua peran). */
-    public const ACCOUNT_SEGMENTS = ['akun'];
-
-    public function handle(Request $request, Closure $next): Response
+    public function handle(Request $request, Closure $next, ?string $menu = null): Response
     {
-        $segment = $request->segment(1);
-        $isMenu = $segment && array_key_exists($segment, Menu::ITEMS);
-
-        if (! $isMenu && ! in_array($segment, self::ACCOUNT_SEGMENTS, true)) {
-            return $next($request);
-        }
-
         $user = MockData::currentUser();
 
         if (! $user) {
-            if ($request->expectsJson()) {
+            if ($request->expectsJson() || $request->hasHeader('X-Livewire')) {
                 abort(401, 'Silakan masuk terlebih dahulu.');
             }
 
             return redirect()->guest(route('login'))->with('status', 'Silakan masuk dulu untuk membuka halaman itu.');
         }
 
-        if ($isMenu && ! Menu::allows($user['role'], $segment)) {
-            abort(403, Menu::deniedMessage($segment));
+        if ($menu !== null && ! Menu::userCan($user, $menu)) {
+            abort(403, Menu::deniedMessage($menu));
         }
 
         return $next($request);

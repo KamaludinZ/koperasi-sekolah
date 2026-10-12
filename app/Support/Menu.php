@@ -75,6 +75,39 @@ class Menu
     }
 
     /**
+     * Hak menu petugas yang sedang masuk: dari roles.permissions (akun sungguhan),
+     * atau hak bawaan peran untuk akun tiruan.
+     *
+     * @param  array{role?: ?string, permissions?: list<string>, is_active?: bool}  $user
+     */
+    public static function userCan(array $user, string $menu): bool
+    {
+        if (($user['is_active'] ?? true) === false) {
+            return false;
+        }
+
+        return in_array($menu, $user['permissions'] ?? self::DEFAULT_PERMISSIONS[$user['role'] ?? ''] ?? [], true);
+    }
+
+    /** Menu yang terlihat untuk petugas (lihat for()). */
+    public static function forUser(?array $user): array
+    {
+        if (! $user) {
+            return self::for(null);
+        }
+
+        $groups = [];
+        foreach (self::ITEMS as $key => $item) {
+            if (self::userCan($user, $key)) {
+                $groups[$item['group']]['label'] = self::GROUPS[$item['group']];
+                $groups[$item['group']]['items'][$key] = $item;
+            }
+        }
+
+        return $groups;
+    }
+
+    /**
      * Menu yang boleh dilihat, dikelompokkan. Tanpa peran (belum masuk, tahap demo) = semua menu.
      *
      * @return array<string, array{label: string, items: array<string, array>}>
@@ -106,9 +139,9 @@ class Menu
     }
 
     /** Halaman pertama setelah masuk, sesuai peran. */
-    public static function homeRoute(?string $role): string
+    public static function homeRoute(?string $role, ?array $permissions = null): string
     {
-        foreach (self::DEFAULT_PERMISSIONS[$role] ?? [] as $key) {
+        foreach ($permissions ?? self::DEFAULT_PERMISSIONS[$role] ?? [] as $key) {
             if ($route = self::ITEMS[$key]['route']) {
                 return $route;
             }
