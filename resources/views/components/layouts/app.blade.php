@@ -12,15 +12,8 @@
 </head>
 <body class="h-full bg-stone-100 text-stone-900 antialiased">
 @php
-    $nav = [
-        ['label' => 'Kasir', 'route' => 'kasir', 'icon' => 'M3 3h18v4H3zM5 7v13h14V7M9 11h6'],
-        ['label' => 'Barang & Stok', 'route' => 'barang', 'icon' => 'M20 7l-8-4-8 4m16 0v10l-8 4m8-14l-8 4m0 10l-8-4V7m8 14V11'],
-        ['label' => 'Transaksi', 'route' => 'transaksi', 'icon' => 'M9 5h10M9 12h10M9 19h10M5 5h.01M5 12h.01M5 19h.01'],
-        ['label' => 'Anggota', 'route' => 'anggota', 'icon' => 'M17 20h5v-2a4 4 0 00-5-3.9M9 20H2v-2a4 4 0 014-4h3a4 4 0 014 4v2zM12 7a3 3 0 11-6 0 3 3 0 016 0zm8 2a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z'],
-        ['label' => 'Laporan', 'route' => 'laporan', 'icon' => 'M4 20V10m6 10V4m6 16v-7m4 7H2'],
-        ['label' => 'Pengaturan', 'route' => null, 'icon' => 'M12 15a3 3 0 100-6 3 3 0 000 6zM19.4 15a1.6 1.6 0 00.3 1.8l.1.1a2 2 0 11-2.8 2.8l-.1-.1a1.6 1.6 0 00-2.7 1.1V21a2 2 0 11-4 0v-.1a1.6 1.6 0 00-2.7-1.1l-.1.1a2 2 0 11-2.8-2.8l.1-.1a1.6 1.6 0 00-1.1-2.7H3a2 2 0 110-4h.1a1.6 1.6 0 001.1-2.7l-.1-.1a2 2 0 112.8-2.8l.1.1a1.6 1.6 0 002.7-1.1V3a2 2 0 114 0v.1a1.6 1.6 0 002.7 1.1l.1-.1a2 2 0 112.8 2.8l-.1.1a1.6 1.6 0 001.1 2.7h.1a2 2 0 110 4h-.1a1.6 1.6 0 00-1.5 1z'],
-    ];
     $user = \App\Support\MockData::currentUser();
+    $menu = \App\Support\Menu::for($user['role'] ?? null);
 @endphp
 <div class="flex h-full" x-data="{ nav: false }" x-on:keydown.escape.window="nav = false">
     {{-- Latar drawer navigasi (layar kecil) --}}
@@ -32,28 +25,38 @@
         <a href="{{ route('beranda') }}" class="mx-3 mt-4 mb-2 block rounded-lg px-2 py-2 outline-none hover:bg-emerald-900/60 focus-visible:ring-2 focus-visible:ring-amber-300" title="Beranda koperasi">
             <x-brand.logo size="sm" />
         </a>
-        <p class="ornament-divider mx-5 mb-3 text-[10px] font-semibold tracking-[0.2em] text-amber-400/80 uppercase">Menu</p>
-        <nav class="flex-1 space-y-0.5 overflow-y-auto px-3">
-            @foreach ($nav as $item)
-                @php $active = $item['route'] && request()->routeIs($item['route'], $item['route'].'.*'); @endphp
-                @if ($item['route'])
-                    <a href="{{ route($item['route']) }}" wire:navigate
-                       @class(['relative flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition',
-                               'bg-emerald-800 text-white shadow-inner before:absolute before:inset-y-2 before:left-0 before:w-1 before:rounded-full before:bg-amber-400' => $active,
-                               'text-emerald-200 hover:bg-emerald-900 hover:text-white' => ! $active])>
-                @else
-                    <span class="flex cursor-not-allowed items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-emerald-200/50" title="Segera hadir">
-                @endif
-                    <svg class="size-5 shrink-0" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="{{ $item['icon'] }}"/></svg>
-                    <span class="flex-1">{{ $item['label'] }}</span>
-                    @if ($item['route'] === 'barang' && ($alerts = app(\App\Services\ProductListing::class)->lowStockCount()) > 0)
-                        <span class="rounded-full bg-amber-400 px-1.5 text-[11px] font-semibold text-emerald-950 tabular-nums" title="{{ $alerts }} barang perlu ditambah stoknya">{{ $alerts }}</span>
-                    @endif
-                @if ($item['route'])
-                    </a>
-                @else
-                    </span>
-                @endif
+        <nav class="flex-1 space-y-4 overflow-y-auto px-3 pb-2" aria-label="Menu utama">
+            @foreach ($menu as $groupKey => $group)
+                <div>
+                    <p class="ornament-divider mx-2 mb-1.5 text-[10px] font-semibold tracking-[0.18em] text-amber-400/80 uppercase">{{ $group['label'] }}</p>
+                    <ul class="space-y-0.5">
+                        @foreach ($group['items'] as $key => $item)
+                            @php $active = $item['route'] && request()->routeIs($item['route'], $item['route'].'.*'); @endphp
+                            <li>
+                                @if ($item['route'])
+                                    <a href="{{ route($item['route']) }}" wire:navigate @if ($active) aria-current="page" @endif
+                                       @class(['relative flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition',
+                                               'bg-emerald-800 text-white shadow-inner before:absolute before:inset-y-2 before:left-0 before:w-1 before:rounded-full before:bg-amber-400' => $active,
+                                               'text-emerald-200 hover:bg-emerald-900 hover:text-white' => ! $active])>
+                                @else
+                                    <span class="flex cursor-not-allowed items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-emerald-200/50" title="Segera hadir">
+                                @endif
+                                    <svg class="size-5 shrink-0" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" aria-hidden="true"><path d="{{ $item['icon'] }}"/></svg>
+                                    <span class="flex-1">{{ $item['label'] }}</span>
+                                    @if ($key === 'barang' && ($alerts = app(\App\Services\ProductListing::class)->lowStockCount()) > 0)
+                                        <span class="rounded-full bg-amber-400 px-1.5 text-[11px] font-semibold text-emerald-950 tabular-nums" title="{{ $alerts }} barang perlu ditambah stoknya">{{ $alerts }}</span>
+                                    @elseif (! $item['route'])
+                                        <span class="rounded bg-emerald-900 px-1.5 py-0.5 text-[10px] text-emerald-300/70">segera</span>
+                                    @endif
+                                @if ($item['route'])
+                                    </a>
+                                @else
+                                    </span>
+                                @endif
+                            </li>
+                        @endforeach
+                    </ul>
+                </div>
             @endforeach
         </nav>
         <div class="m-3 rounded-xl border border-emerald-800/80 bg-emerald-900/60 p-3">
@@ -72,6 +75,7 @@
                     </form>
                 </div>
             @else
+                <p class="mb-2 text-xs leading-snug text-emerald-200">Mode demo: semua menu terbuka. Masuk untuk melihat menu sesuai peran.</p>
                 <a href="{{ route('login') }}" class="flex items-center justify-center gap-2 rounded-lg bg-amber-400 px-3 py-2 text-sm font-semibold text-emerald-950 hover:bg-amber-300">Masuk petugas</a>
             @endif
         </div>

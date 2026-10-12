@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Auth;
 
+use App\Support\Menu;
 use App\Support\MockData;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
@@ -28,8 +29,8 @@ class Login extends Component
 
     public function mount(): void
     {
-        if (MockData::currentUser()) {
-            $this->redirectRoute('kasir');
+        if ($user = MockData::currentUser()) {
+            $this->redirectRoute(Menu::homeRoute($user['role']));
         }
     }
 
@@ -75,7 +76,7 @@ class Login extends Component
         session()->regenerate();
         session(['mock.user' => $user]);
 
-        $this->redirectIntended(route('kasir'));
+        $this->redirectIntended(route(Menu::homeRoute($user['role'])));
     }
 
     /** Sisa detik penguncian, 0 bila tidak terkunci. */
