@@ -71,6 +71,14 @@ class ProductForm extends Form
     }
 
     /** Isi form dari data barang yang akan diubah. */
+    /** Kosongkan form untuk barang baru, memakai batas minimum bawaan. */
+    public function blank(): void
+    {
+        $this->reset();
+        $this->resetValidation();
+        $this->min_stock = MockData::defaultMinStock();
+    }
+
     public function load(array $product): void
     {
         $this->reset();

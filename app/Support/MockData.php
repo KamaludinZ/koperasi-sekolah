@@ -43,6 +43,25 @@ class MockData
         return array_map(fn ($p) => $p + ['is_active' => true], array_values($products));
     }
 
+    /** Batas stok minimum bawaan untuk barang baru (nanti dari tabel settings). */
+    public static function defaultMinStock(): int
+    {
+        return session('mock.default_min_stock', 5);
+    }
+
+    public static function setDefaultMinStock(int $value): void
+    {
+        session(['mock.default_min_stock' => $value]);
+    }
+
+    /** Perbarui batas minimum banyak barang sekaligus: [productId => min_stock]. */
+    public static function saveMinStocks(array $minStocks): void
+    {
+        $products = collect(self::products())
+            ->map(fn ($p) => isset($minStocks[$p['id']]) ? [...$p, 'min_stock' => (int) $minStocks[$p['id']]] : $p);
+        session([self::SESSION_KEY => $products->values()->all()]);
+    }
+
     /** Barang yang boleh dijual di layar kasir. */
     public static function activeProducts(): array
     {

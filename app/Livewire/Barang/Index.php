@@ -6,6 +6,7 @@ use App\Livewire\Forms\ProductForm;
 use App\Support\MockData;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
+use Livewire\Attributes\On;
 use Livewire\Attributes\Title;
 use Livewire\Attributes\Url;
 use Livewire\Component;
@@ -111,8 +112,7 @@ class Index extends Component
 
     public function create(): void
     {
-        $this->form->reset();
-        $this->form->resetValidation();
+        $this->form->blank();
         $this->flash = null;
         $this->editing = true;
     }
@@ -144,6 +144,13 @@ class Index extends Component
     public function cancel(): void
     {
         $this->editing = false;
+    }
+
+    #[On('min-stock-updated')]
+    public function refreshAfterMinStock(string $message): void
+    {
+        $this->flash = $message;
+        unset($this->products, $this->stats, $this->lowStock);
     }
 
     public function resetFilters(): void

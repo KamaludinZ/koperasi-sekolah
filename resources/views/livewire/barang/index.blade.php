@@ -5,11 +5,18 @@
             <h1 class="text-lg font-semibold">Barang & Stok</h1>
             <p class="text-xs text-stone-500">Daftar barang koperasi beserta harga dan sisa stok.</p>
         </div>
+        <div class="flex gap-2">
+        <button type="button" x-on:click="$dispatch('open-min-stock-settings')"
+                class="inline-flex items-center gap-2 rounded-xl border border-stone-300 bg-white px-3.5 py-2.5 text-sm font-medium text-stone-700 hover:bg-stone-50">
+            <svg class="size-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 21v-7m0-4V3m8 18v-9m0-4V3m8 18v-5m0-4V3M1 14h6m2-6h6m2 8h6"/></svg>
+            <span class="hidden sm:inline">Atur batas minimum</span><span class="sm:hidden">Batas stok</span>
+        </button>
         <button type="button" wire:click="create"
                 class="inline-flex items-center gap-2 rounded-xl bg-emerald-700 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-emerald-800">
             <svg class="size-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
             Tambah barang
         </button>
+        </div>
     </header>
 
     <div class="space-y-4 px-4 py-5 sm:px-6">
@@ -153,4 +160,5 @@
     </div>
 
     @include('livewire.barang.partials.product-form')
+    <livewire:barang.min-stock-settings />
 </div>
