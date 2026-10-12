@@ -4,7 +4,9 @@ namespace App\Livewire\Anggota;
 
 use App\Support\MockData;
 use Livewire\Attributes\Computed;
+use Illuminate\Support\Carbon;
 use Livewire\Attributes\Layout;
+use Livewire\Attributes\Url;
 use Livewire\Component;
 
 /**
@@ -23,6 +25,20 @@ class Show extends Component
 
         $this->profile = $found;
     }
+
+    public const HISTORY_PRESETS = ['30-hari' => '30 hari', '90-hari' => '3 bulan', 'tahun-ini' => 'Tahun ini', 'semua' => 'Semua'];
+
+    #[Url(as: 'periode', except: 'semua')]
+    public string $historyPreset = 'semua';
+
+    #[Url(as: 'dari', except: '')]
+    public string $historyFrom = '';
+
+    #[Url(as: 'sampai', except: '')]
+    public string $historyTo = '';
+
+    #[Url(as: 'jenis', except: '')]
+    public string $historyType = '';
 
     /** Dialog setor/tarik: null (tertutup), 'setor', atau 'tarik'. */
     public ?string $mode = null;
@@ -68,7 +84,7 @@ class Show extends Component
         $this->lastEntry = MockData::recordSaving($this->profile['id'], $this->mode, $this->amount, trim($this->note) ?: null);
         $this->profile = MockData::findMember($this->profile['id']);
         $this->mode = null;
-        unset($this->savings, $this->stats);
+        unset($this->savings, $this->stats, $this->history);
     }
 
     #[Computed]
@@ -92,6 +108,61 @@ class Show extends Component
             'withdraw_count' => $withdrawals->count(),
             'last_at' => $last['created_at'] ?? null,
             'last_type' => $last['type'] ?? null,
+        ];
+    }
+
+    public function applyHistoryPreset(string $preset): void
+    {
+        if (array_key_exists($preset, self::HISTORY_PRESETS)) {
+            $this->resetValidation(['historyFrom', 'historyTo']);
+            $this->historyPreset = $preset;
+            $this->historyFrom = '';
+            $this->historyTo = '';
+        }
+    }
+
+    public function updated(string $property): void
+    {
+        if (in_array($property, ['historyFrom', 'historyTo'], true)) {
+            $this->historyPreset = 'kustom';
+            $this->validate([
+                'historyFrom' => ['nullable', 'date_format:Y-m-d'],
+                'historyTo' => ['nullable', 'date_format:Y-m-d', 'after_or_equal:historyFrom'],
+            ], ['historyTo.after_or_equal' => 'Tanggal akhir tidak boleh sebelum tanggal awal.']);
+        }
+    }
+
+    /** Mutasi sesuai filter, terbaru dulu, beserta ringkasan periode. */
+    #[Computed]
+    public function history(): array
+    {
+        $now = now();
+        [$start, $end] = match ($this->historyPreset) {
+            '30-hari' => [$now->copy()->subDays(29)->startOfDay(), null],
+            '90-hari' => [$now->copy()->subDays(89)->startOfDay(), null],
+            'tahun-ini' => [$now->copy()->startOfYear(), null],
+            'kustom' => [
+                $this->historyFrom !== '' && ! $this->getErrorBag()->has('historyFrom') ? Carbon::parse($this->historyFrom)->startOfDay() : null,
+                $this->historyTo !== '' && ! $this->getErrorBag()->has('historyTo') ? Carbon::parse($this->historyTo)->endOfDay() : null,
+            ],
+            default => [null, null],
+        };
+
+        $rows = collect($this->savings)
+            ->filter(function ($row) use ($start, $end) {
+                $at = Carbon::parse($row['created_at']);
+
+                return (! $start || $at->gte($start)) && (! $end || $at->lte($end));
+            })
+            ->filter(fn ($row) => $this->historyType === '' || $row['type'] === $this->historyType)
+            ->sortByDesc('created_at')
+            ->values();
+
+        return [
+            'rows' => $rows->all(),
+            'in' => $rows->where('type', 'setor')->sum('amount'),
+            'out' => $rows->where('type', 'tarik')->sum('amount'),
+            'filtered' => $this->historyPreset !== 'semua' || $this->historyType !== '',
         ];
     }
 

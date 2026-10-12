@@ -52,12 +52,7 @@
                 </div>
             </section>
 
-            @if (count($this->savings) === 0)
-                <div class="rounded-xl border border-dashed border-stone-300 bg-white px-6 py-10 text-center">
-                    <p class="text-sm font-medium text-stone-600">Belum ada mutasi tabungan</p>
-                    <p class="text-xs text-stone-400">Setoran pertama akan tampil di sini.</p>
-                </div>
-            @endif
+            @include('livewire.anggota.partials.saving-history')
         </div>
 
         {{-- Kartu saldo --}}

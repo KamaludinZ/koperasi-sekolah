@@ -1,6 +1,6 @@
 {
   "repo": "Koperasi Sekolah",
-  "generatedForCommit": "7bcbd50f916c0e91418b00ac06bdedd4fefbbaca",
+  "generatedForCommit": "0cb6cce2fd433c6d77842a9587c52c22b12fe973",
   "files": [
     {
       "path": ".claude/skills/ngodingpakeai/SKILL.md",
@@ -94,9 +94,9 @@
     },
     {
       "path": "app/Livewire/Anggota/Show.php",
-      "reason": "new",
+      "reason": "changed",
       "language": "php",
-      "size": 1428
+      "size": 3028
     },
     {
       "path": "app/Livewire/Barang/Index.php",
@@ -258,7 +258,7 @@
       "path": "app/Support/MockData.php",
       "reason": "changed",
       "language": "php",
-      "size": 11588
+      "size": 12719
     },
     {
       "path": "artisan",
@@ -538,7 +538,7 @@
     },
     {
       "path": "resources/views/livewire/anggota/index.blade.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 7215
     },
@@ -549,10 +549,16 @@
       "size": 5561
     },
     {
-      "path": "resources/views/livewire/anggota/show.blade.php",
+      "path": "resources/views/livewire/anggota/partials/saving-form.blade.php",
       "reason": "new",
       "language": "php",
-      "size": 5635
+      "size": 6087
+    },
+    {
+      "path": "resources/views/livewire/anggota/show.blade.php",
+      "reason": "changed",
+      "language": "php",
+      "size": 6476
     },
     {
       "path": "resources/views/livewire/barang/index.blade.php",
@@ -640,7 +646,7 @@
     },
     {
       "path": "routes/web.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 2584
     },
@@ -754,9 +760,9 @@
     },
     {
       "path": "storage/framework/views/1e1e5fda6b47e091c894e31e12597b05.php",
-      "reason": "new",
+      "reason": "changed",
       "language": "php",
-      "size": 6789
+      "size": 8382
     },
     {
       "path": "storage/framework/views/1f95b45cf229cd9bec1caabe9db4eb98.php",
@@ -874,7 +880,7 @@
     },
     {
       "path": "storage/framework/views/63be5200e7bcf5e90d7da1e77de7aa8c.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 10450
     },
@@ -999,6 +1005,12 @@
       "size": 30223
     },
     {
+      "path": "storage/framework/views/aea2a48e67812731a199ee3c00596091.php",
+      "reason": "new",
+      "language": "php",
+      "size": 8744
+    },
+    {
       "path": "storage/framework/views/b2377400398fee12df516a1ac4ebb852.php",
       "reason": "needs_summary",
       "language": "php",
@@ -1107,8 +1119,14 @@
       "size": 2281
     },
     {
-      "path": "tests/Feature/Anggota/ShowTest.php",
+      "path": "tests/Feature/Anggota/SavingFormTest.php",
       "reason": "new",
+      "language": "php",
+      "size": 2281
+    },
+    {
+      "path": "tests/Feature/Anggota/ShowTest.php",
+      "reason": "needs_summary",
       "language": "php",
       "size": 1296
     },
