@@ -61,12 +61,15 @@
         </nav>
         <div class="m-3 rounded-xl border border-emerald-800/80 bg-emerald-900/60 p-3">
             @if ($user)
-                <div class="flex items-center gap-2.5">
-                    <span class="grid size-9 shrink-0 place-items-center rounded-full bg-amber-400 text-sm font-bold text-emerald-950">{{ mb_substr(preg_replace('/^(Pak|Bu)\s+/', '', $user['name']), 0, 1) }}</span>
+                <div class="flex items-center gap-1.5">
+                    <span class="mr-1 grid size-9 shrink-0 place-items-center rounded-full bg-amber-400 text-sm font-bold text-emerald-950">{{ mb_substr(preg_replace('/^(Pak|Bu)\s+/', '', $user['name']), 0, 1) }}</span>
                     <div class="min-w-0 flex-1 leading-tight">
                         <p class="truncate text-sm font-semibold text-white">{{ $user['name'] }}</p>
                         <p class="text-xs text-amber-300">{{ \App\Support\MockData::ROLES[$user['role']] ?? $user['role'] }}</p>
                     </div>
+                    <a href="{{ route('akun.password') }}" wire:navigate class="grid size-9 place-items-center rounded-lg text-emerald-200 hover:bg-emerald-800 hover:text-white" aria-label="Ganti kata sandi" title="Ganti kata sandi">
+                        <svg class="size-5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" aria-hidden="true"><circle cx="8" cy="15" r="4"/><path d="M10.8 12.2 20 3m-3 3 2 2m-5 1 2 2"/></svg>
+                    </a>
                     <form method="POST" action="{{ route('logout') }}">
                         @csrf
                         <button type="submit" class="grid size-9 place-items-center rounded-lg text-emerald-200 hover:bg-emerald-800 hover:text-white" aria-label="Keluar" title="Keluar">

@@ -14,6 +14,7 @@ use App\Http\Controllers\Laporan\SalesExportController;
 use App\Http\Controllers\Laporan\SalesReportController;
 use App\Http\Controllers\Transaksi\TransactionDetailController;
 use App\Http\Controllers\Transaksi\TransactionListController;
+use App\Livewire\Akun;
 use App\Livewire\Anggota;
 use App\Livewire\Auth\Login;
 use App\Livewire\Barang;
@@ -27,6 +28,7 @@ Route::get('/', BerandaController::class)->name('beranda');
 
 Route::get('/masuk', Login::class)->name('login');
 Route::post('/keluar', LogoutController::class)->name('logout');
+Route::get('/akun/kata-sandi', Akun\Password::class)->name('akun.password');
 
 Route::get('/kasir', Kasir\Index::class)->name('kasir');
 Route::get('/kasir/barang/cari', ProductSearchController::class)
