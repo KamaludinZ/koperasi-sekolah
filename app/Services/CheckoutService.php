@@ -88,6 +88,7 @@ class CheckoutService
                 'paid' => $paid,
                 'change' => $paid - $total,
                 'payment_method' => $paymentMethod,
+                'item_count' => array_sum(array_column($lines, 'quantity')),
             ]);
 
             foreach ($lines as $line) {

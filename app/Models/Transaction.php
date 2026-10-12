@@ -2,15 +2,20 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Carbon;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Transaction extends Model
 {
+    use HasFactory;
+
     protected $fillable = [
         'invoice_number', 'user_id', 'member_id', 'subtotal', 'tax', 'discount',
-        'total', 'paid', 'change', 'payment_method',
+        'total', 'paid', 'change', 'payment_method', 'item_count',
     ];
 
     protected function casts(): array
@@ -22,6 +27,7 @@ class Transaction extends Model
             'total' => 'decimal:2',
             'paid' => 'decimal:2',
             'change' => 'decimal:2',
+            'item_count' => 'integer',
         ];
     }
 
@@ -34,5 +40,23 @@ class Transaction extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    /** Terbaru dulu, stabil untuk transaksi pada detik yang sama. */
+    public function scopeLatestFirst(Builder $query): void
+    {
+        $query->orderByDesc('created_at')->orderByDesc('id');
+    }
+
+    /** Transaksi dalam rentang waktu (batas boleh null = terbuka). */
+    public function scopeBetweenDates(Builder $query, ?Carbon $start, ?Carbon $end): void
+    {
+        $query->when($start, fn ($q) => $q->where('created_at', '>=', $start))
+            ->when($end, fn ($q) => $q->where('created_at', '<=', $end));
+    }
+
+    public function scopePaymentMethod(Builder $query, ?string $method): void
+    {
+        $query->when($method, fn ($q) => $q->where('payment_method', $method));
     }
 }

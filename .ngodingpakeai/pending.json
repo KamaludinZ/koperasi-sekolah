@@ -1,6 +1,6 @@
 {
   "repo": "Koperasi Sekolah",
-  "generatedForCommit": "e8c08f17efe9eb567cb8de3f03a3c219475211bd",
+  "generatedForCommit": "31cef5e4c7f74da929ee7f33db775976ebbfdba5",
   "files": [
     {
       "path": ".claude/skills/ngodingpakeai/SKILL.md",
@@ -144,7 +144,7 @@
       "path": "app/Livewire/Laporan/Index.php",
       "reason": "changed",
       "language": "php",
-      "size": 9247
+      "size": 14453
     },
     {
       "path": "app/Livewire/Transaksi/Index.php",
@@ -514,7 +514,7 @@
     },
     {
       "path": "resources/views/components/laporan/delta.blade.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 807
     },
@@ -648,7 +648,13 @@
       "path": "resources/views/livewire/laporan/index.blade.php",
       "reason": "changed",
       "language": "php",
-      "size": 6116
+      "size": 5529
+    },
+    {
+      "path": "resources/views/livewire/laporan/partials/export-panel.blade.php",
+      "reason": "new",
+      "language": "php",
+      "size": 3841
     },
     {
       "path": "resources/views/livewire/laporan/partials/sales-chart.blade.php",
@@ -760,7 +766,7 @@
     },
     {
       "path": "storage/framework/views/0e5a3bbae451136886b5406f2c4ccb78.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 2371
     },
@@ -1023,6 +1029,12 @@
       "size": 6901
     },
     {
+      "path": "storage/framework/views/96a5c01c79fec61e18e85a8f2223b97c.php",
+      "reason": "new",
+      "language": "php",
+      "size": 6878
+    },
+    {
       "path": "storage/framework/views/96fa52268d45b9155659c4f423407271.php",
       "reason": "needs_summary",
       "language": "php",
@@ -1128,7 +1140,7 @@
       "path": "storage/framework/views/e17ceb89e1cd3f5fe664f3412bead3d6.php",
       "reason": "changed",
       "language": "php",
-      "size": 14167
+      "size": 13726
     },
     {
       "path": "storage/framework/views/e27f66cac0fd83c2264fcbb4d52c1aff.php",
@@ -1326,7 +1338,7 @@
       "path": "tests/Feature/Laporan/IndexTest.php",
       "reason": "changed",
       "language": "php",
-      "size": 4880
+      "size": 6655
     },
     {
       "path": "tests/Feature/Transaksi/DateFilterTest.php",

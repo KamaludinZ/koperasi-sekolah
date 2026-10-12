@@ -23,5 +23,10 @@ class DatabaseSeeder extends Seeder
         ]);
 
         $this->call(ProductSeeder::class);
+
+        // Riwayat penjualan contoh hanya untuk lingkungan pengembangan.
+        if (app()->environment('local')) {
+            $this->call(TransactionSeeder::class);
+        }
     }
 }
