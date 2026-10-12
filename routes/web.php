@@ -8,6 +8,7 @@ use App\Http\Controllers\Kasir\ProductSearchController;
 use App\Http\Controllers\Kasir\TransactionReceiptController;
 use App\Livewire\Barang;
 use App\Livewire\Kasir;
+use App\Livewire\Transaksi;
 use Illuminate\Support\Facades\Route;
 
 Route::redirect('/', '/kasir');
@@ -46,3 +47,5 @@ Route::get('/barang/batas-minimum', [StockAlertController::class, 'minStocks'])-
 Route::put('/barang/batas-minimum', [StockAlertController::class, 'updateMinStocks'])
     ->middleware('throttle:30,1')
     ->name('barang.min-stock.update');
+
+Route::get('/transaksi', Transaksi\Index::class)->name('transaksi');

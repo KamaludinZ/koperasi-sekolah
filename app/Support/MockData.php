@@ -30,6 +30,71 @@ class MockData
         return 0;
     }
 
+    /**
+     * Transaksi tiruan (terbaru dulu) untuk halaman Riwayat Transaksi tahap frontend.
+     * Deterministik: data sama setiap dimuat, tanggal relatif terhadap hari ini.
+     */
+    public static function transactions(int $days = 14): array
+    {
+        mt_srand(20261012);
+        $products = self::seedProducts();
+        $cashiers = ['Bu Rina', 'Pak Dedi', 'Kasir Demo'];
+        $members = [null, null, null, 'Andi (7A)', 'Siti (8B)', 'Pak Budi (Guru)'];
+        $rows = [];
+        $id = 0;
+
+        for ($d = $days - 1; $d >= 0; $d--) {
+            $date = now()->startOfDay()->subDays($d);
+            if ($date->isSunday()) {
+                continue;
+            }
+
+            $count = mt_rand(2, 6);
+            $times = [];
+            for ($i = 0; $i < $count; $i++) {
+                $times[] = $date->copy()->setTime(mt_rand(7, 14), mt_rand(0, 59), mt_rand(0, 59));
+            }
+            sort($times);
+
+            foreach ($times as $seq => $time) {
+                if ($time->isFuture()) {
+                    continue;
+                }
+
+                $items = [];
+                foreach ((array) array_rand($products, mt_rand(1, 4)) as $key) {
+                    $p = $products[$key];
+                    $qty = mt_rand(1, 3);
+                    $items[] = ['product_name' => $p['name'], 'price' => $p['price'], 'quantity' => $qty, 'subtotal' => $p['price'] * $qty];
+                }
+
+                $total = array_sum(array_column($items, 'subtotal'));
+                $method = mt_rand(1, 5) === 1 ? 'qris' : 'tunai';
+                $paid = $method === 'tunai' ? (int) (ceil($total / 5000) * 5000) : $total;
+
+                $rows[] = [
+                    'id' => ++$id,
+                    'invoice_number' => 'INV-'.$time->format('Ymd').'-'.str_pad((string) ($seq + 1), 4, '0', STR_PAD_LEFT),
+                    'created_at' => $time->toDateTimeString(),
+                    'cashier' => $cashiers[array_rand($cashiers)],
+                    'member' => $members[array_rand($members)],
+                    'items' => $items,
+                    'item_count' => array_sum(array_column($items, 'quantity')),
+                    'subtotal' => $total,
+                    'tax' => 0,
+                    'discount' => 0,
+                    'total' => $total,
+                    'paid' => $paid,
+                    'change' => $paid - $total,
+                    'payment_method' => $method,
+                ];
+            }
+        }
+        mt_srand();
+
+        return array_reverse($rows);
+    }
+
     /** Data contoh awal — juga dipakai ProductSeeder. */
     public static function seedProducts(): array
     {
