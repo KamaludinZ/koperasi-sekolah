@@ -28,6 +28,8 @@ class Receipt extends Component
 
     public string $subheader = '';
 
+    public bool $show_logo = false;
+
     public bool $show_address = true;
 
     public bool $show_phone = false;
@@ -55,7 +57,7 @@ class Receipt extends Component
         return [
             'header' => ['nullable', 'string', 'max:40'],
             'subheader' => ['nullable', 'string', 'max:60'],
-            'show_address' => ['boolean'], 'show_phone' => ['boolean'],
+            'show_logo' => ['boolean'], 'show_address' => ['boolean'], 'show_phone' => ['boolean'],
             'show_cashier' => ['boolean'], 'show_member' => ['boolean'],
             'note' => ['nullable', 'string', 'max:160', function ($a, $v, $fail) {
                 if (substr_count((string) $v, "\n") > 2) {
@@ -130,7 +132,7 @@ class Receipt extends Component
 
     private function formState(): array
     {
-        return collect(['header', 'subheader', 'show_address', 'show_phone', 'show_cashier', 'show_member', 'note', 'footer', 'paper'])
+        return collect(['header', 'subheader', 'show_logo', 'show_address', 'show_phone', 'show_cashier', 'show_member', 'note', 'footer', 'paper'])
             ->mapWithKeys(fn ($k) => [$k => $this->{$k}])->all();
     }
 

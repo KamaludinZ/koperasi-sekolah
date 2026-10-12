@@ -3,7 +3,6 @@
 namespace App\Services;
 
 use App\Models\Transaction;
-use App\Support\MockData;
 
 /**
  * Menyusun data struk dari transaksi tersimpan. Bentuk array ini dipakai
@@ -11,6 +10,8 @@ use App\Support\MockData;
  */
 class ReceiptPresenter
 {
+    public function __construct(private SettingsService $settings) {}
+
     public function present(Transaction $transaction): array
     {
         $transaction->loadMissing(['items', 'user:id,name', 'member:id,name,type,class']);
@@ -44,18 +45,31 @@ class ReceiptPresenter
     }
 
     /**
-     * Identitas koperasi + pengaturan struk untuk kepala & kaki struk:
-     * name/school/address/phone/receipt_footer (kompatibel lama) dan `receipt`
-     * (header, subheader, show_*, note, footer, paper). Nanti dari tabel settings.
+     * Identitas koperasi + pengaturan struk (tabel settings lewat SettingsService) untuk
+     * kepala & kaki struk: name/school/address/phone/logo/receipt_footer dan `receipt`
+     * (header, subheader, show_*, note, footer, paper). $receipt = pengaturan struk
+     * yang belum disimpan (pratinjau form). Logo hanya diisi bila show_logo aktif.
      */
     public function profile(?array $receipt = null): array
     {
-        $profile = MockData::profile();
-        $r = $receipt ?? MockData::receipt();
+        $profile = $this->settings->profile();
+        $r = [...SettingsService::DEFAULTS['receipt'], ...($receipt ?? $this->settings->receipt())];
         $r['header'] = filled($r['header'] ?? null) ? $r['header'] : $profile['name'];
         $r['subheader'] = filled($r['subheader'] ?? null) ? $r['subheader'] : $profile['school'];
+        $r['show_logo'] = (bool) $r['show_logo'] && filled($profile['logo']);
 
         return [...$profile, 'receipt_footer' => $r['footer'], 'receipt' => $r];
+    }
+
+    /** profile() + logo sebagai data URI untuk PDF. */
+    public function pdfProfile(): array
+    {
+        $profile = $this->profile();
+        $profile['logo_data'] = $profile['receipt']['show_logo']
+            ? LogoService::dataUri($this->settings->section('profile')['logo'])
+            : null;
+
+        return $profile;
     }
 
     /** Lebar kertas struk dalam mm (58 atau 80). */

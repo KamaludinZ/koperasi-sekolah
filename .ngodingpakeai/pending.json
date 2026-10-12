@@ -1,6 +1,6 @@
 {
   "repo": "Koperasi Sekolah",
-  "generatedForCommit": "4f097c75138d850edddd689c856002240c5b7bc9",
+  "generatedForCommit": "a6fb4f028ca9d3de3cf97abd3f4691f9ef7b43ac",
   "files": [
     {
       "path": ".claude/skills/ngodingpakeai/SKILL.md",
@@ -244,7 +244,7 @@
     },
     {
       "path": "app/Livewire/Concerns/GuardsSettings.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 1052
     },
@@ -274,9 +274,9 @@
     },
     {
       "path": "app/Livewire/Kasir/Cart.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 6181
+      "size": 7003
     },
     {
       "path": "app/Livewire/Kasir/Index.php",
@@ -322,19 +322,19 @@
     },
     {
       "path": "app/Livewire/Pengaturan/Profile.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 5856
     },
     {
       "path": "app/Livewire/Pengaturan/Receipt.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 4865
     },
     {
       "path": "app/Livewire/Pengaturan/Tax.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 4276
     },
@@ -382,7 +382,7 @@
     },
     {
       "path": "app/Models/Role.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 1140
     },
@@ -406,9 +406,9 @@
     },
     {
       "path": "app/Models/Transaction.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 1981
+      "size": 2155
     },
     {
       "path": "app/Models/TransactionItem.php",
@@ -430,7 +430,7 @@
     },
     {
       "path": "app/Providers/AppServiceProvider.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 1187
     },
@@ -454,9 +454,9 @@
     },
     {
       "path": "app/Services/CheckoutService.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 6152
+      "size": 6849
     },
     {
       "path": "app/Services/LogoService.php",
@@ -514,9 +514,9 @@
     },
     {
       "path": "app/Services/ReceiptPresenter.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 2499
+      "size": 2729
     },
     {
       "path": "app/Services/SalesExport.php",
@@ -544,7 +544,7 @@
     },
     {
       "path": "app/Services/SettingsService.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 14052
     },
@@ -556,13 +556,13 @@
     },
     {
       "path": "app/Services/TransactionHistory.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 9601
+      "size": 9791
     },
     {
       "path": "app/Services/UserService.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 9231
     },
@@ -742,9 +742,9 @@
     },
     {
       "path": "database/factories/TransactionFactory.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 2364
+      "size": 3005
     },
     {
       "path": "database/factories/UserFactory.php",
@@ -835,6 +835,12 @@
       "reason": "needs_summary",
       "language": "php",
       "size": 1768
+    },
+    {
+      "path": "database/migrations/2026_10_12_000012_add_tax_and_rounding_to_transactions_table.php",
+      "reason": "new",
+      "language": "php",
+      "size": 1867
     },
     {
       "path": "database/seeders/ActivityLogSeeder.php",
@@ -946,7 +952,7 @@
     },
     {
       "path": "resources/views/components/brand/logo.blade.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 1399
     },
@@ -964,13 +970,13 @@
     },
     {
       "path": "resources/views/components/layouts/app.blade.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 7717
     },
     {
       "path": "resources/views/components/layouts/guest.blade.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 840
     },
@@ -1048,15 +1054,15 @@
     },
     {
       "path": "resources/views/errors/layout.blade.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 3153
     },
     {
       "path": "resources/views/kasir/receipt-pdf.blade.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 2864
+      "size": 3392
     },
     {
       "path": "resources/views/kasir/receipt-print.blade.php",
@@ -1168,9 +1174,9 @@
     },
     {
       "path": "resources/views/livewire/kasir/cart.blade.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 6932
+      "size": 7554
     },
     {
       "path": "resources/views/livewire/kasir/index.blade.php",
@@ -1180,15 +1186,15 @@
     },
     {
       "path": "resources/views/livewire/kasir/partials/payment-panel.blade.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 9368
+      "size": 9989
     },
     {
       "path": "resources/views/livewire/kasir/partials/receipt.blade.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 3204
+      "size": 3801
     },
     {
       "path": "resources/views/livewire/kasir/product-picker.blade.php",
@@ -1246,19 +1252,19 @@
     },
     {
       "path": "resources/views/livewire/pengaturan/profile.blade.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 12929
     },
     {
       "path": "resources/views/livewire/pengaturan/receipt.blade.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 6771
     },
     {
       "path": "resources/views/livewire/pengaturan/tax.blade.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 10270
     },
@@ -1294,9 +1300,9 @@
     },
     {
       "path": "resources/views/livewire/transaksi/show.blade.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 8341
+      "size": 9283
     },
     {
       "path": "routes/console.php",
@@ -1306,7 +1312,7 @@
     },
     {
       "path": "routes/web.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 10457
     },
@@ -1372,13 +1378,13 @@
     },
     {
       "path": "storage/framework/views/07a03143a30b2736a2abb64305bd8f08.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 12878
     },
     {
       "path": "storage/framework/views/0abb492fb302fd9599ef4edc04017315.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 4883
     },
@@ -1396,9 +1402,9 @@
     },
     {
       "path": "storage/framework/views/11762cee78b18a71c9360376789f4806.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 11605
+      "size": 13279
     },
     {
       "path": "storage/framework/views/160bba15280f8f676d5e4e66491409ee.php",
@@ -1444,9 +1450,9 @@
     },
     {
       "path": "storage/framework/views/28c267bfd327fcb162e337d394bf553e.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 12352
+      "size": 13010
     },
     {
       "path": "storage/framework/views/2946d8c18956e6e8840b9e14322ac427.php",
@@ -1462,7 +1468,7 @@
     },
     {
       "path": "storage/framework/views/2fa8e6b51ec5a9a7a5f66aa2d576d8a3.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 27633
     },
@@ -1492,9 +1498,9 @@
     },
     {
       "path": "storage/framework/views/52f5e0e2173f932d2ee123ac25c31cea.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 8848
+      "size": 10390
     },
     {
       "path": "storage/framework/views/5c3c5bd6f0c6fe410e382ee48eb40cca.php",
@@ -1522,7 +1528,7 @@
     },
     {
       "path": "storage/framework/views/6fe74085a42e869e555fe0022f0ba4e5.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 1932
     },
@@ -1540,7 +1546,7 @@
     },
     {
       "path": "storage/framework/views/798b34bc9486b4ac75524eea46040336.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 16001
     },
@@ -1612,7 +1618,7 @@
     },
     {
       "path": "storage/framework/views/a51ae40c3dfc9fc6954fc74dc16d2bb3.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 17824
     },
@@ -1642,9 +1648,9 @@
     },
     {
       "path": "storage/framework/views/bb2941f959f36c967c040104018a3c16.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 6222
+      "size": 7443
     },
     {
       "path": "storage/framework/views/c0339f015d39af38253b45ff44c65086.php",
@@ -1666,7 +1672,7 @@
     },
     {
       "path": "storage/framework/views/d5ff72f7e480c66134634094300a5d00.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 4367
     },
@@ -1732,9 +1738,9 @@
     },
     {
       "path": "storage/framework/views/f916cdf3b46281b029d52410e78f1e6b.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 5965
+      "size": 7117
     },
     {
       "path": "storage/framework/views/fd279c3631879b2bbbc2283c282a7b6d.php",
@@ -2001,6 +2007,12 @@
       "size": 2405
     },
     {
+      "path": "tests/Feature/Kasir/TaxRoundingCheckoutTest.php",
+      "reason": "new",
+      "language": "php",
+      "size": 6115
+    },
+    {
       "path": "tests/Feature/Kasir/TransactionReceiptTest.php",
       "reason": "needs_summary",
       "language": "php",
@@ -2068,7 +2080,7 @@
     },
     {
       "path": "tests/Feature/Pengaturan/ProfileTest.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 5598
     },
@@ -2086,7 +2098,7 @@
     },
     {
       "path": "tests/Feature/Pengaturan/SettingsAuthorizationTest.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 3677
     },

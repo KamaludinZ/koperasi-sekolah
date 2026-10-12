@@ -2,6 +2,9 @@
 @php $rc = $profile['receipt'] ?? ['header' => $profile['name'], 'subheader' => $profile['school'], 'show_address' => true, 'show_phone' => false, 'show_cashier' => true, 'show_member' => false, 'note' => null, 'footer' => $profile['receipt_footer'], 'paper' => '58mm']; @endphp
 <div class="print-area font-mono text-[11px] leading-snug text-black" data-paper="{{ $rc['paper'] }}">
     <div class="text-center">
+        @if (($rc['show_logo'] ?? false) && ($profile['logo'] ?? null))
+            <img src="{{ $profile['logo'] }}" alt="" class="mx-auto mb-1 size-12 object-contain grayscale">
+        @endif
         <p class="text-xs font-bold uppercase">{{ $rc['header'] }}</p>
         @if ($rc['subheader'])<p>{{ $rc['subheader'] }}</p>@endif
         @if ($rc['show_address'] && $profile['address'])<p>{{ $profile['address'] }}</p>@endif

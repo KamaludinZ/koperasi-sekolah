@@ -18,6 +18,9 @@
 </head>
 <body>
     <div class="c">
+        @if (! empty($profile['logo_data']))
+            <img src="{{ $profile['logo_data'] }}" alt="" style="width: 34pt; height: 34pt; margin-bottom: 3pt;">
+        @endif
         <div class="b" style="font-size: 8pt; text-transform: uppercase;">{{ $rc['header'] }}</div>
         @if ($rc['subheader'])<div>{{ $rc['subheader'] }}</div>@endif
         @if ($rc['show_address'] && $profile['address'])<div>{{ $profile['address'] }}</div>@endif

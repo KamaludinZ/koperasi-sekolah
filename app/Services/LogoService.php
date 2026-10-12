@@ -79,6 +79,23 @@ class LogoService
         };
     }
 
+    /**
+     * Logo sebagai data URI untuk PDF (dompdf tidak memuat URL). Null bila tidak ada
+     * berkas logo. Data URI lama (tahap awal) dikembalikan apa adanya.
+     */
+    public static function dataUri(?string $value): ?string
+    {
+        if (blank($value) || str_starts_with($value, 'data:image/')) {
+            return $value ?: null;
+        }
+        if (! preg_match('/^'.self::FILE_PATTERN.'$/', $value) || ! Storage::disk(self::DISK)->exists(self::path($value))) {
+            return null;
+        }
+        $disk = Storage::disk(self::DISK);
+
+        return 'data:'.$disk->mimeType(self::path($value)).';base64,'.base64_encode($disk->get(self::path($value)));
+    }
+
     public static function path(string $name): string
     {
         return self::DIR.'/'.$name;

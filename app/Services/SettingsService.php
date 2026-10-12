@@ -41,6 +41,7 @@ class SettingsService
         'receipt' => [
             'header' => null,       // kosong = ikut nama koperasi
             'subheader' => null,    // kosong = ikut nama madrasah
+            'show_logo' => false,   // logo koperasi di kepala struk (bila ada)
             'show_address' => true,
             'show_phone' => false,
             'show_cashier' => true,
@@ -180,6 +181,7 @@ class SettingsService
             'receipt' => [
                 'header' => ['sometimes', 'nullable', 'string', 'max:40'],
                 'subheader' => ['sometimes', 'nullable', 'string', 'max:60'],
+                'show_logo' => ['sometimes', 'boolean'],
                 'show_address' => ['sometimes', 'boolean'],
                 'show_phone' => ['sometimes', 'boolean'],
                 'show_cashier' => ['sometimes', 'boolean'],

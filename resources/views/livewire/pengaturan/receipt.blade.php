@@ -34,7 +34,7 @@
                     @error('subheader') <span class="mt-1 block text-xs text-red-600">{{ $message }}</span> @enderror
                 </label>
                 <div class="grid gap-2 sm:grid-cols-2">
-                    @foreach (['show_address' => 'Tampilkan alamat', 'show_phone' => 'Tampilkan telepon', 'show_cashier' => 'Tampilkan nama kasir', 'show_member' => 'Tampilkan nama anggota'] as $field => $text)
+                    @foreach (['show_logo' => 'Tampilkan logo', 'show_address' => 'Tampilkan alamat', 'show_phone' => 'Tampilkan telepon', 'show_cashier' => 'Tampilkan nama kasir', 'show_member' => 'Tampilkan nama anggota'] as $field => $text)
                         <label class="flex cursor-pointer items-center gap-2.5 rounded-lg border border-stone-200 px-3 py-2.5 text-sm has-checked:border-emerald-600 has-checked:bg-emerald-50">
                             <input type="checkbox" wire:model.live="{{ $field }}" class="size-4 accent-emerald-700"> {{ $text }}
                         </label>
