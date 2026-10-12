@@ -43,6 +43,12 @@ class Transaction extends Model
     }
 
     /** Terbaru dulu, stabil untuk transaksi pada detik yang sama. */
+    /** Anggota pembeli (null = pembeli umum). */
+    public function member(): BelongsTo
+    {
+        return $this->belongsTo(Member::class);
+    }
+
     public function scopeLatestFirst(Builder $query): void
     {
         $query->orderByDesc('created_at')->orderByDesc('id');
