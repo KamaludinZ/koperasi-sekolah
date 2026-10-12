@@ -20,8 +20,12 @@
         ['label' => 'Pengaturan', 'route' => null, 'icon' => 'M12 15a3 3 0 100-6 3 3 0 000 6zM19.4 15a1.6 1.6 0 00.3 1.8l.1.1a2 2 0 11-2.8 2.8l-.1-.1a1.6 1.6 0 00-2.7 1.1V21a2 2 0 11-4 0v-.1a1.6 1.6 0 00-2.7-1.1l-.1.1a2 2 0 11-2.8-2.8l.1-.1a1.6 1.6 0 00-1.1-2.7H3a2 2 0 110-4h.1a1.6 1.6 0 001.1-2.7l-.1-.1a2 2 0 112.8-2.8l.1.1a1.6 1.6 0 002.7-1.1V3a2 2 0 114 0v.1a1.6 1.6 0 002.7 1.1l.1-.1a2 2 0 112.8 2.8l-.1.1a1.6 1.6 0 001.1 2.7h.1a2 2 0 110 4h-.1a1.6 1.6 0 00-1.5 1z'],
     ];
 @endphp
-<div class="flex h-full">
-    <aside class="hidden w-56 shrink-0 flex-col bg-emerald-950 text-emerald-50 lg:flex">
+<div class="flex h-full" x-data="{ nav: false }" x-on:keydown.escape.window="nav = false">
+    {{-- Latar drawer navigasi (layar kecil) --}}
+    <div x-show="nav" x-cloak x-transition.opacity x-on:click="nav = false" class="fixed inset-0 z-40 bg-stone-950/50 lg:hidden"></div>
+
+    <aside class="fixed inset-y-0 left-0 z-50 flex w-64 shrink-0 flex-col bg-emerald-950 text-emerald-50 transition-transform duration-200 max-lg:-translate-x-full lg:static lg:w-56"
+           x-bind:class="nav && 'max-lg:translate-x-0!'">
         <div class="flex items-center gap-2.5 px-5 py-5">
             <span class="grid size-9 place-items-center rounded-lg bg-amber-400 font-bold text-emerald-950">K</span>
             <div class="leading-tight">
@@ -53,6 +57,16 @@
     </aside>
 
     <div class="flex min-w-0 flex-1 flex-col">
+        {{-- Bar atas (layar kecil) --}}
+        <div class="flex items-center gap-3 bg-emerald-950 px-3 py-2.5 text-white lg:hidden">
+            <button type="button" x-on:click="nav = true" aria-label="Buka menu"
+                    class="grid size-10 place-items-center rounded-lg hover:bg-emerald-900">
+                <svg class="size-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+            </button>
+            <span class="grid size-7 place-items-center rounded-md bg-amber-400 text-sm font-bold text-emerald-950">K</span>
+            <span class="truncate text-sm font-semibold">{{ $title ?? config('app.name') }}</span>
+        </div>
+
         {{ $slot }}
     </div>
 </div>

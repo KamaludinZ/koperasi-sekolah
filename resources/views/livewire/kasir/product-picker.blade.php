@@ -27,7 +27,7 @@
         </div>
     </div>
 
-    <div class="min-h-0 flex-1 overflow-y-auto px-4 py-4 sm:px-6">
+    <div class="min-h-0 flex-1 overflow-y-auto px-4 pt-4 pb-36 sm:px-6 md:pb-4">
         @if (count($this->products) === 0)
             <div class="flex flex-col items-center gap-1 py-16 text-center">
                 <p class="text-sm font-medium text-stone-600">Barang tidak ditemukan</p>
@@ -35,7 +35,7 @@
             </div>
         @else
             <p class="mb-3 text-xs text-stone-500">{{ count($this->products) }} barang · tekan Enter untuk memilih hasil tunggal atau kode yang cocok</p>
-            <ul class="grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-4">
+            <ul class="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4">
                 @foreach ($this->products as $product)
                     @php
                         $out = $product['stock'] === 0;

@@ -1,6 +1,6 @@
-<div class="flex h-full min-h-0 flex-col">
+<div class="flex min-h-0 flex-1 flex-col">
     {{-- Header --}}
-    <header class="flex items-center justify-between gap-4 border-b border-stone-200 bg-white px-4 py-3 sm:px-6">
+    <header class="hidden items-center justify-between gap-4 border-b border-stone-200 bg-white px-4 py-3 sm:flex sm:px-6">
         <div>
             <h1 class="text-lg font-semibold">Layar Kasir</h1>
             <p class="text-xs text-stone-500">{{ now()->translatedFormat('l, d F Y') }}</p>
@@ -16,7 +16,7 @@
         </div>
     </header>
 
-    <div class="grid min-h-0 flex-1 grid-cols-1 lg:grid-cols-[1fr_380px]">
+    <div class="grid min-h-0 flex-1 grid-cols-1 grid-rows-[minmax(0,1fr)] md:grid-cols-[1fr_320px] xl:grid-cols-[1fr_380px]">
         {{-- Area barang --}}
         <livewire:kasir.product-picker />
 

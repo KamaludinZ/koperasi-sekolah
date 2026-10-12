@@ -2,9 +2,15 @@
     $rp = fn ($n) => 'Rp'.number_format($n, 0, ',', '.');
     $summary = $this->summary;
 @endphp
-<aside class="flex min-h-0 flex-col border-t border-stone-200 bg-white lg:border-t-0 lg:border-l"
-       x-data
-       x-on:keydown.window.f9.prevent="$wire.openPayment()">
+<aside class="fixed inset-x-0 bottom-0 z-30 flex max-h-[85dvh] min-h-0 flex-col md:bg-white md:static md:max-h-none md:rounded-none md:border-t-0 md:border-l md:shadow-none"
+       x-data="{ sheet: false }"
+       x-on:keydown.window.f9.prevent="$wire.openPayment()"
+       x-on:keydown.escape.window="sheet = false">
+    {{-- Latar saat keranjang dibuka di ponsel --}}
+    <div x-show="sheet" x-cloak x-transition.opacity x-on:click="sheet = false" class="fixed inset-0 -z-10 bg-stone-950/40 md:hidden"></div>
+
+    {{-- Detail keranjang: selalu tampil di md+, bisa dibuka/tutup di ponsel --}}
+    <div class="hidden min-h-0 flex-1 flex-col rounded-t-2xl border-t border-stone-200 bg-white md:flex md:rounded-none md:border-t-0" x-bind:class="sheet && 'flex!'">
     <div class="flex items-center justify-between px-5 py-4">
         <h2 class="font-semibold">Keranjang</h2>
         <div class="flex items-center gap-3">
@@ -71,9 +77,20 @@
             <span class="text-2xl font-bold text-emerald-900 tabular-nums">{{ $rp($summary['total']) }}</span>
         </div>
     </div>
+    </div>
 
-    <div class="px-5 pb-5">
-        <button type="button" @disabled($summary['count'] === 0) wire:click="openPayment"
+    {{-- Ringkasan ringkas (ponsel): ketuk untuk buka/tutup keranjang --}}
+    <button type="button" x-on:click="sheet = !sheet" x-bind:aria-expanded="sheet"
+            class="flex items-center justify-between gap-3 rounded-t-2xl border-t border-stone-200 bg-white px-5 pt-3 pb-2 text-left shadow-[0_-8px_30px_rgb(0_0_0/0.12)] md:hidden" x-bind:class="sheet && 'rounded-none! shadow-none!'">
+        <span>
+            <span class="block text-xs text-stone-500">{{ $summary['count'] }} barang · <span x-text="sheet ? 'Tutup keranjang' : 'Lihat keranjang'"></span></span>
+            <span class="text-xl font-bold text-emerald-900 tabular-nums">{{ $rp($summary['total']) }}</span>
+        </span>
+        <svg class="size-5 text-stone-500 transition" x-bind:class="sheet && 'rotate-180'" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="m6 15 6-6 6 6"/></svg>
+    </button>
+
+    <div class="bg-white px-5 pb-[max(1.25rem,env(safe-area-inset-bottom))]">
+        <button type="button" @disabled($summary['count'] === 0) wire:click="openPayment" x-on:click="sheet = false"
                 class="w-full rounded-xl bg-emerald-700 py-3.5 text-base font-semibold text-white shadow-sm transition hover:bg-emerald-800 disabled:cursor-not-allowed disabled:bg-stone-300">
             Bayar <span class="ml-1 text-xs font-normal opacity-70">(F9)</span>
         </button>

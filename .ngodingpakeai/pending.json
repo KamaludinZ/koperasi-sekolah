@@ -1,6 +1,6 @@
 {
   "repo": "Koperasi Sekolah",
-  "generatedForCommit": "f03313fb55d8c99ceb0dd48700de66a0904966e8",
+  "generatedForCommit": "2a3d4c96a5bfe5312ee0165d929ca7ba6a9cd4d1",
   "files": [
     {
       "path": ".claude/skills/ngodingpakeai/SKILL.md",
@@ -54,7 +54,7 @@
       "path": "app/Livewire/Kasir/Cart.php",
       "reason": "changed",
       "language": "php",
-      "size": 5985
+      "size": 6024
     },
     {
       "path": "app/Livewire/Kasir/Index.php",
@@ -82,9 +82,9 @@
     },
     {
       "path": "app/Support/MockData.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 2877
+      "size": 3284
     },
     {
       "path": "artisan",
@@ -270,7 +270,7 @@
       "path": "resources/css/app.css",
       "reason": "changed",
       "language": "css",
-      "size": 435
+      "size": 1012
     },
     {
       "path": "resources/js/app.js",
@@ -292,7 +292,7 @@
     },
     {
       "path": "resources/views/livewire/kasir/cart.blade.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 5347
     },
@@ -304,9 +304,15 @@
     },
     {
       "path": "resources/views/livewire/kasir/partials/payment-panel.blade.php",
+      "reason": "changed",
+      "language": "php",
+      "size": 8705
+    },
+    {
+      "path": "resources/views/livewire/kasir/partials/receipt.blade.php",
       "reason": "new",
       "language": "php",
-      "size": 7868
+      "size": 2248
     },
     {
       "path": "resources/views/livewire/kasir/product-picker.blade.php",
@@ -388,9 +394,9 @@
     },
     {
       "path": "storage/framework/views/28c267bfd327fcb162e337d394bf553e.php",
-      "reason": "new",
+      "reason": "changed",
       "language": "php",
-      "size": 10159
+      "size": 11057
     },
     {
       "path": "storage/framework/views/4943bc92ebba41e8b0e508149542e0ad.blade.php",
@@ -400,7 +406,7 @@
     },
     {
       "path": "storage/framework/views/52f5e0e2173f932d2ee123ac25c31cea.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 7433
     },
@@ -429,6 +435,12 @@
       "size": 25
     },
     {
+      "path": "storage/framework/views/bb2941f959f36c967c040104018a3c16.php",
+      "reason": "new",
+      "language": "php",
+      "size": 3234
+    },
+    {
       "path": "storage/framework/views/e27f66cac0fd83c2264fcbb4d52c1aff.php",
       "reason": "needs_summary",
       "language": "php",
@@ -454,9 +466,9 @@
     },
     {
       "path": "tests/Feature/Kasir/PaymentTest.php",
-      "reason": "new",
+      "reason": "changed",
       "language": "php",
-      "size": 2238
+      "size": 2681
     },
     {
       "path": "tests/Feature/Kasir/ProductPickerTest.php",
