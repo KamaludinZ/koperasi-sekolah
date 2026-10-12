@@ -56,7 +56,7 @@
                 @endif
             @endforeach
         </nav>
-        <p class="px-5 py-4 text-xs text-emerald-400">v0.1 · data tiruan</p>
+        <p class="px-5 py-4 text-xs text-emerald-400">v0.2</p>
     </aside>
 
     <div class="flex min-w-0 flex-1 flex-col">

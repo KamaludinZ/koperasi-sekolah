@@ -2,9 +2,9 @@
 
 namespace App\Livewire\Laporan;
 
-use App\Services\ReceiptPresenter;
+use App\Services\SalesExport;
 use App\Services\SalesReport;
-use App\Services\TransactionHistory;
+use Illuminate\Validation\ValidationException;
 use Illuminate\Support\Carbon;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
@@ -30,12 +30,9 @@ class Index extends Component
     #[Url(as: 'periode', except: 'hari-ini')]
     public string $period = 'hari-ini';
 
-    public const EXPORT_SECTIONS = [
-        'summary' => 'Ringkasan penjualan',
-        'daily' => 'Rekap per hari',
-        'transactions' => 'Rincian transaksi',
-        'products' => 'Barang terjual',
-    ];
+    public const EXPORT_SECTIONS = SalesExport::SECTIONS;
+
+    public const EXPORT_FORMATS = SalesExport::FORMATS;
 
     /** Panel unduh: rentang (Y-m-d), format, dan bagian yang disertakan. */
     public string $exportFrom = '';
@@ -44,7 +41,7 @@ class Index extends Component
 
     public string $exportFormat = 'csv';
 
-    public array $exportSections = ['summary', 'daily', 'products'];
+    public array $exportSections = SalesExport::DEFAULT_SECTIONS;
 
     public function mount(): void
     {
@@ -60,13 +57,13 @@ class Index extends Component
         $this->resetValidation(['exportFrom', 'exportTo']);
     }
 
-    /** Unduh rekap sebagai CSV (dibuka langsung di Excel/Spreadsheet). */
+    /** Unduh rekap sebagai CSV (dibuka langsung di Excel/Spreadsheet) atau PDF. */
     public function export()
     {
         $this->validate([
             'exportFrom' => ['required', 'date_format:Y-m-d', 'before_or_equal:today'],
             'exportTo' => ['required', 'date_format:Y-m-d', 'after_or_equal:exportFrom', 'before_or_equal:today'],
-            'exportFormat' => ['required', 'in:csv'],
+            'exportFormat' => ['required', 'in:'.implode(',', array_keys(self::EXPORT_FORMATS))],
             'exportSections' => ['required', 'array', 'min:1'],
             'exportSections.*' => ['in:'.implode(',', array_keys(self::EXPORT_SECTIONS))],
         ], [
@@ -77,80 +74,21 @@ class Index extends Component
             'required' => 'Wajib diisi.',
         ]);
 
-        $start = Carbon::parse($this->exportFrom)->startOfDay();
-        $end = Carbon::parse($this->exportTo)->endOfDay();
-        if ($start->diffInDays($end) > 366) {
-            $this->addError('exportTo', 'Rentang maksimal 1 tahun.');
+        try {
+            return app(SalesExport::class)->download(
+                Carbon::parse($this->exportFrom),
+                Carbon::parse($this->exportTo),
+                array_values($this->exportSections),
+                $this->exportFormat,
+            );
+        } catch (ValidationException $e) {
+            $map = ['sampai' => 'exportTo', 'isi' => 'exportSections'];
+            foreach ($e->errors() as $key => $messages) {
+                $this->addError($map[$key] ?? $key, $messages[0]);
+            }
 
             return null;
         }
-
-        $filename = 'rekap-penjualan-'.$start->format('Ymd').'-'.$end->format('Ymd').'.csv';
-        $rows = $this->exportRows($start, $end);
-
-        return response()->streamDownload(function () use ($rows) {
-            $out = fopen('php://output', 'w');
-            fwrite($out, "\xEF\xBB\xBF"); // BOM agar Excel membaca UTF-8
-            foreach ($rows as $row) {
-                fputcsv($out, $row, ';');
-            }
-            fclose($out);
-        }, $filename, ['Content-Type' => 'text/csv; charset=UTF-8']);
-    }
-
-    /** Susun baris CSV sesuai bagian yang dipilih. */
-    private function exportRows(Carbon $start, Carbon $end): array
-    {
-        $report = app(SalesReport::class);
-        $rows = [
-            ['Rekap Penjualan '.app(ReceiptPresenter::class)->profile()['name']],
-            ['Periode', $start->translatedFormat('d F Y').' s.d. '.$end->translatedFormat('d F Y')],
-            ['Dibuat', now()->translatedFormat('d F Y H:i')],
-            [],
-        ];
-        $sections = $this->exportSections;
-
-        if (in_array('summary', $sections, true)) {
-            $s = $report->summary($start, $end);
-            $rows[] = ['RINGKASAN'];
-            $rows[] = ['Total penjualan', $s['revenue']];
-            $rows[] = ['Laba kotor', $s['gross_profit']];
-            $rows[] = ['Margin (%)', $s['margin']];
-            $rows[] = ['Jumlah transaksi', $s['count']];
-            $rows[] = ['Barang terjual', $s['items']];
-            $rows[] = ['Rata-rata per transaksi', $s['average']];
-            $rows[] = [];
-        }
-
-        if (in_array('daily', $sections, true)) {
-            $rows[] = ['REKAP PER HARI'];
-            $rows[] = ['Tanggal', 'Transaksi', 'Barang terjual', 'Penjualan'];
-            foreach ($report->daily($start, $end) as $day) {
-                $rows[] = [$day['date'], $day['count'], $day['items'], $day['revenue']];
-            }
-            $rows[] = [];
-        }
-
-        if (in_array('transactions', $sections, true)) {
-            $rows[] = ['RINCIAN TRANSAKSI'];
-            $rows[] = ['Waktu', 'No. invoice', 'Kasir', 'Anggota', 'Metode', 'Barang', 'Total'];
-            $query = app(TransactionHistory::class)->query(['from' => $start, 'to' => $end])->reorder()->orderBy('created_at')->orderBy('id');
-            foreach ($query->lazy(500) as $t) {
-                $r = TransactionHistory::toRow($t);
-                $rows[] = [$r['created_at'], $r['invoice_number'], $r['cashier'], $r['member'] ?? '', $r['payment_method_label'], $r['item_count'], $r['total']];
-            }
-            $rows[] = [];
-        }
-
-        if (in_array('products', $sections, true)) {
-            $rows[] = ['BARANG TERJUAL'];
-            $rows[] = ['Barang', 'Jumlah', 'Penjualan', 'Laba kotor'];
-            foreach ($report->topProducts($start, $end, null) as $p) {
-                $rows[] = [$p['name'], $p['quantity'], $p['revenue'], $p['profit']];
-            }
-        }
-
-        return $rows;
     }
 
     public function setPeriod(string $period): void

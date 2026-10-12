@@ -33,12 +33,11 @@
             <fieldset>
                 <legend class="mb-1 text-xs text-stone-600">Format</legend>
                 <div class="flex gap-2">
-                    <label class="flex cursor-pointer items-center gap-2 rounded-lg border border-stone-300 px-3 py-1.5 text-sm has-checked:border-emerald-600 has-checked:bg-emerald-50">
-                        <input type="radio" value="csv" wire:model="exportFormat" class="accent-emerald-700"> Excel (CSV)
-                    </label>
-                    <label class="flex cursor-not-allowed items-center gap-2 rounded-lg border border-stone-200 px-3 py-1.5 text-sm text-stone-400" title="Menyusul di tahap backend">
-                        <input type="radio" value="pdf" disabled> PDF <span class="text-[11px]">(menyusul)</span>
-                    </label>
+                    @foreach (\App\Livewire\Laporan\Index::EXPORT_FORMATS as $value => $label)
+                        <label class="flex cursor-pointer items-center gap-2 rounded-lg border border-stone-300 px-3 py-1.5 text-sm has-checked:border-emerald-600 has-checked:bg-emerald-50">
+                            <input type="radio" value="{{ $value }}" wire:model="exportFormat" class="accent-emerald-700"> {{ $label }}
+                        </label>
+                    @endforeach
                 </div>
                 @error('exportFormat') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
             </fieldset>
