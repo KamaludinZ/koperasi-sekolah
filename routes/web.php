@@ -25,6 +25,7 @@ use App\Livewire\Auth\Login;
 use App\Livewire\Barang;
 use App\Livewire\Kasir;
 use App\Livewire\Laporan;
+use App\Livewire\Notifikasi;
 use App\Livewire\Pengaturan;
 use App\Livewire\Pengguna;
 use App\Livewire\Transaksi;
@@ -40,6 +41,7 @@ Route::post('/keluar', LogoutController::class)->name('logout');
 // Akun sendiri: cukup sudah masuk (semua peran).
 Route::get('/akun/kata-sandi', Akun\Password::class)->middleware(['menu', 'auth'])->name('akun.password');
 Route::get('/akun/sesi', Akun\Sessions::class)->middleware(['menu', 'auth'])->name('akun.sessions');
+Route::get('/notifikasi', Notifikasi\Index::class)->middleware(['menu', 'auth'])->name('notifikasi');
 Route::middleware('auth')->group(function () {
     Route::put('/akun/kata-sandi', PasswordController::class)
         ->middleware('throttle:10,1')

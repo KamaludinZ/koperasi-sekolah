@@ -103,6 +103,66 @@ class MockData
         return $all;
     }
 
+    /**
+     * Notifikasi tiruan (tahap frontend): peringatan stok dari barang yang benar-benar
+     * menipis/habis, pengumuman, dan info sistem. Status dibaca disimpan di session.
+     * Kolom mengikuti tabel notifications di PRD (type, title, message, target, is_read).
+     *
+     * @return list<array{id: int, type: string, title: string, message: string, target: string, is_read: bool, created_at: string, url: ?string}>
+     */
+    public static function notifications(): array
+    {
+        $read = session('mock.notifications.read', []);
+        $removed = session('mock.notifications.removed', []);
+        $rows = [];
+        $id = 100;
+
+        foreach (\App\Models\Product::active()->lowStock()->orderBy('stock')->get() as $i => $p) {
+            $rows[] = [
+                'id' => ++$id, 'type' => 'stok', 'target' => 'pengurus',
+                'title' => $p->stock <= 0 ? "Stok {$p->name} habis" : "Stok {$p->name} menipis",
+                'message' => $p->stock <= 0
+                    ? "{$p->name} ({$p->code}) sudah habis. Segera tambah stok agar bisa dijual lagi."
+                    : "Sisa {$p->stock} {$p->unit}, di bawah batas minimum {$p->min_stock} {$p->unit}.",
+                'url' => route('barang', ['status' => $p->stock <= 0 ? 'habis' : 'menipis']),
+                'created_at' => now()->subMinutes(20 + $i * 47)->toDateTimeString(),
+            ];
+        }
+
+        foreach ([
+            [3, 'pengumuman', 'semua', 'Libur Maulid Nabi', 'Koperasi tutup pada hari libur Maulid Nabi Muhammad SAW. Layanan buka kembali keesokan harinya pukul 07.00.'],
+            [26, 'pengumuman', 'anggota', 'Gerakan menabung pekan ini', 'Ayo setor tabungan minimal Rp2.000 setiap hari Senin. Bawa buku tabungan ke kasir koperasi.'],
+            [50, 'sistem', 'pengurus', 'Rekap penjualan bulan lalu siap', 'Rekap penjualan bulan lalu sudah bisa diunduh dari menu Laporan dalam format PDF atau Excel.'],
+            [74, 'pengumuman', 'kasir', 'Seragam baru datang', 'Stok seragam olahraga ukuran S–XL sudah masuk. Pastikan harga di layar kasir sudah sesuai.'],
+            [150, 'sistem', 'semua', 'Fitur Audit & Riwayat tersedia', 'Admin dan pengurus kini bisa melihat jejak login dan semua aktivitas petugas di menu Audit & Riwayat.'],
+        ] as [$hours, $type, $target, $title, $message]) {
+            $rows[] = ['id' => ++$id, 'type' => $type, 'target' => $target, 'title' => $title, 'message' => $message,
+                'url' => null, 'created_at' => now()->subHours($hours)->toDateTimeString()];
+        }
+
+        $role = auth()->user()?->role?->name;
+
+        return collect($rows)
+            ->reject(fn ($n) => in_array($n['id'], $removed, true))
+            // Admin melihat semua; petugas lain: untuk semua, anggota (untuk disampaikan), atau perannya.
+            ->filter(fn ($n) => $role === 'admin' || in_array($n['target'], ['semua', 'anggota', $role], true))
+            ->map(fn ($n) => [...$n, 'is_read' => in_array($n['id'], $read, true)])
+            ->sortByDesc('created_at')
+            ->values()
+            ->all();
+    }
+
+    public static function markNotifications(array $ids, bool $read = true): void
+    {
+        $current = collect(session('mock.notifications.read', []));
+        session(['mock.notifications.read' => ($read ? $current->merge($ids) : $current->diff($ids))->unique()->values()->all()]);
+    }
+
+    public static function unreadNotifications(): int
+    {
+        return collect(self::notifications())->where('is_read', false)->count();
+    }
+
     /** Persentase pajak penjualan (nanti dari tabel settings). */
     public static function taxRate(): float
     {
