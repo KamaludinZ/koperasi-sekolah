@@ -87,6 +87,19 @@ class Menu
         return $groups;
     }
 
+    /** Pesan akses ditolak, mis. "Menu Laporan hanya untuk peran Admin dan Pengurus." */
+    public static function deniedMessage(string $menu): string
+    {
+        $roles = collect(self::DEFAULT_PERMISSIONS)
+            ->filter(fn ($menus) => in_array($menu, $menus, true))
+            ->keys()
+            ->map(fn ($role) => MockData::ROLES[$role] ?? $role)
+            ->values();
+        $list = $roles->count() > 1 ? $roles->slice(0, -1)->join(', ').' dan '.$roles->last() : $roles->join('');
+
+        return 'Menu '.(self::ITEMS[$menu]['label'] ?? $menu).' hanya untuk peran '.$list.'.';
+    }
+
     /** Halaman pertama setelah masuk, sesuai peran. */
     public static function homeRoute(?string $role): string
     {

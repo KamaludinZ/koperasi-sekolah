@@ -57,9 +57,34 @@ class RoleMenuTest extends TestCase
             ->assertRedirect(route('laporan'));
     }
 
-    public function test_demo_mode_without_login_shows_all_menus(): void
+    public function test_guest_is_sent_to_login_and_back(): void
     {
-        $this->get('/laporan')->assertOk()->assertSee('Mode demo');
-        $this->get('/')->assertOk(); // beranda publik tidak terpengaruh
+        session()->forget('mock.user');
+
+        $this->get('/akun/kata-sandi')->assertRedirect(route('login'));
+        $this->getJson('/laporan/hari-ini')->assertUnauthorized();
+        $this->get('/laporan?periode=7-hari')->assertRedirect(route('login'));
+        $this->get('/masuk')->assertSee('Silakan masuk dulu untuk membuka halaman itu.');
+        $this->get('/')->assertOk(); // beranda publik tetap terbuka
+
+        Livewire::test(Login::class)
+            ->set('email', 'admin@koperasi.test')->set('password', 'password')
+            ->call('login')
+            ->assertRedirect(url('/laporan?periode=7-hari'));
+    }
+
+    public function test_denied_page_explains_allowed_roles(): void
+    {
+        $this->actingAsMock('kasir');
+
+        $this->get('/laporan')
+            ->assertForbidden()
+            ->assertSee('Menu Laporan hanya untuk peran Admin dan Pengurus.')
+            ->assertSee('Uji Kasir')
+            ->assertSee('Ke halaman saya')
+            ->assertSee(route('kasir'), false);
+
+        $this->get('/pengguna')->assertForbidden()->assertSee('Menu Pengguna hanya untuk peran Admin.');
+        $this->assertSame('Menu Barang &amp; Stok hanya untuk peran Admin, Kasir dan Pengurus.', e(Menu::deniedMessage('barang')));
     }
 }

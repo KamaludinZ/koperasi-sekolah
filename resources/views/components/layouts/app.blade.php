@@ -78,7 +78,6 @@
                     </form>
                 </div>
             @else
-                <p class="mb-2 text-xs leading-snug text-emerald-200">Mode demo: semua menu terbuka. Masuk untuk melihat menu sesuai peran.</p>
                 <a href="{{ route('login') }}" class="flex items-center justify-center gap-2 rounded-lg bg-amber-400 px-3 py-2 text-sm font-semibold text-emerald-950 hover:bg-amber-300">Masuk petugas</a>
             @endif
         </div>

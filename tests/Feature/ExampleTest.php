@@ -10,6 +10,8 @@ class ExampleTest extends TestCase
 {
     use RefreshDatabase;
 
+    protected ?string $mockRole = null;
+
     protected function setUp(): void
     {
         parent::setUp();
@@ -23,6 +25,8 @@ class ExampleTest extends TestCase
 
     public function test_cashier_screen_renders(): void
     {
+        session(['mock.user' => \App\Support\MockData::findUser(2)]);
+
         $this->get('/kasir')
             ->assertOk()
             ->assertSee('Layar Kasir')

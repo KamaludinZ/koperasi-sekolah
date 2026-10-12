@@ -9,19 +9,39 @@ use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
- * Tolak (403) halaman & endpoint menu yang tidak diizinkan untuk peran petugas.
- * Menu ditentukan dari segmen URL pertama (kasir, barang, transaksi, anggota, laporan, pengaturan).
- * Tahap frontend: peran dari akun tiruan di session; belum masuk = mode demo (semua terbuka).
+ * Penjaga rute halaman petugas, ditentukan dari segmen URL pertama:
+ * - menu (kasir, barang, transaksi, anggota, laporan, pengguna, pengaturan) & `akun` wajib masuk;
+ *   belum masuk → ke /masuk (lalu kembali ke tujuan), atau 401 untuk permintaan JSON;
+ * - menu di luar hak peran → 403 dengan pesan siapa yang boleh membukanya.
+ * Beranda, /masuk, aset, dan /livewire tidak dijaga.
+ * Tahap frontend: akun & peran dari session tiruan.
  */
 class EnsureMenuAccess
 {
+    /** Segmen yang wajib masuk tetapi bukan menu (bisa dibuka semua peran). */
+    public const ACCOUNT_SEGMENTS = ['akun'];
+
     public function handle(Request $request, Closure $next): Response
     {
-        $menu = $request->segment(1);
+        $segment = $request->segment(1);
+        $isMenu = $segment && array_key_exists($segment, Menu::ITEMS);
+
+        if (! $isMenu && ! in_array($segment, self::ACCOUNT_SEGMENTS, true)) {
+            return $next($request);
+        }
+
         $user = MockData::currentUser();
 
-        if ($user && $menu && array_key_exists($menu, Menu::ITEMS) && ! Menu::allows($user['role'], $menu)) {
-            abort(403, 'Menu ini tidak tersedia untuk peran Anda.');
+        if (! $user) {
+            if ($request->expectsJson()) {
+                abort(401, 'Silakan masuk terlebih dahulu.');
+            }
+
+            return redirect()->guest(route('login'))->with('status', 'Silakan masuk dulu untuk membuka halaman itu.');
+        }
+
+        if ($isMenu && ! Menu::allows($user['role'], $segment)) {
+            abort(403, Menu::deniedMessage($segment));
         }
 
         return $next($request);

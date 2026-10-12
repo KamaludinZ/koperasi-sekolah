@@ -12,6 +12,8 @@ class LoginTest extends TestCase
 {
     use RefreshDatabase;
 
+    protected ?string $mockRole = null;
+
     public function test_login_page_renders_with_demo_accounts(): void
     {
         $this->get('/masuk')
