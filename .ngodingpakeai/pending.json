@@ -1,6 +1,6 @@
 {
   "repo": "Koperasi Sekolah",
-  "generatedForCommit": "b5a6f169e8568777a01c48672d140eac1aeca75f",
+  "generatedForCommit": "103526159354ab9d79c8db6c583016da3c104b76",
   "files": [
     {
       "path": ".claude/skills/ngodingpakeai/SKILL.md",
@@ -51,6 +51,12 @@
       "size": 77
     },
     {
+      "path": "app/Http/Controllers/Kasir/ProductSearchController.php",
+      "reason": "new",
+      "language": "php",
+      "size": 1458
+    },
+    {
       "path": "app/Livewire/Barang/Index.php",
       "reason": "needs_summary",
       "language": "php",
@@ -70,9 +76,9 @@
     },
     {
       "path": "app/Livewire/Kasir/Cart.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 6030
+      "size": 6110
     },
     {
       "path": "app/Livewire/Kasir/Index.php",
@@ -82,37 +88,37 @@
     },
     {
       "path": "app/Livewire/Kasir/ProductPicker.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 2258
+      "size": 1864
     },
     {
       "path": "app/Models/Category.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 292
     },
     {
       "path": "app/Models/Product.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 1188
     },
     {
       "path": "app/Models/StockMovement.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 701
     },
     {
       "path": "app/Models/Transaction.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 926
     },
     {
       "path": "app/Models/TransactionItem.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 712
     },
@@ -129,10 +135,16 @@
       "size": 361
     },
     {
-      "path": "app/Support/MockData.php",
-      "reason": "needs_summary",
+      "path": "app/Services/ProductCatalog.php",
+      "reason": "new",
       "language": "php",
-      "size": 6030
+      "size": 3184
+    },
+    {
+      "path": "app/Support/MockData.php",
+      "reason": "changed",
+      "language": "php",
+      "size": 6089
     },
     {
       "path": "artisan",
@@ -274,21 +286,27 @@
     },
     {
       "path": "database/migrations/2026_10_12_000001_create_categories_and_products_tables.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 1924
     },
     {
       "path": "database/migrations/2026_10_12_000002_create_transactions_tables.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 1854
     },
     {
       "path": "database/seeders/DatabaseSeeder.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 482
+      "size": 526
+    },
+    {
+      "path": "database/seeders/ProductSeeder.php",
+      "reason": "new",
+      "language": "php",
+      "size": 930
     },
     {
       "path": "package-lock.json",
@@ -424,9 +442,9 @@
     },
     {
       "path": "routes/web.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 246
+      "size": 439
     },
     {
       "path": "storage/app/.gitignore",
@@ -489,10 +507,40 @@
       "size": 14
     },
     {
+      "path": "storage/framework/views/0b04fd527690ddbd8902a81afa5811cd.php",
+      "reason": "new",
+      "language": "php",
+      "size": 4848
+    },
+    {
+      "path": "storage/framework/views/11d434ee5e77058e2fdf66d3577683cf.php",
+      "reason": "new",
+      "language": "php",
+      "size": 6271
+    },
+    {
+      "path": "storage/framework/views/13c2d9fe6d7bb641fdad74e20bc098dd.php",
+      "reason": "new",
+      "language": "php",
+      "size": 11018
+    },
+    {
       "path": "storage/framework/views/160bba15280f8f676d5e4e66491409ee.php",
       "reason": "needs_summary",
       "language": "php",
       "size": 5753
+    },
+    {
+      "path": "storage/framework/views/1851cf9990fefa450fc355457ff302f3.php",
+      "reason": "new",
+      "language": "php",
+      "size": 4762
+    },
+    {
+      "path": "storage/framework/views/1d833eae43c36f42502a8576aa630ef1.php",
+      "reason": "new",
+      "language": "php",
+      "size": 3045
     },
     {
       "path": "storage/framework/views/1f95b45cf229cd9bec1caabe9db4eb98.php",
@@ -507,10 +555,64 @@
       "size": 10531
     },
     {
+      "path": "storage/framework/views/2586e6f6344c06217e4dc8ea72f070dc.php",
+      "reason": "new",
+      "language": "php",
+      "size": 811
+    },
+    {
+      "path": "storage/framework/views/26b179454db473316c892c0f667a6b38.php",
+      "reason": "new",
+      "language": "php",
+      "size": 912
+    },
+    {
       "path": "storage/framework/views/28c267bfd327fcb162e337d394bf553e.php",
       "reason": "needs_summary",
       "language": "php",
       "size": 11057
+    },
+    {
+      "path": "storage/framework/views/28cc9093b56842d8921da0f069465f76.php",
+      "reason": "new",
+      "language": "php",
+      "size": 780
+    },
+    {
+      "path": "storage/framework/views/29836b24de4bb546555c463a428c6a4a.php",
+      "reason": "new",
+      "language": "php",
+      "size": 442
+    },
+    {
+      "path": "storage/framework/views/2f6cbfed59fa6c46c9092cc9033046d1.php",
+      "reason": "new",
+      "language": "php",
+      "size": 3950
+    },
+    {
+      "path": "storage/framework/views/32bb7b3514f921e97abf58882af7f21d.php",
+      "reason": "new",
+      "language": "php",
+      "size": 3074
+    },
+    {
+      "path": "storage/framework/views/34d0013a19927a027e68062fc19808a7.php",
+      "reason": "new",
+      "language": "php",
+      "size": 2120
+    },
+    {
+      "path": "storage/framework/views/39851c05e1be40e4c4d0463b372dac9b.php",
+      "reason": "new",
+      "language": "php",
+      "size": 643
+    },
+    {
+      "path": "storage/framework/views/45bb91e9619d3353f0a7411619edb131.php",
+      "reason": "new",
+      "language": "php",
+      "size": 7810
     },
     {
       "path": "storage/framework/views/4943bc92ebba41e8b0e508149542e0ad.blade.php",
@@ -519,10 +621,46 @@
       "size": 571
     },
     {
+      "path": "storage/framework/views/4acf0644618fc848ed12107f69ba94ea.php",
+      "reason": "new",
+      "language": "php",
+      "size": 1325
+    },
+    {
       "path": "storage/framework/views/52f5e0e2173f932d2ee123ac25c31cea.php",
       "reason": "needs_summary",
       "language": "php",
       "size": 8848
+    },
+    {
+      "path": "storage/framework/views/5eac227866812274bae7e1a89132cd16.php",
+      "reason": "new",
+      "language": "php",
+      "size": 11282
+    },
+    {
+      "path": "storage/framework/views/62ad952d60270394dee1419fc0dd059c.php",
+      "reason": "new",
+      "language": "php",
+      "size": 404
+    },
+    {
+      "path": "storage/framework/views/6a716ed1600058dab4cb93986b8327e6.php",
+      "reason": "new",
+      "language": "php",
+      "size": 998
+    },
+    {
+      "path": "storage/framework/views/70f2929fb33c27a0347a1cd09b275007.php",
+      "reason": "new",
+      "language": "php",
+      "size": 4266
+    },
+    {
+      "path": "storage/framework/views/74e737c055f8622aa8ca327b6c561edf.php",
+      "reason": "new",
+      "language": "php",
+      "size": 543
     },
     {
       "path": "storage/framework/views/798b34bc9486b4ac75524eea46040336.php",
@@ -531,10 +669,40 @@
       "size": 6862
     },
     {
+      "path": "storage/framework/views/85dd96443690e28827b4c678cef21e2b.php",
+      "reason": "new",
+      "language": "php",
+      "size": 4855
+    },
+    {
+      "path": "storage/framework/views/88632d7fe2fb331fa5a6fc2bd8a24ee0.php",
+      "reason": "new",
+      "language": "php",
+      "size": 23439
+    },
+    {
+      "path": "storage/framework/views/8a94dcdbd8c1d89c01f7772f2c35d57e.php",
+      "reason": "new",
+      "language": "php",
+      "size": 3225
+    },
+    {
       "path": "storage/framework/views/915a8066dbfdfee9fc6e01ff537e877e.php",
       "reason": "needs_summary",
       "language": "php",
       "size": 2138
+    },
+    {
+      "path": "storage/framework/views/9185232acdd7328fc5c5fae1b26ceaeb.php",
+      "reason": "new",
+      "language": "php",
+      "size": 385
+    },
+    {
+      "path": "storage/framework/views/92486d8352a057b32f35a2c32eb6ed80.php",
+      "reason": "new",
+      "language": "php",
+      "size": 10320
     },
     {
       "path": "storage/framework/views/92583c14c7d686b3adb28a0f23b70c9d.php",
@@ -543,10 +711,40 @@
       "size": 6901
     },
     {
+      "path": "storage/framework/views/96fa52268d45b9155659c4f423407271.php",
+      "reason": "new",
+      "language": "php",
+      "size": 542
+    },
+    {
+      "path": "storage/framework/views/9b9ec40e246d05056152999706d0b807.php",
+      "reason": "new",
+      "language": "php",
+      "size": 3274
+    },
+    {
       "path": "storage/framework/views/a168b0ebcff266df6b662fc4b6d06e88.blade.php",
       "reason": "needs_summary",
       "language": "php",
       "size": 25
+    },
+    {
+      "path": "storage/framework/views/a695449510b89e729776eee3bc08a422.php",
+      "reason": "new",
+      "language": "php",
+      "size": 2132
+    },
+    {
+      "path": "storage/framework/views/a6c15270aa440dedb7040a1e4b8a0a59.php",
+      "reason": "new",
+      "language": "php",
+      "size": 1050
+    },
+    {
+      "path": "storage/framework/views/abd90ee03645b71d966c07a61524a3aa.php",
+      "reason": "new",
+      "language": "php",
+      "size": 30223
     },
     {
       "path": "storage/framework/views/ba5979f1a69d9d3595f4444d9321bfb6.php",
@@ -561,6 +759,42 @@
       "size": 3234
     },
     {
+      "path": "storage/framework/views/c9b94a08e7ffa2ef06c77dd130201c3d.php",
+      "reason": "new",
+      "language": "php",
+      "size": 2295
+    },
+    {
+      "path": "storage/framework/views/cd1e5807c8d381f9f932c37db5683882.php",
+      "reason": "new",
+      "language": "php",
+      "size": 10387
+    },
+    {
+      "path": "storage/framework/views/d06b484ac3f5d883543cac1cd4df750f.php",
+      "reason": "new",
+      "language": "php",
+      "size": 786
+    },
+    {
+      "path": "storage/framework/views/d3497f4380babe0adfd83c74c30a3f21.php",
+      "reason": "new",
+      "language": "php",
+      "size": 3871
+    },
+    {
+      "path": "storage/framework/views/d89e9e917234371ccfdf5fc36b78f03a.php",
+      "reason": "new",
+      "language": "php",
+      "size": 404
+    },
+    {
+      "path": "storage/framework/views/e0569279937090ca1a86c8a5212a66d4.php",
+      "reason": "new",
+      "language": "php",
+      "size": 2903
+    },
+    {
       "path": "storage/framework/views/e27f66cac0fd83c2264fcbb4d52c1aff.php",
       "reason": "needs_summary",
       "language": "php",
@@ -571,6 +805,12 @@
       "reason": "needs_summary",
       "language": "php",
       "size": 791
+    },
+    {
+      "path": "storage/framework/views/e6654a4ef845c5cde76f8579fc87f507.php",
+      "reason": "new",
+      "language": "php",
+      "size": 441
     },
     {
       "path": "storage/framework/views/f42e6bc937ce5b928a5231f224c3a42b.php",
@@ -616,33 +856,39 @@
     },
     {
       "path": "tests/Feature/Database/ProductTransactionSchemaTest.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 2709
     },
     {
       "path": "tests/Feature/ExampleTest.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 489
+      "size": 666
     },
     {
       "path": "tests/Feature/Kasir/CartTest.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 2153
+      "size": 2384
     },
     {
       "path": "tests/Feature/Kasir/PaymentTest.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 2681
+      "size": 2912
     },
     {
       "path": "tests/Feature/Kasir/ProductPickerTest.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 1484
+      "size": 1715
+    },
+    {
+      "path": "tests/Feature/Kasir/ProductSearchTest.php",
+      "reason": "new",
+      "language": "php",
+      "size": 2405
     },
     {
       "path": "tests/TestCase.php",

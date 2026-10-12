@@ -27,6 +27,9 @@
             </div>
 
             <div class="space-y-5 px-5 py-5">
+                @error('items')
+                    <p class="rounded-lg bg-red-50 px-4 py-3 text-sm text-red-700" role="alert">{{ $message }}</p>
+                @enderror
                 <div class="rounded-xl bg-emerald-50 px-4 py-3">
                     <p class="text-xs font-medium text-emerald-800">Total belanja · {{ $summary['count'] }} barang</p>
                     <p class="text-3xl font-bold text-emerald-900 tabular-nums">{{ $rp($total) }}</p>

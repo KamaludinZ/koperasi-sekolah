@@ -2,10 +2,12 @@
 
 namespace App\Livewire\Kasir;
 
+use App\Services\CheckoutService;
 use App\Services\ProductCatalog;
 use App\Support\MockData;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\On;
+use Illuminate\Validation\ValidationException;
 use Livewire\Component;
 
 /**
@@ -29,10 +31,10 @@ class Cart extends Component
 
     public ?int $paid = null;
 
-    /** Ringkasan transaksi terakhir yang berhasil dibayar (data tiruan sampai backend siap). */
+    /** Ringkasan transaksi terakhir yang berhasil dibayar (untuk dialog sukses & struk). */
     public ?array $lastTransaction = null;
 
-    public const PAYMENT_METHODS = ['tunai' => 'Tunai', 'qris' => 'QRIS / Transfer'];
+    public const PAYMENT_METHODS = CheckoutService::PAYMENT_METHODS;
 
     #[On('product-picked')]
     public function add(int $productId): void
@@ -117,10 +119,10 @@ class Cart extends Component
     }
 
     /**
-     * Konfirmasi pembayaran. Saat ini hanya membuat transaksi tiruan;
-     * penyimpanan ke database & pengurangan stok menyusul di layer backend.
+     * Konfirmasi pembayaran: simpan transaksi ke database & kurangi stok
+     * lewat CheckoutService (total dihitung ulang di server).
      */
-    public function pay(): void
+    public function pay(CheckoutService $checkout): void
     {
         $summary = $this->summary;
         if ($summary['count'] === 0) {
@@ -139,25 +141,36 @@ class Cart extends Component
             'paid.min' => 'Uang bayar kurang dari total belanja.',
         ]);
 
+        try {
+            $transaction = $checkout->checkout($this->items, $this->paymentMethod, $this->paid, auth()->id());
+        } catch (ValidationException $e) {
+            foreach ($e->errors() as $field => $messages) {
+                $this->addError($field === 'payment_method' ? 'paymentMethod' : $field, implode(' ', $messages));
+            }
+
+            return;
+        }
+
         $this->lastTransaction = [
-            'invoice_number' => 'INV-'.now()->format('Ymd-His'),
-            'created_at' => now()->toDateTimeString(),
-            'items' => array_map(fn ($l) => [
-                'product_name' => $l['name'],
-                'price' => $l['price'],
-                'quantity' => $l['quantity'],
-                'subtotal' => $l['subtotal'],
-            ], $this->lines),
-            'subtotal' => $summary['subtotal'],
-            'tax' => $summary['tax'],
-            'total' => $summary['total'],
-            'paid' => $this->paid,
-            'change' => $this->paid - $summary['total'],
-            'payment_method' => $this->paymentMethod,
-            'cashier' => 'Kasir Demo',
+            'id' => $transaction->id,
+            'invoice_number' => $transaction->invoice_number,
+            'created_at' => $transaction->created_at->toDateTimeString(),
+            'items' => $transaction->items->map(fn ($item) => [
+                'product_name' => $item->product_name,
+                'price' => (int) $item->price,
+                'quantity' => $item->quantity,
+                'subtotal' => (int) $item->subtotal,
+            ])->all(),
+            'subtotal' => (int) $transaction->subtotal,
+            'tax' => (int) $transaction->tax,
+            'total' => (int) $transaction->total,
+            'paid' => (int) $transaction->paid,
+            'change' => (int) $transaction->change,
+            'payment_method' => $transaction->payment_method,
+            'cashier' => auth()->user()?->name ?? 'Kasir',
         ];
 
-        $this->dispatch('transaction-completed', invoice: $this->lastTransaction['invoice_number']);
+        $this->dispatch('transaction-completed', invoice: $transaction->invoice_number);
         $this->paying = false;
         $this->clear();
     }

@@ -4,6 +4,7 @@ namespace App\Livewire\Kasir;
 
 use App\Services\ProductCatalog;
 use Livewire\Attributes\Computed;
+use Livewire\Attributes\On;
 use Livewire\Component;
 
 /**
@@ -28,6 +29,14 @@ class ProductPicker extends Component
     public function products(): array
     {
         return app(ProductCatalog::class)->search($this->search, $this->category);
+    }
+
+    /** Stok berubah setelah transaksi — muat ulang daftar barang. */
+    #[On('transaction-completed')]
+    public function refreshStock(): void
+    {
+        unset($this->products);
+        $this->lastPicked = null;
     }
 
     public function pick(int $productId): void
