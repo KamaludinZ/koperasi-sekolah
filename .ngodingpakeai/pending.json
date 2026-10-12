@@ -1,6 +1,6 @@
 {
   "repo": "Koperasi Sekolah",
-  "generatedForCommit": "328fec79b8fcbecbfeaeff1b79bec75cb3c8c7e6",
+  "generatedForCommit": "2d4b39e6ed2a65413914614bc6aa6cd33bdcc224",
   "files": [
     {
       "path": ".claude/skills/ngodingpakeai/SKILL.md",
@@ -54,17 +54,17 @@
       "path": "app/Livewire/Barang/Index.php",
       "reason": "changed",
       "language": "php",
-      "size": 4754
+      "size": 5888
     },
     {
       "path": "app/Livewire/Barang/MinStockSettings.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 3200
     },
     {
       "path": "app/Livewire/Forms/ProductForm.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 2761
     },
@@ -100,7 +100,7 @@
     },
     {
       "path": "app/Support/MockData.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 6030
     },
@@ -318,19 +318,25 @@
       "path": "resources/views/livewire/barang/index.blade.php",
       "reason": "changed",
       "language": "php",
-      "size": 11881
+      "size": 12098
     },
     {
       "path": "resources/views/livewire/barang/min-stock-settings.blade.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 6398
     },
     {
       "path": "resources/views/livewire/barang/partials/low-stock-panel.blade.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 4370
+    },
+    {
+      "path": "resources/views/livewire/barang/partials/pagination.blade.php",
+      "reason": "new",
+      "language": "php",
+      "size": 2716
     },
     {
       "path": "resources/views/livewire/barang/partials/product-form.blade.php",
@@ -442,7 +448,7 @@
     },
     {
       "path": "storage/framework/views/160bba15280f8f676d5e4e66491409ee.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 5753
     },
@@ -454,7 +460,7 @@
     },
     {
       "path": "storage/framework/views/22698be6eea40dc37aa865c319a84d9a.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 10531
     },
@@ -528,7 +534,13 @@
       "path": "storage/framework/views/f42e6bc937ce5b928a5231f224c3a42b.php",
       "reason": "changed",
       "language": "php",
-      "size": 20055
+      "size": 20345
+    },
+    {
+      "path": "storage/framework/views/fde31759f320edf659255ac23d0d7883.php",
+      "reason": "new",
+      "language": "php",
+      "size": 4510
     },
     {
       "path": "tests/Feature/Barang/IndexTest.php",
@@ -544,9 +556,15 @@
     },
     {
       "path": "tests/Feature/Barang/MinStockSettingsTest.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 2281
+    },
+    {
+      "path": "tests/Feature/Barang/PaginationTest.php",
+      "reason": "new",
+      "language": "php",
+      "size": 1326
     },
     {
       "path": "tests/Feature/Barang/ProductFormTest.php",
