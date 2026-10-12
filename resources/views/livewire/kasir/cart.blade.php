@@ -1,0 +1,72 @@
+@php
+    $rp = fn ($n) => 'Rp'.number_format($n, 0, ',', '.');
+    $summary = $this->summary;
+@endphp
+<aside class="flex min-h-0 flex-col border-t border-stone-200 bg-white lg:border-t-0 lg:border-l">
+    <div class="flex items-center justify-between px-5 py-4">
+        <h2 class="font-semibold">Keranjang</h2>
+        <div class="flex items-center gap-3">
+            <span class="text-xs text-stone-500">{{ $summary['count'] }} barang</span>
+            @if ($summary['count'] > 0)
+                <button type="button" wire:click="clear" wire:confirm="Kosongkan keranjang?"
+                        class="text-xs font-medium text-red-600 hover:text-red-700">Kosongkan</button>
+            @endif
+        </div>
+    </div>
+
+    @if ($notice)
+        <p class="mx-5 mb-2 rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-800" role="status">{{ $notice }}</p>
+    @endif
+
+    @if (count($this->lines) === 0)
+        <div class="flex flex-1 flex-col items-center justify-center gap-2 px-6 py-10 text-center">
+            <svg class="size-10 text-stone-300" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M3 4h2l2.4 11.2a1 1 0 001 .8h9.2a1 1 0 001-.8L20 8H6.2"/><circle cx="9" cy="20" r="1"/><circle cx="17" cy="20" r="1"/></svg>
+            <p class="text-sm font-medium text-stone-600">Keranjang masih kosong</p>
+            <p class="text-xs text-stone-400">Pilih barang di sebelah kiri untuk mulai transaksi.</p>
+        </div>
+    @else
+        <ul class="min-h-0 flex-1 divide-y divide-stone-100 overflow-y-auto px-5">
+            @foreach ($this->lines as $line)
+                <li wire:key="line-{{ $line['id'] }}" class="flex gap-3 py-3">
+                    <div class="min-w-0 flex-1">
+                        <p class="truncate text-sm font-medium">{{ $line['name'] }}</p>
+                        <p class="text-xs text-stone-500 tabular-nums">{{ $rp($line['price']) }} / {{ $line['unit'] }}</p>
+                        <div class="mt-2 inline-flex items-center rounded-lg border border-stone-300">
+                            <button type="button" wire:click="decrement({{ $line['id'] }})" aria-label="Kurangi"
+                                    class="grid size-8 place-items-center text-stone-600 hover:bg-stone-100">−</button>
+                            <input type="number" min="0" max="{{ $line['stock'] }}" value="{{ $line['quantity'] }}"
+                                   wire:change="setQty({{ $line['id'] }}, $event.target.value || 0)"
+                                   aria-label="Jumlah {{ $line['name'] }}"
+                                   class="w-11 [appearance:textfield] border-x border-stone-300 py-1 text-center text-sm tabular-nums outline-none [&::-webkit-inner-spin-button]:appearance-none">
+                            <button type="button" wire:click="increment({{ $line['id'] }})" aria-label="Tambah"
+                                    class="grid size-8 place-items-center text-stone-600 hover:bg-stone-100">+</button>
+                        </div>
+                    </div>
+                    <div class="flex flex-col items-end justify-between">
+                        <button type="button" wire:click="remove({{ $line['id'] }})" aria-label="Hapus {{ $line['name'] }}"
+                                class="text-stone-400 hover:text-red-600">
+                            <svg class="size-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></svg>
+                        </button>
+                        <span class="text-sm font-semibold tabular-nums">{{ $rp($line['subtotal']) }}</span>
+                    </div>
+                </li>
+            @endforeach
+        </ul>
+    @endif
+
+    <div class="space-y-2 border-t border-stone-200 px-5 py-4 text-sm">
+        <div class="flex justify-between text-stone-600"><span>Subtotal</span><span class="tabular-nums">{{ $rp($summary['subtotal']) }}</span></div>
+        <div class="flex justify-between text-stone-600"><span>Pajak ({{ $summary['tax_rate'] }}%)</span><span class="tabular-nums">{{ $rp($summary['tax']) }}</span></div>
+        <div class="flex items-baseline justify-between pt-1">
+            <span class="font-semibold">Total</span>
+            <span class="text-2xl font-bold text-emerald-900 tabular-nums">{{ $rp($summary['total']) }}</span>
+        </div>
+    </div>
+
+    <div class="px-5 pb-5">
+        <button type="button" @disabled($summary['count'] === 0)
+                class="w-full rounded-xl bg-emerald-700 py-3.5 text-base font-semibold text-white shadow-sm transition hover:bg-emerald-800 disabled:cursor-not-allowed disabled:bg-stone-300">
+            Bayar
+        </button>
+    </div>
+</aside>

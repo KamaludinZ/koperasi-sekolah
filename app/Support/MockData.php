@@ -13,6 +13,12 @@ class MockData
         return ['Alat Tulis', 'Makanan', 'Minuman', 'Seragam'];
     }
 
+    /** Persentase pajak penjualan (nanti dari tabel settings). */
+    public static function taxRate(): float
+    {
+        return 0;
+    }
+
     public static function products(): array
     {
         return [

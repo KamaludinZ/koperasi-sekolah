@@ -1,406 +1,442 @@
 {
   "repo": "Koperasi Sekolah",
-  "generatedForCommit": "0deb2fabc0593776b894ca73f2b7aa395e457a85",
+  "generatedForCommit": "d465a8ec2207a028ce84d2e51b0e36881915f344",
   "files": [
     {
       "path": ".claude/skills/ngodingpakeai/SKILL.md",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "markdown",
       "size": 19096
     },
     {
       "path": ".editorconfig",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": null,
       "size": 252
     },
     {
       "path": ".gitattributes",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": null,
       "size": 186
     },
     {
       "path": ".gitignore",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": null,
       "size": 283
     },
     {
       "path": ".ngodingpakeaiignore",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": null,
       "size": 269
     },
     {
       "path": "AGENTS.md",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "markdown",
       "size": 18850
     },
     {
       "path": "README.md",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "markdown",
       "size": 3911
     },
     {
       "path": "app/Http/Controllers/Controller.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 77
     },
     {
       "path": "app/Livewire/Kasir/Index.php",
+      "reason": "changed",
+      "language": "php",
+      "size": 358
+    },
+    {
+      "path": "app/Livewire/Kasir/ProductPicker.php",
       "reason": "new",
       "language": "php",
-      "size": 484
+      "size": 2251
     },
     {
       "path": "app/Models/User.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 1025
     },
     {
       "path": "app/Providers/AppServiceProvider.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 361
     },
     {
       "path": "app/Support/MockData.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 2735
     },
     {
       "path": "artisan",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": null,
       "size": 425
     },
     {
       "path": "bootstrap/app.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 525
     },
     {
       "path": "bootstrap/cache/.gitignore",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": null,
       "size": 14
     },
     {
       "path": "bootstrap/cache/packages.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 1034
     },
     {
       "path": "bootstrap/cache/services.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 21987
     },
     {
       "path": "bootstrap/providers.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 89
     },
     {
       "path": "composer.json",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "json",
       "size": 2886
     },
     {
       "path": "composer.lock",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": null,
       "size": 312986
     },
     {
       "path": "config/app.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 4272
     },
     {
       "path": "config/auth.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 4040
     },
     {
       "path": "config/cache.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 3683
     },
     {
       "path": "config/database.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 6982
     },
     {
       "path": "config/filesystems.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 2532
     },
     {
       "path": "config/logging.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 4340
     },
     {
       "path": "config/mail.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 3631
     },
     {
       "path": "config/queue.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 4199
     },
     {
       "path": "config/services.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 1039
     },
     {
       "path": "config/session.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 7848
     },
     {
       "path": "database/.gitignore",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": null,
       "size": 10
     },
     {
       "path": "database/factories/UserFactory.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 1044
     },
     {
       "path": "database/migrations/0001_01_01_000000_create_users_table.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 1473
     },
     {
       "path": "database/migrations/0001_01_01_000001_create_cache_table.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 867
     },
     {
       "path": "database/migrations/0001_01_01_000002_create_jobs_table.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 1812
     },
     {
       "path": "database/seeders/DatabaseSeeder.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 482
     },
     {
       "path": "package-lock.json",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "json",
       "size": 91949
     },
     {
       "path": "package.json",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "json",
       "size": 414
     },
     {
       "path": "phpunit.xml",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": null,
       "size": 1322
     },
     {
       "path": "public/.htaccess",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": null,
       "size": 740
     },
     {
       "path": "public/index.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 543
     },
     {
       "path": "public/robots.txt",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": null,
       "size": 24
     },
     {
       "path": "resources/css/app.css",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "css",
       "size": 390
     },
     {
       "path": "resources/js/app.js",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "javascript",
       "size": 22
     },
     {
       "path": "resources/js/bootstrap.js",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "javascript",
       "size": 127
     },
     {
       "path": "resources/views/components/layouts/app.blade.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 3625
     },
     {
       "path": "resources/views/livewire/kasir/index.blade.php",
+      "reason": "changed",
+      "language": "php",
+      "size": 2943
+    },
+    {
+      "path": "resources/views/livewire/kasir/product-picker.blade.php",
       "reason": "new",
       "language": "php",
-      "size": 6330
+      "size": 5112
     },
     {
       "path": "routes/console.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 210
     },
     {
       "path": "routes/web.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 160
     },
     {
       "path": "storage/app/.gitignore",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": null,
       "size": 33
     },
     {
       "path": "storage/app/private/.gitignore",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": null,
       "size": 14
     },
     {
       "path": "storage/app/public/.gitignore",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": null,
       "size": 14
     },
     {
       "path": "storage/framework/.gitignore",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": null,
       "size": 119
     },
     {
       "path": "storage/framework/cache/.gitignore",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": null,
       "size": 21
     },
     {
       "path": "storage/framework/cache/data/.gitignore",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": null,
       "size": 14
     },
     {
       "path": "storage/framework/cache/facade-1e06026dbe325cba543b2306bd7e55d66d31e4c1.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 447
     },
     {
       "path": "storage/framework/sessions/.gitignore",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": null,
       "size": 14
     },
     {
       "path": "storage/framework/testing/.gitignore",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": null,
       "size": 14
     },
     {
       "path": "storage/framework/views/.gitignore",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": null,
       "size": 14
     },
     {
       "path": "storage/framework/views/4943bc92ebba41e8b0e508149542e0ad.blade.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 571
     },
     {
       "path": "storage/framework/views/798b34bc9486b4ac75524eea46040336.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 5092
     },
     {
       "path": "storage/framework/views/915a8066dbfdfee9fc6e01ff537e877e.php",
+      "reason": "changed",
+      "language": "php",
+      "size": 3477
+    },
+    {
+      "path": "storage/framework/views/92583c14c7d686b3adb28a0f23b70c9d.php",
       "reason": "new",
       "language": "php",
-      "size": 7506
+      "size": 6856
+    },
+    {
+      "path": "storage/framework/views/a168b0ebcff266df6b662fc4b6d06e88.blade.php",
+      "reason": "new",
+      "language": "php",
+      "size": 25
+    },
+    {
+      "path": "storage/framework/views/e27f66cac0fd83c2264fcbb4d52c1aff.php",
+      "reason": "new",
+      "language": "php",
+      "size": 595
     },
     {
       "path": "storage/framework/views/e62159413ceba179883ac49d94e9b843.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 791
     },
     {
       "path": "tests/Feature/ExampleTest.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 489
     },
     {
-      "path": "tests/TestCase.php",
+      "path": "tests/Feature/Kasir/ProductPickerTest.php",
       "reason": "new",
+      "language": "php",
+      "size": 1484
+    },
+    {
+      "path": "tests/TestCase.php",
+      "reason": "needs_summary",
       "language": "php",
       "size": 142
     },
     {
       "path": "tests/Unit/ExampleTest.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 243
     },
     {
       "path": "vite.config.js",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "javascript",
       "size": 436
     }
