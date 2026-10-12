@@ -18,6 +18,13 @@
         <p class="mx-5 mb-2 rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-800" role="status">{{ $notice }}</p>
     @endif
 
+    @if ($lastRemoved)
+        <div class="mx-5 mb-2 flex items-center justify-between gap-3 rounded-lg bg-stone-800 px-3 py-2 text-xs text-white" role="status">
+            <span class="truncate">{{ $lastRemoved['name'] }} dihapus</span>
+            <button type="button" wire:click="undoRemove" class="shrink-0 font-semibold text-amber-300 hover:text-amber-200">Urungkan</button>
+        </div>
+    @endif
+
     @if (count($this->lines) === 0)
         <div class="flex flex-1 flex-col items-center justify-center gap-2 px-6 py-10 text-center">
             <svg class="size-10 text-stone-300" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M3 4h2l2.4 11.2a1 1 0 001 .8h9.2a1 1 0 001-.8L20 8H6.2"/><circle cx="9" cy="20" r="1"/><circle cx="17" cy="20" r="1"/></svg>

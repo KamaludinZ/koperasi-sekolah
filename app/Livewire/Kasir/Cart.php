@@ -19,6 +19,9 @@ class Cart extends Component
 
     public ?string $notice = null;
 
+    /** Item terakhir yang dihapus, agar bisa diurungkan: ['id' => int, 'qty' => int, 'name' => string]. */
+    public ?array $lastRemoved = null;
+
     #[On('product-picked')]
     public function add(int $productId): void
     {
@@ -38,6 +41,7 @@ class Cart extends Component
     public function setQty(int $productId, int $qty): void
     {
         $this->notice = null;
+        $this->lastRemoved = null;
         $product = $this->catalog()[$productId] ?? null;
 
         if (! $product || $qty < 1) {
@@ -56,13 +60,31 @@ class Cart extends Component
 
     public function remove(int $productId): void
     {
+        if (! isset($this->items[$productId])) {
+            return;
+        }
+
+        $this->lastRemoved = [
+            'id' => $productId,
+            'qty' => $this->items[$productId],
+            'name' => $this->catalog()[$productId]['name'] ?? '',
+        ];
         unset($this->items[$productId]);
+    }
+
+    public function undoRemove(): void
+    {
+        if ($this->lastRemoved) {
+            $this->setQty($this->lastRemoved['id'], ($this->items[$this->lastRemoved['id']] ?? 0) + $this->lastRemoved['qty']);
+            $this->lastRemoved = null;
+        }
     }
 
     public function clear(): void
     {
         $this->items = [];
         $this->notice = null;
+        $this->lastRemoved = null;
     }
 
     #[Computed]

@@ -1,6 +1,6 @@
 {
   "repo": "Koperasi Sekolah",
-  "generatedForCommit": "d465a8ec2207a028ce84d2e51b0e36881915f344",
+  "generatedForCommit": "f738a6a867f408b734d05738121c4f0f85689b20",
   "files": [
     {
       "path": ".claude/skills/ngodingpakeai/SKILL.md",
@@ -51,14 +51,20 @@
       "size": 77
     },
     {
+      "path": "app/Livewire/Kasir/Cart.php",
+      "reason": "new",
+      "language": "php",
+      "size": 2769
+    },
+    {
       "path": "app/Livewire/Kasir/Index.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 358
     },
     {
       "path": "app/Livewire/Kasir/ProductPicker.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 2251
     },
@@ -76,9 +82,9 @@
     },
     {
       "path": "app/Support/MockData.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 2735
+      "size": 2877
     },
     {
       "path": "artisan",
@@ -285,14 +291,20 @@
       "size": 3625
     },
     {
+      "path": "resources/views/livewire/kasir/cart.blade.php",
+      "reason": "new",
+      "language": "php",
+      "size": 4722
+    },
+    {
       "path": "resources/views/livewire/kasir/index.blade.php",
       "reason": "changed",
       "language": "php",
-      "size": 2943
+      "size": 1097
     },
     {
       "path": "resources/views/livewire/kasir/product-picker.blade.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 5112
     },
@@ -375,6 +387,12 @@
       "size": 571
     },
     {
+      "path": "storage/framework/views/52f5e0e2173f932d2ee123ac25c31cea.php",
+      "reason": "new",
+      "language": "php",
+      "size": 6415
+    },
+    {
       "path": "storage/framework/views/798b34bc9486b4ac75524eea46040336.php",
       "reason": "needs_summary",
       "language": "php",
@@ -384,23 +402,23 @@
       "path": "storage/framework/views/915a8066dbfdfee9fc6e01ff537e877e.php",
       "reason": "changed",
       "language": "php",
-      "size": 3477
+      "size": 2077
     },
     {
       "path": "storage/framework/views/92583c14c7d686b3adb28a0f23b70c9d.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 6856
     },
     {
       "path": "storage/framework/views/a168b0ebcff266df6b662fc4b6d06e88.blade.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 25
     },
     {
       "path": "storage/framework/views/e27f66cac0fd83c2264fcbb4d52c1aff.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 595
     },
@@ -417,8 +435,14 @@
       "size": 489
     },
     {
-      "path": "tests/Feature/Kasir/ProductPickerTest.php",
+      "path": "tests/Feature/Kasir/CartTest.php",
       "reason": "new",
+      "language": "php",
+      "size": 1411
+    },
+    {
+      "path": "tests/Feature/Kasir/ProductPickerTest.php",
+      "reason": "needs_summary",
       "language": "php",
       "size": 1484
     },

@@ -46,4 +46,28 @@ class CartTest extends TestCase
             ->call('clear')
             ->assertSet('items', []);
     }
+
+    public function test_increment_and_direct_quantity_change(): void
+    {
+        Livewire::test(Cart::class)
+            ->call('add', 2)
+            ->call('increment', 2)
+            ->assertSet('items', [2 => 2])
+            ->call('setQty', 2, 7)
+            ->assertSet('items', [2 => 7])
+            ->call('setQty', 2, 0)
+            ->assertSet('items', []);
+    }
+
+    public function test_remove_can_be_undone(): void
+    {
+        Livewire::test(Cart::class)
+            ->call('setQty', 1, 3)
+            ->call('remove', 1)
+            ->assertSet('items', [])
+            ->assertSee('Urungkan')
+            ->call('undoRemove')
+            ->assertSet('items', [1 => 3])
+            ->assertSet('lastRemoved', null);
+    }
 }
