@@ -6,9 +6,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Struk {{ $tx['invoice_number'] }} · {{ config('app.name') }}</title>
     @vite(['resources/css/app.css'])
+    @php $mm = \App\Services\ReceiptPresenter::paperWidth($profile); @endphp
+    <style>@media print { @page { size: {{ $mm }}mm auto; } .print-area { width: {{ $mm }}mm; } }</style>
 </head>
 <body class="min-h-screen bg-stone-100 py-6 print:bg-white print:py-0">
-    <div class="mx-auto w-[58mm] bg-white p-3 shadow-sm ring-1 ring-stone-200 print:shadow-none print:ring-0">
+    <div style="width: {{ $mm }}mm" class="mx-auto bg-white p-3 shadow-sm ring-1 ring-stone-200 print:shadow-none print:ring-0">
         @include('livewire.kasir.partials.receipt')
     </div>
     <div class="mt-4 flex justify-center gap-2 print:hidden">

@@ -1,9 +1,11 @@
-{{-- Struk pembelian (format kertas thermal). Butuh: $tx (lastTransaction), $profile, $rp. --}}
-<div class="print-area font-mono text-[11px] leading-snug text-black">
+{{-- Struk pembelian (kertas thermal 58/80 mm). Butuh: $tx, $profile (ReceiptPresenter::profile), $rp. --}}
+@php $rc = $profile['receipt'] ?? ['header' => $profile['name'], 'subheader' => $profile['school'], 'show_address' => true, 'show_phone' => false, 'show_cashier' => true, 'show_member' => false, 'note' => null, 'footer' => $profile['receipt_footer'], 'paper' => '58mm']; @endphp
+<div class="print-area font-mono text-[11px] leading-snug text-black" data-paper="{{ $rc['paper'] }}">
     <div class="text-center">
-        <p class="text-xs font-bold uppercase">{{ $profile['name'] }}</p>
-        <p>{{ $profile['school'] }}</p>
-        <p>{{ $profile['address'] }}</p>
+        <p class="text-xs font-bold uppercase">{{ $rc['header'] }}</p>
+        @if ($rc['subheader'])<p>{{ $rc['subheader'] }}</p>@endif
+        @if ($rc['show_address'] && $profile['address'])<p>{{ $profile['address'] }}</p>@endif
+        @if ($rc['show_phone'] && ($profile['phone'] ?? null))<p>Telp. {{ $profile['phone'] }}</p>@endif
     </div>
 
     <div class="my-2 border-t border-dashed border-black"></div>
@@ -11,7 +13,8 @@
     <div class="space-y-0.5">
         <div class="flex justify-between"><span>No</span><span>{{ $tx['invoice_number'] }}</span></div>
         <div class="flex justify-between"><span>Tgl</span><span>{{ \Illuminate\Support\Carbon::parse($tx['created_at'])->format('d/m/Y H:i') }}</span></div>
-        <div class="flex justify-between"><span>Kasir</span><span>{{ $tx['cashier'] }}</span></div>
+        @if ($rc['show_cashier'])<div class="flex justify-between"><span>Kasir</span><span>{{ $tx['cashier'] }}</span></div>@endif
+        @if ($rc['show_member'] && ($tx['member'] ?? null))<div class="flex justify-between gap-2"><span>Anggota</span><span class="text-right">{{ $tx['member'] }}</span></div>@endif
     </div>
 
     <div class="my-2 border-t border-dashed border-black"></div>
@@ -45,5 +48,6 @@
 
     <div class="my-2 border-t border-dashed border-black"></div>
 
-    <p class="text-center">{{ $profile['receipt_footer'] }}</p>
+    @if ($rc['note'])<p class="mb-1.5 text-center whitespace-pre-line">{{ $rc['note'] }}</p>@endif
+    <p class="text-center whitespace-pre-line">{{ $rc['footer'] }}</p>
 </div>

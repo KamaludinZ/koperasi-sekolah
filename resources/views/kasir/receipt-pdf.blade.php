@@ -1,4 +1,4 @@
-@php $n = fn ($v) => number_format($v, 0, ',', '.'); @endphp
+@php $n = fn ($v) => number_format($v, 0, ',', '.'); $rc = $profile['receipt']; @endphp
 <!DOCTYPE html>
 <html lang="id">
 <head>
@@ -18,9 +18,10 @@
 </head>
 <body>
     <div class="c">
-        <div class="b" style="font-size: 8pt; text-transform: uppercase;">{{ $profile['name'] }}</div>
-        <div>{{ $profile['school'] }}</div>
-        <div>{{ $profile['address'] }}</div>
+        <div class="b" style="font-size: 8pt; text-transform: uppercase;">{{ $rc['header'] }}</div>
+        @if ($rc['subheader'])<div>{{ $rc['subheader'] }}</div>@endif
+        @if ($rc['show_address'] && $profile['address'])<div>{{ $profile['address'] }}</div>@endif
+        @if ($rc['show_phone'] && ($profile['phone'] ?? null))<div>Telp. {{ $profile['phone'] }}</div>@endif
     </div>
 
     <div class="hr"></div>
@@ -28,7 +29,8 @@
     <table>
         <tr><td>No</td><td class="r">{{ $tx['invoice_number'] }}</td></tr>
         <tr><td>Tgl</td><td class="r">{{ \Illuminate\Support\Carbon::parse($tx['created_at'])->format('d/m/Y H:i') }}</td></tr>
-        <tr><td>Kasir</td><td class="r">{{ $tx['cashier'] }}</td></tr>
+        @if ($rc['show_cashier'])<tr><td>Kasir</td><td class="r">{{ $tx['cashier'] }}</td></tr>@endif
+        @if ($rc['show_member'] && ($tx['member'] ?? null))<tr><td>Anggota</td><td class="r">{{ $tx['member'] }}</td></tr>@endif
     </table>
 
     <div class="hr"></div>
@@ -60,6 +62,7 @@
 
     <div class="hr"></div>
 
-    <div class="c">{{ $profile['receipt_footer'] }}</div>
+    @if ($rc['note'])<div class="c" style="margin-bottom: 3pt;">{!! nl2br(e($rc['note'])) !!}</div>@endif
+    <div class="c">{!! nl2br(e($rc['footer'])) !!}</div>
 </body>
 </html>

@@ -48,14 +48,7 @@ class MockData
     {
         return session('mock.settings') ?? [
             'profile' => self::defaultProfile(),
-            'receipt' => [
-                'header' => 'Koperasi Siswa Al-Hikmah',
-                'subheader' => 'Madrasah Tsanawiyah Negeri 1 Contoh',
-                'footer' => self::profile()['receipt_footer'],
-                'show_cashier' => true,
-                'show_member' => true,
-                'paper' => '58mm',
-            ],
+            'receipt' => self::defaultReceipt(),
             'tax' => [
                 'enabled' => false,
                 'rate' => 0,
@@ -67,6 +60,28 @@ class MockData
             'updated_at' => null,
             'updated_by' => null,
         ];
+    }
+
+    /** Pengaturan struk bawaan. Judul/sub-judul kosong = ikut nama koperasi & madrasah. */
+    public static function defaultReceipt(): array
+    {
+        return [
+            'header' => null,
+            'subheader' => null,
+            'show_address' => true,
+            'show_phone' => false,
+            'show_cashier' => true,
+            'show_member' => true,
+            'note' => null,
+            'footer' => self::defaultProfile()['receipt_footer'],
+            'paper' => '58mm',
+        ];
+    }
+
+    /** Pengaturan struk saat ini (tiruan, session). */
+    public static function receipt(): array
+    {
+        return [...self::defaultReceipt(), ...(session('mock.settings.receipt') ?? [])];
     }
 
     public static function saveSettings(string $section, array $values): array

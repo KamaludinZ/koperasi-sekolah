@@ -170,4 +170,5 @@ Route::get('/audit', Audit\Index::class)->middleware(['menu:audit', 'peran:admin
 Route::middleware('menu:pengaturan')->group(function () {
     Route::get('/pengaturan', Pengaturan\Index::class)->name('pengaturan');
     Route::get('/pengaturan/profil', Pengaturan\Profile::class)->name('pengaturan.profil');
+    Route::get('/pengaturan/struk', Pengaturan\Receipt::class)->name('pengaturan.struk');
 });

@@ -13,8 +13,8 @@ use Illuminate\Support\Facades\Storage;
  */
 class ReceiptPdfService
 {
-    /** Lebar kertas 58 mm dalam point (1 mm = 2.8346 pt). */
-    private const PAPER_WIDTH_PT = 164.41;
+    /** 1 mm = 2.8346 pt. */
+    private const PT_PER_MM = 2.8346;
 
     public function __construct(private ReceiptPresenter $presenter) {}
 
@@ -45,15 +45,17 @@ class ReceiptPdfService
     public function render(Transaction $transaction): string
     {
         $tx = $this->presenter->present($transaction);
+        $profile = $this->presenter->profile();
+        $width = ReceiptPresenter::paperWidth($profile) * self::PT_PER_MM;
 
         // Tinggi kertas mengikuti jumlah baris barang (struk thermal tidak berhalaman).
         $height = 250 + count($tx['items']) * 26;
 
         return Pdf::loadView('kasir.receipt-pdf', [
             'tx' => $tx,
-            'profile' => $this->presenter->profile(),
+            'profile' => $profile,
         ])
-            ->setPaper([0, 0, self::PAPER_WIDTH_PT, $height])
+            ->setPaper([0, 0, $width, $height])
             ->output();
     }
 }
