@@ -32,6 +32,46 @@ class MockData
         ];
     }
 
+    /**
+     * Pengaturan koperasi tiruan (tahap frontend fase 4), disimpan di session:
+     * profil, struk, pajak & pembulatan. Diganti tabel settings di tahap backend.
+     */
+    public static function settings(): array
+    {
+        return session('mock.settings') ?? [
+            'profile' => [...self::profile(), 'logo' => null, 'email' => null],
+            'receipt' => [
+                'header' => 'Koperasi Siswa Al-Hikmah',
+                'subheader' => 'Madrasah Tsanawiyah Negeri 1 Contoh',
+                'footer' => self::profile()['receipt_footer'],
+                'show_cashier' => true,
+                'show_member' => true,
+                'paper' => '58mm',
+            ],
+            'tax' => [
+                'enabled' => false,
+                'rate' => 0,
+                'included' => false,     // harga sudah termasuk pajak
+                'rounding' => 'none',    // none | up | nearest | down
+                'rounding_unit' => 100,  // 100 | 500 | 1000
+                'cash_only' => true,     // pembulatan hanya untuk tunai
+            ],
+            'updated_at' => null,
+            'updated_by' => null,
+        ];
+    }
+
+    public static function saveSettings(string $section, array $values): array
+    {
+        $all = self::settings();
+        $all[$section] = [...$all[$section], ...$values];
+        $all['updated_at'] = now()->toDateTimeString();
+        $all['updated_by'] = auth()->user()?->name;
+        session(['mock.settings' => $all]);
+
+        return $all;
+    }
+
     /** Persentase pajak penjualan (nanti dari tabel settings). */
     public static function taxRate(): float
     {

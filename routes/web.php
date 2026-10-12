@@ -25,6 +25,7 @@ use App\Livewire\Auth\Login;
 use App\Livewire\Barang;
 use App\Livewire\Kasir;
 use App\Livewire\Laporan;
+use App\Livewire\Pengaturan;
 use App\Livewire\Pengguna;
 use App\Livewire\Transaksi;
 use Illuminate\Support\Facades\Route;
@@ -165,3 +166,7 @@ Route::middleware(['menu:pengguna', 'peran:admin'])->group(function () {
     });
 });
 Route::get('/audit', Audit\Index::class)->middleware(['menu:audit', 'peran:admin,pengurus'])->name('audit');
+
+Route::middleware('menu:pengaturan')->group(function () {
+    Route::get('/pengaturan', Pengaturan\Index::class)->name('pengaturan');
+});
