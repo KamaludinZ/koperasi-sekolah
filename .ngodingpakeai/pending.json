@@ -1,6 +1,6 @@
 {
   "repo": "Koperasi Sekolah",
-  "generatedForCommit": "a511ebe4a3abc3ade41cfa3dd7e33db680c5f384",
+  "generatedForCommit": "bac25efafd1aab8c33b2eac205d3e772c18ab7e2",
   "files": [
     {
       "path": ".claude/skills/ngodingpakeai/SKILL.md",
@@ -145,6 +145,12 @@
       "reason": "needs_summary",
       "language": "php",
       "size": 4404
+    },
+    {
+      "path": "app/Http/Controllers/Notifikasi/NotificationController.php",
+      "reason": "new",
+      "language": "php",
+      "size": 1610
     },
     {
       "path": "app/Http/Controllers/Pengaturan/LogoController.php",
@@ -298,21 +304,21 @@
     },
     {
       "path": "app/Livewire/Notifikasi/Announcements.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 3424
+      "size": 3436
     },
     {
       "path": "app/Livewire/Notifikasi/Bell.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 1623
+      "size": 1625
     },
     {
       "path": "app/Livewire/Notifikasi/Index.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 5186
+      "size": 5189
     },
     {
       "path": "app/Livewire/Pengaturan/Index.php",
@@ -376,7 +382,7 @@
     },
     {
       "path": "app/Models/Notification.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 5491
     },
@@ -424,7 +430,7 @@
     },
     {
       "path": "app/Models/User.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 2962
     },
@@ -487,6 +493,12 @@
       "reason": "needs_summary",
       "language": "php",
       "size": 2730
+    },
+    {
+      "path": "app/Services/NotificationService.php",
+      "reason": "new",
+      "language": "php",
+      "size": 5141
     },
     {
       "path": "app/Services/PasswordService.php",
@@ -580,9 +592,9 @@
     },
     {
       "path": "app/Support/MockData.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 18802
+      "size": 16150
     },
     {
       "path": "app/Support/OpeningHours.php",
@@ -868,15 +880,21 @@
     },
     {
       "path": "database/seeders/DatabaseSeeder.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 724
+      "size": 751
     },
     {
       "path": "database/seeders/MemberSeeder.php",
       "reason": "needs_summary",
       "language": "php",
       "size": 1567
+    },
+    {
+      "path": "database/seeders/NotificationSeeder.php",
+      "reason": "new",
+      "language": "php",
+      "size": 1631
     },
     {
       "path": "database/seeders/ProductSeeder.php",
@@ -1246,9 +1264,9 @@
     },
     {
       "path": "resources/views/livewire/notifikasi/announcements.blade.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 7432
+      "size": 7325
     },
     {
       "path": "resources/views/livewire/notifikasi/bell.blade.php",
@@ -1258,9 +1276,9 @@
     },
     {
       "path": "resources/views/livewire/notifikasi/index.blade.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 7615
+      "size": 7508
     },
     {
       "path": "resources/views/livewire/pengaturan/index.blade.php",
@@ -1330,9 +1348,9 @@
     },
     {
       "path": "routes/web.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 10457
+      "size": 10781
     },
     {
       "path": "storage/app/.gitignore",
@@ -1438,9 +1456,9 @@
     },
     {
       "path": "storage/framework/views/1dd9bd3a7861ceb052968a2d0306f124.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 11465
+      "size": 11358
     },
     {
       "path": "storage/framework/views/1e0bfda9e08442f5c5fb156eea6bde3e.php",
@@ -1588,9 +1606,9 @@
     },
     {
       "path": "storage/framework/views/8fd2599680f05a81b5d3ab9fa89e7775.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 12236
+      "size": 12129
     },
     {
       "path": "storage/framework/views/90358dd57ea6e95ad2e440e766b7658a.php",
@@ -2074,31 +2092,37 @@
     },
     {
       "path": "tests/Feature/Notifikasi/AnnouncementTest.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 4014
+      "size": 4084
     },
     {
       "path": "tests/Feature/Notifikasi/BellTest.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 2441
+      "size": 2533
     },
     {
       "path": "tests/Feature/Notifikasi/IndexTest.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 2947
+      "size": 3017
     },
     {
       "path": "tests/Feature/Notifikasi/MarkReadTest.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 2427
+      "size": 2497
+    },
+    {
+      "path": "tests/Feature/Notifikasi/NotificationEndpointTest.php",
+      "reason": "new",
+      "language": "php",
+      "size": 4635
     },
     {
       "path": "tests/Feature/Notifikasi/NotificationModelTest.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 3505
     },

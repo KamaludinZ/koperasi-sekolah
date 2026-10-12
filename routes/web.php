@@ -50,6 +50,11 @@ Route::get('/akun/sesi', Akun\Sessions::class)->middleware(['menu', 'auth'])->na
 Route::get('/notifikasi', Notifikasi\Index::class)->middleware(['menu', 'auth'])->name('notifikasi');
 Route::get('/notifikasi/data', [NotificationController::class, 'index'])->middleware(['menu', 'auth'])->name('notifikasi.data');
 Route::get('/notifikasi/terbaru', [NotificationController::class, 'latest'])->middleware(['menu', 'auth'])->name('notifikasi.latest');
+Route::middleware(['menu', 'auth', 'throttle:60,1'])->group(function () {
+    Route::post('/notifikasi/tandai', [NotificationController::class, 'mark'])->name('notifikasi.mark');
+    Route::post('/notifikasi/tandai-semua', [NotificationController::class, 'markAll'])->name('notifikasi.mark-all');
+    Route::post('/notifikasi/sembunyikan', [NotificationController::class, 'dismiss'])->name('notifikasi.dismiss');
+});
 Route::get('/notifikasi/pengumuman', Notifikasi\Announcements::class)
     ->middleware(['menu', 'auth', 'peran:admin,pengurus'])
     ->name('notifikasi.pengumuman');

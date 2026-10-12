@@ -2,7 +2,7 @@
 
 namespace App\Livewire\Notifikasi;
 
-use App\Support\MockData;
+use App\Services\NotificationService;
 use Illuminate\Support\Carbon;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
@@ -40,7 +40,7 @@ class Index extends Component
     #[Computed]
     public function all(): array
     {
-        return MockData::notifications();
+        return $this->notifications()->list(auth()->user());
     }
 
     #[Computed]
@@ -86,7 +86,7 @@ class Index extends Component
     {
         $n = collect($this->all)->firstWhere('id', $id);
         if ($n) {
-            MockData::markNotifications([$id], ! $n['is_read']);
+            $this->notifications()->mark(auth()->user(), [$id], ! $n['is_read']);
             $this->refresh();
         }
     }
@@ -98,7 +98,7 @@ class Index extends Component
         if (! $n) {
             return null;
         }
-        MockData::markNotifications([$id]);
+        $this->notifications()->mark(auth()->user(), [$id]);
         $this->refresh();
 
         return $n['url'] ? $this->redirect($n['url'], navigate: true) : null;
@@ -107,7 +107,7 @@ class Index extends Component
     public function markAllRead(): void
     {
         $ids = collect($this->items)->where('is_read', false)->pluck('id')->values()->all();
-        MockData::markNotifications($ids);
+        $this->notifications()->mark(auth()->user(), $ids);
         $this->refresh();
         $this->dispatch('toast', type: 'success', message: count($ids).' notifikasi ditandai sudah dibaca.',
             action: ['label' => 'Urungkan', 'event' => 'undo-mark-read', 'params' => ['ids' => $ids]]);
@@ -118,7 +118,7 @@ class Index extends Component
     public function undoMarkRead(array $ids = []): void
     {
         $known = collect($this->all)->pluck('id')->all();
-        MockData::markNotifications(array_values(array_intersect(array_map('intval', $ids), $known)), false);
+        $this->notifications()->mark(auth()->user(), array_values(array_intersect(array_map('intval', $ids), $known)), false);
         $this->refresh();
     }
 
@@ -137,7 +137,7 @@ class Index extends Component
             return;
         }
 
-        MockData::markNotifications($ids, $read);
+        $this->notifications()->mark(auth()->user(), $ids, $read);
         $this->selected = [];
         $this->refresh();
         $this->dispatch('toast', type: 'success', message: count($ids).' notifikasi ditandai '.($read ? 'sudah' : 'belum').' dibaca.');
@@ -154,6 +154,11 @@ class Index extends Component
     {
         unset($this->all, $this->items, $this->days, $this->counts);
         $this->dispatch('notifications-changed');
+    }
+
+    private function notifications(): NotificationService
+    {
+        return app(NotificationService::class);
     }
 
     public function render()

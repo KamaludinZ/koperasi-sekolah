@@ -71,6 +71,21 @@ class NotificationService
         return $this->mark($user, $ids);
     }
 
+    /**
+     * Sembunyikan dari kotak petugas (hanya notifikasi miliknya). Peringatan stok tidak
+     * bisa disembunyikan selama kondisinya masih berlaku — cukup ditandai dibaca.
+     *
+     * @return list<int>
+     */
+    public function dismiss(User $user, array $ids): array
+    {
+        $ids = $user->inbox()->reorder()->whereIn('notifications.id', array_map('intval', $ids))
+            ->where('type', '!=', 'stok')->pluck('notifications.id')->all();
+        Notification::dismissFor($user, $ids);
+
+        return $ids;
+    }
+
     public function find(User $user, int $id): ?Notification
     {
         return $user->inbox()->find($id);

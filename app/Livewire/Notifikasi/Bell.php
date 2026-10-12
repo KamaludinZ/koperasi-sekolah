@@ -2,7 +2,7 @@
 
 namespace App\Livewire\Notifikasi;
 
-use App\Support\MockData;
+use App\Services\NotificationService;
 use Livewire\Attributes\On;
 use Livewire\Component;
 
@@ -26,35 +26,39 @@ class Bell extends Component
 
     public function markRead(int $id): void
     {
-        MockData::markNotifications([$id]);
+        $this->notifications()->mark(auth()->user(), [$id]);
         $this->dispatch('notifications-changed');
     }
 
     public function markAllRead(): void
     {
-        $ids = collect(MockData::notifications())->where('is_read', false)->pluck('id')->all();
-        MockData::markNotifications($ids);
+        $this->notifications()->markAll(auth()->user());
         $this->dispatch('notifications-changed');
     }
 
     public function open(int $id)
     {
-        $n = collect(MockData::notifications())->firstWhere('id', $id);
+        $n = $this->notifications()->find(auth()->user(), $id);
         if (! $n) {
             return null;
         }
-        MockData::markNotifications([$id]);
+        $this->notifications()->mark(auth()->user(), [$id]);
 
-        return $this->redirect($n['url'] ?? route('notifikasi'), navigate: true);
+        return $this->redirect($n->url ?? route('notifikasi'), navigate: true);
+    }
+
+    private function notifications(): NotificationService
+    {
+        return app(NotificationService::class);
     }
 
     public function render()
     {
-        $all = collect(MockData::notifications());
+        $user = auth()->user();
 
         return view('livewire.notifikasi.bell', [
-            'unread' => $all->where('is_read', false)->count(),
-            'latest' => $all->take(self::PREVIEW)->all(),
+            'unread' => $user ? $this->notifications()->unreadCount($user) : 0,
+            'latest' => $user ? $this->notifications()->list($user, 'semua', self::PREVIEW) : [],
         ]);
     }
 }
