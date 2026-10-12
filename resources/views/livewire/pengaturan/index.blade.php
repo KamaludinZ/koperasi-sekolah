@@ -73,7 +73,7 @@
                 <p class="text-xs font-semibold tracking-wide text-emerald-700 uppercase" id="set-tax">Pajak & pembulatan</p>
                 <dl class="mt-3 space-y-2 text-sm">
                     <div class="flex justify-between gap-3"><dt class="text-stone-500">Pajak penjualan</dt>
-                        <dd class="font-semibold">{{ $t['enabled'] ? $t['rate'].'%'.($t['included'] ? ' (sudah termasuk harga)' : '') : 'Tidak dipungut' }}</dd></div>
+                        <dd class="font-semibold">{{ $t['enabled'] ? str_replace('.', ',', (string) ($t['rate'] + 0)).'%'.($t['included'] ? ' (sudah termasuk harga)' : '') : 'Tidak dipungut' }}</dd></div>
                     <div class="flex justify-between gap-3"><dt class="text-stone-500">Pembulatan</dt>
                         <dd class="text-right font-semibold">{{ \App\Livewire\Pengaturan\Index::ROUNDING[$t['rounding']] }}@if ($t['rounding'] !== 'none') <span class="font-normal text-stone-500">ke {{ $rp($t['rounding_unit']) }}{{ $t['cash_only'] ? ', tunai saja' : '' }}</span>@endif</dd></div>
                 </dl>

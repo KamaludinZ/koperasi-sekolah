@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\Setting;
 use App\Models\User;
 use App\Support\OpeningHours;
+use App\Support\PriceCalculator;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Throwable;
@@ -142,6 +143,114 @@ class SettingsService
         }
 
         return $this->all();
+    }
+
+    /**
+     * Aturan validasi isian API per bagian. Semua kunci memakai `sometimes` sehingga
+     * penyimpanan sebagian diperbolehkan. Aturan lintas kunci ada di crossCheck().
+     */
+    public static function rules(string $section, array $input = []): array
+    {
+        $maxLines = fn ($a, $v, $fail) => substr_count((string) $v, "\n") > 2 ? $fail('Maksimal 3 baris.') : null;
+
+        return match ($section) {
+            'profile' => [
+                'name' => ['sometimes', 'required', 'string', 'max:100'],
+                'short_name' => ['sometimes', 'required', 'string', 'max:30'],
+                'school' => ['sometimes', 'required', 'string', 'max:120'],
+                'address' => ['sometimes', 'nullable', 'string', 'max:200'],
+                'phone' => ['sometimes', 'nullable', 'string', 'max:20', 'regex:/^[0-9+\-\s()]{6,20}$/'],
+                'email' => ['sometimes', 'nullable', 'email', 'max:150'],
+                'motto' => ['sometimes', 'nullable', 'string', 'max:150'],
+                'schedule' => ['sometimes', 'array:1,2,3,4,5,6,7'],
+                'schedule.*' => ['nullable', 'array:open,close', 'required_array_keys:open,close'],
+                'schedule.*.open' => ['sometimes', 'date_format:H:i'],
+                'schedule.*.close' => ['sometimes', 'date_format:H:i', function ($attr, $value, $fail) use ($input) {
+                    $open = data_get($input, str_replace('.close', '.open', $attr));
+                    if (is_string($open) && is_string($value) && $value <= $open) {
+                        $fail('Jam tutup harus setelah jam buka.');
+                    }
+                }],
+            ],
+            'receipt' => [
+                'header' => ['sometimes', 'nullable', 'string', 'max:40'],
+                'subheader' => ['sometimes', 'nullable', 'string', 'max:60'],
+                'show_address' => ['sometimes', 'boolean'],
+                'show_phone' => ['sometimes', 'boolean'],
+                'show_cashier' => ['sometimes', 'boolean'],
+                'show_member' => ['sometimes', 'boolean'],
+                'note' => ['sometimes', 'nullable', 'string', 'max:160', $maxLines],
+                'footer' => ['sometimes', 'required', 'string', 'max:160', $maxLines],
+                'paper' => ['sometimes', 'required', 'in:58mm,80mm'],
+            ],
+            'tax' => [
+                'enabled' => ['sometimes', 'boolean'],
+                'label' => ['sometimes', 'required', 'string', 'max:20'],
+                'rate' => ['sometimes', 'required', 'numeric', 'min:0', 'max:100', 'decimal:0,2'],
+                'included' => ['sometimes', 'boolean'],
+                'rounding' => ['sometimes', 'required', 'in:'.implode(',', array_keys(PriceCalculator::ROUNDING))],
+                'rounding_unit' => ['sometimes', 'required', 'integer', 'in:'.implode(',', PriceCalculator::UNITS)],
+                'cash_only' => ['sometimes', 'boolean'],
+            ],
+            default => abort(404),
+        };
+    }
+
+    /**
+     * Pemeriksaan lintas kunci memakai isian + nilai tersimpan, untuk Validator::after():
+     * pajak yang aktif wajib bertarif > 0.
+     *
+     * @return array<string, string> [kunci => pesan]
+     */
+    public static function crossCheck(string $section, array $input, array $current): array
+    {
+        if ($section === 'tax') {
+            $enabled = filter_var($input['enabled'] ?? $current['enabled'] ?? false, FILTER_VALIDATE_BOOL);
+            $rate = $input['rate'] ?? $current['rate'] ?? 0;
+            if ($enabled && is_numeric($rate) && (float) $rate <= 0) {
+                return ['rate' => 'Isi tarif pajak lebih dari 0, atau matikan pajak.'];
+            }
+        }
+
+        return [];
+    }
+
+    public static function messages(): array
+    {
+        return [
+            'required' => 'Wajib diisi.',
+            'max' => 'Maksimal :max karakter.',
+            'rate.max' => 'Tarif maksimal 100%.',
+            'rate.min' => 'Tarif tidak boleh negatif.',
+            'rate.numeric' => 'Tarif harus berupa angka.',
+            'rate.decimal' => 'Tarif maksimal 2 angka di belakang koma.',
+            'phone.regex' => 'Nomor telepon tidak valid.',
+            'email.email' => 'Format email belum benar.',
+            'date_format' => 'Format jam HH:MM.',
+            'paper.in' => 'Pilih kertas 58mm atau 80mm.',
+            'in' => 'Pilihan tidak dikenal.',
+            'schedule.array' => 'Jadwal memakai hari 1 (Senin) sampai 7 (Minggu).',
+            'schedule.*.required_array_keys' => 'Isi jam buka dan jam tutup, atau kosongkan (null) bila tutup.',
+        ];
+    }
+
+    /** Rapikan isian yang sudah valid: trim, teks kosong → null, tipe bool/int/float. */
+    public static function normalize(string $section, array $data): array
+    {
+        $out = [];
+        foreach ($data as $key => $value) {
+            $default = self::DEFAULTS[$section][$key] ?? null;
+            $out[$key] = match (true) {
+                $key === 'schedule' => collect(range(1, 7))->mapWithKeys(fn ($d) => [$d => isset($value[$d]) ? ['open' => $value[$d]['open'], 'close' => $value[$d]['close']] : null])->all(),
+                $key === 'rate' => round((float) $value, 2),
+                is_bool($default) => filter_var($value, FILTER_VALIDATE_BOOL),
+                is_int($default) => (int) $value,
+                is_string($value) => trim($value) === '' && ! in_array($key, ['name', 'short_name', 'school', 'footer', 'label', 'paper', 'rounding'], true) ? null : trim($value),
+                default => $value,
+            };
+        }
+
+        return $out;
     }
 
     /** Kembalikan satu bagian ke nilai bawaan (hapus baris yang tersimpan). */

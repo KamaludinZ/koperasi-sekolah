@@ -1,6 +1,6 @@
 {
   "repo": "Koperasi Sekolah",
-  "generatedForCommit": "ec27776088908a4c9779189586b76940735e539d",
+  "generatedForCommit": "805a86bb5a096059492f745b31bc8a3d26848dd5",
   "files": [
     {
       "path": ".claude/skills/ngodingpakeai/SKILL.md",
@@ -298,27 +298,27 @@
     },
     {
       "path": "app/Livewire/Pengaturan/Index.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 2050
+      "size": 2034
     },
     {
       "path": "app/Livewire/Pengaturan/Profile.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 5218
+      "size": 5211
     },
     {
       "path": "app/Livewire/Pengaturan/Receipt.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 4727
+      "size": 4720
     },
     {
       "path": "app/Livewire/Pengaturan/Tax.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 4142
+      "size": 4135
     },
     {
       "path": "app/Livewire/Pengguna/Index.php",
@@ -340,9 +340,9 @@
     },
     {
       "path": "app/Models/ActivityLog.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 1936
+      "size": 1974
     },
     {
       "path": "app/Models/Category.php",
@@ -378,7 +378,7 @@
       "path": "app/Models/Setting.php",
       "reason": "changed",
       "language": "php",
-      "size": 2885
+      "size": 2950
     },
     {
       "path": "app/Models/StockMovement.php",
@@ -519,6 +519,12 @@
       "size": 4735
     },
     {
+      "path": "app/Services/SettingsService.php",
+      "reason": "new",
+      "language": "php",
+      "size": 7773
+    },
+    {
       "path": "app/Services/StockService.php",
       "reason": "needs_summary",
       "language": "php",
@@ -544,9 +550,9 @@
     },
     {
       "path": "app/Support/MockData.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 20982
+      "size": 18802
     },
     {
       "path": "app/Support/OpeningHours.php",
@@ -802,7 +808,7 @@
     },
     {
       "path": "database/migrations/2026_10_12_000011_extend_settings_table.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 1768
     },
@@ -1210,27 +1216,27 @@
     },
     {
       "path": "resources/views/livewire/pengaturan/index.blade.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 10351
+      "size": 10255
     },
     {
       "path": "resources/views/livewire/pengaturan/profile.blade.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 11738
+      "size": 11631
     },
     {
       "path": "resources/views/livewire/pengaturan/receipt.blade.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 6274
+      "size": 6167
     },
     {
       "path": "resources/views/livewire/pengaturan/tax.blade.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 9773
+      "size": 9666
     },
     {
       "path": "resources/views/livewire/pengguna/index.blade.php",
@@ -1342,9 +1348,9 @@
     },
     {
       "path": "storage/framework/views/07a03143a30b2736a2abb64305bd8f08.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 12073
+      "size": 11966
     },
     {
       "path": "storage/framework/views/0abb492fb302fd9599ef4edc04017315.php",
@@ -1492,9 +1498,9 @@
     },
     {
       "path": "storage/framework/views/2fa8e6b51ec5a9a7a5f66aa2d576d8a3.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 25491
+      "size": 25384
     },
     {
       "path": "storage/framework/views/32bb7b3514f921e97abf58882af7f21d.php",
@@ -1750,9 +1756,9 @@
     },
     {
       "path": "storage/framework/views/a51ae40c3dfc9fc6954fc74dc16d2bb3.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 17019
+      "size": 16912
     },
     {
       "path": "storage/framework/views/a695449510b89e729776eee3bc08a422.php",
@@ -1942,9 +1948,9 @@
     },
     {
       "path": "storage/framework/views/fd279c3631879b2bbbc2283c282a7b6d.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 16314
+      "size": 16218
     },
     {
       "path": "storage/framework/views/fde31759f320edf659255ac23d0d7883.php",
@@ -2116,7 +2122,7 @@
     },
     {
       "path": "tests/Feature/Database/ProductTransactionSchemaTest.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 3377
     },
@@ -2128,7 +2134,7 @@
     },
     {
       "path": "tests/Feature/Database/SettingsSchemaTest.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 2682
     },
@@ -2281,6 +2287,12 @@
       "reason": "needs_summary",
       "language": "php",
       "size": 1958
+    },
+    {
+      "path": "tests/Feature/Pengaturan/SettingsServiceTest.php",
+      "reason": "new",
+      "language": "php",
+      "size": 3938
     },
     {
       "path": "tests/Feature/Pengaturan/TaxSettingsTest.php",
