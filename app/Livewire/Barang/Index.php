@@ -24,6 +24,10 @@ class Index extends Component
     #[Url(except: '')]
     public string $category = '';
 
+    /** Filter status: '' (semua), 'habis', 'nonaktif'. */
+    #[Url(except: '')]
+    public string $status = '';
+
     #[Url(except: 'name')]
     public string $sort = 'name';
 
@@ -32,6 +36,12 @@ class Index extends Component
     public bool $editing = false;
 
     public ?string $flash = null;
+
+    public const STATUSES = [
+        '' => 'Semua status',
+        'habis' => 'Stok habis',
+        'nonaktif' => 'Nonaktif',
+    ];
 
     public const SORTS = [
         'name' => 'Nama (A–Z)',
@@ -47,6 +57,11 @@ class Index extends Component
 
         $items = collect(MockData::products())
             ->filter(fn ($p) => $this->category === '' || $p['category'] === $this->category)
+            ->filter(fn ($p) => match ($this->status) {
+                'habis' => $p['stock'] <= 0,
+                'nonaktif' => ! $p['is_active'],
+                default => true,
+            })
             ->filter(fn ($p) => $term === ''
                 || str_contains(mb_strtolower($p['name']), $term)
                 || str_contains(mb_strtolower($p['code']), $term));
@@ -69,9 +84,16 @@ class Index extends Component
         return [
             'total' => $all->count(),
             'low' => $all->filter(fn ($p) => $p['stock'] > 0 && $p['stock'] <= $p['min_stock'])->count(),
-            'out' => $all->where('stock', 0)->count(),
+            'out' => $all->filter(fn ($p) => $p['stock'] <= 0)->count(),
+            'inactive' => $all->where('is_active', false)->count(),
             'stock_value' => $all->sum(fn ($p) => $p['cost_price'] * $p['stock']),
         ];
+    }
+
+    /** Klik kartu ringkasan: aktifkan filter status, klik lagi untuk melepas. */
+    public function toggleStatus(string $status): void
+    {
+        $this->status = $this->status === $status ? '' : $status;
     }
 
     public function create(): void
@@ -113,7 +135,7 @@ class Index extends Component
 
     public function resetFilters(): void
     {
-        $this->reset('search', 'category', 'sort');
+        $this->reset('search', 'category', 'status', 'sort');
     }
 
     public function render()

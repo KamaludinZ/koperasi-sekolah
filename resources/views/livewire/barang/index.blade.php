@@ -17,25 +17,35 @@
             <p class="rounded-lg bg-emerald-50 px-4 py-2.5 text-sm text-emerald-900" role="status">{{ $flash }}</p>
         @endif
 
-        {{-- Ringkasan --}}
-        <dl class="grid grid-cols-2 gap-3 lg:grid-cols-4">
+        {{-- Ringkasan (kartu habis & nonaktif bisa diklik untuk memfilter) --}}
+        <div class="grid grid-cols-2 gap-3 lg:grid-cols-5">
             <div class="rounded-xl border border-stone-200 bg-white px-4 py-3">
-                <dt class="text-xs text-stone-500">Jenis barang</dt>
-                <dd class="text-2xl font-bold tabular-nums">{{ $this->stats['total'] }}</dd>
+                <p class="text-xs text-stone-500">Jenis barang</p>
+                <p class="text-2xl font-bold tabular-nums">{{ $this->stats['total'] }}</p>
             </div>
             <div class="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3">
-                <dt class="text-xs text-amber-800">Stok menipis</dt>
-                <dd class="text-2xl font-bold text-amber-900 tabular-nums">{{ $this->stats['low'] }}</dd>
+                <p class="text-xs text-amber-800">Stok menipis</p>
+                <p class="text-2xl font-bold text-amber-900 tabular-nums">{{ $this->stats['low'] }}</p>
             </div>
-            <div class="rounded-xl border border-red-200 bg-red-50 px-4 py-3">
-                <dt class="text-xs text-red-700">Stok habis</dt>
-                <dd class="text-2xl font-bold text-red-800 tabular-nums">{{ $this->stats['out'] }}</dd>
+            <button type="button" wire:click="toggleStatus('habis')" aria-pressed="{{ $status === 'habis' ? 'true' : 'false' }}"
+                    @class(['rounded-xl border px-4 py-3 text-left transition',
+                            'border-red-200 bg-red-50 hover:border-red-400' => $status !== 'habis',
+                            'border-red-600 bg-red-100 ring-2 ring-red-600/20' => $status === 'habis'])>
+                <p class="text-xs text-red-700">Stok habis</p>
+                <p class="text-2xl font-bold text-red-800 tabular-nums">{{ $this->stats['out'] }}</p>
+            </button>
+            <button type="button" wire:click="toggleStatus('nonaktif')" aria-pressed="{{ $status === 'nonaktif' ? 'true' : 'false' }}"
+                    @class(['rounded-xl border px-4 py-3 text-left transition',
+                            'border-stone-200 bg-stone-50 hover:border-stone-400' => $status !== 'nonaktif',
+                            'border-stone-600 bg-stone-200 ring-2 ring-stone-600/20' => $status === 'nonaktif'])>
+                <p class="text-xs text-stone-600">Nonaktif</p>
+                <p class="text-2xl font-bold text-stone-700 tabular-nums">{{ $this->stats['inactive'] }}</p>
+            </button>
+            <div class="col-span-2 rounded-xl border border-stone-200 bg-white px-4 py-3 lg:col-span-1">
+                <p class="text-xs text-stone-500">Nilai stok (harga beli)</p>
+                <p class="text-xl font-bold tabular-nums sm:text-2xl">{{ $rp($this->stats['stock_value']) }}</p>
             </div>
-            <div class="rounded-xl border border-stone-200 bg-white px-4 py-3">
-                <dt class="text-xs text-stone-500">Nilai stok (harga beli)</dt>
-                <dd class="text-xl font-bold tabular-nums sm:text-2xl">{{ $rp($this->stats['stock_value']) }}</dd>
-            </div>
-        </dl>
+        </div>
 
         {{-- Filter --}}
         <div class="flex flex-col gap-2 sm:flex-row">
@@ -50,6 +60,12 @@
                 <option value="">Semua kategori</option>
                 @foreach ($categories as $cat)
                     <option value="{{ $cat }}">{{ $cat }}</option>
+                @endforeach
+            </select>
+            <select wire:model.live="status" aria-label="Status"
+                    class="rounded-lg border border-stone-300 bg-white px-3 py-2 text-sm outline-none focus:border-emerald-600">
+                @foreach (\App\Livewire\Barang\Index::STATUSES as $value => $label)
+                    <option value="{{ $value }}">{{ $label }}</option>
                 @endforeach
             </select>
             <select wire:model.live="sort" aria-label="Urutkan"
@@ -82,11 +98,14 @@
                     </thead>
                     <tbody class="divide-y divide-stone-100">
                         @foreach ($this->products as $p)
-                            <tr wire:key="row-{{ $p['id'] }}" class="hover:bg-stone-50">
+                            <tr wire:key="row-{{ $p['id'] }}"
+                                @class(['hover:bg-stone-50',
+                                        'bg-red-50/50 shadow-[inset_3px_0_0_var(--color-red-500)]' => $p['stock'] <= 0 && $p['is_active'],
+                                        'bg-stone-50 text-stone-400 shadow-[inset_3px_0_0_var(--color-stone-300)]' => ! $p['is_active']])>
                                 <td class="px-4 py-3 font-mono text-xs text-stone-500">{{ $p['code'] }}</td>
-                                <td class="px-4 py-3 font-medium">
+                                <td @class(['px-4 py-3 font-medium', 'line-through decoration-stone-300' => ! $p['is_active']])>
                                     {{ $p['name'] }}
-                                    @unless ($p['is_active'])<span class="ml-1 rounded bg-stone-200 px-1.5 py-0.5 text-[11px] font-medium text-stone-600">Nonaktif</span>@endunless
+                                    @unless ($p['is_active'])<span class="ml-1 inline-block rounded bg-stone-200 px-1.5 py-0.5 text-[11px] font-medium text-stone-600 no-underline">Nonaktif · tidak dijual</span>@endunless
                                 </td>
                                 <td class="px-4 py-3 text-stone-600">{{ $p['category'] }}</td>
                                 <td class="px-4 py-3 text-right text-stone-600 tabular-nums">{{ $rp($p['cost_price']) }}</td>
@@ -104,11 +123,15 @@
             {{-- Kartu (ponsel) --}}
             <ul class="space-y-2 md:hidden">
                 @foreach ($this->products as $p)
-                    <li wire:key="card-{{ $p['id'] }}" wire:click="edit({{ $p['id'] }})" class="cursor-pointer rounded-xl border border-stone-200 bg-white px-4 py-3 active:bg-stone-50">
+                    <li wire:key="card-{{ $p['id'] }}" wire:click="edit({{ $p['id'] }})"
+                        @class(['cursor-pointer rounded-xl border px-4 py-3 active:bg-stone-50',
+                                'border-stone-200 bg-white' => $p['is_active'] && $p['stock'] > 0,
+                                'border-red-200 bg-red-50/50' => $p['is_active'] && $p['stock'] <= 0,
+                                'border-dashed border-stone-300 bg-stone-50 text-stone-500' => ! $p['is_active']])>
                         <div class="flex items-start justify-between gap-3">
                             <div class="min-w-0">
                                 <p class="font-mono text-[11px] text-stone-400">{{ $p['code'] }} · {{ $p['category'] }}</p>
-                                <p class="truncate font-medium">{{ $p['name'] }} @unless ($p['is_active'])<span class="text-xs font-normal text-stone-500">(nonaktif)</span>@endunless</p>
+                                <p class="truncate font-medium">{{ $p['name'] }} @unless ($p['is_active'])<span class="ml-1 rounded bg-stone-200 px-1.5 py-0.5 text-[11px] font-medium text-stone-600">Nonaktif</span>@endunless</p>
                             </div>
                             <x-stock-badge :stock="$p['stock']" :min="$p['min_stock']" :unit="$p['unit']" class="shrink-0" />
                         </div>
@@ -116,6 +139,10 @@
                     </li>
                 @endforeach
             </ul>
+            <p class="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-stone-500">
+                <span class="inline-flex items-center gap-1.5"><span class="size-2.5 rounded-sm bg-red-500"></span>Stok habis — tidak bisa dipilih di kasir</span>
+                <span class="inline-flex items-center gap-1.5"><span class="size-2.5 rounded-sm bg-stone-300"></span>Nonaktif — disembunyikan dari kasir</span>
+            </p>
             <p class="text-xs text-stone-500">Menampilkan {{ count($this->products) }} dari {{ $this->stats['total'] }} barang.</p>
         @endif
     </div>

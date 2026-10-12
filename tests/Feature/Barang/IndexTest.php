@@ -46,4 +46,27 @@ class IndexTest extends TestCase
         $this->assertSame(1, $stats['out']);
         $this->assertSame(3, $stats['low']);
     }
+
+    public function test_status_filter_shows_out_of_stock_and_inactive(): void
+    {
+        \App\Support\MockData::saveProduct(['id' => 2, 'is_active' => false]);
+
+        Livewire::test(Index::class)
+            ->call('toggleStatus', 'habis')
+            ->assertSee('Penggaris 30 cm')
+            ->assertDontSee('Buku Tulis 38 Lembar')
+            ->call('toggleStatus', 'nonaktif')
+            ->assertSee('Pulpen Hitam')
+            ->assertSee('Nonaktif · tidak dijual')
+            ->assertDontSee('Penggaris 30 cm')
+            ->call('toggleStatus', 'nonaktif')
+            ->assertSet('status', '');
+    }
+
+    public function test_stats_count_inactive(): void
+    {
+        \App\Support\MockData::saveProduct(['id' => 3, 'is_active' => false]);
+
+        $this->assertSame(1, Livewire::test(Index::class)->instance()->stats['inactive']);
+    }
 }
