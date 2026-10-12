@@ -3,7 +3,7 @@
 namespace Tests\Feature\Barang;
 
 use App\Livewire\Barang\Index;
-use App\Support\MockData;
+use App\Models\Product;
 use Livewire\Livewire;
 use Database\Seeders\ProductSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -36,9 +36,11 @@ class ProductFormTest extends TestCase
             ->assertSet('editing', false)
             ->assertSee('Buku Gambar A4 ditambahkan.');
 
-        $product = collect(MockData::products())->firstWhere('code', 'ATK010');
-        $this->assertSame(15, $product['id']);
-        $this->assertSame(7000, $product['price']);
+        $product = Product::where('code', 'ATK010')->firstOrFail();
+        $this->assertSame('7000.00', $product->price);
+        $this->assertSame(30, $product->stock);
+        $this->assertSame('Alat Tulis', $product->category->name);
+        $this->assertSame(['masuk', 30, 'Stok awal'], [$product->stockMovements->first()->type, $product->stockMovements->first()->quantity, $product->stockMovements->first()->note]);
     }
 
     public function test_can_edit_existing_product(): void
@@ -51,10 +53,10 @@ class ProductFormTest extends TestCase
             ->call('save')
             ->assertHasNoErrors();
 
-        $product = MockData::findProduct(2);
-        $this->assertSame(3500, $product['price']);
-        $this->assertFalse($product['is_active']);
-        $this->assertNull(collect(MockData::activeProducts())->firstWhere('id', 2));
+        $product = Product::find(2);
+        $this->assertSame('3500.00', $product->price);
+        $this->assertFalse($product->is_active);
+        $this->assertSame(0, $product->stockMovements()->count()); // stok tidak berubah → tanpa riwayat
     }
 
     public function test_validation_rejects_duplicate_code_and_missing_fields(): void
@@ -73,5 +75,26 @@ class ProductFormTest extends TestCase
             ->call('edit', 1)
             ->call('save')
             ->assertHasNoErrors();
+    }
+
+    public function test_stock_change_from_form_is_recorded_as_adjustment(): void
+    {
+        Livewire::test(Index::class)
+            ->call('edit', 1)
+            ->set('form.stock', 100)
+            ->call('save')
+            ->assertHasNoErrors();
+
+        $movement = Product::find(1)->stockMovements()->first();
+        $this->assertSame(['penyesuaian', 20, 120, 100], [$movement->type, $movement->quantity, $movement->stock_before, $movement->stock_after]);
+    }
+
+    public function test_saved_product_appears_in_list(): void
+    {
+        Livewire::test(Index::class)
+            ->call('edit', 2)
+            ->set('form.name', 'Pulpen Biru')
+            ->call('save')
+            ->assertSee('Pulpen Biru');
     }
 }

@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Barang\ProductController;
 use App\Http\Controllers\Barang\ProductListController;
 use App\Http\Controllers\Kasir\CheckoutController;
 use App\Http\Controllers\Kasir\ProductSearchController;
@@ -32,3 +33,10 @@ Route::get('/barang', Barang\Index::class)->name('barang');
 Route::get('/barang/daftar', ProductListController::class)
     ->middleware('throttle:120,1')
     ->name('barang.list');
+Route::post('/barang', [ProductController::class, 'store'])
+    ->middleware('throttle:60,1')
+    ->name('barang.store');
+Route::put('/barang/{product}', [ProductController::class, 'update'])
+    ->whereNumber('product')
+    ->middleware('throttle:60,1')
+    ->name('barang.update');
