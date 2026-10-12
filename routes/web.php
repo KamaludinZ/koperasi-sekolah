@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Anggota\MemberController;
 use App\Http\Controllers\Barang\ProductController;
 use App\Http\Controllers\Barang\ProductListController;
 use App\Http\Controllers\Barang\StockAlertController;
@@ -67,6 +68,27 @@ Route::get('/transaksi/{transaction}/rincian', TransactionDetailController::clas
     ->name('transaksi.detail');
 
 Route::get('/anggota', Anggota\Index::class)->name('anggota');
+Route::get('/anggota/daftar', [MemberController::class, 'index'])
+    ->middleware('throttle:120,1')
+    ->name('anggota.list');
+Route::get('/anggota/cari', [MemberController::class, 'search'])
+    ->middleware('throttle:120,1')
+    ->name('anggota.search');
+Route::get('/anggota/kode-baru', [MemberController::class, 'nextCode'])->name('anggota.next-code');
+Route::post('/anggota', [MemberController::class, 'store'])
+    ->middleware('throttle:60,1')
+    ->name('anggota.store');
+Route::get('/anggota/{member}/data', [MemberController::class, 'show'])
+    ->whereNumber('member')
+    ->name('anggota.data');
+Route::put('/anggota/{member}', [MemberController::class, 'update'])
+    ->whereNumber('member')
+    ->middleware('throttle:60,1')
+    ->name('anggota.update');
+Route::delete('/anggota/{member}', [MemberController::class, 'destroy'])
+    ->whereNumber('member')
+    ->middleware('throttle:30,1')
+    ->name('anggota.destroy');
 Route::get('/anggota/{member}', Anggota\Show::class)
     ->whereNumber('member')
     ->name('anggota.show');
