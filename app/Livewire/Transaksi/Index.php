@@ -100,11 +100,7 @@ class Index extends Component
     {
         [$start, $end] = $this->range;
 
-        return array_values(array_filter(MockData::transactions(), function ($t) use ($start, $end) {
-            $at = Carbon::parse($t['created_at']);
-
-            return (! $start || $at->gte($start)) && (! $end || $at->lte($end));
-        }));
+        return $this->between($start ?? Carbon::createFromTimestamp(0), $end ?? now()->addYear());
     }
 
     /** Transaksi dikelompokkan per tanggal (Y-m-d), terbaru dulu, beserta subtotal harian. */
@@ -126,14 +122,63 @@ class Index extends Component
     #[Computed]
     public function summary(): array
     {
-        $all = collect($this->transactions);
+        $summary = self::summarize($this->transactions);
+        $summary['previous'] = null;
+
+        // Bandingkan dengan periode sebelumnya yang sama panjangnya (bila rentang lengkap).
+        [$start, $end] = $this->range;
+        if ($start && $end) {
+            $days = (int) $start->copy()->startOfDay()->diffInDays($end->copy()->startOfDay()) + 1;
+            $prevEnd = $start->copy()->subDay()->endOfDay();
+            $prevStart = $start->copy()->subDays($days)->startOfDay();
+            $previous = self::summarize($this->between($prevStart, $prevEnd));
+
+            $summary['previous'] = [
+                ...$previous,
+                'label' => $days === 1 ? $prevStart->translatedFormat('d M') : $prevStart->translatedFormat('d M').' – '.$prevEnd->translatedFormat('d M'),
+                'count_change' => self::percentChange($previous['count'], $summary['count']),
+                'total_change' => self::percentChange($previous['total'], $summary['total']),
+            ];
+        }
+
+        return $summary;
+    }
+
+    /** @param  list<array>  $transactions */
+    private static function summarize(array $transactions): array
+    {
+        $all = collect($transactions);
+        $total = $all->sum('total');
 
         return [
             'count' => $all->count(),
-            'total' => $all->sum('total'),
+            'total' => $total,
             'items' => $all->sum('item_count'),
             'average' => $all->count() ? (int) round($all->avg('total')) : 0,
+            'by_method' => collect(\App\Services\CheckoutService::PAYMENT_METHODS)
+                ->map(fn ($label, $method) => [
+                    'label' => $label,
+                    'count' => $all->where('payment_method', $method)->count(),
+                    'total' => $sum = $all->where('payment_method', $method)->sum('total'),
+                    'share' => $total > 0 ? round($sum / $total * 100) : 0,
+                ])
+                ->all(),
         ];
+    }
+
+    /** Persentase perubahan; null bila pembanding nol. */
+    private static function percentChange(int|float $before, int|float $after): ?int
+    {
+        return $before > 0 ? (int) round(($after - $before) / $before * 100) : null;
+    }
+
+    private function between(Carbon $start, Carbon $end): array
+    {
+        return array_values(array_filter(MockData::transactions(), function ($t) use ($start, $end) {
+            $at = Carbon::parse($t['created_at']);
+
+            return $at->gte($start) && $at->lte($end);
+        }));
     }
 
     /** Label rentang aktif untuk ditampilkan, mis. "1–12 Oktober 2026". */

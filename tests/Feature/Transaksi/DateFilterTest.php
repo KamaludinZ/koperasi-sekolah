@@ -86,4 +86,26 @@ class DateFilterTest extends TestCase
             ->assertOk()
             ->assertSee('09 Oktober 2026');
     }
+
+    public function test_summary_compares_with_previous_period_and_splits_by_method(): void
+    {
+        $all = collect(MockData::transactions());
+        $today = $all->filter(fn ($t) => str_starts_with($t['created_at'], '2026-10-14'));
+        $yesterday = $all->filter(fn ($t) => str_starts_with($t['created_at'], '2026-10-13'));
+
+        $s = Livewire::test(Index::class)->call('applyPreset', 'hari-ini')->assertSee('Per metode bayar')->instance()->summary;
+
+        $this->assertSame($yesterday->sum('total'), $s['previous']['total']);
+        $this->assertSame(
+            (int) round(($today->sum('total') - $yesterday->sum('total')) / $yesterday->sum('total') * 100),
+            $s['previous']['total_change'],
+        );
+        $this->assertSame($s['total'], $s['by_method']['tunai']['total'] + $s['by_method']['qris']['total']);
+        $this->assertSame($s['count'], $s['by_method']['tunai']['count'] + $s['by_method']['qris']['count']);
+    }
+
+    public function test_no_comparison_without_date_range(): void
+    {
+        $this->assertNull(Livewire::test(Index::class)->instance()->summary['previous']);
+    }
 }

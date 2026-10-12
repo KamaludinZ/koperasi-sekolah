@@ -1,6 +1,6 @@
 {
   "repo": "Koperasi Sekolah",
-  "generatedForCommit": "84cb0a1d5260191f4a6f2b54ce19a0b52bb0a5d2",
+  "generatedForCommit": "747dcda973d45b5699659c133f140c7fd47c25be",
   "files": [
     {
       "path": ".claude/skills/ngodingpakeai/SKILL.md",
@@ -124,9 +124,9 @@
     },
     {
       "path": "app/Livewire/Transaksi/Index.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 1574
+      "size": 5073
     },
     {
       "path": "app/Livewire/Transaksi/Show.php",
@@ -580,13 +580,13 @@
     },
     {
       "path": "resources/views/livewire/transaksi/index.blade.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 4769
+      "size": 7913
     },
     {
       "path": "resources/views/livewire/transaksi/show.blade.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 8341
     },
@@ -670,7 +670,7 @@
     },
     {
       "path": "storage/framework/views/11762cee78b18a71c9360376789f4806.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 11605
     },
@@ -1006,9 +1006,9 @@
     },
     {
       "path": "storage/framework/views/f221adf23ef3637c5e8dd1196a6a56c1.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 9769
+      "size": 15066
     },
     {
       "path": "storage/framework/views/f42e6bc937ce5b928a5231f224c3a42b.php",
@@ -1143,6 +1143,12 @@
       "size": 2259
     },
     {
+      "path": "tests/Feature/Transaksi/DateFilterTest.php",
+      "reason": "new",
+      "language": "php",
+      "size": 3058
+    },
+    {
       "path": "tests/Feature/Transaksi/IndexTest.php",
       "reason": "needs_summary",
       "language": "php",
@@ -1150,7 +1156,7 @@
     },
     {
       "path": "tests/Feature/Transaksi/NavigationTest.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 1740
     },

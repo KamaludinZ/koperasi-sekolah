@@ -44,24 +44,7 @@
         </section>
 
         {{-- Ringkasan --}}
-        <div class="grid grid-cols-2 gap-3 lg:grid-cols-4">
-            <div class="rounded-xl border border-stone-200 bg-white px-4 py-3">
-                <p class="text-xs text-stone-500">Jumlah transaksi</p>
-                <p class="text-2xl font-bold tabular-nums">{{ $this->summary['count'] }}</p>
-            </div>
-            <div class="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3">
-                <p class="text-xs text-emerald-800">Total penjualan</p>
-                <p class="text-xl font-bold text-emerald-900 tabular-nums sm:text-2xl">{{ $rp($this->summary['total']) }}</p>
-            </div>
-            <div class="rounded-xl border border-stone-200 bg-white px-4 py-3">
-                <p class="text-xs text-stone-500">Barang terjual</p>
-                <p class="text-2xl font-bold tabular-nums">{{ $this->summary['items'] }}</p>
-            </div>
-            <div class="rounded-xl border border-stone-200 bg-white px-4 py-3">
-                <p class="text-xs text-stone-500">Rata-rata per transaksi</p>
-                <p class="text-xl font-bold tabular-nums sm:text-2xl">{{ $rp($this->summary['average']) }}</p>
-            </div>
-        </div>
+        @include('livewire.transaksi.partials.summary')
 
         @forelse ($this->days as $day)
             <section wire:key="day-{{ $day['date']->toDateString() }}" aria-labelledby="day-{{ $day['date']->toDateString() }}">
