@@ -1,6 +1,6 @@
 {
   "repo": "Koperasi Sekolah",
-  "generatedForCommit": "0d5affd63175c95167ec3e039ad3e7fa49259716",
+  "generatedForCommit": "931bbbd6450c021dfc28c599ee72133437f71251",
   "files": [
     {
       "path": ".claude/skills/ngodingpakeai/SKILL.md",
@@ -142,9 +142,9 @@
     },
     {
       "path": "app/Livewire/Laporan/Index.php",
-      "reason": "new",
+      "reason": "changed",
       "language": "php",
-      "size": 3187
+      "size": 4958
     },
     {
       "path": "app/Livewire/Transaksi/Index.php",
@@ -508,7 +508,7 @@
     },
     {
       "path": "resources/views/components/layouts/app.blade.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 5200
     },
@@ -634,9 +634,15 @@
     },
     {
       "path": "resources/views/livewire/laporan/index.blade.php",
+      "reason": "changed",
+      "language": "php",
+      "size": 5856
+    },
+    {
+      "path": "resources/views/livewire/laporan/partials/today-card.blade.php",
       "reason": "new",
       "language": "php",
-      "size": 5663
+      "size": 3440
     },
     {
       "path": "resources/views/livewire/transaksi/index.blade.php",
@@ -664,7 +670,7 @@
     },
     {
       "path": "routes/web.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 2674
     },
@@ -922,7 +928,7 @@
     },
     {
       "path": "storage/framework/views/798b34bc9486b4ac75524eea46040336.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 6909
     },
@@ -1090,9 +1096,9 @@
     },
     {
       "path": "storage/framework/views/e17ceb89e1cd3f5fe664f3412bead3d6.php",
-      "reason": "new",
+      "reason": "changed",
       "language": "php",
-      "size": 7101
+      "size": 7403
     },
     {
       "path": "storage/framework/views/e27f66cac0fd83c2264fcbb4d52c1aff.php",
@@ -1111,6 +1117,12 @@
       "reason": "needs_summary",
       "language": "php",
       "size": 441
+    },
+    {
+      "path": "storage/framework/views/e96e50fea85e512ee3d5e40a5ba39718.php",
+      "reason": "new",
+      "language": "php",
+      "size": 5533
     },
     {
       "path": "storage/framework/views/f221adf23ef3637c5e8dd1196a6a56c1.php",
@@ -1282,9 +1294,9 @@
     },
     {
       "path": "tests/Feature/Laporan/IndexTest.php",
-      "reason": "new",
+      "reason": "changed",
       "language": "php",
-      "size": 1739
+      "size": 2517
     },
     {
       "path": "tests/Feature/Transaksi/DateFilterTest.php",

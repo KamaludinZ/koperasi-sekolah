@@ -51,13 +51,7 @@
         </section>
 
         <div class="grid gap-5 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
-            {{-- Grafik (diisi pada task grafik progress) --}}
-            <section class="rounded-xl border border-stone-200 bg-white p-4" aria-labelledby="chart-title">
-                <h2 id="chart-title" class="text-sm font-semibold">Grafik progress penjualan</h2>
-                <div class="mt-3 grid h-56 place-items-center rounded-lg border border-dashed border-stone-300 text-sm text-stone-400">
-                    Grafik akan tampil di sini
-                </div>
-            </section>
+            @include('livewire.laporan.partials.sales-chart')
 
             {{-- Barang terlaris --}}
             <section class="rounded-xl border border-stone-200 bg-white p-4" aria-labelledby="top-title">

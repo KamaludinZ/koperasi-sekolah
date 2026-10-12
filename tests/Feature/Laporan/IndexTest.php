@@ -73,4 +73,28 @@ class IndexTest extends TestCase
 
         $this->assertSame($expected, Livewire::test(Index::class)->instance()->today['compare']);
     }
+
+    public function test_chart_points_per_day_and_week(): void
+    {
+        $c = Livewire::test(Index::class)->assertSee('Penjualan per hari')->assertSee('Lihat tabel data');
+        $this->assertCount(7, $c->instance()->chartPoints);
+
+        $c->call('setChartPeriod', '30-hari');
+        $points = $c->instance()->chartPoints;
+        $this->assertCount(30, $points);
+        $this->assertSame(0, $points[array_search('Minggu, 11 Oktober 2026', array_column($points, 'tooltip'))]['value']); // Minggu tutup
+
+        $c->call('setChartPeriod', '12-minggu')->assertSee('Penjualan per minggu');
+        $this->assertCount(12, $c->instance()->chartPoints);
+    }
+
+    public function test_chart_total_matches_transactions(): void
+    {
+        $points = Livewire::test(Index::class)->call('setChartPeriod', '7-hari')->instance()->chartPoints;
+        $expected = collect(\App\Support\MockData::transactions(90))
+            ->filter(fn ($t) => $t['created_at'] >= '2026-10-08')
+            ->sum('total');
+
+        $this->assertSame($expected, array_sum(array_column($points, 'value')));
+    }
 }

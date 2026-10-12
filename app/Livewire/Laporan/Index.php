@@ -25,6 +25,15 @@ class Index extends Component
         'bulan-ini' => 'Bulan ini',
     ];
 
+    public const CHART_PERIODS = [
+        '7-hari' => '7 hari',
+        '30-hari' => '30 hari',
+        '12-minggu' => '12 minggu',
+    ];
+
+    #[Url(as: 'grafik', except: '7-hari')]
+    public string $chartPeriod = '7-hari';
+
     #[Url(as: 'periode', except: 'hari-ini')]
     public string $period = 'hari-ini';
 
@@ -33,6 +42,58 @@ class Index extends Component
         if (array_key_exists($period, self::PERIODS)) {
             $this->period = $period;
         }
+    }
+
+    public function setChartPeriod(string $period): void
+    {
+        if (array_key_exists($period, self::CHART_PERIODS)) {
+            $this->chartPeriod = $period;
+        }
+    }
+
+    /**
+     * Titik grafik penjualan: per hari (7/30 hari) atau per minggu (12 minggu),
+     * termasuk periode tanpa penjualan (nilai 0) agar sumbu waktu tidak bolong.
+     *
+     * @return list<array{label: string, tooltip: string, value: int, count: int}>
+     */
+    #[Computed]
+    public function chartPoints(): array
+    {
+        $now = now();
+        $weekly = $this->chartPeriod === '12-minggu';
+        $start = match ($this->chartPeriod) {
+            '30-hari' => $now->copy()->subDays(29)->startOfDay(),
+            '12-minggu' => $now->copy()->startOfWeek()->subWeeks(11),
+            default => $now->copy()->subDays(6)->startOfDay(),
+        };
+
+        $buckets = [];
+        for ($d = $start->copy(); $d->lte($now); $weekly ? $d->addWeek() : $d->addDay()) {
+            $key = $d->toDateString();
+            $buckets[$key] = [
+                'label' => $weekly ? $d->translatedFormat('d M') : ($this->chartPeriod === '7-hari' ? $d->translatedFormat('D d') : $d->translatedFormat('d/m')),
+                'tooltip' => $weekly
+                    ? 'Minggu '.$d->translatedFormat('d M').' – '.$d->copy()->endOfWeek()->translatedFormat('d M Y')
+                    : $d->translatedFormat('l, d F Y'),
+                'value' => 0,
+                'count' => 0,
+            ];
+        }
+
+        foreach (MockData::transactions(90) as $t) {
+            $at = Carbon::parse($t['created_at']);
+            if ($at->lt($start)) {
+                continue;
+            }
+            $key = ($weekly ? $at->copy()->startOfWeek() : $at)->toDateString();
+            if (isset($buckets[$key])) {
+                $buckets[$key]['value'] += $t['total'];
+                $buckets[$key]['count']++;
+            }
+        }
+
+        return array_values($buckets);
     }
 
     /** @return array{0: Carbon, 1: Carbon} */
