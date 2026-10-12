@@ -4,6 +4,8 @@ namespace App\Services;
 
 use App\Models\Member;
 use App\Models\SavingsTransaction;
+use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
@@ -17,6 +19,10 @@ class SavingsService
     public const MIN_AMOUNT = 1_000;
 
     public const MAX_DEPOSIT = 10_000_000;
+
+    public const HISTORY_PRESETS = ['30-hari' => '30 hari', '90-hari' => '3 bulan', 'tahun-ini' => 'Tahun ini', 'semua' => 'Semua'];
+
+    public const PER_PAGE_OPTIONS = [20, 50, 100];
 
     /** Aturan dasar nominal & catatan (batas saldo dicek saat menyimpan). */
     public static function rules(): array
@@ -98,6 +104,75 @@ class SavingsService
         $member->refresh();
 
         return $entry;
+    }
+
+    /**
+     * Rentang riwayat untuk preset atau tanggal kustom (Y-m-d); kustom diutamakan.
+     *
+     * @return array{0: ?Carbon, 1: ?Carbon}
+     */
+    public static function historyRange(string $preset = 'semua', ?string $from = null, ?string $to = null): array
+    {
+        if (($from ?? '') !== '' || ($to ?? '') !== '') {
+            return [
+                ($from ?? '') !== '' ? Carbon::createFromFormat('!Y-m-d', $from)->startOfDay() : null,
+                ($to ?? '') !== '' ? Carbon::createFromFormat('!Y-m-d', $to)->endOfDay() : null,
+            ];
+        }
+
+        return match ($preset) {
+            '30-hari' => [now()->subDays(29)->startOfDay(), null],
+            '90-hari' => [now()->subDays(89)->startOfDay(), null],
+            'tahun-ini' => [now()->startOfYear(), null],
+            default => [null, null],
+        };
+    }
+
+    /** Ringkasan seluruh tabungan anggota: total & jumlah setor/tarik, mutasi terakhir. */
+    public function stats(Member $member): array
+    {
+        $totals = $member->savings()->toBase()
+            ->groupBy('type')
+            ->selectRaw('type, COUNT(*) AS n, COALESCE(SUM(amount), 0) AS total')
+            ->get()->keyBy('type');
+        $last = $member->savings()->latestFirst()->first(['type', 'created_at']);
+
+        return [
+            'balance' => (int) round((float) $member->balance),
+            'deposit_total' => (int) round((float) ($totals['setor']->total ?? 0)),
+            'deposit_count' => (int) ($totals['setor']->n ?? 0),
+            'withdraw_total' => (int) round((float) ($totals['tarik']->total ?? 0)),
+            'withdraw_count' => (int) ($totals['tarik']->n ?? 0),
+            'last_at' => $last?->created_at->toDateTimeString(),
+            'last_type' => $last?->type,
+        ];
+    }
+
+    /**
+     * Riwayat mutasi terbaru dulu (berpaginasi) + total masuk/keluar pada filter itu.
+     *
+     * @param  array{from?: ?Carbon, to?: ?Carbon, type?: ?string}  $filters
+     * @return array{paginator: LengthAwarePaginator, in: int, out: int}
+     */
+    public function history(Member $member, array $filters = [], int $perPage = 20, ?int $page = null): array
+    {
+        $perPage = in_array($perPage, self::PER_PAGE_OPTIONS, true) ? $perPage : self::PER_PAGE_OPTIONS[0];
+        $query = fn () => $member->savings()
+            ->betweenDates($filters['from'] ?? null, $filters['to'] ?? null)
+            ->ofType($filters['type'] ?? null);
+
+        $paginator = $query()->with('user:id,name')->latestFirst()->paginate($perPage, ['*'], 'page', $page);
+        if ($paginator->isEmpty() && $paginator->currentPage() > 1 && $paginator->total() > 0) {
+            $paginator = $query()->with('user:id,name')->latestFirst()->paginate($perPage, ['*'], 'page', $paginator->lastPage());
+        }
+
+        $sums = $query()->toBase()->groupBy('type')->selectRaw('type, COALESCE(SUM(amount), 0) AS total')->pluck('total', 'type');
+
+        return [
+            'paginator' => $paginator->through(fn (SavingsTransaction $s) => self::toArray($s)),
+            'in' => (int) round((float) ($sums['setor'] ?? 0)),
+            'out' => (int) round((float) ($sums['tarik'] ?? 0)),
+        ];
     }
 
     /** Bentuk array mutasi (sama dengan data tiruan halaman profil anggota). */

@@ -90,6 +90,10 @@ Route::delete('/anggota/{member}', [MemberController::class, 'destroy'])
     ->whereNumber('member')
     ->middleware('throttle:30,1')
     ->name('anggota.destroy');
+Route::get('/anggota/{member}/tabungan', [SavingsController::class, 'index'])
+    ->whereNumber('member')
+    ->middleware('throttle:120,1')
+    ->name('anggota.savings');
 Route::post('/anggota/{member}/tabungan', [SavingsController::class, 'store'])
     ->whereNumber('member')
     ->middleware('throttle:60,1')
