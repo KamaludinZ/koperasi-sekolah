@@ -18,49 +18,7 @@
 
     <div class="grid min-h-0 flex-1 grid-cols-1 lg:grid-cols-[1fr_380px]">
         {{-- Area barang --}}
-        <section class="flex min-h-0 flex-col">
-            <div class="space-y-3 border-b border-stone-200 bg-white/60 px-4 py-4 sm:px-6">
-                <label class="relative block">
-                    <span class="sr-only">Cari barang</span>
-                    <svg class="pointer-events-none absolute top-1/2 left-3.5 size-5 -translate-y-1/2 text-stone-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
-                    <input type="search" autofocus placeholder="Cari nama atau kode barang…"
-                           class="w-full rounded-xl border border-stone-300 bg-white py-3 pr-4 pl-11 text-base shadow-sm outline-none focus:border-emerald-600 focus:ring-4 focus:ring-emerald-600/15">
-                </label>
-                <div class="flex gap-2 overflow-x-auto pb-1">
-                    <button type="button" class="shrink-0 rounded-full bg-emerald-900 px-3.5 py-1.5 text-sm font-medium text-white">Semua</button>
-                    @foreach ($categories as $category)
-                        <button type="button" class="shrink-0 rounded-full border border-stone-300 bg-white px-3.5 py-1.5 text-sm font-medium text-stone-700 hover:border-stone-400">{{ $category }}</button>
-                    @endforeach
-                </div>
-            </div>
-
-            <div class="min-h-0 flex-1 overflow-y-auto px-4 py-4 sm:px-6">
-                <ul class="grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-4">
-                    @foreach ($products as $product)
-                        @php
-                            $out = $product['stock'] === 0;
-                            $low = ! $out && $product['stock'] <= $product['min_stock'];
-                        @endphp
-                        <li>
-                            <button type="button" @disabled($out)
-                                    class="group flex h-full w-full flex-col rounded-xl border border-stone-200 bg-white p-3.5 text-left shadow-sm transition hover:border-emerald-500 hover:shadow-md disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:border-stone-200 disabled:hover:shadow-sm">
-                                <span class="font-mono text-[11px] tracking-wide text-stone-400">{{ $product['code'] }}</span>
-                                <span class="mt-1 line-clamp-2 text-sm leading-snug font-medium">{{ $product['name'] }}</span>
-                                <span class="mt-auto flex items-end justify-between gap-2 pt-3">
-                                    <span class="font-semibold text-emerald-800 tabular-nums">Rp{{ number_format($product['price'], 0, ',', '.') }}</span>
-                                    <span @class(['rounded px-1.5 py-0.5 text-[11px] font-medium tabular-nums',
-                                                  'bg-red-100 text-red-700' => $out,
-                                                  'bg-amber-100 text-amber-800' => $low,
-                                                  'bg-stone-100 text-stone-600' => ! $out && ! $low])>
-                                        {{ $out ? 'Habis' : $product['stock'].' '.$product['unit'] }}
-                                    </span>
-                                </span>
-                            </button>
-                        </li>
-                    @endforeach
-                </ul>
-            </div>
-        </section>
+        <livewire:kasir.product-picker />
 
         {{-- Keranjang --}}
         <aside class="flex min-h-0 flex-col border-t border-stone-200 bg-white lg:border-t-0 lg:border-l">
