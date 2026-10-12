@@ -18,6 +18,14 @@ class TransactionHistory
 
     public const PER_PAGE_OPTIONS = [20, 50, 100];
 
+    public const PRESETS = [
+        'semua' => 'Semua',
+        'hari-ini' => 'Hari ini',
+        'kemarin' => 'Kemarin',
+        '7-hari' => '7 hari terakhir',
+        'bulan-ini' => 'Bulan ini',
+    ];
+
     /**
      * @param  array{from?: ?Carbon, to?: ?Carbon, method?: ?string, search?: ?string}  $filters
      */
@@ -109,5 +117,122 @@ class TransactionHistory
             ->orderBy('created_at', $newer ? 'asc' : 'desc')
             ->orderBy('id', $newer ? 'asc' : 'desc')
             ->value('id');
+    }
+
+    /**
+     * Rentang waktu (awal hari, akhir hari) untuk preset atau tanggal kustom (Y-m-d).
+     * Tanggal kustom diutamakan bila diisi; batas null = terbuka.
+     *
+     * @return array{0: ?Carbon, 1: ?Carbon}
+     */
+    public static function range(string $preset = 'semua', ?string $from = null, ?string $to = null): array
+    {
+        if (($from ?? '') !== '' || ($to ?? '') !== '') {
+            return [self::parseDate($from)?->startOfDay(), self::parseDate($to)?->endOfDay()];
+        }
+
+        $today = now();
+
+        return match ($preset) {
+            'hari-ini' => [$today->copy()->startOfDay(), $today->copy()->endOfDay()],
+            'kemarin' => [$today->copy()->subDay()->startOfDay(), $today->copy()->subDay()->endOfDay()],
+            '7-hari' => [$today->copy()->subDays(6)->startOfDay(), $today->copy()->endOfDay()],
+            'bulan-ini' => [$today->copy()->startOfMonth(), $today->copy()->endOfDay()],
+            default => [null, null],
+        };
+    }
+
+    /**
+     * Ringkasan penjualan dalam rentang (agregat SQL): jumlah, total, barang terjual,
+     * rata-rata, rincian per metode bayar, dan — bila rentang lengkap — perbandingan
+     * dengan periode sebelumnya yang sama panjangnya.
+     */
+    public function summary(?Carbon $start, ?Carbon $end, ?string $method = null): array
+    {
+        $summary = $this->aggregate($start, $end, $method);
+        $summary['previous'] = null;
+
+        if ($start && $end) {
+            $days = (int) $start->copy()->startOfDay()->diffInDays($end->copy()->startOfDay()) + 1;
+            $prevEnd = $start->copy()->subDay()->endOfDay();
+            $prevStart = $start->copy()->subDays($days)->startOfDay();
+            $previous = $this->aggregate($prevStart, $prevEnd, $method);
+
+            $summary['previous'] = [
+                ...$previous,
+                'from' => $prevStart->toDateString(),
+                'to' => $prevEnd->toDateString(),
+                'label' => $days === 1 ? $prevStart->translatedFormat('d M') : $prevStart->translatedFormat('d M').' – '.$prevEnd->translatedFormat('d M'),
+                'count_change' => self::percentChange($previous['count'], $summary['count']),
+                'total_change' => self::percentChange($previous['total'], $summary['total']),
+            ];
+        }
+
+        return $summary;
+    }
+
+    /** Label rentang untuk ditampilkan, mis. "12 Oktober 2026" atau "01 Okt 2026 – 12 Okt 2026". */
+    public static function rangeLabel(?Carbon $start, ?Carbon $end): ?string
+    {
+        if (! $start && ! $end) {
+            return null;
+        }
+        if ($start && $end && $start->isSameDay($end)) {
+            return $start->translatedFormat('d F Y');
+        }
+
+        return ($start ? $start->translatedFormat('d M Y') : '…').' – '.($end ? $end->translatedFormat('d M Y') : '…');
+    }
+
+    private function aggregate(?Carbon $start, ?Carbon $end, ?string $method): array
+    {
+        $rows = Transaction::query()
+            ->betweenDates($start, $end)
+            ->paymentMethod($method)
+            ->groupBy('payment_method')
+            ->selectRaw('payment_method, COUNT(*) AS tx_count, COALESCE(SUM(total), 0) AS total, COALESCE(SUM(item_count), 0) AS items')
+            ->get()
+            ->keyBy('payment_method');
+
+        $count = (int) $rows->sum('tx_count');
+        $total = (int) round((float) $rows->sum('total'));
+
+        return [
+            'count' => $count,
+            'total' => $total,
+            'items' => (int) $rows->sum('items'),
+            'average' => $count ? (int) round($total / $count) : 0,
+            'by_method' => collect(CheckoutService::PAYMENT_METHODS)
+                ->map(function ($label, $key) use ($rows, $total) {
+                    $sum = (int) round((float) ($rows[$key]->total ?? 0));
+
+                    return [
+                        'label' => $label,
+                        'count' => (int) ($rows[$key]->tx_count ?? 0),
+                        'total' => $sum,
+                        'share' => $total > 0 ? (int) round($sum / $total * 100) : 0,
+                    ];
+                })
+                ->all(),
+        ];
+    }
+
+    /** Persentase perubahan; null bila pembanding nol. */
+    private static function percentChange(int|float $before, int|float $after): ?int
+    {
+        return $before > 0 ? (int) round(($after - $before) / $before * 100) : null;
+    }
+
+    private static function parseDate(?string $value): ?Carbon
+    {
+        if (($value ?? '') === '') {
+            return null;
+        }
+
+        try {
+            return Carbon::createFromFormat('!Y-m-d', $value);
+        } catch (\Throwable) {
+            return null;
+        }
     }
 }

@@ -53,9 +53,12 @@ Route::put('/barang/batas-minimum', [StockAlertController::class, 'updateMinStoc
     ->name('barang.min-stock.update');
 
 Route::get('/transaksi', Transaksi\Index::class)->name('transaksi');
-Route::get('/transaksi/daftar', TransactionListController::class)
+Route::get('/transaksi/daftar', [TransactionListController::class, 'index'])
     ->middleware('throttle:120,1')
     ->name('transaksi.list');
+Route::get('/transaksi/ringkasan', [TransactionListController::class, 'summary'])
+    ->middleware('throttle:120,1')
+    ->name('transaksi.summary');
 Route::get('/transaksi/{transaction}', Transaksi\Show::class)
     ->whereNumber('transaction')
     ->name('transaksi.show');
