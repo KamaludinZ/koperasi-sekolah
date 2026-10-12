@@ -39,4 +39,18 @@ class NavigationTest extends TestCase
         $this->get("/transaksi/{$newest['id']}")->assertOk()->assertDontSee('x-ref="newer"', false);
         $this->get('/transaksi/99999')->assertNotFound();
     }
+
+    public function test_detail_shows_items_payment_and_receipt(): void
+    {
+        $tx = MockData::transactions()[0];
+        $item = $tx['items'][0];
+
+        $this->get("/transaksi/{$tx['id']}")
+            ->assertSee('Rincian barang')
+            ->assertSee($item['product_name'])
+            ->assertSee('Kembalian')
+            ->assertSee('print-area', false)
+            ->assertSee('Cetak ulang struk')
+            ->assertSee($tx['cashier']);
+    }
 }
