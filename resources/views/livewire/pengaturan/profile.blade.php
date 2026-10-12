@@ -27,9 +27,14 @@
                     <label class="block"><span class="{{ $label }}">Nama singkat</span>
                         <input type="text" wire:model.live.debounce.400ms="short_name" class="{{ $input }}" placeholder="mis. Kopsis Al-Hikmah">
                         @error('short_name') <span class="mt-1 block text-xs text-red-600">{{ $message }}</span> @enderror
-                        <span class="mt-1 block text-[11px] text-stone-500">Untuk menu & judul tab.</span>
+                        <span class="mt-1 block text-[11px] text-stone-500">Dipakai bila nama aplikasi kosong.</span>
                     </label>
                 </div>
+                <label class="block"><span class="{{ $label }}">Nama aplikasi <span class="font-normal text-stone-500">(opsional)</span></span>
+                    <input type="text" wire:model.live.debounce.400ms="app_name" maxlength="60" class="{{ $input }}" placeholder="{{ $short_name ?: 'mis. KOPSIS Al-Hikmah MTs 1' }}">
+                    @error('app_name') <span class="mt-1 block text-xs text-red-600">{{ $message }}</span> @enderror
+                    <span class="mt-1 block text-[11px] text-stone-500">Tampil di judul tab, menu samping, beranda, dan halaman masuk. Kosongkan untuk memakai nama singkat.</span>
+                </label>
                 <label class="block"><span class="{{ $label }}">Nama madrasah / sekolah</span>
                     <input type="text" wire:model.live.debounce.400ms="school" class="{{ $input }}" placeholder="mis. Madrasah Tsanawiyah Negeri 1 …">
                     @error('school') <span class="mt-1 block text-xs text-red-600">{{ $message }}</span> @enderror
@@ -133,7 +138,7 @@
                 <div class="flex items-center gap-3">
                     @if ($logoSrc)<img src="{{ $logoSrc }}" alt="" class="size-10 rounded-lg object-cover">@else<x-brand.mark class="size-10" />@endif
                     <div class="min-w-0 leading-tight">
-                        <p class="truncate font-display text-lg font-bold text-white">{{ $short_name ?: 'Nama singkat' }}</p>
+                        <p class="line-clamp-2 font-display text-lg leading-tight font-bold text-white">{{ $app_name ?: ($short_name ?: 'Nama aplikasi') }}</p>
                         <p class="truncate text-xs text-amber-300">{{ $school ?: 'Nama madrasah' }}</p>
                     </div>
                 </div>

@@ -28,6 +28,9 @@ class Profile extends Component
 
     public string $short_name = '';
 
+    /** Nama aplikasi di judul tab, menu samping, beranda & halaman masuk (kosong = nama singkat). */
+    public string $app_name = '';
+
     public string $school = '';
 
     public string $address = '';
@@ -57,6 +60,7 @@ class Profile extends Component
         $p = MockData::profile();
         $this->fill([
             'name' => $p['name'], 'short_name' => $p['short_name'], 'school' => $p['school'],
+            'app_name' => MockData::settings()['profile']['app_name'] ?? '',
             'address' => $p['address'] ?? '', 'phone' => $p['phone'] ?? '', 'email' => $p['email'] ?? '',
             'motto' => $p['motto'] ?? '', 'logo' => $p['logo'] ?? null,
         ]);
@@ -71,6 +75,7 @@ class Profile extends Component
         return [
             'name' => ['required', 'string', 'max:100'],
             'short_name' => ['required', 'string', 'max:30'],
+            'app_name' => ['nullable', 'string', 'max:60'],
             'school' => ['required', 'string', 'max:120'],
             'address' => ['nullable', 'string', 'max:200'],
             'phone' => ['nullable', 'string', 'max:20', 'regex:/^[0-9+\-\s()]{6,20}$/'],
@@ -129,6 +134,7 @@ class Profile extends Component
 
             MockData::saveSettings('profile', [
                 'name' => trim($this->name), 'short_name' => trim($this->short_name), 'school' => trim($this->school),
+                'app_name' => trim($this->app_name) ?: null,
                 'address' => trim($this->address), 'phone' => trim($this->phone), 'email' => trim($this->email) ?: null,
                 'motto' => trim($this->motto),
                 'schedule' => collect($this->schedule)->map(fn ($h) => $h['open'] ? ['open' => $h['from'], 'close' => $h['to']] : null)->all(),

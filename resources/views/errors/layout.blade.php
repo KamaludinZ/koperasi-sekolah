@@ -11,7 +11,7 @@
     <meta name="theme-color" content="#022c22">
     <meta name="robots" content="noindex">
     @yield('head')
-    <title>@yield('title') · {{ $profile['short_name'] }}</title>
+    <title>@yield('title') · {{ $profile['app_name'] }}</title>
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=instrument-sans:400,500,600,700|amiri:400,700" rel="stylesheet" />
     @vite(['resources/css/app.css'])

@@ -27,6 +27,7 @@ class SettingsService
 
     public const DEFAULTS = [
         'profile' => [
+            'app_name' => null,      // kosong = ikut nama singkat
             'name' => 'Koperasi Siswa Al-Hikmah',
             'short_name' => 'Kopsis Al-Hikmah',
             'school' => 'Madrasah Tsanawiyah Negeri 1 Contoh',
@@ -89,7 +90,8 @@ class SettingsService
         $all = $this->all();
         $profile = $all['profile'];
         $profile['schedule'] = $this->normalizeSchedule($profile['schedule']);
-        $profile['logo'] = LogoService::url($profile['logo']); // nama berkas → URL siap pakai di <img>
+        $profile['logo'] = LogoService::url($profile['logo']);
+        $profile['app_name'] = $profile['app_name'] ?: $profile['short_name']; // nama berkas → URL siap pakai di <img>
         $profile['hours'] = OpeningHours::group($profile['schedule']);
         $profile['receipt_footer'] = $all['receipt']['footer'];
 
@@ -157,6 +159,7 @@ class SettingsService
 
         return match ($section) {
             'profile' => [
+                'app_name' => ['sometimes', 'nullable', 'string', 'max:60'],
                 'name' => ['sometimes', 'required', 'string', 'max:100'],
                 'short_name' => ['sometimes', 'required', 'string', 'max:30'],
                 'school' => ['sometimes', 'required', 'string', 'max:120'],

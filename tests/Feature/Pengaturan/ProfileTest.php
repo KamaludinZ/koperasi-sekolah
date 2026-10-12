@@ -68,6 +68,25 @@ class ProfileTest extends TestCase
             ->assertSet('saved', false);
     }
 
+    public function test_app_name_is_used_in_titles_and_falls_back_to_short_name(): void
+    {
+        $this->assertSame('Kopsis Al-Hikmah', MockData::profile()['app_name']);
+
+        Livewire::test(Profile::class)
+            ->set('app_name', str_repeat('A', 61))->call('save')->assertHasErrors('app_name')
+            ->set('app_name', "  KOPSIS QONA'AH MTsN 2 Kota Malang ")->call('save')->assertHasNoErrors();
+
+        $this->assertSame("KOPSIS QONA'AH MTsN 2 Kota Malang", MockData::profile()['app_name']);
+        $this->get('/pengaturan')->assertSee("<title>Pengaturan Koperasi · KOPSIS QONA&#039;AH MTsN 2 Kota Malang</title>", false);
+        auth()->logout();
+        $this->get('/masuk')->assertSee("KOPSIS QONA&#039;AH MTsN 2 Kota Malang", false);
+        $this->get('/')->assertSee("KOPSIS QONA&#039;AH MTsN 2 Kota Malang", false);
+
+        $this->loginAs('admin');
+        Livewire::test(Profile::class)->assertSet('app_name', "KOPSIS QONA'AH MTsN 2 Kota Malang")->set('app_name', '')->call('save');
+        $this->assertSame('Kopsis Al-Hikmah', MockData::profile()['app_name']);
+    }
+
     public function test_logo_upload_and_remove(): void
     {
         Storage::fake('local');
