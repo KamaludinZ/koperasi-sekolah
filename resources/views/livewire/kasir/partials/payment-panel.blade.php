@@ -92,28 +92,42 @@
 
 @if ($lastTransaction)
     <div class="fixed inset-0 z-40 flex items-end justify-center bg-stone-950/50 sm:items-center sm:p-4"
-         x-data x-on:keydown.enter.window.prevent="$wire.newTransaction()"
+         x-data
+         x-on:keydown.enter.window.prevent="$wire.newTransaction()"
+         x-on:keydown.window.p.prevent="window.print()"
          role="dialog" aria-modal="true" aria-labelledby="success-title">
-        <div class="relative w-full max-w-sm rounded-t-2xl bg-white px-6 py-7 text-center shadow-xl sm:rounded-2xl">
-            <span class="mx-auto grid size-12 place-items-center rounded-full bg-emerald-100 text-emerald-700">
-                <svg class="size-6" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="m5 13 4 4L19 7"/></svg>
-            </span>
-            <h2 id="success-title" class="mt-3 font-semibold">Transaksi berhasil</h2>
-            <p class="font-mono text-xs text-stone-500">{{ $lastTransaction['invoice_number'] }}</p>
-
-            <dl class="mt-5 space-y-1.5 text-sm">
-                <div class="flex justify-between"><dt class="text-stone-500">Total</dt><dd class="tabular-nums">{{ $rp($lastTransaction['total']) }}</dd></div>
-                <div class="flex justify-between"><dt class="text-stone-500">Dibayar ({{ \App\Livewire\Kasir\Cart::PAYMENT_METHODS[$lastTransaction['payment_method']] }})</dt><dd class="tabular-nums">{{ $rp($lastTransaction['paid']) }}</dd></div>
-            </dl>
-            <div class="mt-4 rounded-xl bg-emerald-50 px-4 py-3">
-                <p class="text-xs font-medium text-emerald-800">Kembalian</p>
-                <p class="text-3xl font-bold text-emerald-900 tabular-nums">{{ $rp($lastTransaction['change']) }}</p>
+        <div class="relative flex max-h-full w-full max-w-sm flex-col rounded-t-2xl bg-white shadow-xl sm:rounded-2xl">
+            <div class="flex items-center gap-3 border-b border-stone-200 px-5 py-4">
+                <span class="grid size-10 shrink-0 place-items-center rounded-full bg-emerald-100 text-emerald-700">
+                    <svg class="size-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="m5 13 4 4L19 7"/></svg>
+                </span>
+                <div class="min-w-0 flex-1">
+                    <h2 id="success-title" class="font-semibold">Transaksi berhasil</h2>
+                    <p class="font-mono text-xs text-stone-500">{{ $lastTransaction['invoice_number'] }}</p>
+                </div>
+                <div class="text-right">
+                    <p class="text-xs font-medium text-emerald-800">Kembalian</p>
+                    <p class="text-xl font-bold text-emerald-900 tabular-nums">{{ $rp($lastTransaction['change']) }}</p>
+                </div>
             </div>
 
-            <button type="button" wire:click="newTransaction"
-                    class="mt-6 w-full rounded-xl bg-emerald-700 py-3 font-semibold text-white hover:bg-emerald-800">
-                Transaksi baru <span class="ml-1 text-xs font-normal opacity-70">(Enter)</span>
-            </button>
+            <div class="min-h-0 flex-1 overflow-y-auto bg-stone-100 px-5 py-4">
+                <div class="mx-auto w-[58mm] max-w-full rounded-sm bg-white p-3 shadow-sm ring-1 ring-stone-200">
+                    @include('livewire.kasir.partials.receipt', ['tx' => $lastTransaction, 'profile' => \App\Support\MockData::profile()])
+                </div>
+            </div>
+
+            <div class="flex gap-2 border-t border-stone-200 px-5 py-4">
+                <button type="button" x-on:click="window.print()"
+                        class="flex flex-1 items-center justify-center gap-2 rounded-xl border border-stone-300 py-3 text-sm font-semibold text-stone-800 hover:bg-stone-50">
+                    <svg class="size-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M6 9V3h12v6M6 18H4a1 1 0 01-1-1v-6a2 2 0 012-2h14a2 2 0 012 2v6a1 1 0 01-1 1h-2M6 14h12v7H6z"/></svg>
+                    Cetak Struk <span class="text-xs font-normal text-stone-500">(P)</span>
+                </button>
+                <button type="button" wire:click="newTransaction"
+                        class="flex-1 rounded-xl bg-emerald-700 py-3 text-sm font-semibold text-white hover:bg-emerald-800">
+                    Transaksi baru <span class="text-xs font-normal opacity-70">(Enter)</span>
+                </button>
+            </div>
         </div>
     </div>
 @endif

@@ -153,6 +153,7 @@ class Cart extends Component
             'paid' => $this->paid,
             'change' => $this->paid - $summary['total'],
             'payment_method' => $this->paymentMethod,
+            'cashier' => 'Kasir Demo',
         ];
 
         $this->dispatch('transaction-completed', invoice: $this->lastTransaction['invoice_number']);

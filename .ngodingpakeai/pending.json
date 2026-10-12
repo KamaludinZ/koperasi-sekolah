@@ -1,6 +1,6 @@
 {
   "repo": "Koperasi Sekolah",
-  "generatedForCommit": "3587a54d16a01f71c2fb893d9a4b40d367f0005a",
+  "generatedForCommit": "f03313fb55d8c99ceb0dd48700de66a0904966e8",
   "files": [
     {
       "path": ".claude/skills/ngodingpakeai/SKILL.md",
@@ -54,7 +54,7 @@
       "path": "app/Livewire/Kasir/Cart.php",
       "reason": "changed",
       "language": "php",
-      "size": 3517
+      "size": 5985
     },
     {
       "path": "app/Livewire/Kasir/Index.php",
@@ -268,9 +268,9 @@
     },
     {
       "path": "resources/css/app.css",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "css",
-      "size": 390
+      "size": 435
     },
     {
       "path": "resources/js/app.js",
@@ -294,13 +294,19 @@
       "path": "resources/views/livewire/kasir/cart.blade.php",
       "reason": "changed",
       "language": "php",
-      "size": 5131
+      "size": 5347
     },
     {
       "path": "resources/views/livewire/kasir/index.blade.php",
       "reason": "needs_summary",
       "language": "php",
       "size": 1097
+    },
+    {
+      "path": "resources/views/livewire/kasir/partials/payment-panel.blade.php",
+      "reason": "new",
+      "language": "php",
+      "size": 7868
     },
     {
       "path": "resources/views/livewire/kasir/product-picker.blade.php",
@@ -381,6 +387,12 @@
       "size": 14
     },
     {
+      "path": "storage/framework/views/28c267bfd327fcb162e337d394bf553e.php",
+      "reason": "new",
+      "language": "php",
+      "size": 10159
+    },
+    {
       "path": "storage/framework/views/4943bc92ebba41e8b0e508149542e0ad.blade.php",
       "reason": "needs_summary",
       "language": "php",
@@ -390,7 +402,7 @@
       "path": "storage/framework/views/52f5e0e2173f932d2ee123ac25c31cea.php",
       "reason": "changed",
       "language": "php",
-      "size": 7120
+      "size": 7433
     },
     {
       "path": "storage/framework/views/798b34bc9486b4ac75524eea46040336.php",
@@ -436,9 +448,15 @@
     },
     {
       "path": "tests/Feature/Kasir/CartTest.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 2153
+    },
+    {
+      "path": "tests/Feature/Kasir/PaymentTest.php",
+      "reason": "new",
+      "language": "php",
+      "size": 2238
     },
     {
       "path": "tests/Feature/Kasir/ProductPickerTest.php",

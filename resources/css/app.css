@@ -13,3 +13,32 @@
 [x-cloak] {
     display: none !important;
 }
+
+/* Cetak struk: hanya area .print-area yang dicetak, lebar kertas thermal 58 mm. */
+@media print {
+    @page {
+        size: 58mm auto;
+        margin: 0;
+    }
+
+    body * {
+        visibility: hidden;
+    }
+
+    .print-area,
+    .print-area * {
+        visibility: visible;
+    }
+
+    .print-area {
+        position: fixed;
+        inset: 0 auto auto 0;
+        background: white;
+        width: 58mm;
+        padding: 3mm;
+        border: 0 !important;
+        box-shadow: none !important;
+        max-height: none !important;
+        overflow: visible !important;
+    }
+}

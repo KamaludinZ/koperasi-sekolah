@@ -72,4 +72,18 @@ class PaymentTest extends TestCase
             ->assertSet('lastTransaction', null)
             ->assertSet('paying', false);
     }
+
+    public function test_success_dialog_shows_printable_receipt(): void
+    {
+        Livewire::test(Cart::class)
+            ->call('setQty', 2, 3)
+            ->call('openPayment')
+            ->set('paid', 10000)
+            ->call('pay')
+            ->assertSeeHtml('print-area')
+            ->assertSee('Cetak Struk')
+            ->assertSee('Pulpen Hitam')
+            ->assertSee('3 x 3.000')
+            ->assertSee('Kembali');
+    }
 }

@@ -13,6 +13,17 @@ class MockData
         return ['Alat Tulis', 'Makanan', 'Minuman', 'Seragam'];
     }
 
+    /** Identitas koperasi & teks struk (nanti dari tabel settings). */
+    public static function profile(): array
+    {
+        return [
+            'name' => 'Koperasi Siswa Harapan Bangsa',
+            'school' => 'SMP Negeri 1 Contoh',
+            'address' => 'Jl. Pendidikan No. 1, Kota Contoh',
+            'receipt_footer' => 'Terima kasih sudah berbelanja di koperasi sekolah!',
+        ];
+    }
+
     /** Persentase pajak penjualan (nanti dari tabel settings). */
     public static function taxRate(): float
     {
