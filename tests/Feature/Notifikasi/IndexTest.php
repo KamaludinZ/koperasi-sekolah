@@ -5,6 +5,7 @@ namespace Tests\Feature\Notifikasi;
 use App\Livewire\Notifikasi\Bell;
 use App\Livewire\Notifikasi\Index;
 use App\Support\MockData;
+use Database\Seeders\NotificationSeeder;
 use Database\Seeders\ProductSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
@@ -17,7 +18,7 @@ class IndexTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp(); // admin
-        $this->seed(ProductSeeder::class); // 1 habis + 3 menipis
+        $this->seed([ProductSeeder::class, NotificationSeeder::class]); // 1 habis + 3 menipis
     }
 
     public function test_page_lists_stock_alerts_and_announcements(): void

@@ -7,7 +7,7 @@
     <header class="flex flex-wrap items-center justify-between gap-3 border-b border-stone-200 bg-white px-4 py-4 sm:px-6">
         <div>
             <h1 class="text-lg font-semibold">Buat Pengumuman</h1>
-            <p class="text-xs text-stone-500">Sampaikan info kegiatan atau aturan baru ke anggota dan petugas. <span class="rounded bg-amber-100 px-1.5 py-0.5 text-[11px] font-medium text-amber-800">data tiruan</span></p>
+            <p class="text-xs text-stone-500">Sampaikan info kegiatan atau aturan baru ke anggota dan petugas.</p>
         </div>
         <a href="{{ route('notifikasi') }}" wire:navigate class="text-sm font-semibold text-emerald-800 hover:underline">← Kembali ke notifikasi</a>
     </header>

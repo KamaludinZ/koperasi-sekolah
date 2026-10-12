@@ -12,7 +12,7 @@ use Livewire\Component;
 /**
  * Buat & kelola pengumuman (admin & pengurus): judul, isi, sasaran, tampil di beranda
  * publik, tanggal berakhir; pratinjau langsung dan daftar pengumuman yang sudah dibuat.
- * Pengumuman masuk ke notifikasi petugas sesuai sasaran. Tahap frontend: data tiruan (session).
+ * Pengumuman masuk ke notifikasi petugas sesuai sasaran. Disimpan di tabel notifications (tipe pengumuman).
  */
 #[Layout('components.layouts.app')]
 #[Title('Buat Pengumuman')]

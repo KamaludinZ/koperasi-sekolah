@@ -4,6 +4,7 @@ namespace Tests\Feature\Notifikasi;
 
 use App\Livewire\Notifikasi\Index;
 use App\Support\MockData;
+use Database\Seeders\NotificationSeeder;
 use Database\Seeders\ProductSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
@@ -16,7 +17,7 @@ class MarkReadTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp(); // admin, 9 notifikasi belum dibaca
-        $this->seed(ProductSeeder::class);
+        $this->seed([ProductSeeder::class, NotificationSeeder::class]);
     }
 
     public function test_bulk_mark_selected_read_and_unread(): void

@@ -1,6 +1,6 @@
 {
   "repo": "Koperasi Sekolah",
-  "generatedForCommit": "1eb81b7d6f077faaefff876e265d34d4bca24235",
+  "generatedForCommit": "a511ebe4a3abc3ade41cfa3dd7e33db680c5f384",
   "files": [
     {
       "path": ".claude/skills/ngodingpakeai/SKILL.md",
@@ -376,9 +376,9 @@
     },
     {
       "path": "app/Models/Notification.php",
-      "reason": "new",
+      "reason": "changed",
       "language": "php",
-      "size": 2158
+      "size": 5491
     },
     {
       "path": "app/Models/Product.php",
@@ -424,9 +424,9 @@
     },
     {
       "path": "app/Models/User.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 1970
+      "size": 2962
     },
     {
       "path": "app/Observers/ProductObserver.php",
@@ -736,7 +736,7 @@
     },
     {
       "path": "database/factories/NotificationFactory.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 570
     },
@@ -856,7 +856,7 @@
     },
     {
       "path": "database/migrations/2026_10_12_000013_create_notifications_tables.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 2981
     },
@@ -1930,7 +1930,7 @@
     },
     {
       "path": "tests/Feature/Database/NotificationSchemaTest.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 3590
     },
@@ -2095,6 +2095,12 @@
       "reason": "needs_summary",
       "language": "php",
       "size": 2427
+    },
+    {
+      "path": "tests/Feature/Notifikasi/NotificationModelTest.php",
+      "reason": "new",
+      "language": "php",
+      "size": 3505
     },
     {
       "path": "tests/Feature/Pengaturan/IndexTest.php",

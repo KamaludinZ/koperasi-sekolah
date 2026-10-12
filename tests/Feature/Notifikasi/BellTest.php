@@ -4,6 +4,7 @@ namespace Tests\Feature\Notifikasi;
 
 use App\Livewire\Notifikasi\Bell;
 use App\Support\MockData;
+use Database\Seeders\NotificationSeeder;
 use Database\Seeders\ProductSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
@@ -16,7 +17,7 @@ class BellTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp(); // admin, 9 notifikasi
-        $this->seed(ProductSeeder::class);
+        $this->seed([ProductSeeder::class, NotificationSeeder::class]);
     }
 
     public function test_badge_and_preview(): void
@@ -31,9 +32,9 @@ class BellTest extends TestCase
 
     public function test_badge_caps_at_nine_plus(): void
     {
-        session(['mock.notifications.read' => []]);
         \App\Models\Product::where('code', 'ATK001')->update(['stock' => 0]);
         \App\Models\Product::where('code', 'MNM001')->update(['stock' => 0]);
+        app(\App\Services\NotificationService::class)->syncStockAlerts();
 
         Livewire::test(Bell::class)->assertSee('9+');
     }

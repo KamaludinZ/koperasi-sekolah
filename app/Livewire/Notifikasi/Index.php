@@ -14,7 +14,7 @@ use Livewire\Component;
 /**
  * Daftar notifikasi petugas: peringatan stok, pengumuman, dan info sistem, dikelompokkan
  * per hari; saring (semua, belum dibaca, stok, pengumuman), tandai dibaca/belum, tandai semua.
- * Tahap frontend: data tiruan (MockData::notifications), status dibaca di session.
+ * Data dari tabel notifications lewat NotificationService; status dibaca per petugas.
  */
 #[Layout('components.layouts.app')]
 #[Title('Notifikasi')]

@@ -15,6 +15,7 @@ use App\Http\Controllers\Kasir\ProductSearchController;
 use App\Http\Controllers\Kasir\TransactionReceiptController;
 use App\Http\Controllers\Laporan\SalesExportController;
 use App\Http\Controllers\Laporan\SalesReportController;
+use App\Http\Controllers\Notifikasi\NotificationController;
 use App\Http\Controllers\Pengaturan\LogoController;
 use App\Http\Controllers\Pengaturan\SettingsController;
 use App\Http\Controllers\Pengguna\UserController;
@@ -47,6 +48,8 @@ Route::post('/keluar', LogoutController::class)->name('logout');
 Route::get('/akun/kata-sandi', Akun\Password::class)->middleware(['menu', 'auth'])->name('akun.password');
 Route::get('/akun/sesi', Akun\Sessions::class)->middleware(['menu', 'auth'])->name('akun.sessions');
 Route::get('/notifikasi', Notifikasi\Index::class)->middleware(['menu', 'auth'])->name('notifikasi');
+Route::get('/notifikasi/data', [NotificationController::class, 'index'])->middleware(['menu', 'auth'])->name('notifikasi.data');
+Route::get('/notifikasi/terbaru', [NotificationController::class, 'latest'])->middleware(['menu', 'auth'])->name('notifikasi.latest');
 Route::get('/notifikasi/pengumuman', Notifikasi\Announcements::class)
     ->middleware(['menu', 'auth', 'peran:admin,pengurus'])
     ->name('notifikasi.pengumuman');

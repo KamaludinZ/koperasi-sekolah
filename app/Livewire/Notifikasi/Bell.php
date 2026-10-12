@@ -10,7 +10,7 @@ use Livewire\Component;
  * Lonceng notifikasi (sidebar & bar atas ponsel): badge jumlah belum dibaca, panel
  * pratinjau 5 notifikasi terbaru dengan tandai dibaca / tandai semua / buka tautan,
  * diperbarui tiap 60 detik dan saat notifikasi berubah (`notifications-changed`).
- * Tahap frontend: data tiruan (MockData::notifications).
+ * Data dari tabel notifications lewat NotificationService.
  */
 class Bell extends Component
 {

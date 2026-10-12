@@ -4,6 +4,7 @@ namespace Tests\Feature\Notifikasi;
 
 use App\Livewire\Notifikasi\Announcements;
 use App\Support\MockData;
+use Database\Seeders\NotificationSeeder;
 use Database\Seeders\ProductSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
@@ -16,7 +17,7 @@ class AnnouncementTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->seed(ProductSeeder::class);
+        $this->seed([ProductSeeder::class, NotificationSeeder::class]);
         $this->loginAs('pengurus');
     }
 

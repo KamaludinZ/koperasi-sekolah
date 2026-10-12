@@ -2,6 +2,8 @@
 
 namespace App\Support;
 
+use App\Models\Notification;
+use App\Services\NotificationService;
 use App\Services\SettingsService;
 
 /**
@@ -49,92 +51,50 @@ class MockData
     }
 
     /**
-     * Notifikasi tiruan (tahap frontend): peringatan stok dari barang yang benar-benar
-     * menipis/habis, pengumuman, dan info sistem. Status dibaca disimpan di session.
-     * Kolom mengikuti tabel notifications di PRD (type, title, message, target, is_read).
+     * Kotak notifikasi petugas yang sedang masuk (tabel notifications, lihat NotificationService).
      *
      * @return list<array{id: int, type: string, title: string, message: string, target: string, is_read: bool, created_at: string, url: ?string}>
      */
     public static function notifications(): array
     {
-        $read = session('mock.notifications.read', []);
-        $removed = session('mock.notifications.removed', []);
-        $rows = [];
-        $id = 100;
+        $user = auth()->user();
 
-        foreach (\App\Models\Product::active()->lowStock()->orderBy('stock')->get() as $i => $p) {
-            $rows[] = [
-                'id' => ++$id, 'type' => 'stok', 'target' => 'pengurus',
-                'title' => $p->stock <= 0 ? "Stok {$p->name} habis" : "Stok {$p->name} menipis",
-                'message' => $p->stock <= 0
-                    ? "{$p->name} ({$p->code}) sudah habis. Segera tambah stok agar bisa dijual lagi."
-                    : "Sisa {$p->stock} {$p->unit}, di bawah batas minimum {$p->min_stock} {$p->unit}.",
-                'url' => route('barang', ['status' => $p->stock <= 0 ? 'habis' : 'menipis']),
-                'created_at' => now()->subMinutes(20 + $i * 47)->toDateTimeString(),
-            ];
-        }
-
-        foreach ([
-            [3, 'pengumuman', 'semua', 'Libur Maulid Nabi', 'Koperasi tutup pada hari libur Maulid Nabi Muhammad SAW. Layanan buka kembali keesokan harinya pukul 07.00.'],
-            [26, 'pengumuman', 'anggota', 'Gerakan menabung pekan ini', 'Ayo setor tabungan minimal Rp2.000 setiap hari Senin. Bawa buku tabungan ke kasir koperasi.'],
-            [50, 'sistem', 'pengurus', 'Rekap penjualan bulan lalu siap', 'Rekap penjualan bulan lalu sudah bisa diunduh dari menu Laporan dalam format PDF atau Excel.'],
-            [74, 'pengumuman', 'kasir', 'Seragam baru datang', 'Stok seragam olahraga ukuran S–XL sudah masuk. Pastikan harga di layar kasir sudah sesuai.'],
-            [150, 'sistem', 'semua', 'Fitur Audit & Riwayat tersedia', 'Admin dan pengurus kini bisa melihat jejak login dan semua aktivitas petugas di menu Audit & Riwayat.'],
-        ] as [$hours, $type, $target, $title, $message]) {
-            $rows[] = ['id' => ++$id, 'type' => $type, 'target' => $target, 'title' => $title, 'message' => $message,
-                'url' => null, 'created_at' => now()->subHours($hours)->toDateTimeString()];
-        }
-
-        foreach (self::announcements() as $a) {
-            if ($a['expires_at'] && $a['expires_at'] < now()->toDateString()) {
-                continue;
-            }
-            $rows[] = ['id' => $a['id'], 'type' => 'pengumuman', 'target' => $a['target'], 'title' => $a['title'],
-                'message' => $a['message'], 'url' => null, 'created_at' => $a['created_at']];
-        }
-
-        $role = auth()->user()?->role?->name;
-
-        return collect($rows)
-            ->reject(fn ($n) => in_array($n['id'], $removed, true))
-            // Admin melihat semua; petugas lain: untuk semua, anggota (untuk disampaikan), atau perannya.
-            ->filter(fn ($n) => $role === 'admin' || in_array($n['target'], ['semua', 'anggota', $role], true))
-            ->map(fn ($n) => [...$n, 'is_read' => in_array($n['id'], $read, true)])
-            ->sortByDesc('created_at')
-            ->values()
-            ->all();
+        return $user ? app(NotificationService::class)->list($user) : [];
     }
 
     /**
-     * Pengumuman buatan pengurus/admin (tiruan, session), terbaru dulu.
+     * Pengumuman (notifikasi bertipe pengumuman buatan petugas), terbaru dulu.
      *
      * @return list<array{id: int, title: string, message: string, target: string, show_public: bool, expires_at: ?string, author: ?string, created_at: string}>
      */
     public static function announcements(): array
     {
-        return collect(session('mock.announcements', []))->sortByDesc('created_at')->values()->all();
+        return Notification::with('author:id,name')->where('type', 'pengumuman')->whereNotNull('created_by')
+            ->latest()->orderByDesc('id')->get()
+            ->map(fn (Notification $n) => collect(NotificationService::toArray($n))
+                ->only(['id', 'title', 'message', 'target', 'show_public', 'expires_at', 'author', 'created_at'])->all())
+            ->all();
     }
 
     public static function saveAnnouncement(array $data): array
     {
-        $all = collect(session('mock.announcements', []));
-        $row = [
-            'id' => 1000 + ($all->max(fn ($a) => $a['id'] - 1000) ?? 0) + 1,
-            ...$data,
-            'author' => auth()->user()?->name,
-            'created_at' => now()->toDateTimeString(),
-        ];
-        session(['mock.announcements' => $all->push($row)->values()->all()]);
+        $n = Notification::create([
+            'type' => 'pengumuman',
+            'title' => $data['title'],
+            'message' => $data['message'],
+            'target' => $data['target'],
+            'show_public' => (bool) ($data['show_public'] ?? false),
+            'expires_at' => $data['expires_at'] ?? null,
+            'created_by' => auth()->id(),
+        ])->load('author:id,name');
 
-        return $row;
+        return collect(NotificationService::toArray($n))
+            ->only(['id', 'title', 'message', 'target', 'show_public', 'expires_at', 'author', 'created_at'])->all();
     }
 
     public static function deleteAnnouncement(int $id): bool
     {
-        $all = collect(session('mock.announcements', []));
-        session(['mock.announcements' => $all->reject(fn ($a) => $a['id'] === $id)->values()->all()]);
-
-        return $all->contains('id', $id);
+        return (bool) Notification::where('type', 'pengumuman')->whereKey($id)->delete();
     }
 
     /** Pengumuman aktif untuk beranda publik. */
@@ -147,13 +107,16 @@ class MockData
 
     public static function markNotifications(array $ids, bool $read = true): void
     {
-        $current = collect(session('mock.notifications.read', []));
-        session(['mock.notifications.read' => ($read ? $current->merge($ids) : $current->diff($ids))->unique()->values()->all()]);
+        if ($user = auth()->user()) {
+            app(NotificationService::class)->mark($user, $ids, $read);
+        }
     }
 
     public static function unreadNotifications(): int
     {
-        return collect(self::notifications())->where('is_read', false)->count();
+        $user = auth()->user();
+
+        return $user ? app(NotificationService::class)->unreadCount($user) : 0;
     }
 
     /** Persentase pajak penjualan efektif (0 bila pajak dimatikan). */

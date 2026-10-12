@@ -11,7 +11,7 @@
     <header class="flex flex-wrap items-center justify-between gap-3 border-b border-stone-200 bg-white px-4 py-4 sm:px-6">
         <div>
             <h1 class="text-lg font-semibold">Notifikasi</h1>
-            <p class="text-xs text-stone-500">Peringatan stok, pengumuman, dan kabar sistem. <span class="rounded bg-amber-100 px-1.5 py-0.5 text-[11px] font-medium text-amber-800">data tiruan</span></p>
+            <p class="text-xs text-stone-500">Peringatan stok, pengumuman, dan kabar sistem.</p>
         </div>
         <div class="flex flex-wrap gap-2">
         @if (in_array(auth()->user()?->roleName(), ['admin', 'pengurus'], true))
