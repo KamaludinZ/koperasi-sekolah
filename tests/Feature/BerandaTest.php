@@ -13,7 +13,7 @@ class BerandaTest extends TestCase
 {
     use RefreshDatabase;
 
-    protected ?string $mockRole = null;
+    protected ?string $loginAs = null;
 
     protected function setUp(): void
     {

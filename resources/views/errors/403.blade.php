@@ -1,6 +1,6 @@
 @extends('errors.layout')
 @php
-    $user = session()->isStarted() ? \App\Support\MockData::currentUser() : null;
+    $user = session()->isStarted() ? \App\Support\Petugas::current() : null;
     $home = $user ? \App\Support\Menu::homeRoute($user['role'], $user['permissions'] ?? null) : 'beranda';
     $reason = isset($exception) && $exception->getMessage() !== '' && $exception->getMessage() !== 'Forbidden' ? $exception->getMessage() : null;
 @endphp
@@ -13,7 +13,7 @@
 @section('extra')
     @if ($user)
         <p class="mx-auto mt-5 w-fit rounded-full border border-emerald-700/70 bg-emerald-900/60 px-4 py-1.5 text-sm text-emerald-100">
-            Anda masuk sebagai <strong class="text-white">{{ $user['name'] }}</strong> · <span class="text-amber-300">{{ \App\Support\MockData::ROLES[$user['role']] ?? $user['role'] }}</span>
+            Anda masuk sebagai <strong class="text-white">{{ $user['name'] }}</strong> · <span class="text-amber-300">{{ \App\Models\Role::LABELS[$user['role']] ?? $user['role'] }}</span>
         </p>
     @endif
 @endsection

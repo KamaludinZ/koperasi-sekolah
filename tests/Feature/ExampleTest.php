@@ -10,7 +10,7 @@ class ExampleTest extends TestCase
 {
     use RefreshDatabase;
 
-    protected ?string $mockRole = null;
+    protected ?string $loginAs = null;
 
     protected function setUp(): void
     {
@@ -25,7 +25,7 @@ class ExampleTest extends TestCase
 
     public function test_cashier_screen_renders(): void
     {
-        session(['mock.user' => \App\Support\MockData::findUser(2)]);
+        $this->loginAs('kasir@koperasi.test');
 
         $this->get('/kasir')
             ->assertOk()

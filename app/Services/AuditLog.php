@@ -2,8 +2,8 @@
 
 namespace App\Services;
 
+use App\Support\Petugas;
 use App\Models\ActivityLog;
-use App\Support\MockData;
 use Illuminate\Support\Str;
 
 /**
@@ -28,7 +28,7 @@ class AuditLog
         ?array $actor = null,
     ): ?ActivityLog {
         try {
-            $user = $actor ?? (app()->runningInConsole() && ! app()->runningUnitTests() ? null : MockData::currentUser());
+            $user = $actor ?? (app()->runningInConsole() && ! app()->runningUnitTests() ? null : Petugas::current());
             $request = app()->runningInConsole() && ! app()->runningUnitTests() ? null : request();
 
             return ActivityLog::create([

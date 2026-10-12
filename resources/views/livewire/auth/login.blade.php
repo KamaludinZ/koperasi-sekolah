@@ -102,7 +102,7 @@
                                     </span>
                                     <span @class(['shrink-0 rounded-full px-2 py-0.5 text-[11px] font-semibold',
                                                   'bg-stone-200 text-stone-600' => ! $u['is_active'],
-                                                  'bg-emerald-100 text-emerald-800' => $u['is_active']])>{{ $u['is_active'] ? \App\Support\MockData::ROLES[$u['role']] : 'Nonaktif' }}</span>
+                                                  'bg-emerald-100 text-emerald-800' => $u['is_active']])>{{ $u['is_active'] ? \App\Models\Role::LABELS[$u['role']] : 'Nonaktif' }}</span>
                                 </button>
                             </li>
                         @endforeach

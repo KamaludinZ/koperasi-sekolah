@@ -17,7 +17,7 @@ class SessionManagementTest extends TestCase
 {
     use RefreshDatabase;
 
-    protected ?string $mockRole = null;
+    protected ?string $loginAs = null;
 
     private User $kasir;
 

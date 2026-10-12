@@ -17,7 +17,7 @@ class ChangePasswordTest extends TestCase
 {
     use RefreshDatabase;
 
-    protected ?string $mockRole = null;
+    protected ?string $loginAs = null;
 
     private User $pengurus;
 

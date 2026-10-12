@@ -6,7 +6,7 @@
         'terbatas' => ['Stok terbatas', 'bg-amber-100 text-amber-900'],
         'habis' => ['Habis', 'bg-stone-200 text-stone-600'],
     ];
-    $loggedIn = \App\Support\MockData::currentUser();
+    $loggedIn = \App\Support\Petugas::current();
 @endphp
 <x-layouts.guest title="Beranda">
     {{-- Hero --}}

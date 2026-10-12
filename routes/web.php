@@ -15,6 +15,7 @@ use App\Http\Controllers\Kasir\ProductSearchController;
 use App\Http\Controllers\Kasir\TransactionReceiptController;
 use App\Http\Controllers\Laporan\SalesExportController;
 use App\Http\Controllers\Laporan\SalesReportController;
+use App\Http\Controllers\Pengguna\UserController;
 use App\Http\Controllers\Transaksi\TransactionDetailController;
 use App\Http\Controllers\Transaksi\TransactionListController;
 use App\Livewire\Akun;
@@ -152,5 +153,15 @@ Route::middleware('menu:laporan')->group(function () {
         ->name('laporan.export');
 });
 
-Route::get('/pengguna', Pengguna\Index::class)->middleware(['menu:pengguna', 'peran:admin'])->name('pengguna');
+Route::middleware(['menu:pengguna', 'peran:admin'])->group(function () {
+    Route::get('/pengguna', Pengguna\Index::class)->name('pengguna');
+    Route::get('/pengguna/daftar', [UserController::class, 'index'])->name('pengguna.list');
+    Route::get('/pengguna/peran', [UserController::class, 'roles'])->name('pengguna.roles');
+    Route::middleware('throttle:30,1')->group(function () {
+        Route::post('/pengguna', [UserController::class, 'store'])->name('pengguna.store');
+        Route::put('/pengguna/peran/{role:name}', [UserController::class, 'updateRole'])->name('pengguna.roles.update');
+        Route::put('/pengguna/{user}', [UserController::class, 'update'])->whereNumber('user')->name('pengguna.update');
+        Route::post('/pengguna/{user}/status', [UserController::class, 'toggle'])->whereNumber('user')->name('pengguna.toggle');
+    });
+});
 Route::get('/audit', Audit\Index::class)->middleware(['menu:audit', 'peran:admin,pengurus'])->name('audit');

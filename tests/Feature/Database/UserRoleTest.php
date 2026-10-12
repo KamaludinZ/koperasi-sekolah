@@ -15,6 +15,8 @@ class UserRoleTest extends TestCase
 {
     use RefreshDatabase;
 
+    protected ?string $loginAs = null; // hitungan akun diuji dari nol
+
     public function test_default_roles_exist_with_menu_permissions(): void
     {
         $this->assertSame(['admin', 'kasir', 'pengurus'], Role::orderBy('name')->pluck('name')->all());

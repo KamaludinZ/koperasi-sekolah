@@ -2,7 +2,8 @@
 
 namespace App\Livewire\Kasir;
 
-use App\Support\MockData;
+use App\Models\Role;
+use App\Support\Petugas;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Component;
@@ -13,11 +14,11 @@ class Index extends Component
 {
     public function render()
     {
-        $user = MockData::currentUser();
+        $user = Petugas::current();
 
         return view('livewire.kasir.index', [
             'cashier' => $user['name'] ?? 'Kasir Demo',
-            'role' => MockData::ROLES[$user['role'] ?? 'kasir'] ?? 'Kasir',
+            'role' => Role::LABELS[$user['role'] ?? 'kasir'] ?? 'Kasir',
         ]);
     }
 }

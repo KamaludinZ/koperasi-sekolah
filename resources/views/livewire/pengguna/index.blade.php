@@ -1,5 +1,5 @@
 @php
-    $roles = \App\Support\MockData::ROLES;
+    $roles = \App\Models\Role::LABELS;
     $initials = fn ($name) => collect(explode(' ', preg_replace('/^(Pak|Bu)\s+/', '', $name)))->map(fn ($w) => mb_substr($w, 0, 1))->take(2)->join('');
     $roleBadge = ['admin' => 'bg-amber-100 text-amber-900 ring-amber-200', 'kasir' => 'bg-emerald-100 text-emerald-800 ring-emerald-200', 'pengurus' => 'bg-sky-100 text-sky-800 ring-sky-200'];
     $me = $this->currentUserId();
@@ -8,7 +8,7 @@
     <header class="flex flex-wrap items-center justify-between gap-3 border-b border-stone-200 bg-white px-4 py-4 sm:px-6">
         <div>
             <h1 class="text-lg font-semibold">Kelola Pengguna</h1>
-            <p class="text-xs text-stone-500">Akun petugas koperasi, peran, dan status masuknya. <span class="rounded bg-amber-100 px-1.5 py-0.5 text-[11px] font-medium text-amber-800">data tiruan</span></p>
+            <p class="text-xs text-stone-500">Akun petugas koperasi, peran, dan status masuknya.</p>
         </div>
         <button type="button" wire:click="create"
                 class="inline-flex items-center gap-2 rounded-xl bg-emerald-700 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-emerald-800">
@@ -60,33 +60,34 @@
             @else
                 <ul class="divide-y divide-stone-100 overflow-hidden rounded-xl border border-stone-200 bg-white">
                     @foreach ($this->users as $u)
-                        <li wire:key="user-{{ $u['id'] }}" @class(['flex flex-wrap items-center gap-x-4 gap-y-2 px-4 py-3 sm:flex-nowrap', 'bg-stone-50' => ! $u['is_active']])>
+                        @php $rn = $u->role?->name; @endphp
+                        <li wire:key="user-{{ $u->id }}" @class(['flex flex-wrap items-center gap-x-4 gap-y-2 px-4 py-3 sm:flex-nowrap', 'bg-stone-50' => ! $u->is_active])>
                             <span @class(['grid size-10 shrink-0 place-items-center rounded-full text-sm font-semibold',
-                                          'bg-emerald-950 text-amber-300' => $u['is_active'], 'bg-stone-200 text-stone-500' => ! $u['is_active']])>{{ $initials($u['name']) }}</span>
+                                          'bg-emerald-950 text-amber-300' => $u->is_active, 'bg-stone-200 text-stone-500' => ! $u->is_active])>{{ $initials($u->name) }}</span>
                             <div class="min-w-0 flex-1">
-                                <p @class(['truncate font-medium', 'text-stone-400' => ! $u['is_active']])>
-                                    {{ $u['name'] }}
-                                    @if ($u['id'] === $me)<span class="ml-1 rounded bg-emerald-100 px-1.5 py-0.5 text-[11px] font-medium text-emerald-800">Anda</span>@endif
+                                <p @class(['truncate font-medium', 'text-stone-400' => ! $u->is_active])>
+                                    {{ $u->name }}
+                                    @if ($u->id === $me)<span class="ml-1 rounded bg-emerald-100 px-1.5 py-0.5 text-[11px] font-medium text-emerald-800">Anda</span>@endif
                                 </p>
-                                <p class="truncate text-xs text-stone-500">{{ $u['email'] }}</p>
+                                <p class="truncate text-xs text-stone-500">{{ $u->email }}</p>
                             </div>
-                            <span class="w-20 shrink-0 rounded-full px-2.5 py-0.5 text-center text-xs font-semibold ring-1 {{ $roleBadge[$u['role']] ?? '' }}">{{ $roles[$u['role']] ?? $u['role'] }}</span>
+                            <span class="w-20 shrink-0 rounded-full px-2.5 py-0.5 text-center text-xs font-semibold ring-1 {{ $roleBadge[$rn] ?? '' }}">{{ $u->role?->label ?? '—' }}</span>
                             <p class="w-36 text-xs text-stone-500 max-sm:order-last max-sm:w-full">
-                                @if (! $u['is_active'])
+                                @if (! $u->is_active)
                                     <span class="font-medium text-stone-500">Nonaktif</span>
-                                @elseif ($u['last_login_at'])
-                                    Masuk {{ \Illuminate\Support\Carbon::parse($u['last_login_at'])->diffForHumans() }}
+                                @elseif ($u->last_login_at)
+                                    Masuk {{ $u->last_login_at->diffForHumans() }}
                                 @else
                                     Belum pernah masuk
                                 @endif
                             </p>
                             <div class="flex shrink-0 gap-1">
-                                <button type="button" wire:click="edit({{ $u['id'] }})" class="rounded-lg px-2.5 py-1.5 text-sm font-medium text-emerald-800 hover:bg-emerald-50" aria-label="Ubah akun {{ $u['name'] }}">Ubah</button>
-                                @unless ($u['id'] === $me)
-                                    <button type="button" wire:click="toggleActive({{ $u['id'] }})"
-                                            wire:confirm="{{ $u['is_active'] ? 'Nonaktifkan '.$u['name'].'? Akun ini tidak bisa masuk sampai diaktifkan lagi.' : 'Aktifkan kembali '.$u['name'].'?' }}"
-                                            @class(['rounded-lg px-2.5 py-1.5 text-sm font-medium', 'text-red-700 hover:bg-red-50' => $u['is_active'], 'text-stone-700 hover:bg-stone-100' => ! $u['is_active']])>
-                                        {{ $u['is_active'] ? 'Nonaktifkan' : 'Aktifkan' }}
+                                <button type="button" wire:click="edit({{ $u->id }})" class="rounded-lg px-2.5 py-1.5 text-sm font-medium text-emerald-800 hover:bg-emerald-50" aria-label="Ubah akun {{ $u->name }}">Ubah</button>
+                                @unless ($u->id === $me)
+                                    <button type="button" wire:click="toggleActive({{ $u->id }})"
+                                            wire:confirm="{{ $u->is_active ? 'Nonaktifkan '.$u->name.'? Akun ini langsung keluar dari semua perangkat.' : 'Aktifkan kembali '.$u->name.'?' }}"
+                                            @class(['rounded-lg px-2.5 py-1.5 text-sm font-medium', 'text-red-700 hover:bg-red-50' => $u->is_active, 'text-stone-700 hover:bg-stone-100' => ! $u->is_active])>
+                                        {{ $u->is_active ? 'Nonaktifkan' : 'Aktifkan' }}
                                     </button>
                                 @endunless
                             </div>
@@ -96,18 +97,41 @@
             @endif
         </div>
 
-        {{-- Penjelasan peran --}}
+        {{-- Hak akses peran (bisa diubah) --}}
         <aside class="relative isolate h-fit overflow-hidden rounded-xl bg-emerald-950 p-4 text-emerald-50" aria-labelledby="role-access-title">
             <div class="pattern-madrasah absolute inset-0 -z-10 opacity-[0.07]" aria-hidden="true"></div>
             <h2 id="role-access-title" class="font-display text-lg font-bold text-white">Hak akses peran</h2>
-            <dl class="mt-3 space-y-3 text-sm">
-                @foreach ($this->roleAccess as $key => $r)
-                    <div class="rounded-lg bg-emerald-900/60 p-3">
-                        <dt class="font-semibold text-amber-300">{{ $r['label'] }}</dt>
-                        <dd class="mt-1 text-xs leading-relaxed text-emerald-100">{{ implode(' · ', $r['menus']) }}</dd>
+            <p class="text-xs text-emerald-300">Menu yang boleh dibuka tiap peran.</p>
+            <div class="mt-3 space-y-3 text-sm">
+                @foreach ($this->roles as $r)
+                    <div wire:key="role-{{ $r->name }}" class="rounded-lg bg-emerald-900/60 p-3">
+                        <div class="flex items-center justify-between gap-2">
+                            <p class="font-semibold text-amber-300">{{ $r->label }}</p>
+                            @if ($permissionsRole !== $r->name)
+                                <button type="button" wire:click="editPermissions('{{ $r->name }}')" class="text-xs font-medium text-emerald-200 underline-offset-2 hover:text-white hover:underline">Ubah</button>
+                            @endif
+                        </div>
+                        @if ($permissionsRole === $r->name)
+                            <div class="mt-2 space-y-1.5">
+                                @foreach ($menus as $key => $m)
+                                    @php $locked = $r->name === 'admin' && in_array($key, \App\Models\Role::ADMIN_REQUIRED, true); @endphp
+                                    <label @class(['flex items-start gap-2 text-xs', 'opacity-60' => $locked])>
+                                        <input type="checkbox" value="{{ $key }}" wire:model="permissions.{{ $r->name }}" @disabled($locked) class="mt-0.5 size-3.5 accent-amber-400">
+                                        <span><span class="font-medium text-white">{{ $m['label'] }}</span> <span class="text-emerald-300">· {{ $m['description'] }}</span></span>
+                                    </label>
+                                @endforeach
+                                @error('permissions') <p class="text-xs text-red-300">{{ $message }}</p> @enderror
+                                <div class="flex gap-2 pt-1">
+                                    <button type="button" wire:click="savePermissions" class="rounded-lg bg-amber-400 px-3 py-1.5 text-xs font-semibold text-emerald-950 hover:bg-amber-300">Simpan</button>
+                                    <button type="button" wire:click="cancelPermissions" class="rounded-lg px-3 py-1.5 text-xs text-emerald-200 hover:text-white">Batal</button>
+                                </div>
+                            </div>
+                        @else
+                            <p class="mt-1 text-xs leading-relaxed text-emerald-100">{{ collect($r->permissions)->map(fn ($k) => $menus[$k]['label'] ?? $k)->join(' · ') ?: 'Belum ada menu' }}</p>
+                        @endif
                     </div>
                 @endforeach
-            </dl>
+            </div>
         </aside>
     </div>
 

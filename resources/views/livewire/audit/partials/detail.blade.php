@@ -33,7 +33,7 @@
             <div class="min-h-0 flex-1 space-y-5 overflow-y-auto px-5 py-5 text-sm">
                 <dl class="grid grid-cols-[7rem_1fr] gap-x-3 gap-y-2">
                     <dt class="text-stone-500">Waktu</dt><dd class="tabular-nums">{{ $log->created_at->translatedFormat('l, d F Y · H:i:s') }}</dd>
-                    <dt class="text-stone-500">Petugas</dt><dd>{{ $log->actor_name ?? 'Sistem' }}@if ($log->actor_role) <span class="text-stone-500">· {{ \App\Support\MockData::ROLES[$log->actor_role] ?? $log->actor_role }}</span>@endif</dd>
+                    <dt class="text-stone-500">Petugas</dt><dd>{{ $log->actor_name ?? 'Sistem' }}@if ($log->actor_role) <span class="text-stone-500">· {{ \App\Models\Role::LABELS[$log->actor_role] ?? $log->actor_role }}</span>@endif</dd>
                     @if ($log->subject_label)
                         <dt class="text-stone-500">Objek</dt>
                         <dd>@if ($subjectUrl)<a href="{{ $subjectUrl }}" wire:navigate class="font-medium text-emerald-800 hover:underline">{{ $log->subject_label }}</a>@else{{ $log->subject_label }}@endif</dd>

@@ -2,9 +2,9 @@
 
 namespace App\Livewire\Auth;
 
+use App\Support\Petugas;
 use App\Services\AuthService;
 use App\Support\Menu;
-use App\Support\MockData;
 use Database\Seeders\UserSeeder;
 use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Layout;
@@ -32,7 +32,7 @@ class Login extends Component
 
     public function mount(): void
     {
-        if ($user = MockData::currentUser()) {
+        if ($user = Petugas::current()) {
             $this->redirectRoute(Menu::homeRoute($user['role'], $user['permissions'] ?? null));
         }
     }

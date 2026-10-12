@@ -23,7 +23,7 @@ class AuditLogTest extends TestCase
 {
     use RefreshDatabase;
 
-    protected ?string $mockRole = 'kasir';
+    protected ?string $loginAs = 'kasir';
 
     protected function setUp(): void
     {
@@ -86,7 +86,7 @@ class AuditLogTest extends TestCase
 
     public function test_login_logout_and_failures_are_logged(): void
     {
-        session()->forget('mock.user');
+        auth()->logout();
         Livewire::test(Login::class)->set('email', 'kasir@koperasi.test')->set('password', 'salah')->call('login');
         $failed = $this->last('auth.failed');
         $this->assertSame('Bu Rina', $failed->actor_name);
@@ -120,9 +120,10 @@ class AuditLogTest extends TestCase
 
     public function test_user_management_is_logged(): void
     {
-        session(['mock.user' => MockData::findUser(1)]); // admin
-        Livewire::test(\App\Livewire\Pengguna\Index::class)->call('edit', 2)->set('form.role', 'pengurus')->call('save');
-        Livewire::test(\App\Livewire\Pengguna\Index::class)->call('toggleActive', 3);
+        $this->loginAs('admin@koperasi.test'); // admin
+        $id = fn (string $email) => \App\Models\User::where('email', $email)->value('id');
+        Livewire::test(\App\Livewire\Pengguna\Index::class)->call('edit', $id('kasir@koperasi.test'))->set('form.role', 'pengurus')->call('save');
+        Livewire::test(\App\Livewire\Pengguna\Index::class)->call('toggleActive', $id('pengurus@koperasi.test'));
 
         $role = $this->last('user.role_changed');
         $this->assertSame('Admin Koperasi', $role->actor_name);

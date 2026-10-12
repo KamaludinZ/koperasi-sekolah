@@ -2,6 +2,8 @@
 
 namespace App\Support;
 
+use App\Models\Role;
+
 /**
  * Menu utama aplikasi petugas beserta hak akses bawaan tiap peran.
  * Kunci menu = segmen URL pertama (mis. /laporan/... → `laporan`).
@@ -131,7 +133,7 @@ class Menu
         $roles = collect(self::DEFAULT_PERMISSIONS)
             ->filter(fn ($menus) => in_array($menu, $menus, true))
             ->keys()
-            ->map(fn ($role) => MockData::ROLES[$role] ?? $role)
+            ->map(fn ($role) => Role::LABELS[$role] ?? $role)
             ->values();
         $list = $roles->count() > 1 ? $roles->slice(0, -1)->join(', ').' dan '.$roles->last() : $roles->join('');
 

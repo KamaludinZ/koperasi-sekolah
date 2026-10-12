@@ -5,7 +5,7 @@ namespace Database\Seeders;
 use App\Models\ActivityLog;
 use App\Models\SavingsTransaction;
 use App\Models\Transaction;
-use App\Support\MockData;
+use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 
@@ -23,7 +23,7 @@ class ActivityLogSeeder extends Seeder
             return;
         }
 
-        $staff = collect(MockData::users())->keyBy('name');
+        $staff = User::with('role')->get()->keyBy('name')->map(fn ($u) => ['id' => $u->id, 'role' => $u->role?->name, 'label' => $u->role?->label]);
         $actor = fn (?string $name) => [
             'actor_id' => $staff[$name]['id'] ?? null,
             'actor_name' => $name ?? 'Sistem',
@@ -37,7 +37,7 @@ class ActivityLogSeeder extends Seeder
         foreach ($sales->groupBy(fn ($t) => $t->created_at->toDateString()) as $day) {
             foreach ($day->groupBy(fn ($t) => $t->user?->name ?? 'Kasir') as $name => $txs) {
                 $rows[] = [...$base, ...$actor($name), 'event' => 'auth.login', 'category' => 'auth',
-                    'description' => "{$name} masuk sebagai ".(MockData::ROLES[$staff[$name]['role'] ?? 'kasir'] ?? 'Kasir'), 'created_at' => $txs->first()->created_at->copy()->subMinutes(12)];
+                    'description' => "{$name} masuk sebagai ".($staff[$name]['label'] ?? 'Kasir'), 'created_at' => $txs->first()->created_at->copy()->subMinutes(12)];
                 $rows[] = [...$base, ...$actor($name), 'event' => 'auth.logout', 'category' => 'auth',
                     'description' => "{$name} keluar", 'created_at' => $txs->last()->created_at->copy()->addMinutes(20)];
             }

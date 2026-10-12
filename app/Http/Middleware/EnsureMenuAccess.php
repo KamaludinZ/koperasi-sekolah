@@ -2,8 +2,8 @@
 
 namespace App\Http\Middleware;
 
+use App\Support\Petugas;
 use App\Support\Menu;
-use App\Support\MockData;
 use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -19,7 +19,7 @@ class EnsureMenuAccess
 {
     public function handle(Request $request, Closure $next, ?string $menu = null): Response
     {
-        $user = MockData::currentUser();
+        $user = Petugas::current();
 
         if (! $user) {
             if ($request->expectsJson() || $request->hasHeader('X-Livewire')) {

@@ -73,7 +73,6 @@ class AuthService
 
         Auth::guard('web')->logout();
         if ($request->hasSession()) {
-            $request->session()->forget('mock.user');
             $request->session()->invalidate();
             $request->session()->regenerateToken();
         }

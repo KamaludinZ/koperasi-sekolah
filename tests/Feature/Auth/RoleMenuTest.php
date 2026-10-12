@@ -20,10 +20,6 @@ class RoleMenuTest extends TestCase
         $this->seed([ProductSeeder::class, UserSeeder::class]);
     }
 
-    private function actingAsMock(string $role): void
-    {
-        session(['mock.user' => ['id' => 9, 'name' => 'Uji '.ucfirst($role), 'email' => "{$role}@koperasi.test", 'role' => $role, 'is_active' => true]]);
-    }
 
     public function test_menu_per_role(): void
     {
@@ -38,7 +34,7 @@ class RoleMenuTest extends TestCase
 
     public function test_cashier_sidebar_hides_reports_and_page_is_forbidden(): void
     {
-        $this->actingAsMock('kasir');
+        $this->loginAs('kasir');
 
         $this->get('/kasir')->assertOk()->assertSee('Layanan harian')->assertDontSee(route('laporan'), false);
         $this->get('/laporan')->assertForbidden()->assertSee('Akses tidak diizinkan');
@@ -47,11 +43,11 @@ class RoleMenuTest extends TestCase
 
     public function test_pengurus_cannot_open_cashier_and_lands_on_reports(): void
     {
-        $this->actingAsMock('pengurus');
+        $this->loginAs('pengurus');
         $this->get('/kasir')->assertForbidden();
         $this->get('/laporan')->assertOk()->assertSee('Pengurus');
 
-        session()->forget('mock.user');
+        auth()->logout();
         Livewire::test(Login::class)
             ->set('email', 'pengurus@koperasi.test')->set('password', 'password')
             ->call('login')
@@ -60,7 +56,7 @@ class RoleMenuTest extends TestCase
 
     public function test_guest_is_sent_to_login_and_back(): void
     {
-        session()->forget('mock.user');
+        auth()->logout();
 
         $this->get('/akun/kata-sandi')->assertRedirect(route('login'));
         $this->getJson('/laporan/hari-ini')->assertUnauthorized();
@@ -76,12 +72,12 @@ class RoleMenuTest extends TestCase
 
     public function test_denied_page_explains_allowed_roles(): void
     {
-        $this->actingAsMock('kasir');
+        $this->loginAs('kasir');
 
         $this->get('/laporan')
             ->assertForbidden()
             ->assertSee('Menu Laporan hanya untuk peran Admin dan Pengurus.')
-            ->assertSee('Uji Kasir')
+            ->assertSee('Bu Rina')
             ->assertSee('Ke halaman saya')
             ->assertSee(route('kasir'), false);
 

@@ -4,24 +4,38 @@ namespace Tests;
 
 use App\Models\Member;
 use App\Models\Product;
-use App\Support\MockData;
+use App\Models\User;
+use Database\Seeders\UserSeeder;
 use Illuminate\Foundation\Testing\TestCase as BaseTestCase;
 
 abstract class TestCase extends BaseTestCase
 {
     /**
-     * Peran akun tiruan yang otomatis "masuk" di setiap test (halaman petugas wajib masuk).
-     * Set null di test yang menguji kondisi belum masuk.
+     * Peran akun demo (UserSeeder) yang otomatis masuk di setiap test, karena halaman
+     * petugas wajib masuk. Set null di test yang menguji kondisi belum masuk.
      */
-    protected ?string $mockRole = 'admin';
+    protected ?string $loginAs = 'admin';
 
     protected function setUp(): void
     {
         parent::setUp();
 
-        if ($this->mockRole) {
-            session(['mock.user' => collect(MockData::users())->firstWhere('role', $this->mockRole)]);
+        if ($this->loginAs) {
+            $this->loginAs($this->loginAs);
         }
+    }
+
+    /** Masuk sebagai akun demo peran tertentu (admin, kasir, pengurus) atau email tertentu. */
+    protected function loginAs(string $roleOrEmail): User
+    {
+        $this->seed(UserSeeder::class);
+        $email = str_contains($roleOrEmail, '@')
+            ? $roleOrEmail
+            : collect(UserSeeder::ACCOUNTS)->firstWhere('role', $roleOrEmail)['email'];
+        $user = User::with('role')->firstWhere('email', $email);
+        $this->actingAs($user);
+
+        return $user;
     }
 
     /**

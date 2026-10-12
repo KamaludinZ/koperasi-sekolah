@@ -3,9 +3,11 @@
 namespace App\Livewire\Pengguna;
 
 use App\Livewire\Forms\UserForm;
-use App\Services\AuditLog;
+use App\Models\Role;
+use App\Models\User;
+use App\Services\UserService;
 use App\Support\Menu;
-use App\Support\MockData;
+use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
@@ -13,9 +15,8 @@ use Livewire\Attributes\Url;
 use Livewire\Component;
 
 /**
- * Kelola pengguna (khusus admin): daftar akun petugas, peran & status,
- * tambah/ubah akun, atur ulang kata sandi, aktif/nonaktifkan, dan ringkasan hak akses tiap peran.
- * Tahap frontend: memakai akun tiruan (MockData::users).
+ * Kelola pengguna (khusus admin): daftar akun petugas, peran & status, tambah/ubah akun,
+ * atur ulang kata sandi, aktif/nonaktifkan, dan atur hak menu tiap peran. Data dari UserService.
  */
 #[Layout('components.layouts.app')]
 #[Title('Kelola Pengguna')]
@@ -35,44 +36,32 @@ class Index extends Component
     #[Url(as: 'peran', except: '')]
     public string $role = '';
 
-    #[Computed]
-    public function users(): array
-    {
-        $term = mb_strtolower(trim($this->search));
+    /** Editor hak akses: [roleName => [menuKey, ...]] */
+    public array $permissions = [];
 
-        return collect(MockData::users())
-            ->filter(fn ($u) => $this->role === '' || $u['role'] === $this->role)
-            ->filter(fn ($u) => $term === '' || str_contains(mb_strtolower($u['name']), $term) || str_contains(mb_strtolower($u['email']), $term))
-            ->sortBy([['is_active', 'desc'], ['name', 'asc']])
-            ->values()
-            ->all();
+    public ?string $permissionsRole = null;
+
+    #[Computed]
+    public function users()
+    {
+        return app(UserService::class)->query(['search' => $this->search, 'role' => $this->role])->get();
     }
 
     #[Computed]
     public function stats(): array
     {
-        $active = collect(MockData::users())->where('is_active', true);
-
-        return [
-            'active' => $active->count(),
-            'inactive' => count(MockData::users()) - $active->count(),
-            ...collect(MockData::ROLES)->map(fn ($l, $key) => $active->where('role', $key)->count())->all(),
-        ];
+        return app(UserService::class)->stats();
     }
 
-    /** Daftar menu yang bisa dibuka tiap peran (untuk panel penjelasan). */
     #[Computed]
-    public function roleAccess(): array
+    public function roles()
     {
-        return collect(MockData::ROLES)->map(fn ($label, $key) => [
-            'label' => $label,
-            'menus' => collect(Menu::DEFAULT_PERMISSIONS[$key])->map(fn ($m) => Menu::ITEMS[$m]['label'])->all(),
-        ])->all();
+        return Role::orderBy('id')->get();
     }
 
     public function currentUserId(): ?int
     {
-        return MockData::currentUser()['id'] ?? null;
+        return auth()->id();
     }
 
     public function create(): void
@@ -84,7 +73,7 @@ class Index extends Component
 
     public function edit(int $userId): void
     {
-        if ($user = MockData::findUser($userId)) {
+        if ($user = User::with('role')->find($userId)) {
             $this->form->load($user);
             $this->reset('flash', 'error');
             $this->editing = true;
@@ -94,40 +83,70 @@ class Index extends Component
     public function save(): void
     {
         $isNew = $this->form->id === null;
-        $user = $this->form->save($this->currentUserId());
-        if ($user === []) {
+
+        try {
+            $user = $this->form->save(auth()->user());
+        } catch (ValidationException $e) {
+            foreach ($e->errors() as $field => $messages) {
+                $this->addError(str_starts_with($field, 'form.') ? $field : 'form.'.$field, $messages[0]);
+            }
+
             return;
         }
 
         $this->editing = false;
-        $this->flash = $isNew ? "Akun {$user['name']} dibuat sebagai ".MockData::ROLES[$user['role']].'.' : "Akun {$user['name']} diperbarui.";
+        $this->flash = $isNew ? "Akun {$user->name} dibuat sebagai {$user->role->label}." : "Akun {$user->name} diperbarui.";
         unset($this->users, $this->stats);
     }
 
     public function toggleActive(int $userId): void
     {
-        $user = MockData::findUser($userId);
         $this->reset('flash', 'error');
+        $user = User::with('role')->find($userId);
         if (! $user) {
             return;
         }
-        if ($user['id'] === $this->currentUserId()) {
-            $this->error = 'Anda tidak bisa menonaktifkan akun sendiri.';
+
+        try {
+            $user = app(UserService::class)->toggleActive($user, auth()->user());
+        } catch (ValidationException $e) {
+            $this->error = collect($e->errors())->flatten()->first();
 
             return;
         }
-        if ($user['is_active'] && $user['role'] === 'admin' && UserForm::activeAdmins($user['id']) === 0) {
-            $this->error = 'Harus ada minimal satu admin aktif.';
 
-            return;
-        }
-
-        $user = MockData::saveUser(['id' => $user['id'], 'is_active' => ! $user['is_active']]);
-        AuditLog::record($user['is_active'] ? 'user.activated' : 'user.deactivated', 'pengguna',
-            'Akun '.$user['name'].($user['is_active'] ? ' diaktifkan' : ' dinonaktifkan'),
-            ['type' => 'user', 'id' => $user['id'], 'label' => "{$user['name']} · {$user['email']}"]);
-        $this->flash = $user['is_active'] ? "{$user['name']} diaktifkan kembali." : "{$user['name']} dinonaktifkan dan tidak bisa masuk lagi.";
+        $this->flash = $user->is_active ? "{$user->name} diaktifkan kembali." : "{$user->name} dinonaktifkan dan tidak bisa masuk lagi.";
         unset($this->users, $this->stats);
+    }
+
+    public function editPermissions(string $roleName): void
+    {
+        $role = Role::named($roleName);
+        $this->permissionsRole = $role->name;
+        $this->permissions[$role->name] = $role->permissions ?? [];
+        $this->resetValidation('permissions');
+    }
+
+    public function savePermissions(): void
+    {
+        $role = Role::named($this->permissionsRole);
+
+        try {
+            app(UserService::class)->updatePermissions($role, $this->permissions[$role->name] ?? []);
+        } catch (ValidationException $e) {
+            $this->addError('permissions', $e->errors()['permissions'][0]);
+
+            return;
+        }
+
+        $this->permissionsRole = null;
+        $this->flash = "Hak akses peran {$role->label} disimpan. Berlaku pada halaman berikutnya yang dibuka petugas.";
+        unset($this->roles);
+    }
+
+    public function cancelPermissions(): void
+    {
+        $this->permissionsRole = null;
     }
 
     public function cancel(): void
@@ -137,6 +156,6 @@ class Index extends Component
 
     public function render()
     {
-        return view('livewire.pengguna.index');
+        return view('livewire.pengguna.index', ['menus' => Menu::ITEMS]);
     }
 }

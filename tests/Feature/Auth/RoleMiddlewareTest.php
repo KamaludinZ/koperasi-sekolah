@@ -18,7 +18,7 @@ class RoleMiddlewareTest extends TestCase
 {
     use RefreshDatabase;
 
-    protected ?string $mockRole = null;
+    protected ?string $loginAs = null;
 
     protected function setUp(): void
     {

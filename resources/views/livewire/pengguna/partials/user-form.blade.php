@@ -35,7 +35,7 @@
                 <fieldset>
                     <legend class="mb-1.5 text-sm font-medium">Peran</legend>
                     <div class="space-y-2">
-                        @foreach (\App\Support\MockData::ROLES as $value => $label)
+                        @foreach (\App\Models\Role::LABELS as $value => $label)
                             <label class="flex cursor-pointer items-start gap-3 rounded-lg border border-stone-300 px-3 py-2.5 transition has-checked:border-emerald-600 has-checked:bg-emerald-50">
                                 <input type="radio" value="{{ $value }}" wire:model="form.role" class="mt-0.5 accent-emerald-700">
                                 <span>
@@ -50,10 +50,10 @@
 
                 <fieldset class="rounded-xl border border-stone-200 p-4" x-data="{ show: false }">
                     <legend class="px-1 text-sm font-medium">{{ $isNew ? 'Kata sandi awal' : 'Atur ulang kata sandi' }}</legend>
-                    @unless ($isNew)<p class="mb-3 text-xs text-stone-500">Kosongkan bila tidak ingin mengubah kata sandi.</p>@endunless
+                    @unless ($isNew)<p class="mb-3 text-xs text-stone-500">Kosongkan bila tidak ingin mengubah. Bila diisi, akun ini dikeluarkan dari semua perangkat.</p>@endunless
                     <div class="space-y-3">
                         <label class="block">
-                            <span class="mb-1 block text-xs text-stone-600">Kata sandi (min. 8 karakter)</span>
+                            <span class="mb-1 block text-xs text-stone-600">Kata sandi (min. 8 karakter, huruf & angka)</span>
                             <input x-bind:type="show ? 'text' : 'password'" type="password" wire:model="form.password" autocomplete="new-password" class="{{ $input }}">
                             @error('form.password') <span class="mt-1 block text-xs text-red-600">{{ $message }}</span> @enderror
                         </label>

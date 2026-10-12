@@ -13,7 +13,7 @@ class LoginTest extends TestCase
 {
     use RefreshDatabase;
 
-    protected ?string $mockRole = null;
+    protected ?string $loginAs = null;
 
     protected function setUp(): void
     {
@@ -86,13 +86,13 @@ class LoginTest extends TestCase
     public function test_logged_in_user_sees_card_and_can_logout(): void
     {
         $this->seed(ProductSeeder::class);
-        session(['mock.user' => ['id' => 2, 'name' => 'Bu Rina', 'email' => 'kasir@koperasi.test', 'role' => 'kasir', 'is_active' => true]]);
+        $this->loginAs('kasir');
 
         $this->get('/kasir')->assertSee('Bu Rina')->assertSee('Keluar');
         $this->get('/masuk')->assertRedirect(route('kasir'));
 
         $this->post('/keluar')->assertRedirect(route('login'));
-        $this->assertNull(session('mock.user'));
+        $this->assertGuest();
         $this->get('/masuk')->assertSee('Anda sudah keluar');
     }
 

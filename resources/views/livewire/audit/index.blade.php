@@ -1,7 +1,7 @@
 @php
     $rp = fn ($n) => 'Rp'.number_format((int) $n, 0, ',', '.');
     $num = fn ($n) => number_format((int) $n, 0, ',', '.');
-    $roles = \App\Support\MockData::ROLES;
+    $roles = \App\Models\Role::LABELS;
     $s = $this->summary;
     // Gaya per kategori: warna lencana + ikon (path SVG 24px).
     $cat = [

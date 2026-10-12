@@ -5,7 +5,6 @@ namespace Tests\Feature\Audit;
 use App\Livewire\Audit\Index;
 use App\Models\ActivityLog;
 use App\Services\AuditLog;
-use App\Support\MockData;
 use Database\Seeders\ActivityLogSeeder;
 use Database\Seeders\MemberSeeder;
 use Database\Seeders\ProductSeeder;
@@ -27,19 +26,19 @@ class AuditPageTest extends TestCase
 
     private function seedLogs(): void
     {
-        AuditLog::record('auth.login', 'auth', 'Bu Rina masuk sebagai Kasir', actor: MockData::findUser(2));
+        AuditLog::record('auth.login', 'auth', 'Bu Rina masuk sebagai Kasir', actor: ['id' => 2, 'name' => 'Bu Rina', 'role' => 'kasir']);
         AuditLog::record('auth.failed', 'auth', 'Gagal masuk (x@y.test)', actor: ['name' => 'x@y.test']);
-        AuditLog::record('sale.created', 'transaksi', 'Penjualan INV-20261014-0001', ['type' => 'transaction', 'id' => 1, 'label' => 'INV-20261014-0001'], [], 12000, MockData::findUser(2));
-        AuditLog::record('savings.withdraw', 'tabungan', 'Penarikan tabungan Andi', null, [], 3000, MockData::findUser(2));
+        AuditLog::record('sale.created', 'transaksi', 'Penjualan INV-20261014-0001', ['type' => 'transaction', 'id' => 1, 'label' => 'INV-20261014-0001'], [], 12000, ['id' => 2, 'name' => 'Bu Rina', 'role' => 'kasir']);
+        AuditLog::record('savings.withdraw', 'tabungan', 'Penarikan tabungan Andi', null, [], 3000, ['id' => 2, 'name' => 'Bu Rina', 'role' => 'kasir']);
         AuditLog::record('member.updated', 'anggota', 'Data anggota Andi diubah: class', null, ['changes' => ['class' => ['from' => '7A', 'to' => '8A']]]);
     }
 
     public function test_admin_and_pengurus_can_open_but_kasir_cannot(): void
     {
         $this->get('/audit')->assertOk()->assertSee('Audit & Riwayat');
-        session(['mock.user' => MockData::findUser(3)]);
+        $this->loginAs('pengurus@koperasi.test');
         $this->get('/audit')->assertOk();
-        session(['mock.user' => MockData::findUser(2)]);
+        $this->loginAs('kasir@koperasi.test');
         $this->get('/audit')->assertForbidden();
     }
 
