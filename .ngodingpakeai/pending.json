@@ -1,6 +1,6 @@
 {
   "repo": "Koperasi Sekolah",
-  "generatedForCommit": "5a7851d62f54ac78fa7f2bbe0d2bd23504f7ae0c",
+  "generatedForCommit": "d244938b3d1c4f26fd3372e229fe234d08e8a34c",
   "files": [
     {
       "path": ".claude/skills/ngodingpakeai/SKILL.md",
@@ -64,7 +64,7 @@
     },
     {
       "path": "app/Http/Controllers/Kasir/TransactionReceiptController.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 1671
     },
@@ -88,7 +88,7 @@
     },
     {
       "path": "app/Livewire/Kasir/Cart.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 6181
     },
@@ -106,15 +106,21 @@
     },
     {
       "path": "app/Models/Category.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 292
+      "size": 368
     },
     {
       "path": "app/Models/Product.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 1188
+      "size": 1264
+    },
+    {
+      "path": "app/Models/Setting.php",
+      "reason": "new",
+      "language": "php",
+      "size": 747
     },
     {
       "path": "app/Models/StockMovement.php",
@@ -160,7 +166,7 @@
     },
     {
       "path": "app/Services/ReceiptPdfService.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 1885
     },
@@ -196,13 +202,13 @@
     },
     {
       "path": "bootstrap/cache/packages.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 1301
     },
     {
       "path": "bootstrap/cache/services.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 22081
     },
@@ -214,19 +220,19 @@
     },
     {
       "path": "composer.json",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "json",
       "size": 2929
     },
     {
       "path": "composer.lock",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": null,
       "size": 327047
     },
     {
       "path": "config/app.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 4302
     },
@@ -291,6 +297,18 @@
       "size": 10
     },
     {
+      "path": "database/factories/CategoryFactory.php",
+      "reason": "new",
+      "language": "php",
+      "size": 297
+    },
+    {
+      "path": "database/factories/ProductFactory.php",
+      "reason": "new",
+      "language": "php",
+      "size": 999
+    },
+    {
       "path": "database/factories/UserFactory.php",
       "reason": "needs_summary",
       "language": "php",
@@ -325,6 +343,12 @@
       "reason": "needs_summary",
       "language": "php",
       "size": 1854
+    },
+    {
+      "path": "database/migrations/2026_10_12_000003_add_product_constraints_and_settings_table.php",
+      "reason": "new",
+      "language": "php",
+      "size": 2564
     },
     {
       "path": "database/seeders/DatabaseSeeder.php",
@@ -406,7 +430,7 @@
     },
     {
       "path": "resources/views/kasir/receipt-pdf.blade.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 2386
     },
@@ -460,7 +484,7 @@
     },
     {
       "path": "resources/views/livewire/kasir/partials/payment-panel.blade.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 9368
     },
@@ -484,7 +508,7 @@
     },
     {
       "path": "routes/web.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 1226
     },
@@ -616,7 +640,7 @@
     },
     {
       "path": "storage/framework/views/28c267bfd327fcb162e337d394bf553e.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 12352
     },
@@ -880,7 +904,7 @@
     },
     {
       "path": "storage/framework/views/f916cdf3b46281b029d52410e78f1e6b.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 3757
     },
@@ -922,9 +946,9 @@
     },
     {
       "path": "tests/Feature/Database/ProductTransactionSchemaTest.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 2709
+      "size": 3379
     },
     {
       "path": "tests/Feature/ExampleTest.php",
@@ -964,7 +988,7 @@
     },
     {
       "path": "tests/Feature/Kasir/ReceiptPdfTest.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 2405
     },

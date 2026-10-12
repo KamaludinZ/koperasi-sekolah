@@ -3,7 +3,6 @@
 namespace App\Services;
 
 use App\Models\Product;
-use App\Models\StockMovement;
 use App\Models\Transaction;
 use App\Support\MockData;
 use Illuminate\Database\UniqueConstraintViolationException;
@@ -17,6 +16,8 @@ use Illuminate\Validation\ValidationException;
  */
 class CheckoutService
 {
+    public function __construct(private StockService $stock) {}
+
     public const PAYMENT_METHODS = ['tunai' => 'Tunai', 'qris' => 'QRIS / Transfer'];
 
     /**
@@ -101,15 +102,7 @@ class CheckoutService
                     'subtotal' => $line['subtotal'],
                 ]);
 
-                $product->decrement('stock', $line['quantity']);
-
-                StockMovement::create([
-                    'product_id' => $product->id,
-                    'type' => StockMovement::TYPE_OUT,
-                    'quantity' => $line['quantity'],
-                    'note' => "Penjualan {$transaction->invoice_number}",
-                    'user_id' => $userId,
-                ]);
+                $this->stock->decrease($product, $line['quantity'], "Penjualan {$transaction->invoice_number}", $userId);
             }
 
             return $transaction->load('items');
