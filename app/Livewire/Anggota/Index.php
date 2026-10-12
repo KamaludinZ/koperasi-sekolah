@@ -3,7 +3,8 @@
 namespace App\Livewire\Anggota;
 
 use App\Livewire\Forms\MemberForm;
-use App\Support\MockData;
+use App\Models\Member;
+use App\Services\MemberService;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
@@ -12,13 +13,13 @@ use Livewire\Component;
 
 /**
  * Daftar anggota koperasi (siswa & guru) beserta saldo tabungan.
- * Tahap frontend: memakai data tiruan (MockData::members).
+ * Data dari MemberService (sama dengan GET /anggota/daftar).
  */
 #[Layout('components.layouts.app')]
 #[Title('Anggota & Tabungan')]
 class Index extends Component
 {
-    public const TYPES = ['siswa' => 'Siswa', 'guru' => 'Guru'];
+    public const TYPES = Member::TYPES;
 
     public MemberForm $form;
 
@@ -48,38 +49,25 @@ class Index extends Component
     #[Computed]
     public function members(): array
     {
-        $term = mb_strtolower(trim($this->search));
-
-        return collect(MockData::members())
-            ->filter(fn ($m) => $this->showInactive || $m['is_active'])
-            ->filter(fn ($m) => $this->type === '' || $m['type'] === $this->type)
-            ->filter(fn ($m) => $this->class === '' || $m['class'] === $this->class)
-            ->filter(fn ($m) => $term === ''
-                || str_contains(mb_strtolower($m['name']), $term)
-                || str_contains(mb_strtolower($m['member_code']), $term))
-            ->sortBy([['type', 'desc'], ['class', 'asc'], ['name', 'asc']])
-            ->values()
-            ->all();
+        return app(MemberService::class)->query([
+            'search' => $this->search,
+            'type' => $this->type,
+            'class' => $this->class,
+            'include_inactive' => $this->showInactive,
+        ])->get()->map(fn (Member $m) => MemberService::toArray($m))->all();
     }
 
     #[Computed]
     public function stats(): array
     {
-        $active = collect(MockData::members())->where('is_active', true);
-
-        return [
-            'total' => $active->count(),
-            'siswa' => $active->where('type', 'siswa')->count(),
-            'guru' => $active->where('type', 'guru')->count(),
-            'balance' => $active->sum('balance'),
-        ];
+        return app(MemberService::class)->stats();
     }
 
     /** @return list<string> */
     #[Computed]
     public function classes(): array
     {
-        return collect(MockData::members())->pluck('class')->filter()->unique()->sort()->values()->all();
+        return app(MemberService::class)->classes();
     }
 
     public function create(): void
@@ -91,12 +79,12 @@ class Index extends Component
 
     public function edit(int $memberId): void
     {
-        $member = MockData::findMember($memberId);
+        $member = Member::find($memberId);
         if (! $member) {
             return;
         }
 
-        $this->form->load($member);
+        $this->form->load(MemberService::toArray($member));
         $this->flash = null;
         $this->editing = true;
     }

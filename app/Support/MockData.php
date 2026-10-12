@@ -160,7 +160,7 @@ class MockData
         return $entry;
     }
 
-    private static function seedSavings(int $memberId): array
+    public static function seedSavings(int $memberId): array
     {
         $member = self::findMember($memberId);
         if (! $member || $member['balance'] <= 0 && $memberId % 2 === 1) {
@@ -218,7 +218,7 @@ class MockData
         return $code;
     }
 
-    private static function seedMembers(): array
+    public static function seedMembers(): array
     {
         $rows = [
             ['S-2024-001', 'Andi Pratama', 'siswa', '7A', '0812-1111-2001', 85000, true],

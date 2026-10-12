@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Transaksi;
 
+use App\Models\Member;
 use App\Models\Product;
 use App\Models\Transaction;
 use App\Models\User;
@@ -65,6 +66,15 @@ class TransactionDetailEndpointTest extends TestCase
             ->assertJsonPath('data.older_id', $a->id);
         $this->getJson("/transaksi/{$new->id}/rincian")->assertJsonPath('data.newer_id', null);
         $this->getJson("/transaksi/{$old->id}/rincian")->assertJsonPath('data.older_id', null);
+    }
+
+    public function test_shows_member_name(): void
+    {
+        $m = Member::factory()->create(['name' => 'Andi Pratama', 'class' => '7A']);
+        $tx = Transaction::factory()->withItems()->create(['member_id' => $m->id]);
+
+        $this->getJson("/transaksi/{$tx->id}/rincian")->assertJsonPath('data.member', 'Andi Pratama (7A)');
+        $this->getJson('/transaksi/daftar')->assertJsonPath('data.0.member', 'Andi Pratama (7A)')->assertJsonPath('data.0.member_id', $m->id);
     }
 
     public function test_unknown_transaction_is_404(): void

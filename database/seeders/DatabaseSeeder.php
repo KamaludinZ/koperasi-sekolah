@@ -24,9 +24,9 @@ class DatabaseSeeder extends Seeder
 
         $this->call(ProductSeeder::class);
 
-        // Riwayat penjualan contoh hanya untuk lingkungan pengembangan.
+        // Anggota & riwayat penjualan contoh hanya untuk lingkungan pengembangan.
         if (app()->environment('local')) {
-            $this->call(TransactionSeeder::class);
+            $this->call([MemberSeeder::class, TransactionSeeder::class]);
         }
     }
 }

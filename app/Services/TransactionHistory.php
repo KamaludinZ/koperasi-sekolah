@@ -34,7 +34,7 @@ class TransactionHistory
         $term = strtoupper(trim($filters['search'] ?? ''));
 
         return Transaction::query()
-            ->with('user:id,name')
+            ->with(['user:id,name', 'member:id,name,type,class'])
             ->betweenDates($filters['from'] ?? null, $filters['to'] ?? null)
             ->paymentMethod($filters['method'] ?? null)
             ->when($term !== '', function (Builder $q) use ($term) {
@@ -65,7 +65,8 @@ class TransactionHistory
             'invoice_number' => $t->invoice_number,
             'created_at' => $t->created_at->toDateTimeString(),
             'cashier' => $t->user?->name ?? 'Kasir',
-            'member' => null, // tabel anggota menyusul di fitur Anggota & Tabungan
+            'member' => $t->member?->display_name,
+            'member_id' => $t->member_id,
             'item_count' => $t->item_count,
             'subtotal' => (int) $t->subtotal,
             'tax' => (int) $t->tax,
@@ -84,7 +85,7 @@ class TransactionHistory
      */
     public function detail(Transaction $t): array
     {
-        $t->loadMissing(['items.product:id,code', 'user:id,name']);
+        $t->loadMissing(['items.product:id,code', 'user:id,name', 'member:id,name,type,class']);
         $receipt = $this->receipt->present($t);
         $codes = $t->items->mapWithKeys(fn ($item) => [$item->id => $item->product?->code]);
 
@@ -95,7 +96,8 @@ class TransactionHistory
                 'product_code' => $codes[$item->id],
             ])->all(),
             'item_count' => $t->item_count,
-            'member' => null, // tabel anggota menyusul di fitur Anggota & Tabungan
+            'member' => $t->member?->display_name,
+            'member_id' => $t->member_id,
             'newer_id' => $this->neighbor($t, newer: true),
             'older_id' => $this->neighbor($t, newer: false),
             'links' => [

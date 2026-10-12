@@ -2,31 +2,31 @@
 
 namespace App\Livewire\Anggota;
 
-use App\Support\MockData;
-use Livewire\Attributes\Computed;
+use App\Models\Member;
+use App\Models\SavingsTransaction;
+use App\Services\MemberService;
+use App\Services\SavingsService;
 use Illuminate\Support\Carbon;
+use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Url;
 use Livewire\Component;
 
 /**
- * Profil anggota: identitas, saldo tabungan, dan ringkasan setor/tarik.
- * Tahap frontend: memakai data tiruan (MockData::members & ::savings).
+ * Profil anggota: identitas, saldo tabungan, ringkasan & riwayat setor/tarik,
+ * serta dialog setor/tarik. Data dari MemberService & SavingsService.
  */
 #[Layout('components.layouts.app')]
 class Show extends Component
 {
     public array $profile;
 
-    public function mount(int $member): void
+    public function mount(Member $member): void
     {
-        $found = MockData::findMember($member);
-        abort_if(! $found, 404);
-
-        $this->profile = $found;
+        $this->profile = MemberService::toArray($member);
     }
 
-    public const HISTORY_PRESETS = ['30-hari' => '30 hari', '90-hari' => '3 bulan', 'tahun-ini' => 'Tahun ini', 'semua' => 'Semua'];
+    public const HISTORY_PRESETS = SavingsService::HISTORY_PRESETS;
 
     #[Url(as: 'periode', except: 'semua')]
     public string $historyPreset = 'semua';
@@ -69,46 +69,34 @@ class Show extends Component
     {
         abort_unless($this->profile['is_active'] && in_array($this->mode, ['setor', 'tarik'], true), 403);
 
-        $balance = $this->profile['balance'];
         $this->validate([
-            'amount' => ['required', 'integer', 'min:1000', 'max:'.($this->mode === 'tarik' ? $balance : 10_000_000)],
+            'amount' => ['required', 'integer', 'min:'.SavingsService::MIN_AMOUNT, 'max:'.SavingsService::MAX_DEPOSIT],
             'note' => ['nullable', 'string', 'max:150'],
         ], [
             'amount.required' => 'Masukkan jumlah uang.',
-            'amount.min' => 'Minimal Rp1.000.',
-            'amount.max' => $this->mode === 'tarik'
-                ? 'Penarikan melebihi saldo (Rp'.number_format($balance, 0, ',', '.').').'
-                : 'Maksimal Rp10.000.000 per setoran.',
+            'amount.min' => SavingsService::messages()['amount.min'],
+            'amount.max' => SavingsService::messages()['amount.max'],
         ]);
 
-        $this->lastEntry = MockData::recordSaving($this->profile['id'], $this->mode, $this->amount, trim($this->note) ?: null);
-        $this->profile = MockData::findMember($this->profile['id']);
+        // Saldo dicek ulang di dalam transaksi (baris anggota dikunci); bila kurang, error `amount`.
+        $member = $this->member();
+        $entry = app(SavingsService::class)->record($member, $this->mode, $this->amount, trim($this->note) ?: null, auth()->id());
+
+        $this->lastEntry = SavingsService::toArray($entry);
+        $this->profile = MemberService::toArray($member);
         $this->mode = null;
-        unset($this->savings, $this->stats, $this->history);
+        unset($this->stats, $this->history);
     }
 
-    #[Computed]
-    public function savings(): array
+    private function member(): Member
     {
-        return MockData::savings($this->profile['id']);
+        return Member::findOrFail($this->profile['id']);
     }
 
     #[Computed]
     public function stats(): array
     {
-        $all = collect($this->savings);
-        $deposits = $all->where('type', 'setor');
-        $withdrawals = $all->where('type', 'tarik');
-        $last = $all->last();
-
-        return [
-            'deposit_total' => $deposits->sum('amount'),
-            'deposit_count' => $deposits->count(),
-            'withdraw_total' => $withdrawals->sum('amount'),
-            'withdraw_count' => $withdrawals->count(),
-            'last_at' => $last['created_at'] ?? null,
-            'last_type' => $last['type'] ?? null,
-        ];
+        return app(SavingsService::class)->stats($this->member());
     }
 
     public function applyHistoryPreset(string $preset): void
@@ -136,27 +124,21 @@ class Show extends Component
     #[Computed]
     public function history(): array
     {
-        $now = now();
-        [$start, $end] = match ($this->historyPreset) {
-            '30-hari' => [$now->copy()->subDays(29)->startOfDay(), null],
-            '90-hari' => [$now->copy()->subDays(89)->startOfDay(), null],
-            'tahun-ini' => [$now->copy()->startOfYear(), null],
-            'kustom' => [
+        [$start, $end] = $this->historyPreset === 'kustom'
+            ? [
                 $this->historyFrom !== '' && ! $this->getErrorBag()->has('historyFrom') ? Carbon::parse($this->historyFrom)->startOfDay() : null,
                 $this->historyTo !== '' && ! $this->getErrorBag()->has('historyTo') ? Carbon::parse($this->historyTo)->endOfDay() : null,
-            ],
-            default => [null, null],
-        };
+            ]
+            : SavingsService::historyRange($this->historyPreset);
 
-        $rows = collect($this->savings)
-            ->filter(function ($row) use ($start, $end) {
-                $at = Carbon::parse($row['created_at']);
-
-                return (! $start || $at->gte($start)) && (! $end || $at->lte($end));
-            })
-            ->filter(fn ($row) => $this->historyType === '' || $row['type'] === $this->historyType)
-            ->sortByDesc('created_at')
-            ->values();
+        // Riwayat satu anggota kecil (puluhan mutasi per tahun) → tampilkan semua tanpa paginasi.
+        $rows = $this->member()->savings()
+            ->betweenDates($start, $end)
+            ->ofType($this->historyType ?: null)
+            ->with('user:id,name')
+            ->latestFirst()
+            ->get()
+            ->map(fn (SavingsTransaction $s) => SavingsService::toArray($s));
 
         return [
             'rows' => $rows->all(),

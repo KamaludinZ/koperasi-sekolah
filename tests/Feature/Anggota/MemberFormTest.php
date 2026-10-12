@@ -3,7 +3,8 @@
 namespace Tests\Feature\Anggota;
 
 use App\Livewire\Anggota\Index;
-use App\Support\MockData;
+use App\Models\Member;
+use Database\Seeders\MemberSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
 use Tests\TestCase;
@@ -12,12 +13,18 @@ class MemberFormTest extends TestCase
 {
     use RefreshDatabase;
 
+    protected function setUp(): void
+    {
+        parent::setUp();
+        $this->seed(MemberSeeder::class);
+    }
+
     public function test_add_student_with_suggested_code(): void
     {
         Livewire::test(Index::class)
             ->call('create')
             ->assertSet('editing', true)
-            ->assertSet('form.member_code', 'S-'.now()->year.'-013')
+            ->assertSet('form.member_code', 'S-'.now()->year.'-001')
             ->set('form.name', 'Rani Oktaviani')
             ->set('form.class', '7b')
             ->call('save')
@@ -25,8 +32,8 @@ class MemberFormTest extends TestCase
             ->assertSee('Rani Oktaviani terdaftar sebagai anggota.')
             ->assertSee('Rani Oktaviani');
 
-        $m = collect(MockData::members())->firstWhere('name', 'Rani Oktaviani');
-        $this->assertSame(['siswa', '7B', 0], [$m['type'], $m['class'], $m['balance']]);
+        $m = Member::where('name', 'Rani Oktaviani')->firstOrFail();
+        $this->assertSame(['siswa', '7B', '0.00', 'S-'.now()->year.'-001'], [$m->type, $m->class, $m->balance, $m->member_code]);
     }
 
     public function test_switching_to_teacher_updates_code_and_clears_class(): void
@@ -36,7 +43,7 @@ class MemberFormTest extends TestCase
             ->set('form.class', '8A')
             ->set('form.type', 'guru')
             ->assertSet('form.class', '')
-            ->assertSet('form.member_code', 'G-'.now()->year.'-005')
+            ->assertSet('form.member_code', 'G-'.now()->year.'-001')
             ->set('form.name', 'Bu Ani')
             ->call('save')
             ->assertHasNoErrors();
@@ -56,14 +63,14 @@ class MemberFormTest extends TestCase
     public function test_edit_existing_member_keeps_balance(): void
     {
         Livewire::test(Index::class)
-            ->call('edit', 2)
+            ->call('edit', $this->mid('S-2024-002'))
             ->assertSet('form.name', 'Siti Nurhaliza')
             ->set('form.class', '9B')
             ->set('form.is_active', false)
             ->call('save')
             ->assertHasNoErrors();
 
-        $m = MockData::findMember(2);
-        $this->assertSame(['9B', false, 142500], [$m['class'], $m['is_active'], $m['balance']]);
+        $m = Member::findOrFail($this->mid('S-2024-002'));
+        $this->assertSame(['9B', false, '142500.00'], [$m->class, $m->is_active, $m->balance]);
     }
 }

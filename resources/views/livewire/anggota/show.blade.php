@@ -83,7 +83,6 @@
                     Saldo sekarang <strong class="tabular-nums">{{ $rp($lastEntry['balance_after']) }}</strong>.
                 </div>
             @endif
-            <p class="text-xs text-stone-400">Data tiruan — saldo & mutasi akan diambil dari database pada tahap backend.</p>
         </aside>
     </div>
 

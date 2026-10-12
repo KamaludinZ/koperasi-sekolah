@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Models\Member;
 use App\Models\Product;
 use App\Models\Transaction;
 use App\Models\User;
@@ -25,10 +26,11 @@ class TransactionSeeder extends Seeder
             return;
         }
 
-        $cashiers = $this->cashiers();
+        $cashiers = self::cashiers();
+        $members = Member::active()->pluck('id')->all(); // ±1 dari 3 pembeli adalah anggota (bila ada)
 
         mt_srand(20261012);
-        DB::transaction(function () use ($products, $days, $cashiers) {
+        DB::transaction(function () use ($products, $days, $cashiers, $members) {
             for ($d = $days; $d >= 0; $d--) {
                 $date = now()->startOfDay()->subDays($d);
                 if ($date->isSunday()) {
@@ -48,6 +50,7 @@ class TransactionSeeder extends Seeder
                         ->state(['invoice_number' => 'INV-'.$at->format('Ymd').'-'.str_pad((string) ($seq + 1), 4, '0', STR_PAD_LEFT)])
                         ->state(['payment_method' => mt_rand(1, 5) === 1 ? 'qris' : 'tunai'])
                         ->state(['user_id' => $cashiers[mt_rand(0, count($cashiers) - 1)]])
+                        ->state(['member_id' => $members && mt_rand(1, 3) === 1 ? $members[mt_rand(0, count($members) - 1)] : null])
                         ->at($at->toDateTimeString())
                         ->withItems($lines)
                         ->create();
@@ -62,7 +65,7 @@ class TransactionSeeder extends Seeder
      *
      * @return list<int>
      */
-    private function cashiers(): array
+    public static function cashiers(): array
     {
         return collect(['Bu Rina' => 'rina', 'Pak Dedi' => 'dedi'])
             ->map(fn ($slug, $name) => User::firstOrCreate(

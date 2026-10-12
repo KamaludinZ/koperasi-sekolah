@@ -48,7 +48,7 @@
 
     @if (count($h['rows']) === 0)
         <div class="px-6 py-10 text-center">
-            @if (count($this->savings) === 0)
+            @if ($this->stats['deposit_count'] + $this->stats['withdraw_count'] === 0)
                 <p class="text-sm font-medium text-stone-600">Belum ada mutasi tabungan</p>
                 <p class="text-xs text-stone-400">Setoran pertama akan tampil di sini.</p>
             @else

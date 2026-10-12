@@ -7,7 +7,7 @@
     <header class="flex flex-wrap items-center justify-between gap-3 border-b border-stone-200 bg-white px-4 py-4 sm:px-6">
         <div>
             <h1 class="text-lg font-semibold">Anggota & Tabungan</h1>
-            <p class="text-xs text-stone-500">Data siswa dan guru anggota koperasi beserta saldo tabungannya. <span class="rounded bg-amber-100 px-1.5 py-0.5 text-[11px] font-medium text-amber-800">data tiruan</span></p>
+            <p class="text-xs text-stone-500">Data siswa dan guru anggota koperasi beserta saldo tabungannya.</p>
         </div>
         <button type="button" wire:click="create"
                 class="inline-flex items-center gap-2 rounded-xl bg-emerald-700 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-emerald-800">

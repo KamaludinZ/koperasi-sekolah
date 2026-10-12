@@ -3,6 +3,7 @@
 namespace Tests\Feature\Anggota;
 
 use App\Livewire\Anggota\Index;
+use Database\Seeders\MemberSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
 use Tests\TestCase;
@@ -10,6 +11,12 @@ use Tests\TestCase;
 class IndexTest extends TestCase
 {
     use RefreshDatabase;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+        $this->seed(MemberSeeder::class);
+    }
 
     public function test_page_lists_active_members_with_balance(): void
     {
