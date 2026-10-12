@@ -127,6 +127,55 @@ class MockData
         return $members[$data['id']];
     }
 
+    /**
+     * Mutasi tabungan tiruan satu anggota (lama → baru). Deterministik per anggota,
+     * saldo tidak pernah negatif, dan saldo akhir sama dengan saldo anggota.
+     */
+    public static function savings(int $memberId): array
+    {
+        $member = self::findMember($memberId);
+        if (! $member || $member['balance'] <= 0 && $memberId % 2 === 1) {
+            return [];
+        }
+
+        mt_srand(1000 + $memberId);
+        $target = $member['balance'];
+        $staff = ['Bu Rina', 'Pak Dedi'];
+        $rows = [];
+        $balance = 0;
+        $n = mt_rand(3, 8);
+        $day = 120;
+
+        for ($i = 0; $i < $n; $i++) {
+            $day -= mt_rand(5, 15);
+            $withdraw = $balance > 10000 && mt_rand(1, 3) === 1;
+            $amount = $withdraw
+                ? mt_rand(1, (int) floor($balance / 1000 * 0.6)) * 1000
+                : mt_rand(1, $target > 300000 ? 60 : 12) * 5000;
+            $balance += $withdraw ? -$amount : $amount;
+            $rows[] = [$day, $withdraw ? 'tarik' : 'setor', $amount, $balance];
+        }
+
+        // Mutasi penutup agar saldo akhir = saldo anggota.
+        if ($balance !== $target) {
+            $diff = $target - $balance;
+            $balance = $target;
+            $rows[] = [max(1, $day - mt_rand(1, 4)), $diff > 0 ? 'setor' : 'tarik', abs($diff), $balance];
+        }
+        mt_srand();
+
+        return array_map(fn ($r, $i) => [
+            'id' => $memberId * 100 + $i + 1,
+            'member_id' => $memberId,
+            'type' => $r[1],
+            'amount' => $r[2],
+            'balance_after' => $r[3],
+            'note' => $r[1] === 'setor' ? 'Setoran tabungan' : 'Penarikan tabungan',
+            'user' => $staff[$i % 2],
+            'created_at' => now()->subDays($r[0])->setTime(9 + $i % 5, (13 * $i) % 60)->toDateTimeString(),
+        ], $rows, array_keys($rows));
+    }
+
     /** Kode anggota berikutnya, mis. S-2026-013 / G-2026-005. */
     public static function nextMemberCode(string $type): string
     {

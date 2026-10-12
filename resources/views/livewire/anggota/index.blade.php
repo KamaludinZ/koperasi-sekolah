@@ -78,7 +78,7 @@
                                       'bg-amber-100 text-amber-900' => $m['type'] === 'guru'])>{{ $initials($m['name']) }}</span>
                         <div class="min-w-0 flex-1">
                             <p class="truncate font-medium">
-                                {{ $m['name'] }}
+                                <a href="{{ route('anggota.show', $m['id']) }}" wire:navigate class="hover:text-emerald-800 hover:underline">{{ $m['name'] }}</a>
                                 @unless ($m['is_active'])<span class="ml-1 rounded bg-stone-200 px-1.5 py-0.5 text-[11px] font-medium text-stone-600">Nonaktif</span>@endunless
                             </p>
                             <p class="truncate text-xs text-stone-500">

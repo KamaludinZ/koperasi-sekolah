@@ -55,3 +55,6 @@ Route::get('/transaksi/{transaction}', Transaksi\Show::class)
     ->name('transaksi.show');
 
 Route::get('/anggota', Anggota\Index::class)->name('anggota');
+Route::get('/anggota/{member}', Anggota\Show::class)
+    ->whereNumber('member')
+    ->name('anggota.show');

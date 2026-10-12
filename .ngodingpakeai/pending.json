@@ -1,6 +1,6 @@
 {
   "repo": "Koperasi Sekolah",
-  "generatedForCommit": "a9dcc64fef92a3a9fd46319cccdac9a6570a95be",
+  "generatedForCommit": "d527778cba12762b9269fa61d10fd6cd57e9986a",
   "files": [
     {
       "path": ".claude/skills/ngodingpakeai/SKILL.md",
@@ -88,9 +88,9 @@
     },
     {
       "path": "app/Livewire/Anggota/Index.php",
-      "reason": "new",
+      "reason": "changed",
       "language": "php",
-      "size": 2436
+      "size": 3525
     },
     {
       "path": "app/Livewire/Barang/Index.php",
@@ -103,6 +103,12 @@
       "reason": "needs_summary",
       "language": "php",
       "size": 3373
+    },
+    {
+      "path": "app/Livewire/Forms/MemberForm.php",
+      "reason": "new",
+      "language": "php",
+      "size": 2942
     },
     {
       "path": "app/Livewire/Forms/ProductForm.php",
@@ -246,7 +252,7 @@
       "path": "app/Support/MockData.php",
       "reason": "changed",
       "language": "php",
-      "size": 8360
+      "size": 9720
     },
     {
       "path": "artisan",
@@ -490,7 +496,7 @@
     },
     {
       "path": "resources/views/components/layouts/app.blade.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 5195
     },
@@ -526,9 +532,15 @@
     },
     {
       "path": "resources/views/livewire/anggota/index.blade.php",
+      "reason": "changed",
+      "language": "php",
+      "size": 7102
+    },
+    {
+      "path": "resources/views/livewire/anggota/partials/member-form.blade.php",
       "reason": "new",
       "language": "php",
-      "size": 6674
+      "size": 5561
     },
     {
       "path": "resources/views/livewire/barang/index.blade.php",
@@ -616,7 +628,7 @@
     },
     {
       "path": "routes/web.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 2475
     },
@@ -771,6 +783,12 @@
       "size": 442
     },
     {
+      "path": "storage/framework/views/2aafcfddc31c08e131496a792bf3d82c.php",
+      "reason": "new",
+      "language": "php",
+      "size": 9984
+    },
+    {
       "path": "storage/framework/views/2f6cbfed59fa6c46c9092cc9033046d1.php",
       "reason": "needs_summary",
       "language": "php",
@@ -838,9 +856,9 @@
     },
     {
       "path": "storage/framework/views/63be5200e7bcf5e90d7da1e77de7aa8c.php",
-      "reason": "new",
+      "reason": "changed",
       "language": "php",
-      "size": 9481
+      "size": 10326
     },
     {
       "path": "storage/framework/views/6a716ed1600058dab4cb93986b8327e6.php",
@@ -862,7 +880,7 @@
     },
     {
       "path": "storage/framework/views/798b34bc9486b4ac75524eea46040336.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 6904
     },
@@ -1060,9 +1078,15 @@
     },
     {
       "path": "tests/Feature/Anggota/IndexTest.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 1556
+    },
+    {
+      "path": "tests/Feature/Anggota/MemberFormTest.php",
+      "reason": "new",
+      "language": "php",
+      "size": 2281
     },
     {
       "path": "tests/Feature/Barang/IndexTest.php",
