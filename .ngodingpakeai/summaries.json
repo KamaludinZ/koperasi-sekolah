@@ -1,0 +1,908 @@
+{
+ ".claude/skills/ngodingpakeai/SKILL.md": {
+  "summary": "Skill agen NgodingPakeAI untuk repositori ini: cara connect, sync metadata dan ringkasan kode lewat CLI, format summaries.json, aturan keamanan (tanpa kode mentah atau rahasia), serta alur pengerjaan task satu per satu dengan task next dan checkpoint per layer/fase."
+ },
+ ".editorconfig": {
+  "summary": "Konfigurasi EditorConfig proyek: UTF-8, akhir baris LF, indentasi 4 spasi dengan pengecualian untuk berkas tertentu seperti YAML dan Markdown."
+ },
+ ".gitattributes": {
+  "summary": "Atribut Git: normalisasi akhir baris LF dan driver diff khusus untuk Blade, CSS, HTML, Markdown, dan PHP, serta pengecualian berkas dari arsip ekspor."
+ },
+ ".gitignore": {
+  "summary": "Daftar abaian Git standar Laravel: .env dan cadangannya, vendor, node_modules, hasil build Vite di public/build, cache PHPUnit, kunci storage, dan berkas IDE."
+ },
+ ".ngodingpakeaiignore": {
+  "summary": "Daftar abaian tambahan untuk sinkronisasi NgodingPakeAI (sintaks gitignore): artefak Laravel hasil generate seperti Blade terkompilasi dan cache di storage/framework, unggahan dan struk PDF di storage/app, log, serta bootstrap/cache."
+ },
+ "AGENTS.md": {
+  "summary": "Instruksi agen AI untuk proyek Kasir Koperasi Sekolah: integrasi NgodingPakeAI dengan Workspace ID tetap, alur sync metadata dan ringkasan, aturan keras keamanan, referensi perintah CLI, dan alur kerja task berurutan frontend-first dengan checkpoint."
+ },
+ "README.md": {
+  "summary": "README bawaan kerangka Laravel tentang framework, sumber belajar, sponsor, kontribusi, kode etik, keamanan, dan lisensi MIT."
+ },
+ "app/Console/Commands/CreateAdmin.php": {
+  "summary": "Perintah artisan koperasi:buat-admin untuk membuat atau mengaktifkan ulang akun admin pertama di server setelah deploy; kata sandi ditanyakan secara tersembunyi."
+ },
+ "app/Http/Controllers/Akun/PasswordController.php": {
+  "summary": "Controller invokable PUT /akun/kata-sandi untuk mengganti kata sandi akun yang sedang masuk lewat PasswordService; mengembalikan pesan dan jumlah sesi lain yang diakhiri atau 422 bila validasi gagal."
+ },
+ "app/Http/Controllers/Akun/SessionController.php": {
+  "summary": "Endpoint JSON sesi login akun sendiri: GET /akun/sesi/daftar untuk daftar perangkat aktif, DELETE /akun/sesi/{session} untuk mengakhiri satu sesi lain, dan POST /akun/sesi/keluarkan-lain yang wajib kata sandi; memakai SessionService."
+ },
+ "app/Http/Controllers/Anggota/MemberController.php": {
+  "summary": "Endpoint JSON anggota koperasi: GET /anggota/daftar berpaginasi dengan filter dan ringkasan, GET /anggota/cari, GET /anggota/kode-baru, POST /anggota (kode otomatis bila kosong), GET /anggota/{member}/data, PUT /anggota/{member}, dan DELETE /anggota/{member}; memakai MemberService dan MemberCodeGenerator."
+ },
+ "app/Http/Controllers/Anggota/SavingsController.php": {
+  "summary": "Endpoint tabungan anggota: GET /anggota/{member}/tabungan mengembalikan saldo, ringkasan, dan riwayat mutasi berpaginasi dengan filter periode/jenis; POST /anggota/{member}/tabungan mencatat setor/tarik lewat SavingsService dan menolak bila anggota nonaktif atau saldo kurang."
+ },
+ "app/Http/Controllers/Auth/LoginController.php": {
+  "summary": "Controller POST /masuk untuk login petugas lewat AuthService; permintaan JSON mendapat data petugas dan tujuan redirect, form biasa diarahkan ke halaman tujuan atau halaman awal sesuai peran."
+ },
+ "app/Http/Controllers/Auth/LogoutController.php": {
+  "summary": "Controller POST /keluar yang mengakhiri sesi petugas lewat AuthService (tercatat di audit) lalu kembali ke halaman masuk, atau membalas JSON."
+ },
+ "app/Http/Controllers/Barang/ProductController.php": {
+  "summary": "Endpoint JSON tambah barang POST /barang (201) dan ubah barang PUT /barang/{product} memakai ProductService; kategori dikirim sebagai nama dan perubahan stok tercatat di riwayat stok."
+ },
+ "app/Http/Controllers/Barang/ProductListController.php": {
+  "summary": "Controller GET /barang/daftar yang mengembalikan daftar barang berpaginasi dengan filter pencarian, kategori, status, dan urutan beserta ringkasan stok dari ProductListing."
+ },
+ "app/Http/Controllers/Barang/StockAlertController.php": {
+  "summary": "Endpoint stok menipis dan batas minimum: GET /barang/stok-menipis (barang habis/menipis + saran restok), GET /barang/batas-minimum, dan PUT /barang/batas-minimum untuk mengubah batas per barang, per kategori, atau nilai bawaan lewat MinStockService."
+ },
+ "app/Http/Controllers/BerandaController.php": {
+  "summary": "Controller GET / beranda publik koperasi untuk siswa, guru, dan wali: identitas dari pengaturan, status buka hari ini (OpeningHours), barang populer 30 hari dari SalesReport, kategori, jam buka, dan pengumuman publik; tanpa data pribadi."
+ },
+ "app/Http/Controllers/Controller.php": {
+  "summary": "Kelas dasar abstrak untuk semua controller HTTP aplikasi."
+ },
+ "app/Http/Controllers/Kasir/CheckoutController.php": {
+  "summary": "Controller POST /kasir/transaksi yang memvalidasi item, metode bayar tunai/qris, dan uang bayar, lalu menyimpan transaksi lewat CheckoutService (total, pajak, dan pembulatan dihitung ulang di server)."
+ },
+ "app/Http/Controllers/Kasir/ProductSearchController.php": {
+  "summary": "Controller GET /kasir/barang/cari untuk pencarian barang aktif kasir berdasarkan kata kunci dan kategori; parameter kode mengembalikan satu barang dengan kode persis (alur scanner barcode) atau 404."
+ },
+ "app/Http/Controllers/Kasir/TransactionReceiptController.php": {
+  "summary": "Endpoint struk transaksi: GET /kasir/transaksi/{transaction} (JSON data struk + profil), GET /kasir/transaksi/{transaction}/struk (halaman cetak ulang), dan GET /kasir/transaksi/{transaction}/struk.pdf (PDF tersimpan, bisa diunduh); cetak ulang dan unduh dicatat di audit."
+ },
+ "app/Http/Controllers/Laporan/SalesExportController.php": {
+  "summary": "Controller GET /laporan/unduh yang memvalidasi rentang tanggal (maksimal 1 tahun), format csv/pdf, dan bagian isi, lalu mengalirkan berkas rekap penjualan dari SalesExport."
+ },
+ "app/Http/Controllers/Laporan/SalesReportController.php": {
+  "summary": "Endpoint JSON laporan penjualan: GET /laporan/hari-ini, GET /laporan/ringkasan?periode=, dan GET /laporan/grafik untuk pilihan cepat atau rentang kustom dengan satuan hari/minggu/bulan, termasuk total dan titik tertinggi; memakai SalesReport."
+ },
+ "app/Http/Controllers/Notifikasi/AnnouncementController.php": {
+  "summary": "Endpoint JSON pengumuman untuk Admin dan Pengurus: GET /notifikasi/pengumuman/data, POST /notifikasi/pengumuman (201), PUT dan DELETE /notifikasi/pengumuman/{pengumuman}; hanya notifikasi bertipe pengumuman yang bisa dikelola dan hak ubah diatur AnnouncementService."
+ },
+ "app/Http/Controllers/Notifikasi/NotificationController.php": {
+  "summary": "Endpoint JSON notifikasi petugas yang sedang masuk: GET /notifikasi/data (filter + jumlah per saringan), GET /notifikasi/terbaru (pratinjau lonceng), POST /notifikasi/tandai, /notifikasi/tandai-semua, dan /notifikasi/sembunyikan; hanya notifikasi di kotak petugas sendiri yang terpengaruh."
+ },
+ "app/Http/Controllers/Pengaturan/LogoController.php": {
+  "summary": "Controller logo koperasi: GET /logo/{berkas} menayangkan logo publik dari disk privat dengan cache 1 tahun dan header keamanan, POST/DELETE /pengaturan/data/profile/logo untuk unggah dan hapus logo khusus admin lewat LogoService."
+ },
+ "app/Http/Controllers/Pengaturan/SettingsController.php": {
+  "summary": "Endpoint JSON pengaturan koperasi khusus admin: GET /pengaturan/data, GET /pengaturan/data/{profile|receipt|tax}, PUT untuk simpan sebagian dengan validasi SettingsService::rules dan crossCheck, serta POST reset ke bawaan; menyertakan meta updated_at, updated_by, dan defaults."
+ },
+ "app/Http/Controllers/Pengguna/UserController.php": {
+  "summary": "Endpoint JSON kelola pengguna khusus admin: GET /pengguna/daftar, POST /pengguna, PUT /pengguna/{user} (termasuk atur ulang sandi), POST /pengguna/{user}/status, GET /pengguna/peran, dan PUT /pengguna/peran/{role} untuk hak menu; memakai UserService."
+ },
+ "app/Http/Controllers/Transaksi/TransactionDetailController.php": {
+  "summary": "Controller GET /transaksi/{transaction}/rincian yang mengembalikan detail lengkap satu transaksi (item, pembayaran, kasir, anggota, navigasi lebih baru/lama, tautan struk) dari TransactionHistory."
+ },
+ "app/Http/Controllers/Transaksi/TransactionListController.php": {
+  "summary": "Endpoint riwayat transaksi: GET /transaksi/daftar berpaginasi dengan preset periode, rentang tanggal, metode bayar, dan pencarian invoice; GET /transaksi/ringkasan untuk ringkasan penjualan rentang beserta perbandingan periode sebelumnya."
+ },
+ "app/Http/Middleware/EnsureActiveSession.php": {
+  "summary": "Middleware global web yang mengeluarkan petugas bila akunnya dinonaktifkan/tanpa peran atau tidak aktif melebihi koperasi.idle_minutes; kejadian dicatat di audit dan pengguna diarahkan ke /masuk (JSON 401)."
+ },
+ "app/Http/Middleware/EnsureMenuAccess.php": {
+  "summary": "Middleware rute menu dan menu:<kunci>: mewajibkan login (redirect ke /masuk atau 401) dan memeriksa peran boleh membuka menu itu berdasarkan roles.permissions (403 dengan pesan siapa yang boleh); juga dipakai sebagai persistent middleware Livewire."
+ },
+ "app/Http/Middleware/EnsureRole.php": {
+  "summary": "Middleware rute peran:<daftar peran> yang hanya meloloskan peran tertentu, sebagai pembatas tambahan halaman sensitif seperti kelola pengguna, audit, dan pengumuman."
+ },
+ "app/Livewire/Akun/Password.php": {
+  "summary": "Komponen Livewire halaman Ganti Kata Sandi untuk semua peran, menyimpan lewat PasswordService dan memberi tahu bahwa perangkat lain otomatis dikeluarkan."
+ },
+ "app/Livewire/Akun/Sessions.php": {
+  "summary": "Komponen Livewire halaman Sesi Aktif: daftar perangkat yang sedang masuk, akhiri satu sesi lain, atau keluar dari semua perangkat lain dengan konfirmasi kata sandi lewat SessionService."
+ },
+ "app/Livewire/Anggota/Index.php": {
+  "summary": "Komponen Livewire halaman Anggota & Tabungan: daftar anggota siswa/guru dengan saldo, filter pencarian/jenis/kelas/nonaktif di URL, ringkasan, dan form tambah/ubah anggota (MemberForm) memakai MemberService."
+ },
+ "app/Livewire/Anggota/Show.php": {
+  "summary": "Komponen Livewire profil anggota: identitas, saldo, ringkasan dan riwayat setor/tarik dengan filter periode/jenis, serta dialog setor/tarik yang menyimpan lewat SavingsService (saldo dicek ulang dalam transaksi)."
+ },
+ "app/Livewire/Audit/Index.php": {
+  "summary": "Komponen Livewire Audit & Riwayat untuk admin dan pengurus: jejak login, sirkulasi uang/barang, dan perubahan data dengan filter tampilan, periode, kategori, petugas, dan kata kunci; ringkasan, aktivitas per petugas, panel rincian, dan unduh CSV hingga 20.000 baris."
+ },
+ "app/Livewire/Auth/Login.php": {
+  "summary": "Komponen Livewire halaman Masuk Petugas yang memvalidasi akun lewat AuthService (sandi ter-hash, akun nonaktif ditolak, kunci 60 detik setelah 5 gagal) lalu mengarahkan ke halaman tujuan atau halaman awal peran; menampilkan daftar akun demo di lingkungan lokal."
+ },
+ "app/Livewire/Barang/Index.php": {
+  "summary": "Komponen Livewire halaman Barang & Stok: daftar barang berpaginasi dari ProductListing dengan filter pencarian, kategori, status, urutan, kartu ringkasan, panel stok menipis, dan form tambah/ubah barang (ProductForm); memuat ulang setelah batas minimum diubah."
+ },
+ "app/Livewire/Barang/MinStockSettings.php": {
+  "summary": "Komponen dialog pengaturan batas minimum stok: ubah banyak barang sekaligus, isi satu nilai untuk satu kategori, dan atur batas bawaan barang baru lewat MinStockService, lalu kirim event min-stock-updated."
+ },
+ "app/Livewire/Concerns/GuardsSettings.php": {
+  "summary": "Trait Livewire untuk form pengaturan: canEdit memeriksa Gate ubah-pengaturan, dan ensureCanEdit menolak penyimpanan oleh selain Admin dengan toast error serta audit setting.denied (mode baca saja)."
+ },
+ "app/Livewire/Concerns/NotifiesSave.php": {
+  "summary": "Trait Livewire saveWithToast dan toast yang mengirim event browser toast: hijau bila berhasil, merah dengan jumlah isian salah dan fokus ke isian pertama bila validasi gagal."
+ },
+ "app/Livewire/Forms/MemberForm.php": {
+  "summary": "Form object Livewire tambah/ubah anggota dengan aturan dari MemberService::rules, saran kode anggota saat jenis berganti, dan save lewat MemberService."
+ },
+ "app/Livewire/Forms/ProductForm.php": {
+  "summary": "Form object Livewire tambah/ubah barang mengikuti kolom tabel products, memakai batas minimum bawaan untuk barang baru dan menyimpan lewat ProductService."
+ },
+ "app/Livewire/Forms/UserForm.php": {
+  "summary": "Form object Livewire tambah/ubah akun petugas dengan aturan UserService::rules; kata sandi wajib untuk akun baru dan bila diisi saat mengubah berarti atur ulang sandi."
+ },
+ "app/Livewire/Kasir/Cart.php": {
+  "summary": "Komponen keranjang kasir: menerima event product-picked, mengatur jumlah, hapus dengan urungkan, menghitung subtotal, pajak, pembulatan, dan total per metode bayar via PriceCalculator, lalu membayar lewat CheckoutService, membuat struk PDF, dan menampilkan dialog sukses."
+ },
+ "app/Livewire/Kasir/Index.php": {
+  "summary": "Komponen Livewire halaman Layar Kasir yang menyusun pemilih barang dan keranjang."
+ },
+ "app/Livewire/Kasir/ProductPicker.php": {
+  "summary": "Komponen pencarian dan pemilihan barang di layar kasir dengan filter kategori; memilih barang mengirim event product-picked, Enter memilih kode yang cocok persis (scan barcode) atau satu-satunya hasil, dan daftar dimuat ulang setelah transaksi selesai."
+ },
+ "app/Livewire/Laporan/Index.php": {
+  "summary": "Komponen Livewire Laporan & Rekap untuk pengurus: ringkasan periode dengan pembanding, ringkasan hari ini, barang terlaris, grafik penjualan, dan panel unduh rekap CSV/PDF memakai SalesReport dan SalesExport."
+ },
+ "app/Livewire/Notifikasi/Announcements.php": {
+  "summary": "Komponen Livewire Buat Pengumuman untuk admin dan pengurus: form judul, isi, sasaran, tampil di beranda publik, dan tanggal berakhir dengan pratinjau; menerbitkan dan menghapus lewat AnnouncementService dengan hak hapus per pembuat."
+ },
+ "app/Livewire/Notifikasi/Bell.php": {
+  "summary": "Komponen lonceng notifikasi di sidebar dan bar ponsel: badge jumlah belum dibaca dan pratinjau 5 notifikasi terbaru dengan tandai dibaca, tandai semua, dan buka tautan; diperbarui tiap 60 detik dan saat event notifications-changed, memakai NotificationService."
+ },
+ "app/Livewire/Notifikasi/Index.php": {
+  "summary": "Komponen Livewire halaman Notifikasi: daftar peringatan stok, pengumuman, dan info sistem dikelompokkan per hari dengan filter, tandai dibaca/belum, buka tautan, pilih banyak, dan tandai semua dibaca dengan tombol Urungkan; data dari NotificationService."
+ },
+ "app/Livewire/Pengaturan/Index.php": {
+  "summary": "Komponen Livewire ringkasan Pengaturan Koperasi: profil, contoh struk, pajak & pembulatan dengan contoh hitungan PriceCalculator, jam buka, batas stok bawaan, dan daftar kelengkapan profil; data dari SettingsService."
+ },
+ "app/Livewire/Pengaturan/Profile.php": {
+  "summary": "Komponen Livewire form Profil Koperasi: nama aplikasi, nama, nama singkat, madrasah, alamat, kontak, motto, unggah/hapus logo (LogoService), dan jadwal jam buka per hari dengan validasi jam; pratinjau struk dan beranda, disimpan lewat SettingsService dengan penjaga GuardsSettings."
+ },
+ "app/Livewire/Pengaturan/Receipt.php": {
+  "summary": "Komponen Livewire form Pengaturan Struk: judul dan sub-judul, tampil logo/alamat/telepon/kasir/anggota, catatan, tulisan kaki, dan kertas 58/80 mm dengan pratinjau memakai partial struk kasir; simpan lewat SettingsService, kembalikan bawaan, dan mode baca saja untuk non-admin."
+ },
+ "app/Livewire/Pengaturan/Tax.php": {
+  "summary": "Komponen Livewire form Pajak & Pembulatan: aktifkan pajak, nama dan tarif desimal berkoma, termasuk harga atau ditambahkan, cara dan kelipatan pembulatan, khusus tunai; kalkulator contoh tunai vs QRIS memakai PriceCalculator dan simpan lewat SettingsService."
+ },
+ "app/Livewire/Pengguna/Index.php": {
+  "summary": "Komponen Livewire Kelola Pengguna khusus admin: daftar akun petugas dengan filter, ringkasan, tambah/ubah akun dan atur ulang sandi (UserForm), aktif/nonaktifkan, serta editor hak menu per peran lewat UserService."
+ },
+ "app/Livewire/Transaksi/Index.php": {
+  "summary": "Komponen Livewire Riwayat Transaksi: penjualan terbaru dikelompokkan per hari dengan total harian, filter preset atau rentang tanggal kustom di URL, ringkasan periode, dan paginasi dari TransactionHistory."
+ },
+ "app/Livewire/Transaksi/Show.php": {
+  "summary": "Komponen Livewire detail satu transaksi dengan navigasi ke transaksi lebih baru/lama, memakai TransactionHistory::detail."
+ },
+ "app/Models/ActivityLog.php": {
+  "summary": "Model Eloquent jejak audit (tabel activity_logs) yang hanya boleh ditambah: save untuk baris lama dan delete ditolak. Berisi label kategori, daftar kategori sirkulasi uang/barang, scope latestFirst dan betweenDates."
+ },
+ "app/Models/Category.php": {
+  "summary": "Model kategori barang (tabel categories) dengan relasi hasMany products."
+ },
+ "app/Models/Member.php": {
+  "summary": "Model anggota koperasi siswa/guru (tabel members) dengan saldo tabungan balance yang hanya diubah lewat SavingsService. Relasi transactions dan savings, scope active/ofType/search, display_name, dan kode anggota selalu disimpan huruf besar."
+ },
+ "app/Models/Notification.php": {
+  "summary": "Model notifikasi & pengumuman (tabel notifications) dengan relasi author, product, dan readers via pivot notification_reads. Scope active, forRole, inboxFor (status baca per petugas), unread, dan public untuk beranda; atribut is_read/type_label/target_label serta helper markFor dan dismissFor."
+ },
+ "app/Models/Product.php": {
+  "summary": "Model barang (tabel products) yang diamati ProductObserver: harga jual/modal, stok, batas minimum, satuan, status aktif. Relasi category dan stockMovements, scope active dan lowStock (habis atau di bawah/sama dengan batas minimum)."
+ },
+ "app/Models/Role.php": {
+  "summary": "Model peran petugas (tabel roles) dengan permissions berupa daftar kunci menu, LABELS, ADMIN_REQUIRED (menu Pengguna dan Pengaturan wajib dimiliki admin), relasi users, allows(menu), dan named(nama)."
+ },
+ "app/Models/SavingsTransaction.php": {
+  "summary": "Model mutasi tabungan anggota setor/tarik (tabel savings_transactions) yang tidak diubah setelah dibuat. Relasi member dan user pencatat, atribut signed_amount dan type_label, scope latestFirst, ofType, dan betweenDates."
+ },
+ "app/Models/Setting.php": {
+  "summary": "Model key-value pengaturan (tabel settings) dengan kunci kelompok.nama, kolom group, type, dan updated_by (relasi editor). Helper get/set dengan cache per kunci, group untuk satu kelompok, serta typeOf/encode/decode agar nilai bool/int/float/json terbaca dengan tipe yang benar."
+ },
+ "app/Models/StockMovement.php": {
+  "summary": "Model riwayat perubahan stok (tabel stock_movements) bertipe masuk, keluar, atau penyesuaian dengan stok sebelum/sesudah. Relasi product dan user, atribut signed_quantity dan type_label, scope latestFirst."
+ },
+ "app/Models/Transaction.php": {
+  "summary": "Model transaksi penjualan (tabel transactions) dengan cast nominal termasuk tax_rate, tax_included, dan rounding. Relasi items, user kasir, dan member, scope latestFirst, betweenDates, dan paymentMethod."
+ },
+ "app/Models/TransactionItem.php": {
+  "summary": "Model baris item transaksi (tabel transaction_items) berisi snapshot nama barang, harga, harga modal, jumlah, dan subtotal; relasi transaction dan product."
+ },
+ "app/Models/User.php": {
+  "summary": "Model petugas (tabel users) dengan role_id, is_active, last_login_at, dan password_changed_at; memakai RoutesNotifications agar tidak bentrok dengan tabel notifications koperasi. Relasi role, notificationReads, authoredNotifications, query inbox, scope active, roleName, hasRole, dan canOpen(menu)."
+ },
+ "app/Observers/ProductObserver.php": {
+  "summary": "Observer model Product: mencatat StockMovement otomatis bila stok berubah lewat model (bukan StockService), mengantre pemeriksaan peringatan stok saat barang dibuat atau stok/batas minimum/status/nama berubah, dan menghapus peringatan stok barang yang dihapus."
+ },
+ "app/Providers/AppServiceProvider.php": {
+  "summary": "Service provider aplikasi: mendaftarkan NotificationService sebagai instans scoped per request, menambahkan middleware EnsureMenuAccess/EnsureRole sebagai persistent middleware Livewire, serta Gate menu (akses menu) dan ubah-pengaturan (khusus Admin aktif yang punya menu Pengaturan)."
+ },
+ "app/Services/AnnouncementService.php": {
+  "summary": "Service pengumuman Admin/Pengurus yang disimpan sebagai notifikasi bertipe pengumuman di tabel notifications. Menyediakan aturan validasi bersama (rules/messages), list, publicList untuk beranda, create/update/delete dengan audit kategori pengumuman, serta canManage (Admin semua, Pengurus hanya miliknya); pengumuman khusus kasir/pengurus tidak pernah tampil publik."
+ },
+ "app/Services/AuditLog.php": {
+  "summary": "Pencatat jejak audit ke tabel activity_logs: AuditLog::record menyimpan event, kategori, deskripsi, subjek, properti, nominal, pelaku (dari Petugas::current), IP dan user agent; gagal mencatat tidak menggagalkan proses utama. AuditLog::diff menghasilkan perubahan sebelum→sesudah untuk kolom tertentu."
+ },
+ "app/Services/AuditQuery.php": {
+  "summary": "Query dan ringkasan halaman Audit & Riwayat: rentang periode, filter tampilan (login, sirkulasi uang/barang, perubahan data), kategori, pelaku, dan kata kunci atas ActivityLog. Menyediakan summary (aktivitas, login berhasil/gagal, penjualan, tabungan, penyesuaian stok), perActor per petugas, dan daftar actors."
+ },
+ "app/Services/AuthService.php": {
+  "summary": "Login dan logout petugas: verifikasi email + kata sandi ter-hash, tolak akun nonaktif/tanpa peran, rate limit 5 percobaan per email+IP per 60 detik, perbarui last_login_at, regenerasi sesi, dan catat audit untuk setiap hasil. Juga menyediakan toArray petugas dan throttleKey."
+ },
+ "app/Services/CheckoutService.php": {
+  "summary": "Menyimpan transaksi penjualan kasir secara atomik: kunci baris barang, validasi stok, hitung subtotal lalu pajak & pembulatan via PriceCalculator dari SettingsService, simpan Transaction + TransactionItem (snapshot nama, harga, harga modal, label/tarif pajak, pembulatan), kurangi stok lewat StockService, dan catat audit sale.created. Nomor invoice berurutan per hari INV-YYYYMMDD-NNNN dengan retry bila bentrok."
+ },
+ "app/Services/LogoService.php": {
+  "summary": "Mengelola logo koperasi sebagai berkas di disk privat (folder koperasi) dengan nama acak; menyimpan nama berkas di pengaturan profile.logo, menghapus berkas lama saat diganti/dihapus, dan hanya menerima PNG/JPG/WEBP (SVG ditolak). Menyediakan aturan validasi, url() ke route publik logo, dan dataUri() untuk PDF struk."
+ },
+ "app/Services/MemberCodeGenerator.php": {
+  "summary": "Pembuat kode anggota unik berformat S/G-tahun-urut (mis. S-2026-001 untuk siswa, G untuk guru) yang melanjutkan nomor terbesar tahun berjalan, serta create() yang menyimpan Member dan mengulang bila kode bentrok karena penyimpanan bersamaan."
+ },
+ "app/Services/MemberService.php": {
+  "summary": "Service data anggota koperasi: aturan validasi bersama form & API, create/update dengan audit, delete (hapus bila belum pernah menabung, selain itu dinonaktifkan), query dan paginate dengan filter jenis/kelas/pencarian, pencarian cepat untuk kasir, statistik anggota & total saldo, daftar kelas, dan bentuk toArray."
+ },
+ "app/Services/MinStockService.php": {
+  "summary": "Mengelola batas minimum stok: nilai bawaan barang baru di settings (stock.default_min_stock) dengan audit, updateMany untuk banyak barang sekaligus, dan applyToCategory untuk satu kategori/semua barang. Setiap perubahan mengantre pemeriksaan peringatan stok ke NotificationService."
+ },
+ "app/Services/NotificationService.php": {
+  "summary": "Kotak notifikasi petugas dari tabel notifications + notification_reads: list dengan filter (semua, belum, stok, pengumuman, sistem), counts, unreadCount, mark/markAll/dismiss yang dibatasi pada inbox petugas, dan find. Juga syncStockAlerts yang membuat/menghapus peringatan stok menipis/habis per barang (dedupe_key) serta queueStockCheck yang memproses antrean setelah transaksi DB commit."
+ },
+ "app/Services/PasswordService.php": {
+  "summary": "Ganti kata sandi petugas sendiri: validasi sandi lama, sandi baru minimal 8 karakter berisi huruf dan angka serta berbeda dari yang lama, simpan password_changed_at, akhiri sesi di perangkat lain dan reset remember token, lalu catat audit."
+ },
+ "app/Services/ProductCatalog.php": {
+  "summary": "Pencarian barang aktif untuk layar kasir berdasarkan nama/kode dan kategori dengan kode persis di urutan teratas (alur scan barcode), findByCode, findMany/find berdasarkan id, daftar kategori, dan toArray sederhana yang aman disimpan di state Livewire."
+ },
+ "app/Services/ProductListing.php": {
+  "summary": "Query halaman Barang & Stok: filter pencarian, kategori, status stok (habis/menipis/aman), urutan, paginasi dengan koreksi halaman di luar jangkauan, statistik stok, daftar barang perlu restok beserta saran jumlah restok, dan daftar kategori."
+ },
+ "app/Services/ProductService.php": {
+  "summary": "Tambah dan ubah barang dengan aturan validasi bersama form & API (kode unik, harga, stok, batas minimum, satuan, kategori berupa nama). Stok awal dan perubahan stok selalu lewat StockService agar tercatat di riwayat; perubahan data dicatat di audit kategori barang."
+ },
+ "app/Services/ReceiptPdfService.php": {
+  "summary": "Membuat dan menyimpan struk PDF dompdf (kertas thermal 58/80 mm sesuai pengaturan) di disk local receipts/YYYY/MM/<invoice>.pdf. File dipakai ulang kecuali pengaturan koperasi berubah setelah file dibuat; tinggi kertas dihitung dari jumlah baris tercetak termasuk logo, pajak, pembulatan, catatan, dan teks yang terbungkus."
+ },
+ "app/Services/ReceiptPresenter.php": {
+  "summary": "Menyusun data struk dari Transaction (item, kasir, anggota, metode bayar, subtotal, pajak, label/tarif pajak, pajak termasuk harga, pembulatan, total, bayar, kembali) dan profil struk dari SettingsService (judul/sub-judul ikut profil bila kosong, opsi tampil logo). Menyediakan pdfProfile dengan logo data URI dan paperWidth 58/80."
+ },
+ "app/Services/SalesExport.php": {
+  "summary": "Unduhan rekap penjualan untuk sekolah dalam rentang tanggal: ringkasan, rekap per hari, rincian transaksi, dan barang terjual sebagai CSV (pemisah titik koma + BOM untuk Excel) atau PDF A4. Dipakai endpoint GET /laporan/unduh dengan validasi panjang rentang dan batas baris PDF."
+ },
+ "app/Services/SalesReport.php": {
+  "summary": "Agregasi laporan penjualan pengurus: rentang periode dan pembanding setara, summary (omzet, laba kotor dari snapshot harga modal, margin, transaksi, barang, rata-rata), periodReport dengan persentase perubahan, ringkasan hari ini per jam, barang terlaris, rekap harian, dan titik grafik per hari/minggu/bulan termasuk periode kosong."
+ },
+ "app/Services/SavingsService.php": {
+  "summary": "Setor dan tarik tabungan anggota secara atomik: kunci baris anggota, validasi anggota aktif, nominal dan saldo cukup, catat SavingsTransaction dengan saldo sebelum/sesudah, perbarui members.balance, dan audit. Juga historyRange, statistik tabungan, riwayat berpaginasi dengan total masuk/keluar, dan toArray."
+ },
+ "app/Services/SessionService.php": {
+  "summary": "Mengelola sesi login petugas pada driver session database: daftar perangkat aktif (perangkat, peramban, IP, terakhir aktif), revoke satu sesi, revokeOthers yang wajib kata sandi, revokeAll saat akun dinonaktifkan atau sandi diatur ulang, dan describe user agent."
+ },
+ "app/Services/SettingsService.php": {
+  "summary": "Pengaturan koperasi dari tabel settings per bagian profile (identitas, nama aplikasi, logo, jam buka), receipt (judul, opsi tampil, catatan, kaki, kertas) dan tax (pajak & pembulatan) dengan nilai DEFAULTS dan cache settings:all. Menyediakan all/section/profile/receipt/tax/taxRate, save dengan audit perubahan, reset ke bawaan, aturan validasi API, crossCheck tarif pajak, normalize, dan fallback bawaan bila database tidak tersedia."
+ },
+ "app/Services/StockService.php": {
+  "summary": "Satu pintu untuk mengubah stok barang: increase, decrease (tolak bila stok kurang) dan adjustTo (stock opname) mengunci baris barang, memperbarui kolom stock, mencatat StockMovement dengan stok sebelum/sesudah, lalu mengantre pemeriksaan peringatan stok di NotificationService."
+ },
+ "app/Services/TransactionHistory.php": {
+  "summary": "Query riwayat transaksi untuk halaman dan API Transaksi: filter rentang tanggal, metode bayar, dan nomor invoice, paginasi, toRow ringkas, detail lengkap dengan transaksi tetangga lebih baru/lama, preset rentang, summary agregat per metode bayar dengan perbandingan periode sebelumnya, dan label rentang."
+ },
+ "app/Services/UserService.php": {
+  "summary": "Kelola akun petugas dan peran (khusus admin): query dan statistik, create, update termasuk atur ulang sandi (sesi akun diakhiri), toggleActive, dan updatePermissions menu per peran. Penjaga mencegah menonaktifkan/menurunkan akun sendiri, memastikan selalu ada admin aktif, dan admin tetap memegang menu Pengguna dan Pengaturan; semua perubahan diaudit."
+ },
+ "app/Support/Menu.php": {
+  "summary": "Definisi menu utama aplikasi petugas (ITEMS, GROUPS) beserta DEFAULT_PERMISSIONS per peran admin/kasir/pengurus. Menyediakan allows, userCan berdasarkan roles.permissions, forUser/for untuk sidebar terkelompok, deniedMessage, dan homeRoute halaman awal setelah login."
+ },
+ "app/Support/MockData.php": {
+  "summary": "Kumpulan data contoh tahap frontend yang kini sebagian besar meneruskan ke service database: profile/settings/receipt/tax ke SettingsService, notifikasi ke NotificationService, pengumuman ke AnnouncementService. Masih menyimpan data seed barang, anggota dan transaksi tiruan deterministik yang dipakai seeder dan tampilan contoh."
+ },
+ "app/Support/OpeningHours.php": {
+  "summary": "Utilitas jam buka koperasi per hari ISO (1 Senin sampai 7 Minggu): group menggabungkan hari berurutan dengan jam sama menjadi teks ringkas, status menghitung sedang buka/tutup beserta keterangan, dan closedDays untuk daftar hari tutup."
+ },
+ "app/Support/Petugas.php": {
+  "summary": "Helper Petugas::current yang mengembalikan petugas yang sedang masuk sebagai array ringkas (id, nama, email, peran, label peran, permissions, status aktif, login terakhir) atau null; dipakai audit dan tampilan."
+ },
+ "app/Support/PriceCalculator.php": {
+  "summary": "Kalkulator total belanja dari subtotal dan pengaturan pajak & pembulatan: pajak ditambahkan atau sudah termasuk harga, pembulatan ke atas/terdekat/ke bawah per Rp100/500/1.000 yang bisa khusus tunai. Mengembalikan subtotal, tax, tax_included, total, rounding, dan payable; dipakai kasir, checkout, dan pratinjau pengaturan."
+ },
+ "artisan": {
+  "summary": "Skrip CLI Artisan Laravel yang memuat autoloader Composer, mem-bootstrap aplikasi, dan menjalankan perintah konsol."
+ },
+ "bootstrap/app.php": {
+  "summary": "Konfigurasi aplikasi Laravel 12: rute web dan konsol, middleware global EnsureActiveSession pada grup web, serta alias middleware menu (EnsureMenuAccess) dan peran (EnsureRole) untuk pembatasan akses per menu dan peran."
+ },
+ "bootstrap/providers.php": {
+  "summary": "Daftar service provider aplikasi yang didaftarkan Laravel, yaitu AppServiceProvider."
+ },
+ "composer.json": {
+  "summary": "Manifest Composer proyek Laravel 12 (PHP 8.2+) dengan dependensi Livewire 3, barryvdh/laravel-dompdf untuk PDF, dan Tinker; dev tools PHPUnit 11, Pint, Pail, Sail, Collision; skrip setup, dev, dan test."
+ },
+ "composer.lock": {
+  "summary": "Lockfile Composer yang mengunci versi persis seluruh paket PHP (Laravel, Livewire, dompdf, Symfony, dan dependensi pengembangan) agar instalasi konsisten."
+ },
+ "config/app.php": {
+  "summary": "Konfigurasi inti aplikasi Laravel: nama, lingkungan, debug, URL, zona waktu, locale, kunci enkripsi dari environment, dan driver mode pemeliharaan."
+ },
+ "config/auth.php": {
+  "summary": "Konfigurasi autentikasi Laravel: guard web berbasis sesi, provider users dengan model App\\Models\\User, pengaturan reset kata sandi, dan batas waktu konfirmasi sandi."
+ },
+ "config/cache.php": {
+  "summary": "Konfigurasi cache Laravel: store bawaan dari environment dan pilihan driver array, database, file, memcached, redis, dynamodb, serta prefix kunci."
+ },
+ "config/database.php": {
+  "summary": "Konfigurasi koneksi database Laravel (sqlite, mysql, mariadb, pgsql, sqlsrv) dengan nilai dari environment, tabel migrasi, dan koneksi Redis; aplikasi memakai PostgreSQL di produksi dan SQLite saat test."
+ },
+ "config/filesystems.php": {
+  "summary": "Konfigurasi disk penyimpanan: disk local privat (storage/app/private) tempat logo koperasi dan struk PDF, disk public, dan s3, serta tautan simbolik storage."
+ },
+ "config/koperasi.php": {
+  "summary": "Konfigurasi khusus aplikasi koperasi: idle_minutes, lama tanpa aktivitas sebelum sesi petugas otomatis berakhir (env KOPERASI_IDLE_MINUTES, bawaan 60, 0 = nonaktif)."
+ },
+ "config/logging.php": {
+  "summary": "Konfigurasi logging Laravel: kanal stack, single, daily, slack, papertrail, stderr, syslog, errorlog, null, dan emergency beserta level log."
+ },
+ "config/mail.php": {
+  "summary": "Konfigurasi email Laravel: mailer bawaan dan pilihan smtp, ses, postmark, resend, sendmail, log, array, failover, roundrobin, serta alamat pengirim global."
+ },
+ "config/queue.php": {
+  "summary": "Konfigurasi antrean Laravel: koneksi sync, database, beanstalkd, sqs, redis, batching, dan tabel failed jobs."
+ },
+ "config/services.php": {
+  "summary": "Konfigurasi kredensial layanan pihak ketiga (postmark, resend, ses, slack) yang dibaca dari environment."
+ },
+ "config/session.php": {
+  "summary": "Konfigurasi sesi Laravel: driver (database dipakai untuk daftar sesi aktif petugas), masa berlaku, enkripsi, tabel sessions, nama cookie, domain, secure, http_only, dan same_site."
+ },
+ "database/.gitignore": {
+  "summary": "Mengabaikan berkas database SQLite lokal di folder database dari Git."
+ },
+ "database/factories/CategoryFactory.php": {
+  "summary": "Factory model Category untuk test yang membuat kategori barang dengan nama unik."
+ },
+ "database/factories/MemberFactory.php": {
+  "summary": "Factory model Member untuk test: anggota siswa dengan kelas dan kode, state teacher (guru), inactive, dan withBalance untuk saldo awal langsung tanpa mutasi."
+ },
+ "database/factories/NotificationFactory.php": {
+  "summary": "Factory model Notification untuk test: pengumuman untuk semua secara bawaan dan state stock untuk peringatan stok bersasaran pengurus."
+ },
+ "database/factories/ProductFactory.php": {
+  "summary": "Factory model Product untuk test: barang dengan kode, harga jual/modal, stok, dan batas minimum, plus state inactive dan lowStock."
+ },
+ "database/factories/SavingsTransactionFactory.php": {
+  "summary": "Factory model SavingsTransaction untuk test yang membuat mutasi setor/tarik dengan saldo sebelum/sesudah."
+ },
+ "database/factories/TransactionFactory.php": {
+  "summary": "Factory model Transaction untuk test: nomor invoice unik, configure yang menjaga total = subtotal − diskon + pajak + pembulatan, withItems yang mengisi item dari barang dan menghitung ulang total, serta state at (waktu) dan qris."
+ },
+ "database/factories/UserFactory.php": {
+  "summary": "Factory model User untuk test: petugas dengan sandi ter-hash, state role(nama), admin, inactive, dan unverified."
+ },
+ "database/migrations/0001_01_01_000000_create_users_table.php": {
+  "summary": "Migrasi bawaan Laravel yang membuat tabel users, password_reset_tokens, dan sessions (driver sesi database untuk daftar perangkat aktif)."
+ },
+ "database/migrations/0001_01_01_000001_create_cache_table.php": {
+  "summary": "Migrasi bawaan Laravel untuk tabel cache dan cache_locks."
+ },
+ "database/migrations/0001_01_01_000002_create_jobs_table.php": {
+  "summary": "Migrasi bawaan Laravel untuk tabel antrean jobs, job_batches, dan failed_jobs."
+ },
+ "database/migrations/2026_10_12_000001_create_categories_and_products_tables.php": {
+  "summary": "Migrasi tabel categories, products (kode/barcode unik, kategori, harga jual & modal, stok, batas minimum, satuan, status aktif), dan stock_movements (riwayat masuk/keluar/penyesuaian dengan petugas)."
+ },
+ "database/migrations/2026_10_12_000002_create_transactions_tables.php": {
+  "summary": "Migrasi tabel transactions (invoice unik, kasir, anggota, subtotal, pajak, diskon, total, bayar, kembalian, metode bayar) dan transaction_items (snapshot nama dan harga barang, jumlah, subtotal)."
+ },
+ "database/migrations/2026_10_12_000003_add_product_constraints_and_settings_table.php": {
+  "summary": "Migrasi indeks foreign key untuk PostgreSQL, constraint CHECK stok/harga tidak negatif pada products, dan pembuatan tabel settings key-value."
+ },
+ "database/migrations/2026_10_12_000004_add_stock_snapshot_to_stock_movements_table.php": {
+  "summary": "Migrasi kolom stock_before dan stock_after serta indeks type pada stock_movements agar riwayat stok bisa ditelusuri tanpa hitung ulang."
+ },
+ "database/migrations/2026_10_12_000005_add_item_count_and_indexes_to_transactions_table.php": {
+  "summary": "Migrasi kolom item_count pada transactions (diisi untuk data lama) dan indeks payment_method, (created_at, id), serta user_id untuk riwayat transaksi."
+ },
+ "database/migrations/2026_10_12_000006_create_members_table.php": {
+  "summary": "Migrasi tabel members (kode anggota unik huruf besar, nama, jenis siswa/guru, kelas, telepon, saldo tabungan, status aktif, tanggal bergabung) dan foreign key transactions.member_id."
+ },
+ "database/migrations/2026_10_12_000007_create_savings_transactions_table.php": {
+  "summary": "Migrasi tabel savings_transactions untuk mutasi setor/tarik tabungan dengan nominal, saldo sebelum/sesudah, catatan, dan petugas, berikut indeks dan constraint di PostgreSQL."
+ },
+ "database/migrations/2026_10_12_000008_add_cost_price_to_transaction_items_table.php": {
+  "summary": "Migrasi kolom cost_price pada transaction_items sebagai snapshot harga modal untuk laba kotor; item lama diisi dari harga modal barang saat ini."
+ },
+ "database/migrations/2026_10_12_000009_create_activity_logs_table.php": {
+  "summary": "Migrasi tabel activity_logs (event, kategori, deskripsi, subjek, pelaku, nominal, properti JSON, IP, perangkat) dengan indeks pencarian dan trigger PostgreSQL yang menolak UPDATE/DELETE agar audit tidak bisa diubah."
+ },
+ "database/migrations/2026_10_12_000010_create_roles_and_extend_users_table.php": {
+  "summary": "Migrasi tabel roles (admin, kasir, pengurus dengan permissions JSON dari Menu::DEFAULT_PERMISSIONS) dan kolom users role_id, is_active, last_login_at, password_changed_at."
+ },
+ "database/migrations/2026_10_12_000011_extend_settings_table.php": {
+  "summary": "Migrasi yang melengkapi tabel settings dengan kolom group, type (string/bool/int/float/json, CHECK di PostgreSQL), dan updated_by ke users untuk pengaturan koperasi fase 4."
+ },
+ "database/migrations/2026_10_12_000012_add_tax_and_rounding_to_transactions_table.php": {
+  "summary": "Migrasi snapshot pajak dan pembulatan pada transactions: tax_label, tax_rate, tax_included, dan rounding, dengan CHECK PostgreSQL tarif 0–100 dan total = subtotal − diskon + pajak + pembulatan."
+ },
+ "database/migrations/2026_10_12_000013_create_notifications_tables.php": {
+  "summary": "Migrasi tabel notifications (type stok/pengumuman/sistem, judul, pesan, target, url, product_id, dedupe_key unik, show_public, expires_at, created_by) dan pivot notification_reads untuk status dibaca/disembunyikan per petugas, dengan constraint CHECK di PostgreSQL."
+ },
+ "database/seeders/ActivityLogSeeder.php": {
+  "summary": "Seeder audit contoh untuk pengembangan: login pagi dan keluar siang tiap petugas pada hari ada penjualan, penjualan, setor/tarik tabungan, dan beberapa login gagal; dilewati bila tabel audit sudah berisi."
+ },
+ "database/seeders/DatabaseSeeder.php": {
+  "summary": "Seeder utama: selalu mengisi ProductSeeder, dan di lingkungan lokal menambahkan akun demo, anggota, transaksi, audit, dan notifikasi contoh."
+ },
+ "database/seeders/MemberSeeder.php": {
+  "summary": "Seeder anggota contoh (12 siswa, 4 guru) beserta riwayat tabungan yang saldonya berantai sampai saldo anggota, khusus pengembangan; dilewati bila sudah berisi."
+ },
+ "database/seeders/NotificationSeeder.php": {
+  "summary": "Seeder notifikasi contoh: sinkron peringatan stok dari barang menipis/habis saat ini lewat NotificationService serta pengumuman dan info sistem demo."
+ },
+ "database/seeders/ProductSeeder.php": {
+  "summary": "Seeder kategori dan barang contoh koperasi sekolah dari MockData tanpa event model (tidak mencatat riwayat stok), lalu menyinkronkan peringatan stok barang yang menipis/habis."
+ },
+ "database/seeders/TransactionSeeder.php": {
+  "summary": "Seeder riwayat penjualan contoh sekitar 90 hari terakhir oleh beberapa kasir demo tanpa mengubah stok, khusus pengembangan; dilewati bila tabel transaksi sudah berisi."
+ },
+ "database/seeders/UserSeeder.php": {
+  "summary": "Seeder akun petugas demo admin, kasir, pengurus, dan satu akun nonaktif untuk pengembangan; produksi memakai perintah koperasi:buat-admin."
+ },
+ "docs/database-postgresql.md": {
+  "summary": "Panduan menyiapkan PostgreSQL untuk aplikasi: membuat role dan database khusus aplikasi (bukan superuser), mengisi variabel DB di .env, menjalankan migrasi dan seeder, serta catatan keamanan hak akses."
+ },
+ "package-lock.json": {
+  "summary": "Lockfile npm yang mengunci versi paket frontend (Vite, Tailwind, Chart.js, axios, dan dependensinya)."
+ },
+ "package.json": {
+  "summary": "Manifest npm untuk aset frontend: build dan dev dengan Vite 7, Tailwind CSS 4 lewat plugin Vite, laravel-vite-plugin, axios, dan Chart.js untuk grafik penjualan."
+ },
+ "phpunit.xml": {
+  "summary": "Konfigurasi PHPUnit: suite Unit dan Feature, environment test dengan SQLite in-memory, cache dan sesi array, mail array, queue sync, dan bcrypt ringan."
+ },
+ "public/.htaccess": {
+  "summary": "Aturan Apache untuk Laravel: meneruskan header Authorization, menghapus garis miring di akhir URL, dan mengarahkan semua permintaan ke front controller index.php."
+ },
+ "public/index.php": {
+  "summary": "Front controller Laravel: memeriksa mode pemeliharaan, memuat autoloader Composer, mem-bootstrap aplikasi, dan menangani permintaan HTTP."
+ },
+ "public/robots.txt": {
+  "summary": "Berkas robots.txt yang mengizinkan semua crawler."
+ },
+ "resources/css/app.css": {
+  "summary": "Stylesheet Tailwind CSS 4: sumber kelas, font sans dan font display Amiri bernuansa madrasah, utilitas pattern-madrasah (ornamen bintang delapan emas) dan ornament-divider, serta gaya cetak struk."
+ },
+ "resources/js/app.js": {
+  "summary": "Entri JavaScript Vite: mendaftarkan komponen Alpine salesChart dan hook permintaan Livewire yang menampilkan toast merah saat gagal karena akses ditolak, koneksi putus, atau galat server (kecuali 419)."
+ },
+ "resources/js/bootstrap.js": {
+  "summary": "Inisialisasi axios global dengan header X-Requested-With untuk permintaan AJAX."
+ },
+ "resources/js/sales-chart.js": {
+  "summary": "Komponen Alpine grafik batang penjualan memakai Chart.js: label sumbu ringkas (rb/jt), tooltip rupiah dan jumlah transaksi, warna netral, dan pembaruan data saat Livewire mengirim titik grafik baru."
+ },
+ "resources/views/beranda.blade.php": {
+  "summary": "Halaman beranda publik bertema madrasah (dirender BerandaController): logo dan nama aplikasi, sapaan, deskripsi koperasi, kartu status buka hari ini dan statistik, layanan, pengumuman publik, barang populer, kategori, jam buka dan lokasi, serta tombol Masuk petugas; tanpa data pribadi."
+ },
+ "resources/views/components/brand/logo.blade.php": {
+  "summary": "Komponen Blade x-brand.logo: logo unggahan atau lambang bawaan, nama aplikasi (maksimal 2–3 baris, huruf mengecil untuk nama panjang), dan nama madrasah; varian light/dark dan ukuran sm/md/lg."
+ },
+ "resources/views/components/brand/mark.blade.php": {
+  "summary": "Komponen Blade x-brand.mark berupa SVG lambang koperasi bintang delapan (rub el hizb) emas dengan lingkaran hijau, dipakai bila logo belum diunggah."
+ },
+ "resources/views/components/laporan/delta.blade.php": {
+  "summary": "Komponen x-laporan.delta yang menampilkan persentase perubahan dibanding periode sebelumnya dengan ikon naik/turun dan teks agar tidak bergantung warna saja."
+ },
+ "resources/views/components/layouts/app.blade.php": {
+  "summary": "Layout utama aplikasi petugas: judul tab dengan nama aplikasi, sidebar hijau bermotif madrasah berisi logo, lonceng notifikasi, menu terkelompok sesuai hak peran, profil dan tombol keluar; drawer navigasi dan bar atas untuk ponsel, slot konten, serta komponen toast."
+ },
+ "resources/views/components/layouts/guest.blade.php": {
+  "summary": "Layout halaman tanpa sidebar (beranda publik dan login) dengan judul tab memakai nama aplikasi dari pengaturan."
+ },
+ "resources/views/components/pengaturan/nav.blade.php": {
+  "summary": "Komponen navigasi tab Pengaturan Koperasi: Ringkasan, Profil koperasi, Struk, serta Pajak & pembulatan, dengan penanda tab aktif."
+ },
+ "resources/views/components/stock-badge.blade.php": {
+  "summary": "Komponen x-stock-badge yang menampilkan status stok barang (habis, menipis, aman) berdasarkan stok, batas minimum, dan satuan."
+ },
+ "resources/views/components/toasts.blade.php": {
+  "summary": "Komponen x-toasts berbasis Alpine yang menampilkan notifikasi toast sukses/gagal dari event browser toast, dengan tombol aksi opsional (mis. Urungkan) yang mengirim event Livewire, serta menangani fokus ke isian error pertama."
+ },
+ "resources/views/components/transaksi/method-badge.blade.php": {
+  "summary": "Komponen x-transaksi.method-badge berupa lencana metode bayar Tunai atau QRIS/Transfer."
+ },
+ "resources/views/components/transaksi/row.blade.php": {
+  "summary": "Komponen x-transaksi.row untuk satu baris riwayat transaksi (varian tabel desktop atau kartu ponsel): waktu, invoice, kasir, anggota, jumlah barang, metode bayar, dan total dengan tautan ke detail."
+ },
+ "resources/views/errors/401.blade.php": {
+  "summary": "Halaman error 401 Silakan masuk dulu untuk halaman khusus petugas, memakai layout error bertema madrasah."
+ },
+ "resources/views/errors/403.blade.php": {
+  "summary": "Halaman error 403 Akses tidak diizinkan yang menampilkan pesan menu siapa yang boleh membuka dan tautan kembali ke halaman awal peran."
+ },
+ "resources/views/errors/404.blade.php": {
+  "summary": "Halaman error 404 Halaman tidak ditemukan dengan saran kembali ke halaman sebelumnya."
+ },
+ "resources/views/errors/419.blade.php": {
+  "summary": "Halaman error 419 Sesi sudah berakhir yang meminta muat ulang halaman lalu mengulangi langkah terakhir."
+ },
+ "resources/views/errors/429.blade.php": {
+  "summary": "Halaman error 429 Terlalu banyak permintaan yang meminta pengguna menunggu sebentar sebelum mencoba lagi."
+ },
+ "resources/views/errors/500.blade.php": {
+  "summary": "Halaman error 500 Terjadi kesalahan yang menenangkan bahwa transaksi tersimpan tetap aman dan menyarankan melapor ke admin bila berulang."
+ },
+ "resources/views/errors/503.blade.php": {
+  "summary": "Halaman mode perawatan 503 (php artisan down) yang memuat ulang otomatis tiap menit, dengan catatan akses petugas lewat secret."
+ },
+ "resources/views/errors/layout.blade.php": {
+  "summary": "Layout bersama halaman error bertema madrasah: logo dari pengaturan (aman bila database tidak tersedia), ornamen bintang dengan kode error, judul, pesan, dan tombol kembali."
+ },
+ "resources/views/kasir/receipt-pdf.blade.php": {
+  "summary": "Template PDF dompdf struk thermal: logo opsional, judul/sub-judul, alamat, telepon, nomor invoice, tanggal, kasir, anggota, item, subtotal, diskon, pajak dengan label dan tarif, pembulatan, total, pajak termasuk harga, bayar, kembali, catatan, dan kaki struk."
+ },
+ "resources/views/kasir/receipt-print.blade.php": {
+  "summary": "Halaman cetak ulang struk di browser dengan lebar 58/80 mm sesuai pengaturan, aturan @page untuk printer thermal, cetak otomatis opsional, dan tombol Cetak serta Kembali ke kasir."
+ },
+ "resources/views/laporan/rekap-pdf.blade.php": {
+  "summary": "Template PDF A4 rekap penjualan dari SalesExport::data: kepala koperasi dan rentang, ringkasan, rekap per hari, rincian transaksi, dan barang terjual."
+ },
+ "resources/views/livewire/akun/partials/tabs.blade.php": {
+  "summary": "Partial tab halaman Akun Saya untuk berpindah antara Ganti kata sandi dan Sesi aktif."
+ },
+ "resources/views/livewire/akun/password.blade.php": {
+  "summary": "View Livewire Ganti Kata Sandi: isian sandi lama, sandi baru, dan ulangi dengan indikator kekuatan (petunjuk saja), tombol simpan, dan panel tips menjaga amanah akun."
+ },
+ "resources/views/livewire/akun/sessions.blade.php": {
+  "summary": "View Livewire Sesi Aktif: daftar perangkat yang sedang masuk dengan peramban, IP, dan aktivitas terakhir, tombol akhiri sesi, dan form keluar dari semua perangkat lain dengan kata sandi."
+ },
+ "resources/views/livewire/anggota/index.blade.php": {
+  "summary": "View Livewire daftar Anggota & Tabungan: kartu ringkasan, filter pencarian/jenis/kelas/nonaktif, tabel atau kartu anggota dengan saldo, tombol tambah, dan panel form anggota."
+ },
+ "resources/views/livewire/anggota/partials/member-form.blade.php": {
+  "summary": "Partial panel geser form tambah/ubah anggota: jenis siswa/guru, kode (otomatis bila kosong), nama, kelas, telepon, dan status aktif."
+ },
+ "resources/views/livewire/anggota/partials/saving-form.blade.php": {
+  "summary": "Partial dialog setor/tarik tabungan: nominal dengan tombol nominal cepat, catatan, saldo sebelum dan sesudah, serta pesan bila saldo kurang."
+ },
+ "resources/views/livewire/anggota/partials/saving-history.blade.php": {
+  "summary": "Partial riwayat mutasi tabungan anggota dengan filter preset atau rentang tanggal dan jenis, total masuk/keluar, serta daftar setor/tarik beserta saldo sesudahnya."
+ },
+ "resources/views/livewire/anggota/show.blade.php": {
+  "summary": "View Livewire profil anggota: identitas, saldo tabungan, tombol setor/tarik, statistik tabungan, riwayat mutasi, dan dialog setor/tarik."
+ },
+ "resources/views/livewire/audit/index.blade.php": {
+  "summary": "View Livewire Audit & Riwayat: tab tampilan, filter periode/kategori/petugas/kata kunci, kartu ringkasan, aktivitas per petugas, daftar jejak per tanggal dengan ikon kategori, paginasi, tombol unduh CSV, dan panel rincian."
+ },
+ "resources/views/livewire/audit/partials/detail.blade.php": {
+  "summary": "Partial panel geser rincian satu aktivitas audit: waktu, petugas dan peran, objek dengan tautan, nominal, IP, perangkat, tabel perubahan sebelum/sesudah, daftar barang, keterangan lain, dan catatan bahwa audit permanen."
+ },
+ "resources/views/livewire/auth/login.blade.php": {
+  "summary": "View Livewire halaman Masuk Petugas bertema madrasah: panel identitas dengan basmalah dan motto, form email dan kata sandi (tampil/sembunyi), ingat saya, status kunci percobaan, daftar akun demo lokal, dan tautan kembali ke beranda."
+ },
+ "resources/views/livewire/barang/index.blade.php": {
+  "summary": "View Livewire Barang & Stok: kartu ringkasan stok yang bisa diklik sebagai filter, pencarian, kategori, status, urutan, tabel/kartu barang dengan lencana stok, panel stok menipis, paginasi, form barang, dan dialog batas minimum."
+ },
+ "resources/views/livewire/barang/min-stock-settings.blade.php": {
+  "summary": "View dialog pengaturan batas minimum stok: isi nilai ke satu kategori, tabel batas per barang, dan batas bawaan barang baru, dengan tombol simpan."
+ },
+ "resources/views/livewire/barang/partials/low-stock-panel.blade.php": {
+  "summary": "Partial panel peringatan barang aktif yang habis atau menipis, paling kritis di atas, dengan saran jumlah restok."
+ },
+ "resources/views/livewire/barang/partials/pagination.blade.php": {
+  "summary": "Partial paginasi daftar barang: info rentang baris, pilihan jumlah per halaman, dan tombol halaman sebelumnya/berikutnya."
+ },
+ "resources/views/livewire/barang/partials/product-form.blade.php": {
+  "summary": "Partial panel geser form tambah/ubah barang: kode, nama, kategori, harga jual dan modal dengan margin, stok, batas minimum, satuan, dan status aktif."
+ },
+ "resources/views/livewire/kasir/cart.blade.php": {
+  "summary": "View keranjang kasir: daftar item dengan ubah jumlah dan hapus/urungkan, subtotal, baris pajak (label dan tarif), pembulatan, total, keterangan pajak termasuk harga, ringkasan ponsel yang bisa dibuka, dan tombol Bayar (F9)."
+ },
+ "resources/views/livewire/kasir/index.blade.php": {
+  "summary": "View Layar Kasir: header dengan tanggal dan petugas, area pemilih barang, dan keranjang."
+ },
+ "resources/views/livewire/kasir/partials/payment-panel.blade.php": {
+  "summary": "Partial panel pembayaran kasir: total per metode bayar (Alpine) termasuk keterangan pembulatan, pilihan Tunai/QRIS, uang dibayar dengan nominal cepat dan kembalian instan, lalu dialog transaksi berhasil dengan struk, tautan struk/PDF, dan pintasan cetak."
+ },
+ "resources/views/livewire/kasir/partials/receipt.blade.php": {
+  "summary": "Partial struk thermal 58/80 mm yang dipakai kasir, cetak ulang, dan pratinjau pengaturan: logo opsional, judul/sub-judul, alamat, telepon, invoice, kasir, anggota, item, pajak berlabel, pembulatan, total, pajak termasuk harga, bayar, kembali, catatan, dan kaki struk."
+ },
+ "resources/views/livewire/kasir/product-picker.blade.php": {
+  "summary": "View pemilih barang kasir: kolom cari dengan pintasan F2 dan Enter, chip kategori, dan grid kartu barang dengan harga dan sisa stok."
+ },
+ "resources/views/livewire/laporan/index.blade.php": {
+  "summary": "View Livewire Laporan & Rekap: kartu penjualan hari ini, pilihan periode, ringkasan omzet/laba/transaksi dengan perbandingan, barang terlaris, grafik penjualan, dan panel unduh rekap."
+ },
+ "resources/views/livewire/laporan/partials/export-panel.blade.php": {
+  "summary": "Partial panel unduh laporan: rentang tanggal, format CSV/PDF, dan pilihan bagian rekap yang disertakan."
+ },
+ "resources/views/livewire/laporan/partials/sales-chart.blade.php": {
+  "summary": "Partial grafik penjualan batang (Alpine salesChart dengan Chart.js) dengan pemilih periode, total dan titik tertinggi, serta tabel data sebagai alternatif aksesibel."
+ },
+ "resources/views/livewire/laporan/partials/today-card.blade.php": {
+  "summary": "Partial kartu penjualan hari ini: omzet, transaksi, dan barang dibanding kemarin sampai jam yang sama, grafik mini per jam, dan barang terlaris hari ini."
+ },
+ "resources/views/livewire/notifikasi/announcements.blade.php": {
+  "summary": "View Livewire Buat Pengumuman: form judul, isi, sasaran, tampil di beranda publik, dan tanggal berakhir; pratinjau kartu pengumuman serta daftar pengumuman yang dibuat dengan pembuat dan tombol hapus sesuai hak."
+ },
+ "resources/views/livewire/notifikasi/bell.blade.php": {
+  "summary": "View lonceng notifikasi: badge jumlah belum dibaca (9+), panel pratinjau notifikasi terbaru dengan tandai dibaca dan tandai semua, tautan lihat semua, dan polling 60 detik."
+ },
+ "resources/views/livewire/notifikasi/index.blade.php": {
+  "summary": "View Livewire halaman Notifikasi: tombol buat pengumuman dan tandai semua dibaca, tab filter dengan jumlah, pilih semua dan aksi massal, serta daftar per hari dengan ikon jenis, sasaran, tautan, dan tandai dibaca."
+ },
+ "resources/views/livewire/pengaturan/index.blade.php": {
+  "summary": "View ringkasan Pengaturan Koperasi: kartu profil dengan logo, contoh kepala/kaki struk, pajak & pembulatan dengan contoh hitungan, jam buka, batas stok bawaan, dan panel kelengkapan profil."
+ },
+ "resources/views/livewire/pengaturan/profile.blade.php": {
+  "summary": "View form Profil Koperasi: identitas (nama, nama singkat, nama aplikasi, madrasah, motto), unggah/hapus logo, alamat dan kontak, editor jam buka per hari, peringatan perubahan belum disimpan, mode baca saja untuk non-admin, dan pratinjau kepala struk serta beranda."
+ },
+ "resources/views/livewire/pengaturan/receipt.blade.php": {
+  "summary": "View form Pengaturan Struk: judul dan sub-judul, centang tampil logo/alamat/telepon/kasir/anggota, catatan, tulisan kaki, pilihan kertas 58/80 mm, kembalikan bawaan, mode baca saja, dan pratinjau struk langsung."
+ },
+ "resources/views/livewire/pengaturan/tax.blade.php": {
+  "summary": "View form Pajak & Pembulatan: sakelar pajak, nama dan tarif, termasuk harga atau ditambahkan, cara dan kelipatan pembulatan, khusus tunai, mode baca saja, serta kalkulator contoh tunai vs QRIS."
+ },
+ "resources/views/livewire/pengguna/index.blade.php": {
+  "summary": "View Livewire Kelola Pengguna: ringkasan akun, filter, daftar petugas dengan peran, status, login terakhir, aksi ubah dan aktif/nonaktifkan, serta editor hak menu per peran."
+ },
+ "resources/views/livewire/pengguna/partials/user-form.blade.php": {
+  "summary": "Partial panel geser form tambah/ubah akun petugas: nama, email, pilihan peran dengan penjelasan, kata sandi awal atau atur ulang, dan status aktif (akun sendiri selalu aktif)."
+ },
+ "resources/views/livewire/transaksi/index.blade.php": {
+  "summary": "View Livewire Riwayat Transaksi: pilihan periode dan rentang tanggal, ringkasan periode, daftar transaksi per hari dengan jumlah dan total harian, serta paginasi."
+ },
+ "resources/views/livewire/transaksi/partials/pagination.blade.php": {
+  "summary": "Partial paginasi riwayat transaksi dengan info rentang baris dan tombol halaman."
+ },
+ "resources/views/livewire/transaksi/partials/summary.blade.php": {
+  "summary": "Partial ringkasan periode riwayat transaksi: jumlah transaksi, total penjualan, perbandingan dengan periode sebelumnya, dan rincian per metode bayar."
+ },
+ "resources/views/livewire/transaksi/show.blade.php": {
+  "summary": "View Livewire detail transaksi: navigasi lebih baru/lama, tabel item dengan subtotal, diskon, pajak berlabel, pembulatan, total, pajak termasuk harga, info waktu/kasir/anggota/invoice, pembayaran, dan tautan cetak/unduh struk."
+ },
+ "routes/console.php": {
+  "summary": "Rute konsol: perintah inspire bawaan dan notifikasi:stok untuk menyelaraskan peringatan stok menipis/habis lewat NotificationService, dijadwalkan harian pukul 06.30."
+ },
+ "routes/web.php": {
+  "summary": "Seluruh rute web: beranda publik dan logo, masuk/keluar, akun (sandi, sesi), kasir dan struk, transaksi, barang dan stok, anggota dan tabungan, laporan dan unduh rekap, audit, pengguna, pengaturan (data, logo, reset), serta notifikasi dan pengumuman; dibatasi middleware menu:<kunci>, peran:<nama>, can:ubah-pengaturan, dan throttle."
+ },
+ "tests/Feature/Anggota/IndexTest.php": {
+  "summary": "Feature test halaman Anggota: daftar anggota aktif beserta saldo, filter pencarian/jenis/kelas, dan memilih guru mengosongkan filter kelas serta memperbarui ringkasan."
+ },
+ "tests/Feature/Anggota/MemberCodeGeneratorTest.php": {
+  "summary": "Test MemberCodeGenerator: kode pertama per jenis dan tahun, melanjutkan nomor terbesar tanpa terpengaruh prefiks lain, nomor tumbuh melewati 3 digit, serta create memberi kode otomatis atau mempertahankan kode manual."
+ },
+ "tests/Feature/Anggota/MemberEndpointTest.php": {
+  "summary": "Test endpoint JSON anggota: POST /anggota membuat kode otomatis dan merapikan data, validasi, PUT mempertahankan saldo, show dan hapus, daftar dengan filter/urutan/statistik, serta pencarian cepat hanya anggota aktif."
+ },
+ "tests/Feature/Anggota/MemberFormTest.php": {
+  "summary": "Test form Livewire anggota: tambah siswa dengan saran kode, beralih ke guru memperbarui kode dan mengosongkan kelas, siswa wajib kelas dan kode unik, serta ubah anggota tanpa mengubah saldo."
+ },
+ "tests/Feature/Anggota/SavingFormTest.php": {
+  "summary": "Test dialog setor/tarik di profil anggota: setoran memperbarui saldo dan riwayat, penarikan tidak boleh melebihi saldo, nominal minimum dan anggota nonaktif ditolak, serta daftar menampilkan saldo terbaru."
+ },
+ "tests/Feature/Anggota/SavingHistoryTest.php": {
+  "summary": "Test riwayat tabungan di profil anggota: urutan terbaru dulu dengan saldo berjalan, preset dan rentang kustom, filter jenis dengan total periode, rentang tidak valid, dan setoran baru muncul paling atas."
+ },
+ "tests/Feature/Anggota/SavingsEndpointTest.php": {
+  "summary": "Test endpoint POST tabungan anggota: setor lalu tarik memperbarui saldo dan mutasi, penarikan melebihi saldo ditolak, validasi nominal/jenis/anggota, dan saldo tetap dicek dari baris terkunci walau model usang."
+ },
+ "tests/Feature/Anggota/SavingsHistoryEndpointTest.php": {
+  "summary": "Test endpoint GET riwayat tabungan anggota: saldo, statistik, dan riwayat terbaru dulu, filter preset/rentang kustom/jenis, anggota tanpa riwayat, dan validasi parameter."
+ },
+ "tests/Feature/Anggota/ShowTest.php": {
+  "summary": "Test halaman profil anggota: identitas dan saldo tampil, riwayat tabungan cocok dengan saldo, daftar anggota bertaut ke profil, dan anggota tak dikenal menghasilkan 404."
+ },
+ "tests/Feature/Audit/AuditLogTest.php": {
+  "summary": "Test pencatatan audit: penjualan dengan pelaku, item, dan nominal; penjualan gagal tidak tercatat; perubahan barang sebelum/sesudah; anggota dan tabungan; login, logout, dan login gagal; log hanya-tambah; serta kelola pengguna."
+ },
+ "tests/Feature/Audit/AuditPageTest.php": {
+  "summary": "Test halaman Audit & Riwayat: admin dan pengurus bisa membuka sedangkan kasir tidak, ringkasan dan filter tampilan, panel rincian perubahan, unduh CSV yang ikut diaudit, dan seeder demo yang mengisi riwayat."
+ },
+ "tests/Feature/Auth/ChangePasswordTest.php": {
+  "summary": "Test ganti kata sandi: wajib login, halaman untuk semua peran, endpoint JSON yang mengakhiri sesi lain, aturan validasi sandi, dan tautan di sidebar."
+ },
+ "tests/Feature/Auth/LoginTest.php": {
+  "summary": "Test login petugas: halaman masuk dengan akun demo, login berhasil dan redirect, sandi salah dan validasi, akun nonaktif ditolak, kunci setelah 5 kegagalan, logout, endpoint JSON, redirect ke halaman tujuan, dan sesi nyata mengatur menu serta guard."
+ },
+ "tests/Feature/Auth/RoleMenuTest.php": {
+  "summary": "Test menu per peran: sidebar kasir menyembunyikan laporan dan halaman ditolak, pengurus tidak bisa membuka kasir dan mendarat di laporan, tamu diarahkan ke login lalu kembali, dan pesan 403 menjelaskan peran yang boleh."
+ },
+ "tests/Feature/Auth/RoleMiddlewareTest.php": {
+  "summary": "Test middleware akses: hak menu dibaca dari tabel roles, endpoint JSON dijaga per menu, middleware peran, aksi Livewire menjalankan ulang pembatas rute, dan halaman akun cukup login."
+ },
+ "tests/Feature/Auth/SessionManagementTest.php": {
+  "summary": "Test manajemen sesi: logout JSON dengan audit, akun yang dinonaktifkan dikeluarkan pada permintaan berikutnya, sesi idle berakhir, daftar dan cabut sesi lain, halaman sesi, tamu ditolak, dan deskripsi user agent."
+ },
+ "tests/Feature/Barang/IndexTest.php": {
+  "summary": "Test halaman Barang & Stok: daftar barang dengan stok, pencarian dan filter kategori, urut stok terendah, statistik menipis/habis/nonaktif, dan filter status."
+ },
+ "tests/Feature/Barang/LowStockPanelTest.php": {
+  "summary": "Test panel stok menipis: barang habis di atas lalu menipis, saran restok dan aksi, barang nonaktif dikecualikan dan restok menghapus peringatan, filter menipis, serta badge peringatan di sidebar."
+ },
+ "tests/Feature/Barang/MinStockSettingsTest.php": {
+  "summary": "Test dialog batas minimum stok: nilai awal, ubah satu barang dan simpan, terapkan ke kategori, tolak nilai negatif dan simpan bawaan barang baru, serta daftar dimuat ulang setelah disimpan."
+ },
+ "tests/Feature/Barang/PaginationTest.php": {
+  "summary": "Test paginasi daftar barang: halaman pertama 10 dari 14 barang, halaman berikutnya, pencarian kembali ke halaman 1, dan pilihan jumlah per halaman."
+ },
+ "tests/Feature/Barang/ProductEndpointTest.php": {
+  "summary": "Test endpoint JSON barang: POST /barang membuat barang, validasi, PUT memperbarui, serta menolak kode milik barang lain dan barang yang tidak ada."
+ },
+ "tests/Feature/Barang/ProductFormTest.php": {
+  "summary": "Test form Livewire barang: tambah dan ubah barang, validasi kode duplikat dan isian wajib, kode sendiri tetap sah saat mengubah, perubahan stok dari form tercatat sebagai penyesuaian, dan barang tersimpan muncul di daftar."
+ },
+ "tests/Feature/Barang/ProductListEndpointTest.php": {
+  "summary": "Test endpoint GET /barang/daftar: paginasi dengan meta dan statistik, filter dan urutan, halaman di luar jangkauan jatuh ke halaman terakhir, dan validasi query."
+ },
+ "tests/Feature/Barang/StockAlertEndpointTest.php": {
+  "summary": "Test endpoint stok menipis dan batas minimum: daftar barang menipis, ambil batas dengan nilai bawaan, ubah per barang/kategori/bawaan, dan validasi."
+ },
+ "tests/Feature/BerandaTest.php": {
+  "summary": "Test beranda publik: profil koperasi, barang populer, dan jam buka tampil, serta perhitungan status buka/tutup."
+ },
+ "tests/Feature/Database/MemberModelTest.php": {
+  "summary": "Test model Member: nilai bawaan, cast, dan display_name; saldo tidak mass-assignable; kode unik tanpa membedakan huruf; scope; transaksi terlepas saat anggota dihapus; dan constraint PostgreSQL."
+ },
+ "tests/Feature/Database/NotificationSchemaTest.php": {
+  "summary": "Test skema notifikasi: kolom tabel notifications dan notification_reads, status baca per pengguna, dedupe_key unik, scope forRole/active/public, penghapusan pengguna/barang, dan constraint CHECK PostgreSQL untuk type, target, dan show_public."
+ },
+ "tests/Feature/Database/ProductObserverTest.php": {
+  "summary": "Test ProductObserver: barang baru dengan stok mencatat stok awal, tanpa stok tidak mencatat, update model langsung tercatat, perubahan via StockService tidak tercatat ganda, dan riwayat menyimpan petugas yang login."
+ },
+ "tests/Feature/Database/ProductTransactionSchemaTest.php": {
+  "summary": "Test skema barang dan transaksi: kolom sesuai PRD, transaksi dengan item dan relasi, kode barang unik, snapshot item tetap saat barang dihapus, penyimpanan settings, dan state factory barang."
+ },
+ "tests/Feature/Database/SavingsTransactionModelTest.php": {
+  "summary": "Test model SavingsTransaction: relasi, cast, dan label; scope; anggota yang punya riwayat tidak bisa dihapus; dan constraint PostgreSQL."
+ },
+ "tests/Feature/Database/SettingsSchemaTest.php": {
+  "summary": "Test tabel settings: kolom group, type, dan updated_by; nilai kembali dengan tipe yang benar (bool, int, float, json); false dan null tidak tertukar dengan bawaan; cache diperbarui dan editor dicatat; kunci unik."
+ },
+ "tests/Feature/Database/StockServiceTest.php": {
+  "summary": "Test StockService: stok masuk mencatat mutasi dengan snapshot, stok keluar dan stok tidak cukup, penyesuaian ke hitungan fisik, jumlah tidak valid ditolak, dan riwayat terbaru dulu."
+ },
+ "tests/Feature/Database/TransactionModelTest.php": {
+  "summary": "Test model Transaction: checkout menyimpan item_count, factory membangun total konsisten, scope, dan seeder demo membuat riwayat tanpa mengubah stok."
+ },
+ "tests/Feature/Database/TransactionSeederTest.php": {
+  "summary": "Test TransactionSeeder: membuat riwayat penjualan konsisten tanpa mengubah stok dan dilewati bila transaksi sudah ada."
+ },
+ "tests/Feature/Database/UserRoleTest.php": {
+  "summary": "Test peran pengguna: peran bawaan dengan hak menu, helper peran dan hashing sandi, peran yang dipakai tidak bisa dihapus, seeder demo idempoten, dan perintah koperasi:buat-admin."
+ },
+ "tests/Feature/ErrorPagesTest.php": {
+  "summary": "Test halaman error bertema: 404, 500 dan 403 dengan pesan yang sesuai, serta halaman mode perawatan 503."
+ },
+ "tests/Feature/ExampleTest.php": {
+  "summary": "Test dasar: root menampilkan beranda publik dan layar kasir dapat dirender untuk petugas."
+ },
+ "tests/Feature/Kasir/CartTest.php": {
+  "summary": "Test keranjang kasir: barang dipilih terakumulasi dan total berubah, jumlah dibatasi stok, kurangi sampai nol menghapus baris, kosongkan keranjang, tambah dan ubah jumlah langsung, serta hapus bisa diurungkan."
+ },
+ "tests/Feature/Kasir/CheckoutTest.php": {
+  "summary": "Test CheckoutService dan endpoint kasir: transaksi menyimpan item dan mengurangi stok, nomor invoice bertambah, stok kurang membatalkan semuanya, bayar kurang ditolak, barang nonaktif tidak bisa dijual, endpoint JSON, pembayaran dari keranjang, dan pesan bila stok habis di tengah jalan."
+ },
+ "tests/Feature/Kasir/PaymentTest.php": {
+  "summary": "Test panel bayar kasir: butuh barang, pembayaran tunai menghitung kembalian dan mengosongkan keranjang, bayar kurang ditolak, non-tunai pas, transaksi baru mereset dialog, dan dialog sukses menampilkan struk siap cetak."
+ },
+ "tests/Feature/Kasir/ProductPickerTest.php": {
+  "summary": "Test pemilih barang kasir: filter nama/kode dan kategori, memilih mengirim event, barang stok habis tidak bisa dipilih, dan Enter memilih kode persis lalu mengosongkan pencarian."
+ },
+ "tests/Feature/Kasir/ProductSearchTest.php": {
+  "summary": "Test endpoint pencarian barang kasir: tidak peka huruf besar/kecil, cari kode dan kategori, pencarian kode persis, barang nonaktif tersembunyi, wildcard LIKE di-escape, kode persis diurutkan pertama, dan validasi input."
+ },
+ "tests/Feature/Kasir/ReceiptPdfTest.php": {
+  "summary": "Test struk PDF: disimpan sekali di folder bertanggal, endpoint PDF inline dan unduh, serta pembayaran dari keranjang membuat PDF struk."
+ },
+ "tests/Feature/Kasir/ReceiptSettingsIntegrationTest.php": {
+  "summary": "Test integrasi pengaturan ke cetak struk: halaman cetak memakai profil dan pengaturan struk tersimpan, logo dicetak hanya bila diaktifkan dan tersedia, PDF tersimpan dibuat ulang setelah pengaturan berubah (58→80 mm), dan tinggi PDF bertambah sesuai baris."
+ },
+ "tests/Feature/Kasir/TaxRoundingCheckoutTest.php": {
+  "summary": "Test pajak dan pembulatan di kasir: tanpa pajak total = subtotal, pajak ditambahkan dengan pembulatan tunai, pajak termasuk harga dengan pembulatan ke bawah semua metode, uang tunai harus menutup total dibulatkan, snapshot tetap setelah pengaturan berubah, serta total per metode di keranjang dan QRIS tanpa pembulatan."
+ },
+ "tests/Feature/Kasir/TransactionReceiptTest.php": {
+  "summary": "Test struk transaksi: detail JSON berisi data struk, halaman struk siap cetak, struk mempertahankan snapshot setelah barang berubah, dan transaksi tidak ada menghasilkan 404."
+ },
+ "tests/Feature/Laporan/IndexTest.php": {
+  "summary": "Test halaman Laporan: bawaan hari ini, periode panjang mencakup lebih banyak penjualan, barang terlaris, periode tidak valid diabaikan, kartu hari ini independen, perbandingan kemarin sampai jam sama, titik grafik harian/mingguan, perbandingan periode setara, serta rentang dan unduhan CSV beserta validasinya."
+ },
+ "tests/Feature/Laporan/SalesExportEndpointTest.php": {
+  "summary": "Test endpoint unduh rekap: CSV dengan bagian bawaan, rincian transaksi urut waktu, unduhan PDF, validasi, PDF menolak terlalu banyak baris rincian, dan panel halaman mengunduh PDF."
+ },
+ "tests/Feature/Laporan/SalesReportEndpointTest.php": {
+  "summary": "Test endpoint laporan JSON: ringkasan hari ini dengan dan tanpa penjualan, ringkasan periode dan grafik, grafik pilihan cepat dengan total dan puncak, grafik rentang kustom dengan satuan otomatis atau dipilih, dan validasi."
+ },
+ "tests/Feature/Laporan/SalesReportTest.php": {
+  "summary": "Test SalesReport: ringkasan dengan laba kotor dan margin, laba memakai snapshot harga modal, perbandingan periode setara, kartu hari ini, barang terlaris dan rekap harian, serta titik grafik yang mengisi hari kosong dan mengelompokkan minggu."
+ },
+ "tests/Feature/Notifikasi/AnnouncementEndpointTest.php": {
+  "summary": "Test API pengumuman: pengurus menerbitkan pengumuman untuk anggota yang masuk ke notifikasi petugas lain dan beranda publik, pengumuman khusus petugas tidak pernah publik, validasi, daftar dan ubah milik sendiri, pengurus tidak bisa mengubah milik orang lain sedangkan admin bisa, hanya pengumuman yang bisa dikelola, dan kasir/tamu ditolak."
+ },
+ "tests/Feature/Notifikasi/AnnouncementTest.php": {
+  "summary": "Test halaman Buat Pengumuman: pengurus menerbitkan pengumuman yang tampil di notifikasi dan beranda publik, pengumuman khusus petugas tidak publik dan bersasaran peran, validasi dan masa berlaku, serta hapus dan pembatasan akses."
+ },
+ "tests/Feature/Notifikasi/BellTest.php": {
+  "summary": "Test lonceng notifikasi: badge dan pratinjau, badge maksimal 9+, tandai dibaca dan tandai semua, buka tautan sekaligus menandai dibaca, dan memuat ulang saat halaman menandai semua."
+ },
+ "tests/Feature/Notifikasi/IndexTest.php": {
+  "summary": "Test halaman Notifikasi: daftar peringatan stok dan pengumuman, filter dan status baca, membuka notifikasi stok menuju daftar barang terfilter, badge lonceng dan sasaran per peran, serta wajib login."
+ },
+ "tests/Feature/Notifikasi/MarkReadEndpointTest.php": {
+  "summary": "Test API tandai notifikasi: tandai dibaca dan belum dibaca, tandai semua dengan filter opsional, id di luar kotak sendiri diabaikan, validasi, sembunyikan hanya untuk diri sendiri dan bukan peringatan stok, serta wajib login."
+ },
+ "tests/Feature/Notifikasi/MarkReadTest.php": {
+  "summary": "Test aksi massal di halaman Notifikasi: tandai notifikasi terpilih dibaca/belum, pilih semua yang terlihat, tandai semua dibaca bisa diurungkan, dan tanpa pilihan tidak terjadi apa-apa."
+ },
+ "tests/Feature/Notifikasi/NotificationEndpointTest.php": {
+  "summary": "Test API daftar notifikasi: urutan terbaru dengan jumlah per saringan, filter dan batas, pratinjau lonceng, sasaran per peran, status baca per pengguna, tidak bisa menandai di luar kotak sendiri, sinkron peringatan stok sekali dan hilang saat restok, serta wajib login."
+ },
+ "tests/Feature/Notifikasi/NotificationModelTest.php": {
+  "summary": "Test model Notification: kotak notifikasi mengikuti peran, masa berlaku, dan urutan; status baca per pengguna; sembunyikan hanya untuk satu pengguna; relasi pembuat dan label; dan User tetap bisa menerima notifikasi yang dirutekan."
+ },
+ "tests/Feature/Notifikasi/StockAlertAutomationTest.php": {
+  "summary": "Test notifikasi otomatis stok menipis: seeder membuat peringatan awal, penjualan yang menurunkan stok memberi tahu pengurus (menipis lalu habis), restok menghapus peringatan dan kekurangan baru belum dibaca lagi, perubahan batas minimum, nonaktif/hapus barang, barang baru tanpa stok, perubahan yang di-rollback tidak memberi tahu, dan perintah terjadwal notifikasi:stok."
+ },
+ "tests/Feature/Pengaturan/IndexTest.php": {
+  "summary": "Test halaman ringkasan Pengaturan: render ringkasan, menu khusus admin, contoh hitungan pajak dan pembulatan, dan penanda pengubah terakhir."
+ },
+ "tests/Feature/Pengaturan/LogoEndpointTest.php": {
+  "summary": "Test API logo: unggah menyimpan berkas dan ditayangkan publik dengan header cache dan nosniff, mengganti logo menghapus berkas lama, hapus logo, reset profil menghapus berkas, unggahan tidak valid (ukuran, dimensi, PDF, SVG) ditolak, hanya admin, path tak dikenal/traversal tidak dilayani, dan nilai logo aneh diabaikan."
+ },
+ "tests/Feature/Pengaturan/ProfileTest.php": {
+  "summary": "Test form Profil Koperasi: terisi awal, simpan memperbarui profil, struk, dan beranda publik, validasi, nama aplikasi dipakai di judul dan kembali ke nama singkat bila kosong, unggah/hapus logo sebagai berkas, pengelompokan jam buka dan status, serta khusus admin."
+ },
+ "tests/Feature/Pengaturan/ReceiptSettingsTest.php": {
+  "summary": "Test form Pengaturan Struk: pratinjau langsung, pengaturan tersimpan membentuk struk sebenarnya, serta validasi dan kembalikan bawaan."
+ },
+ "tests/Feature/Pengaturan/SaveNotificationTest.php": {
+  "summary": "Test toast simpan: toast sukses, toast gagal yang menghitung isian salah dan mempertahankan error per isian, serta kontainer toast ada di setiap halaman aplikasi."
+ },
+ "tests/Feature/Pengaturan/SettingsAuthorizationTest.php": {
+  "summary": "Test otorisasi ubah pengaturan: hanya admin lolos gate ubah-pengaturan, peran yang diberi menu bisa membaca tetapi tidak menulis lewat API, form Livewire mode baca saja dengan audit penolakan, admin tetap bisa mengubah, admin nonaktif ditolak, dan peran admin wajib tetap memegang menu Pengaturan."
+ },
+ "tests/Feature/Pengaturan/SettingsEndpointTest.php": {
+  "summary": "Test API pengaturan: GET semua bagian dengan bawaan, hanya admin, simpan sebagian dan pencatat pengubah, validasi jadwal dan hari yang tidak dikirim dianggap tutup, aturan struk, aturan pajak yang memakai nilai tersimpan, reset bagian, dan logo tidak bisa diubah lewat update."
+ },
+ "tests/Feature/Pengaturan/SettingsServiceTest.php": {
+  "summary": "Test SettingsService: bawaan dipakai bila belum ada yang disimpan, hanya kunci dikenal yang berubah disimpan beserta pengubah, nilai bertahan antar permintaan, perubahan diaudit tanpa isi logo, reset ke bawaan, dan bagian tak dikenal ditolak."
+ },
+ "tests/Feature/Pengaturan/TaxSettingsTest.php": {
+  "summary": "Test form Pajak & Pembulatan: aturan kalkulator, simpan dan ringkasan ikut berubah, tarif desimal berkoma dan validasinya, serta khusus admin."
+ },
+ "tests/Feature/Pengguna/IndexTest.php": {
+  "summary": "Test Kelola Pengguna: admin melihat akun dan hak peran, hanya admin yang bisa membuka, membuat akun yang bisa login, validasi, sandi tetap bila kosong dan atur ulang mengakhiri sesi, aktif/nonaktif dengan perlindungan akun sendiri, admin aktif terakhir dilindungi, endpoint JSON, dan ubah hak menu peran."
+ },
+ "tests/Feature/Transaksi/DateFilterTest.php": {
+  "summary": "Test filter tanggal riwayat transaksi: preset hari ini/kemarin, 7 hari dan bulan ini, rentang kustom dan validasinya, ringkasan mengikuti filter dan reset, query string memulihkan rentang, perbandingan periode sebelumnya per metode, dan tanpa perbandingan bila tanpa rentang."
+ },
+ "tests/Feature/Transaksi/IndexTest.php": {
+  "summary": "Test halaman Riwayat Transaksi: transaksi terbaru dulu, pengelompokan per hari dengan total harian lintas halaman, dan tampilan kosong."
+ },
+ "tests/Feature/Transaksi/NavigationTest.php": {
+  "summary": "Test navigasi transaksi: baris daftar bertaut ke detail, detail dengan tautan lebih baru/lama, transaksi terbaru tanpa tautan lebih baru dan id tak dikenal 404, serta detail menampilkan item, pembayaran, dan struk."
+ },
+ "tests/Feature/Transaksi/TransactionDetailEndpointTest.php": {
+  "summary": "Test endpoint rincian transaksi: detail lengkap dengan item dan tautan, snapshot item tetap saat barang dihapus, tetangga mengikuti urutan daftar, nama anggota, dan transaksi tak dikenal 404."
+ },
+ "tests/Feature/Transaksi/TransactionListEndpointTest.php": {
+  "summary": "Test endpoint daftar transaksi: paginasi terbaru dulu dengan meta, filter tanggal, metode, dan nomor invoice, serta validasi query."
+ },
+ "tests/Feature/Transaksi/TransactionSummaryEndpointTest.php": {
+  "summary": "Test endpoint ringkasan transaksi: hari ini dibanding kemarin, rentang kustom menimpa preset dan semua tanpa perbandingan, perubahan null bila periode sebelumnya kosong, daftar menerima preset, dan validasi preset."
+ },
+ "tests/TestCase.php": {
+  "summary": "Kelas dasar test aplikasi: otomatis login sebagai akun demo sesuai properti loginAs (bawaan admin, null untuk tamu) via UserSeeder, serta helper loginAs(peran atau email), pid(kode barang), dan mid(kode anggota)."
+ },
+ "tests/Unit/ExampleTest.php": {
+  "summary": "Contoh unit test bawaan Laravel yang memastikan true bernilai true."
+ },
+ "vite.config.js": {
+  "summary": "Konfigurasi Vite: plugin Laravel dengan entri resources/css/app.css dan resources/js/app.js serta auto-refresh, plugin Tailwind CSS 4, dan watcher yang mengabaikan Blade terkompilasi."
+ }
+}
