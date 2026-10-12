@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Anggota\MemberController;
+use App\Http\Controllers\Anggota\SavingsController;
 use App\Http\Controllers\Barang\ProductController;
 use App\Http\Controllers\Barang\ProductListController;
 use App\Http\Controllers\Barang\StockAlertController;
@@ -89,6 +90,10 @@ Route::delete('/anggota/{member}', [MemberController::class, 'destroy'])
     ->whereNumber('member')
     ->middleware('throttle:30,1')
     ->name('anggota.destroy');
+Route::post('/anggota/{member}/tabungan', [SavingsController::class, 'store'])
+    ->whereNumber('member')
+    ->middleware('throttle:60,1')
+    ->name('anggota.savings.store');
 Route::get('/anggota/{member}', Anggota\Show::class)
     ->whereNumber('member')
     ->name('anggota.show');
