@@ -22,6 +22,17 @@ class Cart extends Component
     /** Item terakhir yang dihapus, agar bisa diurungkan: ['id' => int, 'qty' => int, 'name' => string]. */
     public ?array $lastRemoved = null;
 
+    public bool $paying = false;
+
+    public string $paymentMethod = 'tunai';
+
+    public ?int $paid = null;
+
+    /** Ringkasan transaksi terakhir yang berhasil dibayar (data tiruan sampai backend siap). */
+    public ?array $lastTransaction = null;
+
+    public const PAYMENT_METHODS = ['tunai' => 'Tunai', 'qris' => 'QRIS / Transfer'];
+
     #[On('product-picked')]
     public function add(int $productId): void
     {
@@ -85,6 +96,75 @@ class Cart extends Component
         $this->items = [];
         $this->notice = null;
         $this->lastRemoved = null;
+    }
+
+    public function openPayment(): void
+    {
+        if ($this->summary['count'] === 0) {
+            return;
+        }
+
+        $this->resetValidation();
+        $this->paymentMethod = 'tunai';
+        $this->paid = null;
+        $this->paying = true;
+    }
+
+    public function closePayment(): void
+    {
+        $this->paying = false;
+    }
+
+    /**
+     * Konfirmasi pembayaran. Saat ini hanya membuat transaksi tiruan;
+     * penyimpanan ke database & pengurangan stok menyusul di layer backend.
+     */
+    public function pay(): void
+    {
+        $summary = $this->summary;
+        if ($summary['count'] === 0) {
+            return;
+        }
+
+        if ($this->paymentMethod !== 'tunai') {
+            $this->paid = $summary['total'];
+        }
+
+        $this->validate([
+            'paymentMethod' => ['required', 'in:'.implode(',', array_keys(self::PAYMENT_METHODS))],
+            'paid' => ['required', 'integer', 'min:'.$summary['total']],
+        ], [
+            'paid.required' => 'Masukkan jumlah uang yang dibayar.',
+            'paid.min' => 'Uang bayar kurang dari total belanja.',
+        ]);
+
+        $this->lastTransaction = [
+            'invoice_number' => 'INV-'.now()->format('Ymd-His'),
+            'created_at' => now()->toDateTimeString(),
+            'items' => array_map(fn ($l) => [
+                'product_name' => $l['name'],
+                'price' => $l['price'],
+                'quantity' => $l['quantity'],
+                'subtotal' => $l['subtotal'],
+            ], $this->lines),
+            'subtotal' => $summary['subtotal'],
+            'tax' => $summary['tax'],
+            'total' => $summary['total'],
+            'paid' => $this->paid,
+            'change' => $this->paid - $summary['total'],
+            'payment_method' => $this->paymentMethod,
+        ];
+
+        $this->dispatch('transaction-completed', invoice: $this->lastTransaction['invoice_number']);
+        $this->paying = false;
+        $this->clear();
+    }
+
+    public function newTransaction(): void
+    {
+        $this->lastTransaction = null;
+        $this->paying = false;
+        $this->paid = null;
     }
 
     #[Computed]

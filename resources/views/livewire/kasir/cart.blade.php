@@ -2,7 +2,9 @@
     $rp = fn ($n) => 'Rp'.number_format($n, 0, ',', '.');
     $summary = $this->summary;
 @endphp
-<aside class="flex min-h-0 flex-col border-t border-stone-200 bg-white lg:border-t-0 lg:border-l">
+<aside class="flex min-h-0 flex-col border-t border-stone-200 bg-white lg:border-t-0 lg:border-l"
+       x-data
+       x-on:keydown.window.f9.prevent="$wire.openPayment()">
     <div class="flex items-center justify-between px-5 py-4">
         <h2 class="font-semibold">Keranjang</h2>
         <div class="flex items-center gap-3">
@@ -71,9 +73,11 @@
     </div>
 
     <div class="px-5 pb-5">
-        <button type="button" @disabled($summary['count'] === 0)
+        <button type="button" @disabled($summary['count'] === 0) wire:click="openPayment"
                 class="w-full rounded-xl bg-emerald-700 py-3.5 text-base font-semibold text-white shadow-sm transition hover:bg-emerald-800 disabled:cursor-not-allowed disabled:bg-stone-300">
-            Bayar
+            Bayar <span class="ml-1 text-xs font-normal opacity-70">(F9)</span>
         </button>
     </div>
+
+    @include('livewire.kasir.partials.payment-panel')
 </aside>
