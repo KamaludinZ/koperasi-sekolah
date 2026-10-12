@@ -79,6 +79,50 @@ class Index extends Component
         ];
     }
 
+    /**
+     * Ringkasan hari ini (tidak bergantung pilihan periode), dibandingkan dengan
+     * kemarin sampai jam yang sama, plus penjualan per jam untuk grafik mini.
+     */
+    #[Computed]
+    public function today(): array
+    {
+        $now = now();
+        $all = collect(MockData::transactions(30));
+        $today = $all->filter(fn ($t) => Carbon::parse($t['created_at'])->isSameDay($now));
+        $yesterdaySoFar = $all->filter(function ($t) use ($now) {
+            $at = Carbon::parse($t['created_at']);
+
+            return $at->isSameDay($now->copy()->subDay()) && $at->format('H:i:s') <= $now->format('H:i:s');
+        });
+
+        $revenue = $today->sum('total');
+        $before = $yesterdaySoFar->sum('total');
+
+        $best = $today->flatMap(fn ($t) => $t['items'])->groupBy('product_name')
+            ->map(fn ($items) => $items->sum('quantity'))->sortDesc();
+
+        // Penjualan per jam jam operasional 07–15.
+        $hourly = collect(range(7, 15))->mapWithKeys(fn ($h) => [$h => 0])->all();
+        foreach ($today as $t) {
+            $h = (int) substr($t['created_at'], 11, 2);
+            if (array_key_exists($h, $hourly)) {
+                $hourly[$h] += $t['total'];
+            }
+        }
+
+        return [
+            'revenue' => $revenue,
+            'count' => $today->count(),
+            'items' => $today->sum('item_count'),
+            'compare' => $before,
+            'change' => $before > 0 ? (int) round(($revenue - $before) / $before * 100) : null,
+            'best' => $best->isEmpty() ? null : ['name' => $best->keys()->first(), 'quantity' => $best->first()],
+            'last_at' => $today->max('created_at'),
+            'hourly' => $hourly,
+            'current_hour' => (int) $now->format('G'),
+        ];
+    }
+
     /** Barang terlaris pada periode (berdasarkan jumlah terjual). */
     #[Computed]
     public function topProducts(): array

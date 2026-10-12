@@ -55,4 +55,22 @@ class IndexTest extends TestCase
     {
         Livewire::test(Index::class)->call('setPeriod', 'aneh')->assertSet('period', 'hari-ini');
     }
+
+    public function test_today_card_is_independent_of_period(): void
+    {
+        $c = Livewire::test(Index::class)->assertSee('Penjualan hari ini');
+        $today = $c->instance()->today;
+        $c->call('setPeriod', '30-hari');
+
+        $this->assertSame($today, $c->instance()->today);
+        $this->assertSame($today['revenue'], array_sum($today['hourly']));
+    }
+
+    public function test_today_compares_with_yesterday_same_time(): void
+    {
+        $all = collect(\App\Support\MockData::transactions(30));
+        $expected = $all->filter(fn ($t) => str_starts_with($t['created_at'], '2026-10-13') && substr($t['created_at'], 11) <= '15:00:00')->sum('total');
+
+        $this->assertSame($expected, Livewire::test(Index::class)->instance()->today['compare']);
+    }
 }

@@ -1,6 +1,6 @@
 {
   "repo": "Koperasi Sekolah",
-  "generatedForCommit": "2f5c2b41b4d0c270fb8bd94afcc051e2d0883f6d",
+  "generatedForCommit": "0d5affd63175c95167ec3e039ad3e7fa49259716",
   "files": [
     {
       "path": ".claude/skills/ngodingpakeai/SKILL.md",
@@ -94,7 +94,7 @@
     },
     {
       "path": "app/Livewire/Anggota/Show.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 5870
     },
@@ -139,6 +139,12 @@
       "reason": "needs_summary",
       "language": "php",
       "size": 2119
+    },
+    {
+      "path": "app/Livewire/Laporan/Index.php",
+      "reason": "new",
+      "language": "php",
+      "size": 3187
     },
     {
       "path": "app/Livewire/Transaksi/Index.php",
@@ -502,9 +508,9 @@
     },
     {
       "path": "resources/views/components/layouts/app.blade.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 5195
+      "size": 5200
     },
     {
       "path": "resources/views/components/stock-badge.blade.php",
@@ -556,13 +562,13 @@
     },
     {
       "path": "resources/views/livewire/anggota/partials/saving-history.blade.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 5398
     },
     {
       "path": "resources/views/livewire/anggota/show.blade.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 6151
     },
@@ -627,6 +633,12 @@
       "size": 5157
     },
     {
+      "path": "resources/views/livewire/laporan/index.blade.php",
+      "reason": "new",
+      "language": "php",
+      "size": 5663
+    },
+    {
       "path": "resources/views/livewire/transaksi/index.blade.php",
       "reason": "needs_summary",
       "language": "php",
@@ -652,9 +664,9 @@
     },
     {
       "path": "routes/web.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 2584
+      "size": 2674
     },
     {
       "path": "storage/app/.gitignore",
@@ -766,7 +778,7 @@
     },
     {
       "path": "storage/framework/views/1e1e5fda6b47e091c894e31e12597b05.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 7870
     },
@@ -910,9 +922,9 @@
     },
     {
       "path": "storage/framework/views/798b34bc9486b4ac75524eea46040336.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 6904
+      "size": 6909
     },
     {
       "path": "storage/framework/views/7d6ee953c1fd25d7fea970d7e113ae58.php",
@@ -982,7 +994,7 @@
     },
     {
       "path": "storage/framework/views/98196b70123f55eadb7796163bc1710c.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 8853
     },
@@ -1077,6 +1089,12 @@
       "size": 2903
     },
     {
+      "path": "storage/framework/views/e17ceb89e1cd3f5fe664f3412bead3d6.php",
+      "reason": "new",
+      "language": "php",
+      "size": 7101
+    },
+    {
       "path": "storage/framework/views/e27f66cac0fd83c2264fcbb4d52c1aff.php",
       "reason": "needs_summary",
       "language": "php",
@@ -1138,7 +1156,7 @@
     },
     {
       "path": "tests/Feature/Anggota/SavingHistoryTest.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 2506
     },
@@ -1261,6 +1279,12 @@
       "reason": "needs_summary",
       "language": "php",
       "size": 2259
+    },
+    {
+      "path": "tests/Feature/Laporan/IndexTest.php",
+      "reason": "new",
+      "language": "php",
+      "size": 1739
     },
     {
       "path": "tests/Feature/Transaksi/DateFilterTest.php",

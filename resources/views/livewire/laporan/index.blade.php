@@ -24,6 +24,10 @@
     </header>
 
     <div class="space-y-5 px-4 py-5 sm:px-6">
+        @include('livewire.laporan.partials.today-card')
+
+        <h2 class="pt-1 text-sm font-semibold text-stone-700">Rekap periode: {{ \App\Livewire\Laporan\Index::PERIODS[$period] }}</h2>
+
         {{-- Angka utama --}}
         <section class="grid grid-cols-2 gap-3 lg:grid-cols-4" aria-label="Ringkasan penjualan">
             <div class="col-span-2 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 lg:col-span-1">
