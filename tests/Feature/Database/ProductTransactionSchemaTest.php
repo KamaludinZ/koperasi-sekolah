@@ -59,7 +59,7 @@ class ProductTransactionSchemaTest extends TestCase
     {
         \App\Models\Setting::set(\App\Models\Setting::DEFAULT_MIN_STOCK, 8);
 
-        $this->assertSame('8', \App\Models\Setting::get(\App\Models\Setting::DEFAULT_MIN_STOCK));
+        $this->assertSame(8, \App\Models\Setting::get(\App\Models\Setting::DEFAULT_MIN_STOCK));
         $this->assertSame('x', \App\Models\Setting::get('tidak.ada', 'x'));
     }
 
