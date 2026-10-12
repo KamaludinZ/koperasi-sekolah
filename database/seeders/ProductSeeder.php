@@ -5,11 +5,15 @@ namespace Database\Seeders;
 use App\Models\Category;
 use App\Models\Product;
 use App\Support\MockData;
+use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
 /** Barang & kategori contoh untuk koperasi sekolah. */
 class ProductSeeder extends Seeder
 {
+    // Data contoh adalah kondisi awal, bukan mutasi stok — jangan catat riwayat.
+    use WithoutModelEvents;
+
     public function run(): void
     {
         $categories = collect(MockData::categories())

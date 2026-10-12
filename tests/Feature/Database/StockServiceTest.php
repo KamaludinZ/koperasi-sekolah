@@ -22,7 +22,8 @@ class StockServiceTest extends TestCase
     {
         parent::setUp();
         $this->stock = app(StockService::class);
-        $this->product = Product::factory()->create(['name' => 'Pensil', 'stock' => 10]);
+        // Tanpa event: riwayat 'Stok awal' dari observer diuji terpisah.
+        $this->product = Product::withoutEvents(fn () => Product::factory()->create(['name' => 'Pensil', 'stock' => 10]));
     }
 
     public function test_increase_records_movement_with_snapshot(): void
