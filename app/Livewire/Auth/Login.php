@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Auth;
 
+use App\Services\AuditLog;
 use App\Support\Menu;
 use App\Support\MockData;
 use Livewire\Attributes\Layout;
@@ -46,6 +47,7 @@ class Login extends Component
         ]);
 
         if ($wait = $this->lockedFor()) {
+            AuditLog::record('auth.locked', 'auth', "Percobaan masuk saat terkunci untuk {$this->email}", null, ['email' => $this->email], null, ['name' => $this->email]);
             $this->addError('email', "Terlalu banyak percobaan. Coba lagi dalam {$wait} detik.");
 
             return;
@@ -59,6 +61,10 @@ class Login extends Component
             if ($attempts >= self::MAX_ATTEMPTS) {
                 session(['mock.login_locked_until' => now()->addSeconds(self::LOCK_SECONDS)->timestamp]);
             }
+            $known = collect(MockData::users())->first(fn ($u) => strcasecmp($u['email'], trim($this->email)) === 0);
+            AuditLog::record('auth.failed', 'auth', 'Gagal masuk: kata sandi salah atau akun tidak dikenal ('.trim($this->email).')', null,
+                ['email' => trim($this->email), 'attempt' => $attempts, 'locked' => $attempts >= self::MAX_ATTEMPTS],
+                null, $known ?? ['name' => trim($this->email)]);
             $this->reset('password');
             $this->addError('email', 'Email atau kata sandi salah.');
 
@@ -66,6 +72,7 @@ class Login extends Component
         }
 
         if (! $user['is_active']) {
+            AuditLog::record('auth.inactive', 'auth', "Akun nonaktif {$user['email']} mencoba masuk", null, ['email' => $user['email']], null, $user);
             $this->reset('password');
             $this->addError('email', 'Akun ini dinonaktifkan. Hubungi admin koperasi.');
 
@@ -76,6 +83,7 @@ class Login extends Component
         session()->regenerate();
         $user = MockData::saveUser(['id' => $user['id'], 'last_login_at' => now()->toDateTimeString()]);
         session(['mock.user' => $user]);
+        AuditLog::record('auth.login', 'auth', "{$user['name']} masuk sebagai ".(MockData::ROLES[$user['role']] ?? $user['role']), null, ['remember' => $this->remember]);
 
         $this->redirectIntended(route(Menu::homeRoute($user['role'])));
     }

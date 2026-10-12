@@ -16,6 +16,7 @@ use App\Http\Controllers\Transaksi\TransactionDetailController;
 use App\Http\Controllers\Transaksi\TransactionListController;
 use App\Livewire\Akun;
 use App\Livewire\Anggota;
+use App\Livewire\Audit;
 use App\Livewire\Auth\Login;
 use App\Livewire\Barang;
 use App\Livewire\Kasir;
@@ -124,3 +125,4 @@ Route::get('/laporan/unduh', SalesExportController::class)
     ->name('laporan.export');
 
 Route::get('/pengguna', Pengguna\Index::class)->name('pengguna');
+Route::get('/audit', Audit\Index::class)->name('audit');

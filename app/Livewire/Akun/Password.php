@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Akun;
 
+use App\Services\AuditLog;
 use App\Support\MockData;
 use Illuminate\Support\Facades\Hash;
 use Livewire\Attributes\Layout;
@@ -60,6 +61,8 @@ class Password extends Component
 
         MockData::saveUser(['id' => $user['id'], 'password_hash' => Hash::make($this->password), 'password_changed_at' => now()->toDateTimeString()]);
 
+        AuditLog::record('user.password_changed', 'pengguna', "{$user['name']} mengganti kata sandinya sendiri",
+            ['type' => 'user', 'id' => $user['id'], 'label' => "{$user['name']} · {$user['email']}"]);
         $this->reset('current_password', 'password', 'password_confirmation');
         $this->saved = true;
     }

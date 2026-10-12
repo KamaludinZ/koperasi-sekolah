@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Kasir;
 
 use App\Http\Controllers\Controller;
 use App\Models\Transaction;
+use App\Services\AuditLog;
 use App\Services\ReceiptPdfService;
 use App\Services\ReceiptPresenter;
 use Illuminate\Http\Response;
@@ -28,6 +29,9 @@ class TransactionReceiptController extends Controller
 
     public function print(Transaction $transaction, ReceiptPresenter $presenter): View
     {
+        AuditLog::record('receipt.reprinted', 'transaksi', "Cetak ulang struk {$transaction->invoice_number}",
+            ['type' => 'transaction', 'id' => $transaction->id, 'label' => $transaction->invoice_number]);
+
         return view('kasir.receipt-print', [
             'tx' => $presenter->present($transaction),
             'profile' => $presenter->profile(),
@@ -38,6 +42,8 @@ class TransactionReceiptController extends Controller
     public function pdf(Transaction $transaction, ReceiptPdfService $pdf): Response
     {
         $filename = "struk-{$transaction->invoice_number}.pdf";
+        AuditLog::record('receipt.downloaded', 'transaksi', "Membuka struk PDF {$transaction->invoice_number}",
+            ['type' => 'transaction', 'id' => $transaction->id, 'label' => $transaction->invoice_number]);
         $disposition = request()->boolean('unduh') ? 'attachment' : 'inline';
 
         return response($pdf->contents($transaction), 200, [

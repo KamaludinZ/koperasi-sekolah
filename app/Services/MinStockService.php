@@ -21,6 +21,10 @@ class MinStockService
 
     public function setDefaultMinStock(int $value): void
     {
+        $old = $this->defaultMinStock();
+        if ($old !== $value) {
+            AuditLog::record('setting.updated', 'stok', "Batas minimum bawaan barang baru diubah {$old} → {$value}", null, ['from' => $old, 'to' => $value]);
+        }
         Setting::set(Setting::DEFAULT_MIN_STOCK, max(0, $value));
     }
 
@@ -43,6 +47,12 @@ class MinStockService
                 }
             }
 
+            if ($changed > 0) {
+                AuditLog::record('stock.min_updated', 'stok', "Batas minimum stok {$changed} barang diubah", null,
+                    ['changes' => collect($minStocks)->filter(fn ($v, $id) => $current->has($id) && (int) $current[$id] !== (int) $v)
+                        ->map(fn ($v, $id) => ['from' => (int) $current[$id], 'to' => (int) $v])->all()]);
+            }
+
             return $changed;
         });
     }
@@ -50,8 +60,13 @@ class MinStockService
     /** Terapkan satu nilai ke semua barang di kategori (atau semua barang bila null). */
     public function applyToCategory(?string $category, int $value): int
     {
-        return Product::query()
+        $changed = Product::query()
             ->when($category, fn ($q) => $q->whereHas('category', fn ($c) => $c->where('name', $category)))
             ->update(['min_stock' => max(0, $value)]);
+
+        AuditLog::record('stock.min_updated', 'stok', 'Batas minimum '.($category ? "kategori {$category}" : 'semua barang')." disetel ke {$value} ({$changed} barang)",
+            null, ['category' => $category, 'value' => $value, 'count' => $changed]);
+
+        return $changed;
     }
 }

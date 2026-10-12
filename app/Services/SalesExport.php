@@ -49,6 +49,8 @@ class SalesExport
         $this->guard($start, $end, $sections, $format);
 
         $filename = 'rekap-penjualan-'.$start->format('Ymd').'-'.$end->format('Ymd').'.'.$format;
+        AuditLog::record('report.exported', 'laporan', 'Mengunduh rekap penjualan '.strtoupper($format).' periode '.$start->translatedFormat('d M Y').' – '.$end->translatedFormat('d M Y'),
+            null, ['format' => $format, 'sections' => $sections, 'from' => $start->toDateString(), 'to' => $end->toDateString()]);
 
         if ($format === 'pdf') {
             $pdf = $this->pdf($start, $end, $sections);

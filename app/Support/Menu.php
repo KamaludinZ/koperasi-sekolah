@@ -42,6 +42,11 @@ class Menu
             'description' => 'Rekap penjualan & unduhan',
             'icon' => 'M4 20V10m6 10V4m6 16v-7m4 7H2',
         ],
+        'audit' => [
+            'label' => 'Audit & Riwayat', 'route' => 'audit', 'group' => 'pengurus',
+            'description' => 'Jejak login & aktivitas semua petugas',
+            'icon' => 'M12 8v4l3 2M3.05 11a9 9 0 11.5 4M3 4v5h5',
+        ],
         'pengguna' => [
             'label' => 'Pengguna', 'route' => 'pengguna', 'group' => 'pengurus',
             'description' => 'Akun petugas & peran',
@@ -59,9 +64,9 @@ class Menu
      * Pengurus: memantau data & laporan, tanpa layar kasir.
      */
     public const DEFAULT_PERMISSIONS = [
-        'admin' => ['kasir', 'transaksi', 'barang', 'anggota', 'laporan', 'pengguna', 'pengaturan'],
+        'admin' => ['kasir', 'transaksi', 'barang', 'anggota', 'laporan', 'audit', 'pengguna', 'pengaturan'],
         'kasir' => ['kasir', 'transaksi', 'barang', 'anggota'],
-        'pengurus' => ['laporan', 'transaksi', 'barang', 'anggota'], // urutan pertama = halaman awal setelah masuk
+        'pengurus' => ['laporan', 'transaksi', 'barang', 'anggota', 'audit'], // urutan pertama = halaman awal setelah masuk
     ];
 
     public static function allows(?string $role, string $menu): bool

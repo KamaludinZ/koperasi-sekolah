@@ -54,12 +54,21 @@ class MemberService
     /** @param  array<string, mixed>  $data  data tervalidasi */
     public function create(array $data): Member
     {
-        return $this->codes->create([...$this->normalize($data), 'joined_at' => now()->toDateString()]);
+        $member = $this->codes->create([...$this->normalize($data), 'joined_at' => now()->toDateString()]);
+        AuditLog::record('member.created', 'anggota', "Anggota baru {$member->display_name} ({$member->member_code})", self::subject($member));
+
+        return $member;
     }
 
     public function update(Member $member, array $data): Member
     {
+        $fields = ['member_code', 'name', 'type', 'class', 'phone', 'is_active'];
+        $before = $member->only($fields);
         $member->update($this->normalize($data));
+        if ($changes = AuditLog::diff($before, $member->only($fields), $fields)) {
+            AuditLog::record(isset($changes['is_active']) && count($changes) === 1 ? ($member->is_active ? 'member.activated' : 'member.deactivated') : 'member.updated',
+                'anggota', "Data anggota {$member->name} diubah: ".implode(', ', array_keys($changes)), self::subject($member), ['changes' => $changes]);
+        }
 
         return $member->refresh();
     }
@@ -85,6 +94,7 @@ class MemberService
         }
 
         $member->delete();
+        AuditLog::record('member.deleted', 'anggota', "Anggota {$member->display_name} ({$member->member_code}) dihapus", self::subject($member));
     }
 
     /**
@@ -171,6 +181,11 @@ class MemberService
             'joined_at' => $m->joined_at?->toDateString(),
             'display_name' => $m->display_name,
         ];
+    }
+
+    private static function subject(Member $m): array
+    {
+        return ['type' => 'member', 'id' => $m->id, 'label' => "{$m->member_code} · {$m->name}"];
     }
 
     private function normalize(array $data): array

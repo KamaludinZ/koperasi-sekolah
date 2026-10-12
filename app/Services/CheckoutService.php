@@ -107,6 +107,19 @@ class CheckoutService
                 $this->stock->decrease($product, $line['quantity'], "Penjualan {$transaction->invoice_number}", $userId);
             }
 
+            AuditLog::record('sale.created', 'transaksi',
+                "Penjualan {$transaction->invoice_number}: ".count($lines).' jenis barang, '.self::PAYMENT_METHODS[$paymentMethod],
+                ['type' => 'transaction', 'id' => $transaction->id, 'label' => $transaction->invoice_number],
+                [
+                    'items' => array_map(fn ($l) => ['name' => $l['product']->name, 'qty' => $l['quantity'], 'subtotal' => $l['subtotal']], $lines),
+                    'payment_method' => $paymentMethod,
+                    'paid' => $paid,
+                    'change' => $paid - $total,
+                    'member_id' => $memberId,
+                ],
+                $total,
+            );
+
             return $transaction->load('items');
         });
     }

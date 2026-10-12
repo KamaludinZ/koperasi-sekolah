@@ -3,6 +3,7 @@
 namespace App\Livewire\Pengguna;
 
 use App\Livewire\Forms\UserForm;
+use App\Services\AuditLog;
 use App\Support\Menu;
 use App\Support\MockData;
 use Livewire\Attributes\Computed;
@@ -122,6 +123,9 @@ class Index extends Component
         }
 
         $user = MockData::saveUser(['id' => $user['id'], 'is_active' => ! $user['is_active']]);
+        AuditLog::record($user['is_active'] ? 'user.activated' : 'user.deactivated', 'pengguna',
+            'Akun '.$user['name'].($user['is_active'] ? ' diaktifkan' : ' dinonaktifkan'),
+            ['type' => 'user', 'id' => $user['id'], 'label' => "{$user['name']} · {$user['email']}"]);
         $this->flash = $user['is_active'] ? "{$user['name']} diaktifkan kembali." : "{$user['name']} dinonaktifkan dan tidak bisa masuk lagi.";
         unset($this->users, $this->stats);
     }

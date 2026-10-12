@@ -26,7 +26,7 @@ class DatabaseSeeder extends Seeder
 
         // Anggota & riwayat penjualan contoh hanya untuk lingkungan pengembangan.
         if (app()->environment('local')) {
-            $this->call([MemberSeeder::class, TransactionSeeder::class]);
+            $this->call([MemberSeeder::class, TransactionSeeder::class, ActivityLogSeeder::class]);
         }
     }
 }

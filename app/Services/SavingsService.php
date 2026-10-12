@@ -98,6 +98,13 @@ class SavingsService
 
             $locked->forceFill(['balance' => $after])->save();
 
+            AuditLog::record($type === SavingsTransaction::TYPE_DEPOSIT ? 'savings.deposit' : 'savings.withdraw', 'tabungan',
+                ($type === SavingsTransaction::TYPE_DEPOSIT ? 'Setoran' : 'Penarikan').' tabungan '.$locked->name.': Rp'.number_format($amount, 0, ',', '.')
+                    .' (saldo Rp'.number_format($after, 0, ',', '.').')',
+                ['type' => 'member', 'id' => $locked->id, 'label' => "{$locked->member_code} · {$locked->name}"],
+                ['savings_id' => $entry->id, 'balance_before' => $before, 'balance_after' => $after, 'note' => $entry->note],
+                $amount);
+
             return $entry;
         });
 

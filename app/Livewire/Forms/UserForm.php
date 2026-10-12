@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Forms;
 
+use App\Services\AuditLog;
 use App\Support\MockData;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
@@ -106,7 +107,24 @@ class UserForm extends Form
             $attributes['password_hash'] = Hash::make($data['password']);
         }
 
-        return MockData::saveUser($attributes);
+        $before = $this->id ? MockData::findUser($this->id) : null;
+        $saved = MockData::saveUser($attributes);
+        $subject = ['type' => 'user', 'id' => $saved['id'], 'label' => "{$saved['name']} · {$saved['email']}"];
+
+        if (! $before) {
+            AuditLog::record('user.created', 'pengguna', "Akun baru {$saved['name']} sebagai ".MockData::ROLES[$saved['role']], $subject, ['email' => $saved['email'], 'role' => $saved['role']]);
+        } else {
+            $changes = AuditLog::diff($before, $saved, ['name', 'email', 'role', 'is_active']);
+            if ($changes) {
+                AuditLog::record(isset($changes['role']) ? 'user.role_changed' : 'user.updated', 'pengguna',
+                    "Akun {$saved['name']} diubah: ".implode(', ', array_keys($changes)), $subject, ['changes' => $changes]);
+            }
+            if (filled($data['password'])) {
+                AuditLog::record('user.password_reset', 'pengguna', "Kata sandi akun {$saved['name']} diatur ulang", $subject);
+            }
+        }
+
+        return $saved;
     }
 
     /** Jumlah admin aktif selain akun tertentu. */
