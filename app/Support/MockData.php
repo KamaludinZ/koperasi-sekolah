@@ -50,6 +50,7 @@ class MockData
             'profile' => self::defaultProfile(),
             'receipt' => self::defaultReceipt(),
             'tax' => [
+                'label' => 'Pajak',
                 'enabled' => false,
                 'rate' => 0,
                 'included' => false,     // harga sudah termasuk pajak
@@ -76,6 +77,12 @@ class MockData
             'footer' => self::defaultProfile()['receipt_footer'],
             'paper' => '58mm',
         ];
+    }
+
+    /** Pengaturan pajak & pembulatan saat ini (tiruan, session). */
+    public static function tax(): array
+    {
+        return self::settings()['tax'];
     }
 
     /** Pengaturan struk saat ini (tiruan, session). */

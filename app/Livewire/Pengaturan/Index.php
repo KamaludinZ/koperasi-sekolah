@@ -5,6 +5,7 @@ namespace App\Livewire\Pengaturan;
 use App\Models\Setting;
 use App\Services\MinStockService;
 use App\Support\MockData;
+use App\Support\PriceCalculator;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
@@ -19,12 +20,7 @@ use Livewire\Component;
 #[Title('Pengaturan Koperasi')]
 class Index extends Component
 {
-    public const ROUNDING = [
-        'none' => 'Tanpa pembulatan',
-        'up' => 'Selalu ke atas',
-        'nearest' => 'Ke nilai terdekat',
-        'down' => 'Selalu ke bawah',
-    ];
+    public const ROUNDING = PriceCalculator::ROUNDING;
 
     #[Computed]
     public function settings(): array
@@ -54,23 +50,13 @@ class Index extends Component
         return app(MinStockService::class)->defaultMinStock();
     }
 
-    /** Contoh perhitungan pajak & pembulatan untuk belanja Rp12.340. */
+    /** Contoh perhitungan pajak & pembulatan untuk belanja tunai Rp12.340. */
     #[Computed]
     public function example(): array
     {
-        $t = $this->settings['tax'];
-        $subtotal = 12340;
-        $tax = $t['enabled'] && ! $t['included'] ? (int) round($subtotal * $t['rate'] / 100) : 0;
-        $total = $subtotal + $tax;
-        $unit = max(1, (int) $t['rounding_unit']);
-        $rounded = match ($t['rounding']) {
-            'up' => (int) (ceil($total / $unit) * $unit),
-            'down' => (int) (floor($total / $unit) * $unit),
-            'nearest' => (int) (round($total / $unit) * $unit),
-            default => $total,
-        };
+        $r = PriceCalculator::compute(12340, $this->settings['tax']);
 
-        return ['subtotal' => $subtotal, 'tax' => $tax, 'total' => $total, 'rounded' => $rounded];
+        return ['subtotal' => $r['subtotal'], 'tax' => $r['tax'], 'total' => $r['total'], 'rounded' => $r['payable']];
     }
 
     public function render()
