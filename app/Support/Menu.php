@@ -42,6 +42,11 @@ class Menu
             'description' => 'Rekap penjualan & unduhan',
             'icon' => 'M4 20V10m6 10V4m6 16v-7m4 7H2',
         ],
+        'pengguna' => [
+            'label' => 'Pengguna', 'route' => 'pengguna', 'group' => 'pengurus',
+            'description' => 'Akun petugas & peran',
+            'icon' => 'M16 21v-2a4 4 0 00-4-4H6a4 4 0 00-4 4v2M9 11a4 4 0 100-8 4 4 0 000 8zM19 8v6M22 11h-6',
+        ],
         'pengaturan' => [
             'label' => 'Pengaturan', 'route' => null, 'group' => 'pengurus',
             'description' => 'Identitas koperasi, struk & pajak',
@@ -54,7 +59,7 @@ class Menu
      * Pengurus: memantau data & laporan, tanpa layar kasir.
      */
     public const DEFAULT_PERMISSIONS = [
-        'admin' => ['kasir', 'transaksi', 'barang', 'anggota', 'laporan', 'pengaturan'],
+        'admin' => ['kasir', 'transaksi', 'barang', 'anggota', 'laporan', 'pengguna', 'pengaturan'],
         'kasir' => ['kasir', 'transaksi', 'barang', 'anggota'],
         'pengurus' => ['laporan', 'transaksi', 'barang', 'anggota'], // urutan pertama = halaman awal setelah masuk
     ];

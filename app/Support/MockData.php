@@ -36,25 +36,56 @@ class MockData
     public const ROLES = ['admin' => 'Admin', 'kasir' => 'Kasir', 'pengurus' => 'Pengurus'];
 
     /**
-     * Akun petugas tiruan untuk halaman login tahap frontend (kata sandi demo: "password").
-     * Diganti tabel users + roles di tahap backend.
+     * Akun petugas tiruan (tahap frontend), disimpan di session agar bisa ditambah/diubah
+     * dari halaman Kelola Pengguna. Akun bawaan memakai kata sandi demo "password"
+     * (`password_hash` null); akun baru menyimpan hash. Diganti tabel users + roles di backend.
      */
     public static function users(): array
     {
-        return [
-            ['id' => 1, 'name' => 'Admin Koperasi', 'email' => 'admin@koperasi.test', 'role' => 'admin', 'is_active' => true],
-            ['id' => 2, 'name' => 'Bu Rina', 'email' => 'kasir@koperasi.test', 'role' => 'kasir', 'is_active' => true],
-            ['id' => 3, 'name' => 'Pak Dedi', 'email' => 'pengurus@koperasi.test', 'role' => 'pengurus', 'is_active' => true],
-            ['id' => 4, 'name' => 'Pak Galih', 'email' => 'nonaktif@koperasi.test', 'role' => 'kasir', 'is_active' => false],
+        return session('mock.users') ?? [
+            ['id' => 1, 'name' => 'Admin Koperasi', 'email' => 'admin@koperasi.test', 'role' => 'admin', 'is_active' => true, 'password_hash' => null, 'last_login_at' => now()->subHours(2)->toDateTimeString(), 'created_at' => '2026-07-01 08:00:00'],
+            ['id' => 2, 'name' => 'Bu Rina', 'email' => 'kasir@koperasi.test', 'role' => 'kasir', 'is_active' => true, 'password_hash' => null, 'last_login_at' => now()->subMinutes(35)->toDateTimeString(), 'created_at' => '2026-07-01 08:05:00'],
+            ['id' => 3, 'name' => 'Pak Dedi', 'email' => 'pengurus@koperasi.test', 'role' => 'pengurus', 'is_active' => true, 'password_hash' => null, 'last_login_at' => now()->subDays(3)->toDateTimeString(), 'created_at' => '2026-07-02 09:00:00'],
+            ['id' => 4, 'name' => 'Pak Galih', 'email' => 'nonaktif@koperasi.test', 'role' => 'kasir', 'is_active' => false, 'password_hash' => null, 'last_login_at' => null, 'created_at' => '2026-07-10 10:00:00'],
         ];
     }
 
-    /** Cocokkan email + kata sandi demo. */
+    public static function findUser(int $id): ?array
+    {
+        return collect(self::users())->firstWhere('id', $id);
+    }
+
+    /** Simpan akun baru (tanpa id) atau perbarui akun yang ada ke session. */
+    public static function saveUser(array $data): array
+    {
+        $users = collect(self::users())->keyBy('id');
+        $data['id'] ??= ($users->keys()->max() ?? 0) + 1;
+        $users[$data['id']] = [
+            'is_active' => true, 'password_hash' => null, 'last_login_at' => null, 'created_at' => now()->toDateTimeString(),
+            ...($users[$data['id']] ?? []),
+            ...$data,
+        ];
+        session(['mock.users' => $users->values()->all()]);
+
+        // Perbarui juga sesi bila yang diubah adalah akun yang sedang masuk.
+        if (($current = self::currentUser()) && $current['id'] === $data['id']) {
+            session(['mock.user' => $users[$data['id']]]);
+        }
+
+        return $users[$data['id']];
+    }
+
+    /** Cocokkan email + kata sandi (hash untuk akun baru, "password" untuk akun demo). */
     public static function attempt(string $email, string $password): ?array
     {
         $user = collect(self::users())->first(fn ($u) => strcasecmp($u['email'], trim($email)) === 0);
+        if (! $user) {
+            return null;
+        }
 
-        return $user && hash_equals('password', $password) ? $user : null;
+        $ok = $user['password_hash'] ? \Illuminate\Support\Facades\Hash::check($password, $user['password_hash']) : hash_equals('password', $password);
+
+        return $ok ? $user : null;
     }
 
     /** Petugas yang sedang masuk (tiruan, disimpan di session). */

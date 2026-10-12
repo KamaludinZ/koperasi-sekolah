@@ -1,0 +1,89 @@
+{{-- Panel geser: form tambah / ubah akun petugas --}}
+@if ($editing)
+    @php
+        $input = 'w-full rounded-lg border border-stone-300 bg-white px-3 py-2 text-sm outline-none focus:border-emerald-600 focus:ring-4 focus:ring-emerald-600/15';
+        $isNew = $form->id === null;
+        $isMe = $form->id !== null && $form->id === $this->currentUserId();
+        $hints = ['admin' => 'Semua menu, termasuk kelola pengguna.', 'kasir' => 'Layar kasir, transaksi, barang, anggota.', 'pengurus' => 'Laporan, transaksi, barang, anggota.'];
+    @endphp
+    <div class="fixed inset-0 z-50 flex justify-end" role="dialog" aria-modal="true" aria-labelledby="user-form-title"
+         x-data x-on:keydown.escape.window="$wire.cancel()">
+        <div class="absolute inset-0 bg-stone-950/50" wire:click="cancel"></div>
+
+        <form wire:submit="save" class="relative flex h-full w-full max-w-md flex-col bg-white shadow-xl"
+              x-init="$nextTick(() => $el.querySelector('[autofocus]')?.focus())">
+            <div class="flex items-center justify-between border-b border-stone-200 px-5 py-4">
+                <h2 id="user-form-title" class="font-semibold">{{ $isNew ? 'Tambah pengguna' : 'Ubah akun pengguna' }}</h2>
+                <button type="button" wire:click="cancel" class="text-stone-400 hover:text-stone-600" aria-label="Tutup">
+                    <svg class="size-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg>
+                </button>
+            </div>
+
+            <div class="min-h-0 flex-1 space-y-4 overflow-y-auto px-5 py-5">
+                <label class="block">
+                    <span class="mb-1 block text-sm font-medium">Nama</span>
+                    <input type="text" wire:model="form.name" autofocus placeholder="mis. Bu Ani Rahmawati" class="{{ $input }}">
+                    @error('form.name') <span class="mt-1 block text-xs text-red-600">{{ $message }}</span> @enderror
+                </label>
+
+                <label class="block">
+                    <span class="mb-1 block text-sm font-medium">Email untuk masuk</span>
+                    <input type="email" wire:model="form.email" autocomplete="off" placeholder="nama@madrasah.sch.id" class="{{ $input }}">
+                    @error('form.email') <span class="mt-1 block text-xs text-red-600">{{ $message }}</span> @enderror
+                </label>
+
+                <fieldset>
+                    <legend class="mb-1.5 text-sm font-medium">Peran</legend>
+                    <div class="space-y-2">
+                        @foreach (\App\Support\MockData::ROLES as $value => $label)
+                            <label class="flex cursor-pointer items-start gap-3 rounded-lg border border-stone-300 px-3 py-2.5 transition has-checked:border-emerald-600 has-checked:bg-emerald-50">
+                                <input type="radio" value="{{ $value }}" wire:model="form.role" class="mt-0.5 accent-emerald-700">
+                                <span>
+                                    <span class="block text-sm font-medium">{{ $label }}</span>
+                                    <span class="block text-xs text-stone-500">{{ $hints[$value] }}</span>
+                                </span>
+                            </label>
+                        @endforeach
+                    </div>
+                    @error('form.role') <span class="mt-1 block text-xs text-red-600">{{ $message }}</span> @enderror
+                </fieldset>
+
+                <fieldset class="rounded-xl border border-stone-200 p-4" x-data="{ show: false }">
+                    <legend class="px-1 text-sm font-medium">{{ $isNew ? 'Kata sandi awal' : 'Atur ulang kata sandi' }}</legend>
+                    @unless ($isNew)<p class="mb-3 text-xs text-stone-500">Kosongkan bila tidak ingin mengubah kata sandi.</p>@endunless
+                    <div class="space-y-3">
+                        <label class="block">
+                            <span class="mb-1 block text-xs text-stone-600">Kata sandi (min. 8 karakter)</span>
+                            <input x-bind:type="show ? 'text' : 'password'" type="password" wire:model="form.password" autocomplete="new-password" class="{{ $input }}">
+                            @error('form.password') <span class="mt-1 block text-xs text-red-600">{{ $message }}</span> @enderror
+                        </label>
+                        <label class="block">
+                            <span class="mb-1 block text-xs text-stone-600">Ulangi kata sandi</span>
+                            <input x-bind:type="show ? 'text' : 'password'" type="password" wire:model="form.password_confirmation" autocomplete="new-password" class="{{ $input }}">
+                        </label>
+                        <label class="flex items-center gap-2 text-xs text-stone-600">
+                            <input type="checkbox" x-model="show" class="size-3.5 accent-emerald-700"> Tampilkan kata sandi
+                        </label>
+                    </div>
+                </fieldset>
+
+                <label @class(['flex items-start gap-3 rounded-xl border border-stone-200 p-4', 'opacity-60' => $isMe])>
+                    <input type="checkbox" wire:model="form.is_active" @disabled($isMe) class="mt-0.5 size-4 accent-emerald-700">
+                    <span>
+                        <span class="block text-sm font-medium">Akun aktif</span>
+                        <span class="block text-xs text-stone-500">{{ $isMe ? 'Akun yang sedang Anda pakai selalu aktif.' : 'Akun nonaktif tidak bisa masuk, tetapi riwayat transaksinya tetap tersimpan.' }}</span>
+                    </span>
+                </label>
+                @error('form.is_active') <span class="block text-xs text-red-600">{{ $message }}</span> @enderror
+            </div>
+
+            <div class="flex gap-2 border-t border-stone-200 px-5 py-4">
+                <button type="button" wire:click="cancel" class="rounded-xl border border-stone-300 px-4 py-2.5 text-sm font-medium text-stone-700 hover:bg-stone-50">Batal</button>
+                <button type="submit" wire:loading.attr="disabled" wire:target="save"
+                        class="flex-1 rounded-xl bg-emerald-700 py-2.5 text-sm font-semibold text-white hover:bg-emerald-800 disabled:opacity-60">
+                    {{ $isNew ? 'Buat akun' : 'Simpan perubahan' }}
+                </button>
+            </div>
+        </form>
+    </div>
+@endif

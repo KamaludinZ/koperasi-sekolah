@@ -19,6 +19,7 @@ use App\Livewire\Auth\Login;
 use App\Livewire\Barang;
 use App\Livewire\Kasir;
 use App\Livewire\Laporan;
+use App\Livewire\Pengguna;
 use App\Livewire\Transaksi;
 use Illuminate\Support\Facades\Route;
 
@@ -119,3 +120,5 @@ Route::middleware('throttle:120,1')->group(function () {
 Route::get('/laporan/unduh', SalesExportController::class)
     ->middleware('throttle:20,1')
     ->name('laporan.export');
+
+Route::get('/pengguna', Pengguna\Index::class)->name('pengguna');

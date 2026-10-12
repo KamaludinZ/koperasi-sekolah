@@ -74,6 +74,7 @@ class Login extends Component
 
         session()->forget(['mock.login_attempts', 'mock.login_locked_until']);
         session()->regenerate();
+        $user = MockData::saveUser(['id' => $user['id'], 'last_login_at' => now()->toDateTimeString()]);
         session(['mock.user' => $user]);
 
         $this->redirectIntended(route(Menu::homeRoute($user['role'])));
