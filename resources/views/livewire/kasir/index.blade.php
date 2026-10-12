@@ -8,7 +8,7 @@
         <div class="flex items-center gap-3">
             <div class="text-right leading-tight">
                 <p class="text-sm font-medium">{{ $cashier }}</p>
-                <p class="text-xs text-stone-500">Kasir</p>
+                <p class="text-xs text-stone-500">{{ $role }}</p>
             </div>
             <span class="grid size-9 place-items-center rounded-full bg-emerald-100 text-sm font-semibold text-emerald-800">
                 {{ str($cashier)->explode(' ')->map(fn ($w) => $w[0])->take(2)->join('') }}

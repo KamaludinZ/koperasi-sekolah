@@ -16,9 +16,9 @@ class ExampleTest extends TestCase
         $this->seed(ProductSeeder::class);
     }
 
-    public function test_root_redirects_to_cashier_screen(): void
+    public function test_root_shows_public_home(): void
     {
-        $this->get('/')->assertRedirect('/kasir');
+        $this->get('/')->assertOk()->assertSee('Masuk petugas');
     }
 
     public function test_cashier_screen_renders(): void

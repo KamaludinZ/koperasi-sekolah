@@ -2,7 +2,9 @@
 
 use App\Http\Controllers\Anggota\MemberController;
 use App\Http\Controllers\Anggota\SavingsController;
+use App\Http\Controllers\Auth\LogoutController;
 use App\Http\Controllers\Barang\ProductController;
+use App\Http\Controllers\BerandaController;
 use App\Http\Controllers\Barang\ProductListController;
 use App\Http\Controllers\Barang\StockAlertController;
 use App\Http\Controllers\Kasir\CheckoutController;
@@ -13,13 +15,17 @@ use App\Http\Controllers\Laporan\SalesReportController;
 use App\Http\Controllers\Transaksi\TransactionDetailController;
 use App\Http\Controllers\Transaksi\TransactionListController;
 use App\Livewire\Anggota;
+use App\Livewire\Auth\Login;
 use App\Livewire\Barang;
 use App\Livewire\Kasir;
 use App\Livewire\Laporan;
 use App\Livewire\Transaksi;
 use Illuminate\Support\Facades\Route;
 
-Route::redirect('/', '/kasir');
+Route::get('/', BerandaController::class)->name('beranda');
+
+Route::get('/masuk', Login::class)->name('login');
+Route::post('/keluar', LogoutController::class)->name('logout');
 
 Route::get('/kasir', Kasir\Index::class)->name('kasir');
 Route::get('/kasir/barang/cari', ProductSearchController::class)

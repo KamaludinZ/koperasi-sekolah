@@ -17,11 +17,50 @@ class MockData
     public static function profile(): array
     {
         return [
-            'name' => 'Koperasi Siswa Harapan Bangsa',
-            'school' => 'SMP Negeri 1 Contoh',
+            'name' => 'Koperasi Siswa Al-Hikmah',
+            'short_name' => 'Kopsis Al-Hikmah',
+            'school' => 'Madrasah Tsanawiyah Negeri 1 Contoh',
             'address' => 'Jl. Pendidikan No. 1, Kota Contoh',
-            'receipt_footer' => 'Terima kasih sudah berbelanja di koperasi sekolah!',
+            'phone' => '0812-3456-7890',
+            'hours' => [
+                ['days' => 'Senin – Kamis', 'time' => '07.00 – 14.00'],
+                ['days' => 'Jumat', 'time' => '07.00 – 11.00'],
+                ['days' => 'Sabtu', 'time' => '07.00 – 12.00'],
+            ],
+            'motto' => 'Jujur, amanah, dan saling menolong dalam kebaikan.',
+            'receipt_footer' => 'Terima kasih, semoga berkah. Jazakumullah khairan.',
         ];
+    }
+
+    /** Peran petugas (PRD fase 3). */
+    public const ROLES = ['admin' => 'Admin', 'kasir' => 'Kasir', 'pengurus' => 'Pengurus'];
+
+    /**
+     * Akun petugas tiruan untuk halaman login tahap frontend (kata sandi demo: "password").
+     * Diganti tabel users + roles di tahap backend.
+     */
+    public static function users(): array
+    {
+        return [
+            ['id' => 1, 'name' => 'Admin Koperasi', 'email' => 'admin@koperasi.test', 'role' => 'admin', 'is_active' => true],
+            ['id' => 2, 'name' => 'Bu Rina', 'email' => 'kasir@koperasi.test', 'role' => 'kasir', 'is_active' => true],
+            ['id' => 3, 'name' => 'Pak Dedi', 'email' => 'pengurus@koperasi.test', 'role' => 'pengurus', 'is_active' => true],
+            ['id' => 4, 'name' => 'Pak Galih', 'email' => 'nonaktif@koperasi.test', 'role' => 'kasir', 'is_active' => false],
+        ];
+    }
+
+    /** Cocokkan email + kata sandi demo. */
+    public static function attempt(string $email, string $password): ?array
+    {
+        $user = collect(self::users())->first(fn ($u) => strcasecmp($u['email'], trim($email)) === 0);
+
+        return $user && hash_equals('password', $password) ? $user : null;
+    }
+
+    /** Petugas yang sedang masuk (tiruan, disimpan di session). */
+    public static function currentUser(): ?array
+    {
+        return session('mock.user');
     }
 
     /** Persentase pajak penjualan (nanti dari tabel settings). */

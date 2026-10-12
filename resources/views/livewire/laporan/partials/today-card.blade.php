@@ -3,7 +3,8 @@
     $t = $this->today;
     $peak = max($t['hourly'] ?: [0]) ?: 1;
 @endphp
-<section class="overflow-hidden rounded-2xl bg-emerald-900 text-white shadow-sm" aria-labelledby="today-title">
+<section class="relative isolate overflow-hidden rounded-2xl bg-emerald-900 text-white shadow-sm" aria-labelledby="today-title">
+    <div class="pattern-madrasah absolute inset-0 -z-10 opacity-[0.06]" aria-hidden="true"></div>
     <div class="grid gap-5 p-5 md:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)] md:items-end">
         <div>
             <h2 id="today-title" class="text-sm text-emerald-200">Penjualan hari ini · {{ now()->translatedFormat('l, d F') }}</h2>
