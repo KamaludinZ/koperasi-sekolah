@@ -8,8 +8,6 @@ use App\Models\Transaction;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Str;
 
 /**
  * Riwayat penjualan contoh ±90 hari terakhir sampai jam sekarang (hanya untuk
@@ -61,18 +59,14 @@ class TransactionSeeder extends Seeder
     }
 
     /**
-     * Akun kasir contoh (password acak; peran & login diatur di fitur Login & Hak Akses).
+     * Petugas yang melayani transaksi contoh: akun demo kasir & admin (lihat UserSeeder).
      *
      * @return list<int>
      */
     public static function cashiers(): array
     {
-        return collect(['Bu Rina' => 'rina', 'Pak Dedi' => 'dedi'])
-            ->map(fn ($slug, $name) => User::firstOrCreate(
-                ['email' => "kasir.{$slug}@koperasi.test"],
-                ['name' => $name, 'password' => Hash::make(Str::random(32))],
-            )->id)
-            ->values()
-            ->all();
+        app(UserSeeder::class)->run();
+
+        return User::whereIn('email', ['kasir@koperasi.test', 'admin@koperasi.test'])->orderBy('id')->pluck('id')->all();
     }
 }

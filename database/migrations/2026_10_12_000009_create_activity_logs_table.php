@@ -41,7 +41,7 @@ return new class extends Migration
 
         if (DB::getDriverName() === 'pgsql') {
             DB::unprepared(<<<'SQL'
-                CREATE FUNCTION activity_logs_immutable() RETURNS trigger AS $$
+                CREATE OR REPLACE FUNCTION activity_logs_immutable() RETURNS trigger AS $$
                 BEGIN
                     RAISE EXCEPTION 'activity_logs hanya boleh ditambah (tidak bisa diubah/dihapus)';
                 END;

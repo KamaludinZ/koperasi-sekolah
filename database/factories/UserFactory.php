@@ -3,6 +3,7 @@
 namespace Database\Factories;
 
 use App\Models\User;
+use App\Models\Role;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
@@ -30,7 +31,25 @@ class UserFactory extends Factory
             'email_verified_at' => now(),
             'password' => static::$password ??= Hash::make('password'),
             'remember_token' => Str::random(10),
+            'role_id' => fn () => Role::firstWhere('name', Role::KASIR)?->id,
+            'is_active' => true,
         ];
+    }
+
+    /** Petugas dengan peran tertentu: admin, kasir, atau pengurus. */
+    public function role(string $name): static
+    {
+        return $this->state(fn () => ['role_id' => Role::where('name', $name)->value('id')]);
+    }
+
+    public function admin(): static
+    {
+        return $this->role(Role::ADMIN);
+    }
+
+    public function inactive(): static
+    {
+        return $this->state(['is_active' => false]);
     }
 
     /**
