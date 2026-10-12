@@ -8,6 +8,7 @@ use App\Http\Controllers\Barang\StockAlertController;
 use App\Http\Controllers\Kasir\CheckoutController;
 use App\Http\Controllers\Kasir\ProductSearchController;
 use App\Http\Controllers\Kasir\TransactionReceiptController;
+use App\Http\Controllers\Laporan\SalesReportController;
 use App\Http\Controllers\Transaksi\TransactionDetailController;
 use App\Http\Controllers\Transaksi\TransactionListController;
 use App\Livewire\Anggota;
@@ -103,3 +104,8 @@ Route::get('/anggota/{member}', Anggota\Show::class)
     ->name('anggota.show');
 
 Route::get('/laporan', Laporan\Index::class)->name('laporan');
+Route::middleware('throttle:120,1')->group(function () {
+    Route::get('/laporan/hari-ini', [SalesReportController::class, 'today'])->name('laporan.today');
+    Route::get('/laporan/ringkasan', [SalesReportController::class, 'summary'])->name('laporan.summary');
+    Route::get('/laporan/grafik', [SalesReportController::class, 'chart'])->name('laporan.chart');
+});
