@@ -6,8 +6,7 @@
     <header class="border-b border-stone-200 bg-white px-4 pt-4 sm:px-6">
         <h1 class="text-lg font-semibold">Akun Saya</h1>
         <p class="text-xs text-stone-500">
-            @if ($user) Akun {{ $user['email'] }} · {{ \App\Support\MockData::ROLES[$user['role']] ?? $user['role'] }} @endif
-            <span class="rounded bg-amber-100 px-1.5 py-0.5 text-[11px] font-medium text-amber-800">data tiruan</span>
+            @if ($user) Akun {{ $user['email'] }} · {{ $user['role_label'] }} @endif
         </p>
         @include('livewire.akun.partials.tabs')
     </header>
@@ -23,6 +22,7 @@
                 <p class="flex items-start gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-900" role="status">
                     <svg class="mt-0.5 size-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" aria-hidden="true"><path d="m5 13 4 4L19 7"/></svg>
                     Kata sandi berhasil diganti. Gunakan kata sandi baru saat masuk berikutnya.
+                    @if ($revoked > 0) {{ $revoked }} sesi di perangkat lain sudah dikeluarkan. @endif
                 </p>
             @endif
 

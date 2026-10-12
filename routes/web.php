@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Akun\PasswordController;
 use App\Http\Controllers\Akun\SessionController;
 use App\Http\Controllers\Anggota\MemberController;
 use App\Http\Controllers\Anggota\SavingsController;
@@ -35,9 +36,12 @@ Route::get('/masuk', Login::class)->name('login');
 Route::post('/masuk', LoginController::class)->middleware('throttle:30,1')->name('login.store');
 Route::post('/keluar', LogoutController::class)->name('logout');
 // Akun sendiri: cukup sudah masuk (semua peran).
-Route::get('/akun/kata-sandi', Akun\Password::class)->middleware('menu')->name('akun.password');
-Route::get('/akun/sesi', Akun\Sessions::class)->middleware('menu')->name('akun.sessions');
+Route::get('/akun/kata-sandi', Akun\Password::class)->middleware(['menu', 'auth'])->name('akun.password');
+Route::get('/akun/sesi', Akun\Sessions::class)->middleware(['menu', 'auth'])->name('akun.sessions');
 Route::middleware('auth')->group(function () {
+    Route::put('/akun/kata-sandi', PasswordController::class)
+        ->middleware('throttle:10,1')
+        ->name('akun.password.update');
     Route::get('/akun/sesi/daftar', [SessionController::class, 'index'])->name('akun.sessions.list');
     Route::delete('/akun/sesi/{session}', [SessionController::class, 'destroy'])->name('akun.sessions.destroy');
     Route::post('/akun/sesi/keluarkan-lain', [SessionController::class, 'destroyOthers'])
