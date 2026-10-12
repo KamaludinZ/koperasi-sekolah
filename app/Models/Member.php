@@ -41,6 +41,12 @@ class Member extends Model
         return $this->hasMany(Transaction::class);
     }
 
+    /** Mutasi tabungan (setor/tarik). */
+    public function savings(): HasMany
+    {
+        return $this->hasMany(SavingsTransaction::class);
+    }
+
     public function scopeActive(Builder $query): void
     {
         $query->where('is_active', true);

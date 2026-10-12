@@ -65,8 +65,8 @@ class MemberService
     }
 
     /**
-     * Hapus anggota yang belum punya saldo. Transaksi lamanya tetap ada (member_id dilepas).
-     * Anggota bersaldo sebaiknya dinonaktifkan saja.
+     * Hapus anggota yang belum pernah menabung. Transaksi belanjanya tetap ada (member_id dilepas).
+     * Anggota yang punya saldo atau riwayat tabungan dinonaktifkan saja.
      *
      * @throws ValidationException
      */
@@ -75,6 +75,12 @@ class MemberService
         if ((float) $member->balance > 0) {
             throw ValidationException::withMessages([
                 'member' => 'Anggota masih punya saldo tabungan. Tarik saldonya dulu atau nonaktifkan anggota.',
+            ]);
+        }
+
+        if ($member->savings()->exists()) {
+            throw ValidationException::withMessages([
+                'member' => 'Anggota punya riwayat tabungan sehingga tidak bisa dihapus. Nonaktifkan saja.',
             ]);
         }
 
