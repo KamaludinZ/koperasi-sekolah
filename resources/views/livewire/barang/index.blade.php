@@ -64,7 +64,9 @@
             <label class="relative flex-1">
                 <span class="sr-only">Cari barang</span>
                 <svg class="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-stone-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
-                <input type="search" wire:model.live.debounce.200ms="search" placeholder="Cari nama atau kode…"
+                <input type="search" wire:model.live.debounce.200ms="search" placeholder="Cari nama atau kode…  ( / )"
+                       x-on:keydown.window="if ($event.key === '/' && !['INPUT','TEXTAREA','SELECT'].includes($event.target.tagName)) { $event.preventDefault(); $el.focus() }"
+                       x-on:keydown.escape="$wire.set('search', '')"
                        class="w-full rounded-lg border border-stone-300 bg-white py-2 pr-3 pl-9 text-sm outline-none focus:border-emerald-600 focus:ring-4 focus:ring-emerald-600/15">
             </label>
             <select wire:model.live="category" aria-label="Kategori"
@@ -109,7 +111,7 @@
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-stone-100">
-                        @foreach ($this->products as $p)
+                        @foreach ($this->paginated as $p)
                             <tr wire:key="row-{{ $p['id'] }}"
                                 @class(['hover:bg-stone-50',
                                         'bg-red-50/50 shadow-[inset_3px_0_0_var(--color-red-500)]' => $p['stock'] <= 0 && $p['is_active'],
@@ -134,7 +136,7 @@
 
             {{-- Kartu (ponsel) --}}
             <ul class="space-y-2 md:hidden">
-                @foreach ($this->products as $p)
+                @foreach ($this->paginated as $p)
                     <li wire:key="card-{{ $p['id'] }}" wire:click="edit({{ $p['id'] }})"
                         @class(['cursor-pointer rounded-xl border px-4 py-3 active:bg-stone-50',
                                 'border-stone-200 bg-white' => $p['is_active'] && $p['stock'] > 0,
@@ -155,7 +157,7 @@
                 <span class="inline-flex items-center gap-1.5"><span class="size-2.5 rounded-sm bg-red-500"></span>Stok habis — tidak bisa dipilih di kasir</span>
                 <span class="inline-flex items-center gap-1.5"><span class="size-2.5 rounded-sm bg-stone-300"></span>Nonaktif — disembunyikan dari kasir</span>
             </p>
-            <p class="text-xs text-stone-500">Menampilkan {{ count($this->products) }} dari {{ $this->stats['total'] }} barang.</p>
+            @include('livewire.barang.partials.pagination', ['paginator' => $this->paginated])
         @endif
     </div>
 
