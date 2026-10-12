@@ -54,4 +54,22 @@ class ProductTransactionSchemaTest extends TestCase
         $this->assertNull($item->fresh()->product_id);
         $this->assertSame('Roti', $item->fresh()->product_name);
     }
+
+    public function test_settings_store_values(): void
+    {
+        \App\Models\Setting::set(\App\Models\Setting::DEFAULT_MIN_STOCK, 8);
+
+        $this->assertSame('8', \App\Models\Setting::get(\App\Models\Setting::DEFAULT_MIN_STOCK));
+        $this->assertSame('x', \App\Models\Setting::get('tidak.ada', 'x'));
+    }
+
+    public function test_product_factory_states(): void
+    {
+        Product::factory()->count(3)->create();
+        Product::factory()->lowStock()->create();
+        Product::factory()->inactive()->create();
+
+        $this->assertSame(4, Product::active()->count());
+        $this->assertGreaterThanOrEqual(1, Product::lowStock()->count());
+    }
 }
