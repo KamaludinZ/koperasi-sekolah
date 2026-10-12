@@ -1,6 +1,6 @@
 {
   "repo": "Koperasi Sekolah",
-  "generatedForCommit": "747dcda973d45b5699659c133f140c7fd47c25be",
+  "generatedForCommit": "35e1082aba676ad47803a88a8c57f15c4cc35aef",
   "files": [
     {
       "path": ".claude/skills/ngodingpakeai/SKILL.md",
@@ -126,7 +126,7 @@
       "path": "app/Livewire/Transaksi/Index.php",
       "reason": "changed",
       "language": "php",
-      "size": 5073
+      "size": 7104
     },
     {
       "path": "app/Livewire/Transaksi/Show.php",
@@ -582,7 +582,13 @@
       "path": "resources/views/livewire/transaksi/index.blade.php",
       "reason": "changed",
       "language": "php",
-      "size": 7913
+      "size": 6778
+    },
+    {
+      "path": "resources/views/livewire/transaksi/partials/summary.blade.php",
+      "reason": "new",
+      "language": "php",
+      "size": 3765
     },
     {
       "path": "resources/views/livewire/transaksi/show.blade.php",
@@ -843,6 +849,12 @@
       "size": 6899
     },
     {
+      "path": "storage/framework/views/7d6ee953c1fd25d7fea970d7e113ae58.php",
+      "reason": "new",
+      "language": "php",
+      "size": 6123
+    },
+    {
       "path": "storage/framework/views/8579f4a2b45b5c9d231980dd0f1a02cd.php",
       "reason": "needs_summary",
       "language": "php",
@@ -1008,7 +1020,7 @@
       "path": "storage/framework/views/f221adf23ef3637c5e8dd1196a6a56c1.php",
       "reason": "changed",
       "language": "php",
-      "size": 15066
+      "size": 13980
     },
     {
       "path": "storage/framework/views/f42e6bc937ce5b928a5231f224c3a42b.php",
@@ -1144,9 +1156,9 @@
     },
     {
       "path": "tests/Feature/Transaksi/DateFilterTest.php",
-      "reason": "new",
+      "reason": "changed",
       "language": "php",
-      "size": 3058
+      "size": 4187
     },
     {
       "path": "tests/Feature/Transaksi/IndexTest.php",

@@ -6,6 +6,7 @@ use App\Http\Controllers\Barang\StockAlertController;
 use App\Http\Controllers\Kasir\CheckoutController;
 use App\Http\Controllers\Kasir\ProductSearchController;
 use App\Http\Controllers\Kasir\TransactionReceiptController;
+use App\Livewire\Anggota;
 use App\Livewire\Barang;
 use App\Livewire\Kasir;
 use App\Livewire\Transaksi;
@@ -52,3 +53,5 @@ Route::get('/transaksi', Transaksi\Index::class)->name('transaksi');
 Route::get('/transaksi/{transaction}', Transaksi\Show::class)
     ->whereNumber('transaction')
     ->name('transaksi.show');
+
+Route::get('/anggota', Anggota\Index::class)->name('anggota');

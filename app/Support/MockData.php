@@ -100,6 +100,41 @@ class MockData
         return collect(self::transactions())->firstWhere('id', $id);
     }
 
+    /** Anggota koperasi tiruan (siswa & guru) dengan saldo tabungan, untuk tahap frontend. */
+    public static function members(): array
+    {
+        $rows = [
+            ['S-2024-001', 'Andi Pratama', 'siswa', '7A', '0812-1111-2001', 85000, true],
+            ['S-2024-002', 'Siti Nurhaliza', 'siswa', '8B', '0812-1111-2002', 142500, true],
+            ['S-2024-003', 'Budi Santoso', 'siswa', '9C', null, 0, true],
+            ['S-2024-004', 'Dewi Lestari', 'siswa', '7A', '0812-1111-2004', 37000, true],
+            ['S-2024-005', 'Rizky Ramadhan', 'siswa', '8A', '0812-1111-2005', 210000, true],
+            ['S-2024-006', 'Putri Ayu', 'siswa', '9A', null, 55000, true],
+            ['S-2024-007', 'Fajar Nugroho', 'siswa', '7B', '0812-1111-2007', 12000, true],
+            ['S-2024-008', 'Nabila Zahra', 'siswa', '8B', '0812-1111-2008', 98000, true],
+            ['S-2024-009', 'Galih Saputra', 'siswa', '9B', null, 0, false],
+            ['S-2024-010', 'Intan Permata', 'siswa', '7C', '0812-1111-2010', 64500, true],
+            ['S-2024-011', 'Yoga Prasetyo', 'siswa', '8C', '0812-1111-2011', 175000, true],
+            ['S-2024-012', 'Maya Sari', 'siswa', '9C', '0812-1111-2012', 23000, true],
+            ['G-2024-001', 'Pak Budi Hartono', 'guru', null, '0813-2222-3001', 750000, true],
+            ['G-2024-002', 'Bu Rina Wulandari', 'guru', null, '0813-2222-3002', 1250000, true],
+            ['G-2024-003', 'Pak Dedi Kurniawan', 'guru', null, '0813-2222-3003', 420000, true],
+            ['G-2024-004', 'Bu Sri Mulyani', 'guru', null, null, 0, false],
+        ];
+
+        return array_map(fn ($r, $i) => [
+            'id' => $i + 1,
+            'member_code' => $r[0],
+            'name' => $r[1],
+            'type' => $r[2],
+            'class' => $r[3],
+            'phone' => $r[4],
+            'balance' => $r[5],
+            'is_active' => $r[6],
+            'joined_at' => now()->subDays(200 - $i * 9)->toDateString(),
+        ], $rows, array_keys($rows));
+    }
+
     /** Data contoh awal — juga dipakai ProductSeeder. */
     public static function seedProducts(): array
     {
