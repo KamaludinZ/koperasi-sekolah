@@ -1,6 +1,6 @@
 {
   "repo": "Koperasi Sekolah",
-  "generatedForCommit": "8cee82d03c341ecae8feb9cc51b36439fa4cd418",
+  "generatedForCommit": "84cb0a1d5260191f4a6f2b54ce19a0b52bb0a5d2",
   "files": [
     {
       "path": ".claude/skills/ngodingpakeai/SKILL.md",
@@ -124,13 +124,13 @@
     },
     {
       "path": "app/Livewire/Transaksi/Index.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 1574
     },
     {
       "path": "app/Livewire/Transaksi/Show.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 964
     },
@@ -238,7 +238,7 @@
     },
     {
       "path": "app/Support/MockData.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 6373
     },
@@ -484,7 +484,7 @@
     },
     {
       "path": "resources/views/components/layouts/app.blade.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 5190
     },
@@ -496,13 +496,13 @@
     },
     {
       "path": "resources/views/components/transaksi/method-badge.blade.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 293
     },
     {
       "path": "resources/views/components/transaksi/row.blade.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 2792
     },
@@ -580,15 +580,15 @@
     },
     {
       "path": "resources/views/livewire/transaksi/index.blade.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 4769
     },
     {
       "path": "resources/views/livewire/transaksi/show.blade.php",
-      "reason": "new",
+      "reason": "changed",
       "language": "php",
-      "size": 3022
+      "size": 8341
     },
     {
       "path": "routes/console.php",
@@ -598,7 +598,7 @@
     },
     {
       "path": "routes/web.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 2385
     },
@@ -670,9 +670,9 @@
     },
     {
       "path": "storage/framework/views/11762cee78b18a71c9360376789f4806.php",
-      "reason": "new",
+      "reason": "changed",
       "language": "php",
-      "size": 5311
+      "size": 11605
     },
     {
       "path": "storage/framework/views/11d434ee5e77058e2fdf66d3577683cf.php",
@@ -766,7 +766,7 @@
     },
     {
       "path": "storage/framework/views/32f1fb599bdea709c9dffe79c0acee84.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 1262
     },
@@ -838,7 +838,7 @@
     },
     {
       "path": "storage/framework/views/798b34bc9486b4ac75524eea46040336.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 6899
     },
@@ -868,7 +868,7 @@
     },
     {
       "path": "storage/framework/views/90358dd57ea6e95ad2e440e766b7658a.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 7083
     },
@@ -1006,7 +1006,7 @@
     },
     {
       "path": "storage/framework/views/f221adf23ef3637c5e8dd1196a6a56c1.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 9769
     },
@@ -1150,9 +1150,9 @@
     },
     {
       "path": "tests/Feature/Transaksi/NavigationTest.php",
-      "reason": "new",
+      "reason": "changed",
       "language": "php",
-      "size": 1276
+      "size": 1740
     },
     {
       "path": "tests/TestCase.php",
