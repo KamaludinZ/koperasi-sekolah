@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Kasir\CheckoutController;
 use App\Http\Controllers\Kasir\ProductSearchController;
+use App\Http\Controllers\Kasir\TransactionReceiptController;
 use App\Livewire\Barang;
 use App\Livewire\Kasir;
 use Illuminate\Support\Facades\Route;
@@ -15,5 +16,11 @@ Route::get('/kasir/barang/cari', ProductSearchController::class)
 Route::post('/kasir/transaksi', CheckoutController::class)
     ->middleware('throttle:60,1')
     ->name('kasir.checkout');
+Route::get('/kasir/transaksi/{transaction}', [TransactionReceiptController::class, 'show'])
+    ->whereNumber('transaction')
+    ->name('kasir.transactions.show');
+Route::get('/kasir/transaksi/{transaction}/struk', [TransactionReceiptController::class, 'print'])
+    ->whereNumber('transaction')
+    ->name('kasir.transactions.receipt');
 
 Route::get('/barang', Barang\Index::class)->name('barang');

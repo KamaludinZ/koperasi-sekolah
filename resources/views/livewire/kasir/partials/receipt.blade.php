@@ -32,11 +32,14 @@
 
     <div class="space-y-0.5">
         <div class="flex justify-between"><span>Subtotal</span><span>{{ $rp($tx['subtotal']) }}</span></div>
+        @if (($tx['discount'] ?? 0) > 0)
+            <div class="flex justify-between"><span>Diskon</span><span>-{{ $rp($tx['discount']) }}</span></div>
+        @endif
         @if ($tx['tax'] > 0)
             <div class="flex justify-between"><span>Pajak</span><span>{{ $rp($tx['tax']) }}</span></div>
         @endif
         <div class="flex justify-between font-bold"><span>TOTAL</span><span>{{ $rp($tx['total']) }}</span></div>
-        <div class="flex justify-between"><span>Bayar ({{ \App\Livewire\Kasir\Cart::PAYMENT_METHODS[$tx['payment_method']] }})</span><span>{{ $rp($tx['paid']) }}</span></div>
+        <div class="flex justify-between"><span>Bayar ({{ $tx['payment_method_label'] }})</span><span>{{ $rp($tx['paid']) }}</span></div>
         <div class="flex justify-between"><span>Kembali</span><span>{{ $rp($tx['change']) }}</span></div>
     </div>
 

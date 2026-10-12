@@ -106,7 +106,10 @@
                 </span>
                 <div class="min-w-0 flex-1">
                     <h2 id="success-title" class="font-semibold">Transaksi berhasil</h2>
-                    <p class="font-mono text-xs text-stone-500">{{ $lastTransaction['invoice_number'] }}</p>
+                    <p class="font-mono text-xs text-stone-500">
+                        {{ $lastTransaction['invoice_number'] }}
+                        · <a href="{{ route('kasir.transactions.receipt', ['transaction' => $lastTransaction['id'], 'cetak' => 0]) }}" target="_blank" class="font-sans text-emerald-700 hover:underline">buka struk</a>
+                    </p>
                 </div>
                 <div class="text-right">
                     <p class="text-xs font-medium text-emerald-800">Kembalian</p>
@@ -116,7 +119,7 @@
 
             <div class="min-h-0 flex-1 overflow-y-auto bg-stone-100 px-5 py-4">
                 <div class="mx-auto w-[58mm] max-w-full rounded-sm bg-white p-3 shadow-sm ring-1 ring-stone-200">
-                    @include('livewire.kasir.partials.receipt', ['tx' => $lastTransaction, 'profile' => \App\Support\MockData::profile()])
+                    @include('livewire.kasir.partials.receipt', ['tx' => $lastTransaction, 'profile' => app(\App\Services\ReceiptPresenter::class)->profile()])
                 </div>
             </div>
 

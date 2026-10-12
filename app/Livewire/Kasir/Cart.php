@@ -4,6 +4,7 @@ namespace App\Livewire\Kasir;
 
 use App\Services\CheckoutService;
 use App\Services\ProductCatalog;
+use App\Services\ReceiptPresenter;
 use App\Support\MockData;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\On;
@@ -151,24 +152,7 @@ class Cart extends Component
             return;
         }
 
-        $this->lastTransaction = [
-            'id' => $transaction->id,
-            'invoice_number' => $transaction->invoice_number,
-            'created_at' => $transaction->created_at->toDateTimeString(),
-            'items' => $transaction->items->map(fn ($item) => [
-                'product_name' => $item->product_name,
-                'price' => (int) $item->price,
-                'quantity' => $item->quantity,
-                'subtotal' => (int) $item->subtotal,
-            ])->all(),
-            'subtotal' => (int) $transaction->subtotal,
-            'tax' => (int) $transaction->tax,
-            'total' => (int) $transaction->total,
-            'paid' => (int) $transaction->paid,
-            'change' => (int) $transaction->change,
-            'payment_method' => $transaction->payment_method,
-            'cashier' => auth()->user()?->name ?? 'Kasir',
-        ];
+        $this->lastTransaction = app(ReceiptPresenter::class)->present($transaction);
 
         $this->dispatch('transaction-completed', invoice: $transaction->invoice_number);
         $this->paying = false;
