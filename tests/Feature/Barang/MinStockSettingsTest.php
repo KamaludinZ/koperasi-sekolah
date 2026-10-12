@@ -26,7 +26,7 @@ class MinStockSettingsTest extends TestCase
         Livewire::test(MinStockSettings::class)
             ->dispatch('open-min-stock-settings')
             ->assertSet('open', true)
-            ->assertSet('minStocks.1', 20)
+            ->assertSet('minStocks.'.$this->pid('ATK001'), 20)
             ->assertSet('defaultMinStock', 5)
             ->assertSee('Atur batas minimum stok');
     }
@@ -35,13 +35,13 @@ class MinStockSettingsTest extends TestCase
     {
         Livewire::test(MinStockSettings::class)
             ->call('show')
-            ->set('minStocks.1', 150)
+            ->set('minStocks.'.$this->pid('ATK001'), 150)
             ->call('save')
             ->assertHasNoErrors()
             ->assertSet('open', false)
             ->assertDispatched('min-stock-updated');
 
-        $this->assertSame(150, Product::find(1)->min_stock);
+        $this->assertSame(150, Product::find($this->pid('ATK001'))->min_stock);
         $this->assertContains('ATK001', array_column(app(ProductListing::class)->lowStock(), 'code'));
     }
 
@@ -52,22 +52,22 @@ class MinStockSettingsTest extends TestCase
             ->set('bulkCategory', 'Minuman')
             ->set('bulkValue', 40)
             ->call('applyBulk')
-            ->assertSet('minStocks.9', 40)
-            ->assertSet('minStocks.1', 20)
+            ->assertSet('minStocks.'.$this->pid('MNM001'), 40)
+            ->assertSet('minStocks.'.$this->pid('ATK001'), 20)
             ->call('save');
 
-        $this->assertSame(40, Product::find(10)->min_stock);
-        $this->assertSame(20, Product::find(1)->min_stock);
+        $this->assertSame(40, Product::find($this->pid('MNM002'))->min_stock);
+        $this->assertSame(20, Product::find($this->pid('ATK001'))->min_stock);
     }
 
     public function test_rejects_negative_and_saves_default_for_new_products(): void
     {
         Livewire::test(MinStockSettings::class)
             ->call('show')
-            ->set('minStocks.2', -1)
+            ->set('minStocks.'.$this->pid('ATK002'), -1)
             ->call('save')
-            ->assertHasErrors('minStocks.2')
-            ->set('minStocks.2', 10)
+            ->assertHasErrors('minStocks.'.$this->pid('ATK002'))
+            ->set('minStocks.'.$this->pid('ATK002'), 10)
             ->set('defaultMinStock', 12)
             ->call('save')
             ->assertHasNoErrors();

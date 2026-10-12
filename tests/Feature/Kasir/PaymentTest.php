@@ -28,8 +28,8 @@ class PaymentTest extends TestCase
     public function test_cash_payment_calculates_change_and_clears_cart(): void
     {
         $cart = Livewire::test(Cart::class)
-            ->call('setQty', 1, 2) // 2 x 4.000
-            ->call('add', 9)       // 1 x 3.500
+            ->call('setQty', $this->pid('ATK001'), 2) // 2 x 4.000
+            ->call('add', $this->pid('MNM001'))       // 1 x 3.500
             ->call('openPayment')
             ->assertSet('paying', true)
             ->assertSee('Uang pas')
@@ -50,19 +50,19 @@ class PaymentTest extends TestCase
     public function test_underpayment_is_rejected(): void
     {
         Livewire::test(Cart::class)
-            ->call('add', 12)
+            ->call('add', $this->pid('SRG001'))
             ->call('openPayment')
             ->set('paid', 10000)
             ->call('pay')
             ->assertHasErrors(['paid' => 'min'])
-            ->assertSet('items', [12 => 1])
+            ->assertSet('items', [$this->pid('SRG001') => 1])
             ->assertSet('lastTransaction', null);
     }
 
     public function test_non_cash_payment_is_exact(): void
     {
         $cart = Livewire::test(Cart::class)
-            ->call('add', 12)
+            ->call('add', $this->pid('SRG001'))
             ->call('openPayment')
             ->set('paymentMethod', 'qris')
             ->call('pay')
@@ -74,7 +74,7 @@ class PaymentTest extends TestCase
     public function test_new_transaction_resets_success_state(): void
     {
         Livewire::test(Cart::class)
-            ->call('add', 1)
+            ->call('add', $this->pid('ATK001'))
             ->call('openPayment')
             ->set('paid', 4000)
             ->call('pay')
@@ -86,7 +86,7 @@ class PaymentTest extends TestCase
     public function test_success_dialog_shows_printable_receipt(): void
     {
         Livewire::test(Cart::class)
-            ->call('setQty', 2, 3)
+            ->call('setQty', $this->pid('ATK002'), 3)
             ->call('openPayment')
             ->set('paid', 10000)
             ->call('pay')

@@ -46,17 +46,17 @@ class ProductEndpointTest extends TestCase
 
     public function test_update_product(): void
     {
-        $this->putJson('/barang/6', $this->payload(['code' => 'MKN001', 'name' => 'Roti Keju', 'stock' => 30]))
+        $this->putJson('/barang/'.$this->pid('MKN001'), $this->payload(['code' => 'MKN001', 'name' => 'Roti Keju', 'stock' => 30]))
             ->assertOk()
             ->assertJsonPath('data.name', 'Roti Keju')
             ->assertJsonPath('data.stock', 30);
 
-        $this->assertSame('penyesuaian', Product::find(6)->stockMovements()->first()->type);
+        $this->assertSame('penyesuaian', Product::find($this->pid('MKN001'))->stockMovements()->first()->type);
     }
 
     public function test_update_rejects_code_of_other_product_and_missing_product(): void
     {
-        $this->putJson('/barang/6', $this->payload(['code' => 'ATK001']))
+        $this->putJson('/barang/'.$this->pid('MKN001'), $this->payload(['code' => 'ATK001']))
             ->assertJsonValidationErrors('code');
 
         $this->putJson('/barang/9999', $this->payload())->assertNotFound();

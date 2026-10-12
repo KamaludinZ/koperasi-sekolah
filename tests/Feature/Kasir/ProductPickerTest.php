@@ -40,14 +40,14 @@ class ProductPickerTest extends TestCase
     public function test_picking_dispatches_event(): void
     {
         Livewire::test(ProductPicker::class)
-            ->call('pick', 2)
-            ->assertDispatched('product-picked', productId: 2);
+            ->call('pick', $this->pid('ATK002'))
+            ->assertDispatched('product-picked', productId: $this->pid('ATK002'));
     }
 
     public function test_out_of_stock_cannot_be_picked(): void
     {
         Livewire::test(ProductPicker::class)
-            ->call('pick', 5)
+            ->call('pick', $this->pid('ATK005'))
             ->assertNotDispatched('product-picked');
     }
 
@@ -56,7 +56,7 @@ class ProductPickerTest extends TestCase
         Livewire::test(ProductPicker::class)
             ->set('search', 'ATK001')
             ->call('pickFromSearch')
-            ->assertDispatched('product-picked', productId: 1)
+            ->assertDispatched('product-picked', productId: $this->pid('ATK001'))
             ->assertSet('search', '');
     }
 }

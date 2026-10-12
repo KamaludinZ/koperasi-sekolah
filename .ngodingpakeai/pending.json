@@ -1,6 +1,6 @@
 {
   "repo": "Koperasi Sekolah",
-  "generatedForCommit": "dbf113287f76017a51e989fb35bc4b0826878f2d",
+  "generatedForCommit": "033e3b776ba71def255e6313a0c695f315b70223",
   "files": [
     {
       "path": ".claude/skills/ngodingpakeai/SKILL.md",
@@ -57,6 +57,12 @@
       "size": 1838
     },
     {
+      "path": "app/Http/Controllers/Barang/StockAlertController.php",
+      "reason": "new",
+      "language": "php",
+      "size": 3007
+    },
+    {
       "path": "app/Http/Controllers/Controller.php",
       "reason": "needs_summary",
       "language": "php",
@@ -88,15 +94,15 @@
     },
     {
       "path": "app/Livewire/Barang/MinStockSettings.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 3200
+      "size": 3373
     },
     {
       "path": "app/Livewire/Forms/ProductForm.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 1765
+      "size": 1792
     },
     {
       "path": "app/Livewire/Kasir/Cart.php",
@@ -124,7 +130,7 @@
     },
     {
       "path": "app/Models/Product.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 1408
     },
@@ -160,7 +166,7 @@
     },
     {
       "path": "app/Observers/ProductObserver.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 1497
     },
@@ -175,6 +181,12 @@
       "reason": "needs_summary",
       "language": "php",
       "size": 5275
+    },
+    {
+      "path": "app/Services/MinStockService.php",
+      "reason": "new",
+      "language": "php",
+      "size": 1799
     },
     {
       "path": "app/Services/ProductCatalog.php",
@@ -214,9 +226,9 @@
     },
     {
       "path": "app/Support/MockData.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 6089
+      "size": 3688
     },
     {
       "path": "artisan",
@@ -400,7 +412,7 @@
     },
     {
       "path": "database/seeders/ProductSeeder.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 1101
     },
@@ -550,9 +562,9 @@
     },
     {
       "path": "routes/web.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 1737
+      "size": 2162
     },
     {
       "path": "storage/app/.gitignore",
@@ -970,9 +982,9 @@
     },
     {
       "path": "tests/Feature/Barang/MinStockSettingsTest.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 2512
+      "size": 2593
     },
     {
       "path": "tests/Feature/Barang/PaginationTest.php",
@@ -999,8 +1011,14 @@
       "size": 2023
     },
     {
-      "path": "tests/Feature/Database/ProductObserverTest.php",
+      "path": "tests/Feature/Barang/StockAlertEndpointTest.php",
       "reason": "new",
+      "language": "php",
+      "size": 2301
+    },
+    {
+      "path": "tests/Feature/Database/ProductObserverTest.php",
+      "reason": "needs_summary",
       "language": "php",
       "size": 2324
     },
@@ -1012,7 +1030,7 @@
     },
     {
       "path": "tests/Feature/Database/StockServiceTest.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 2820
     },

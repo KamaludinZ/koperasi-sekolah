@@ -39,7 +39,7 @@ class StockAlertEndpointTest extends TestCase
     public function test_update_items_category_and_default(): void
     {
         $this->putJson('/barang/batas-minimum', [
-            'items' => [['product_id' => 1, 'min_stock' => 200]],
+            'items' => [['product_id' => $this->pid('ATK001'), 'min_stock' => 200]],
             'kategori' => 'Seragam',
             'nilai' => 1,
             'default_min_stock' => 7,
@@ -47,7 +47,7 @@ class StockAlertEndpointTest extends TestCase
             ->assertJsonPath('meta.changed', 4)
             ->assertJsonPath('meta.default_min_stock', 7);
 
-        $this->assertSame(200, Product::find(1)->min_stock);
+        $this->assertSame(200, Product::find($this->pid('ATK001'))->min_stock);
         $this->assertSame([1, 1, 1], Product::whereIn('code', ['SRG001', 'SRG002', 'SRG003'])->pluck('min_stock')->all());
 
         // Batas baru langsung memengaruhi daftar stok menipis (ATK001 120 ≤ 200; topi 4 > 1).

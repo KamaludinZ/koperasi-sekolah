@@ -46,14 +46,14 @@ class ProductFormTest extends TestCase
     public function test_can_edit_existing_product(): void
     {
         Livewire::test(Index::class)
-            ->call('edit', 2)
+            ->call('edit', $this->pid('ATK002'))
             ->assertSet('form.name', 'Pulpen Hitam')
             ->set('form.price', 3500)
             ->set('form.is_active', false)
             ->call('save')
             ->assertHasNoErrors();
 
-        $product = Product::find(2);
+        $product = Product::find($this->pid('ATK002'));
         $this->assertSame('3500.00', $product->price);
         $this->assertFalse($product->is_active);
         $this->assertSame(0, $product->stockMovements()->count()); // stok tidak berubah → tanpa riwayat
@@ -72,7 +72,7 @@ class ProductFormTest extends TestCase
     public function test_editing_keeps_its_own_code_valid(): void
     {
         Livewire::test(Index::class)
-            ->call('edit', 1)
+            ->call('edit', $this->pid('ATK001'))
             ->call('save')
             ->assertHasNoErrors();
     }
@@ -80,19 +80,19 @@ class ProductFormTest extends TestCase
     public function test_stock_change_from_form_is_recorded_as_adjustment(): void
     {
         Livewire::test(Index::class)
-            ->call('edit', 1)
+            ->call('edit', $this->pid('ATK001'))
             ->set('form.stock', 100)
             ->call('save')
             ->assertHasNoErrors();
 
-        $movement = Product::find(1)->stockMovements()->first();
+        $movement = Product::find($this->pid('ATK001'))->stockMovements()->first();
         $this->assertSame(['penyesuaian', 20, 120, 100], [$movement->type, $movement->quantity, $movement->stock_before, $movement->stock_after]);
     }
 
     public function test_saved_product_appears_in_list(): void
     {
         Livewire::test(Index::class)
-            ->call('edit', 2)
+            ->call('edit', $this->pid('ATK002'))
             ->set('form.name', 'Pulpen Biru')
             ->call('save')
             ->assertSee('Pulpen Biru');
