@@ -6,6 +6,7 @@ use App\Http\Controllers\Barang\StockAlertController;
 use App\Http\Controllers\Kasir\CheckoutController;
 use App\Http\Controllers\Kasir\ProductSearchController;
 use App\Http\Controllers\Kasir\TransactionReceiptController;
+use App\Http\Controllers\Transaksi\TransactionListController;
 use App\Livewire\Anggota;
 use App\Livewire\Barang;
 use App\Livewire\Kasir;
@@ -51,6 +52,9 @@ Route::put('/barang/batas-minimum', [StockAlertController::class, 'updateMinStoc
     ->name('barang.min-stock.update');
 
 Route::get('/transaksi', Transaksi\Index::class)->name('transaksi');
+Route::get('/transaksi/daftar', TransactionListController::class)
+    ->middleware('throttle:120,1')
+    ->name('transaksi.list');
 Route::get('/transaksi/{transaction}', Transaksi\Show::class)
     ->whereNumber('transaction')
     ->name('transaksi.show');
