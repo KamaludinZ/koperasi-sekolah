@@ -17,16 +17,21 @@
             <p class="rounded-lg bg-emerald-50 px-4 py-2.5 text-sm text-emerald-900" role="status">{{ $flash }}</p>
         @endif
 
+        @include('livewire.barang.partials.low-stock-panel')
+
         {{-- Ringkasan (kartu habis & nonaktif bisa diklik untuk memfilter) --}}
         <div class="grid grid-cols-2 gap-3 lg:grid-cols-5">
             <div class="rounded-xl border border-stone-200 bg-white px-4 py-3">
                 <p class="text-xs text-stone-500">Jenis barang</p>
                 <p class="text-2xl font-bold tabular-nums">{{ $this->stats['total'] }}</p>
             </div>
-            <div class="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3">
+            <button type="button" wire:click="toggleStatus('menipis')" aria-pressed="{{ $status === 'menipis' ? 'true' : 'false' }}"
+                    @class(['rounded-xl border px-4 py-3 text-left transition',
+                            'border-amber-200 bg-amber-50 hover:border-amber-400' => $status !== 'menipis',
+                            'border-amber-600 bg-amber-100 ring-2 ring-amber-600/20' => $status === 'menipis'])>
                 <p class="text-xs text-amber-800">Stok menipis</p>
                 <p class="text-2xl font-bold text-amber-900 tabular-nums">{{ $this->stats['low'] }}</p>
-            </div>
+            </button>
             <button type="button" wire:click="toggleStatus('habis')" aria-pressed="{{ $status === 'habis' ? 'true' : 'false' }}"
                     @class(['rounded-xl border px-4 py-3 text-left transition',
                             'border-red-200 bg-red-50 hover:border-red-400' => $status !== 'habis',

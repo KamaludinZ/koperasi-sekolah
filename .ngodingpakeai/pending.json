@@ -1,6 +1,6 @@
 {
   "repo": "Koperasi Sekolah",
-  "generatedForCommit": "01d1f99d18faf4cbe20e8010c408f79c1f3cd87a",
+  "generatedForCommit": "bdbdd619956ea79a0143b462460a47ddcf6055f5",
   "files": [
     {
       "path": ".claude/skills/ngodingpakeai/SKILL.md",
@@ -54,17 +54,17 @@
       "path": "app/Livewire/Barang/Index.php",
       "reason": "changed",
       "language": "php",
-      "size": 3271
+      "size": 4031
     },
     {
       "path": "app/Livewire/Forms/ProductForm.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 2525
     },
     {
       "path": "app/Livewire/Kasir/Cart.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 6030
     },
@@ -76,7 +76,7 @@
     },
     {
       "path": "app/Livewire/Kasir/ProductPicker.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 2258
     },
@@ -94,7 +94,7 @@
     },
     {
       "path": "app/Support/MockData.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 4840
     },
@@ -312,11 +312,11 @@
       "path": "resources/views/livewire/barang/index.blade.php",
       "reason": "changed",
       "language": "php",
-      "size": 8173
+      "size": 10816
     },
     {
       "path": "resources/views/livewire/barang/partials/product-form.blade.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 7965
     },
@@ -472,7 +472,7 @@
     },
     {
       "path": "storage/framework/views/ba5979f1a69d9d3595f4444d9321bfb6.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 14327
     },
@@ -498,17 +498,17 @@
       "path": "storage/framework/views/f42e6bc937ce5b928a5231f224c3a42b.php",
       "reason": "changed",
       "language": "php",
-      "size": 14986
+      "size": 18381
     },
     {
       "path": "tests/Feature/Barang/IndexTest.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 1320
+      "size": 2178
     },
     {
       "path": "tests/Feature/Barang/ProductFormTest.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 2152
     },

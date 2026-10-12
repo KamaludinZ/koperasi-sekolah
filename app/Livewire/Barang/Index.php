@@ -24,7 +24,7 @@ class Index extends Component
     #[Url(except: '')]
     public string $category = '';
 
-    /** Filter status: '' (semua), 'habis', 'nonaktif'. */
+    /** Filter status: '' (semua), 'menipis', 'habis', 'nonaktif'. */
     #[Url(except: '')]
     public string $status = '';
 
@@ -39,6 +39,7 @@ class Index extends Component
 
     public const STATUSES = [
         '' => 'Semua status',
+        'menipis' => 'Stok menipis',
         'habis' => 'Stok habis',
         'nonaktif' => 'Nonaktif',
     ];
@@ -58,6 +59,7 @@ class Index extends Component
         $items = collect(MockData::products())
             ->filter(fn ($p) => $this->category === '' || $p['category'] === $this->category)
             ->filter(fn ($p) => match ($this->status) {
+                'menipis' => $p['stock'] > 0 && $p['stock'] <= $p['min_stock'],
                 'habis' => $p['stock'] <= 0,
                 'nonaktif' => ! $p['is_active'],
                 default => true,
@@ -74,6 +76,17 @@ class Index extends Component
         };
 
         return $items->values()->all();
+    }
+
+    /** Barang aktif yang perlu segera ditambah stoknya (habis + menipis). */
+    #[Computed]
+    public function lowStock(): array
+    {
+        return array_map(fn ($p) => [
+            ...$p,
+            // Saran restok: kembalikan stok ke dua kali batas minimum.
+            'suggested' => max($p['min_stock'] * 2 - $p['stock'], 1),
+        ], MockData::lowStockProducts());
     }
 
     #[Computed]
@@ -125,7 +138,7 @@ class Index extends Component
         $this->flash = $isNew
             ? "{$product['name']} ditambahkan."
             : "Perubahan {$product['name']} disimpan.";
-        unset($this->products, $this->stats);
+        unset($this->products, $this->stats, $this->lowStock);
     }
 
     public function cancel(): void

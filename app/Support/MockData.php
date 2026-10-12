@@ -49,6 +49,19 @@ class MockData
         return array_values(array_filter(self::products(), fn ($p) => $p['is_active']));
     }
 
+    /**
+     * Barang aktif yang stoknya habis atau di bawah/sama dengan batas minimum,
+     * paling kritis (rasio stok/batas terkecil) di atas.
+     */
+    public static function lowStockProducts(): array
+    {
+        return collect(self::activeProducts())
+            ->filter(fn ($p) => $p['stock'] <= $p['min_stock'])
+            ->sortBy(fn ($p) => $p['min_stock'] > 0 ? $p['stock'] / $p['min_stock'] : 0)
+            ->values()
+            ->all();
+    }
+
     public static function findProduct(int $id): ?array
     {
         return collect(self::products())->firstWhere('id', $id);

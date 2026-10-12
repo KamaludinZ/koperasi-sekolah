@@ -51,16 +51,13 @@ class IndexTest extends TestCase
     {
         \App\Support\MockData::saveProduct(['id' => 2, 'is_active' => false]);
 
-        Livewire::test(Index::class)
-            ->call('toggleStatus', 'habis')
-            ->assertSee('Penggaris 30 cm')
-            ->assertDontSee('Buku Tulis 38 Lembar')
-            ->call('toggleStatus', 'nonaktif')
-            ->assertSee('Pulpen Hitam')
-            ->assertSee('Nonaktif · tidak dijual')
-            ->assertDontSee('Penggaris 30 cm')
-            ->call('toggleStatus', 'nonaktif')
-            ->assertSet('status', '');
+        $page = Livewire::test(Index::class)->call('toggleStatus', 'habis');
+        $this->assertSame(['ATK005'], array_column($page->instance()->products, 'code'));
+
+        $page->call('toggleStatus', 'nonaktif')->assertSee('Nonaktif · tidak dijual');
+        $this->assertSame(['ATK002'], array_column($page->instance()->products, 'code'));
+
+        $page->call('toggleStatus', 'nonaktif')->assertSet('status', '');
     }
 
     public function test_stats_count_inactive(): void
