@@ -13,7 +13,14 @@
         <x-pengaturan.nav />
     </header>
 
+    @unless ($this->canEdit)
+        <p class="mx-4 mt-4 flex items-center gap-2 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900 sm:mx-6" role="status">
+            <svg class="size-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
+            Mode baca saja — hanya Admin yang dapat mengubah pengaturan koperasi.
+        </p>
+    @endunless
     <form wire:submit="save" class="grid gap-5 px-4 py-6 sm:px-6 xl:grid-cols-[minmax(0,1fr)_20rem]" novalidate>
+        <fieldset class="contents" @disabled(! $this->canEdit)>
         <div class="min-w-0 space-y-5">
 
             {{-- Identitas --}}
@@ -152,5 +159,6 @@
                 </dl>
             </div>
         </aside>
+        </fieldset>
     </form>
 </div>

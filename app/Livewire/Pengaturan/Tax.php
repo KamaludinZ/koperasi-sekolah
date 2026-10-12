@@ -4,6 +4,7 @@ namespace App\Livewire\Pengaturan;
 
 use App\Support\MockData;
 use App\Support\PriceCalculator;
+use App\Livewire\Concerns\GuardsSettings;
 use App\Livewire\Concerns\NotifiesSave;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
@@ -19,6 +20,7 @@ use Livewire\Component;
 #[Title('Pajak & Pembulatan')]
 class Tax extends Component
 {
+    use GuardsSettings;
     use NotifiesSave;
     public bool $enabled = false;
 
@@ -112,6 +114,9 @@ class Tax extends Component
     public function save(): void
     {
         $this->saved = false;
+        if (! $this->ensureCanEdit('tax')) {
+            return;
+        }
         $this->saveWithToast(function () {
             $this->validate();
 

@@ -20,7 +20,7 @@ class Role extends Model
     public const LABELS = [self::ADMIN => 'Admin', self::KASIR => 'Kasir', self::PENGURUS => 'Pengurus'];
 
     /** Menu yang wajib dimiliki admin agar tidak terkunci dari pengelolaan akun. */
-    public const ADMIN_REQUIRED = ['pengguna'];
+    public const ADMIN_REQUIRED = ['pengguna', 'pengaturan'];
 
     protected $fillable = ['name', 'label', 'permissions'];
 

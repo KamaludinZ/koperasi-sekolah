@@ -185,7 +185,7 @@ Route::middleware('menu:pengaturan')->group(function () {
 
     Route::get('/pengaturan/data', [SettingsController::class, 'index'])->name('pengaturan.data');
     Route::get('/pengaturan/data/{section}', [SettingsController::class, 'show'])->whereIn('section', SettingsService::SECTIONS)->name('pengaturan.data.show');
-    Route::middleware('throttle:30,1')->group(function () {
+    Route::middleware(['can:ubah-pengaturan', 'throttle:30,1'])->group(function () {
         Route::post('/pengaturan/data/profile/logo', [LogoController::class, 'store'])->name('pengaturan.logo.store');
         Route::delete('/pengaturan/data/profile/logo', [LogoController::class, 'destroy'])->name('pengaturan.logo.destroy');
         Route::put('/pengaturan/data/{section}', [SettingsController::class, 'update'])->whereIn('section', SettingsService::SECTIONS)->name('pengaturan.data.update');

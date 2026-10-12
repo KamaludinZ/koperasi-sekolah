@@ -5,6 +5,7 @@ namespace App\Livewire\Pengaturan;
 use App\Services\LogoService;
 use App\Support\MockData;
 use App\Support\OpeningHours;
+use App\Livewire\Concerns\GuardsSettings;
 use App\Livewire\Concerns\NotifiesSave;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
@@ -21,6 +22,7 @@ use Livewire\WithFileUploads;
 #[Title('Profil Koperasi')]
 class Profile extends Component
 {
+    use GuardsSettings;
     use NotifiesSave;
     use WithFileUploads;
 
@@ -112,6 +114,9 @@ class Profile extends Component
 
     public function removeLogo(): void
     {
+        if (! $this->canEdit) {
+            return;
+        }
         $this->logo = null;
         $this->logoUpload = null;
         $this->logoRemoved = true;
@@ -120,6 +125,9 @@ class Profile extends Component
     public function save(): void
     {
         $this->saved = false;
+        if (! $this->ensureCanEdit('profile')) {
+            return;
+        }
         $this->saveWithToast(function () {
             $this->validate();
 

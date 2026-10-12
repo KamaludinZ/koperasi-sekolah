@@ -159,7 +159,7 @@ class UserService
     {
         $menus = array_values(array_intersect(array_keys(Menu::ITEMS), $menus)); // urutan & kunci valid saja
         if ($role->name === Role::ADMIN && array_diff(Role::ADMIN_REQUIRED, $menus)) {
-            throw ValidationException::withMessages(['permissions' => 'Peran Admin wajib tetap bisa membuka menu Pengguna.']);
+            throw ValidationException::withMessages(['permissions' => 'Peran Admin wajib tetap bisa membuka menu Pengguna dan Pengaturan.']);
         }
 
         $before = $role->permissions ?? [];

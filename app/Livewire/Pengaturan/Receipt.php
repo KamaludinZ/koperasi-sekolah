@@ -4,6 +4,7 @@ namespace App\Livewire\Pengaturan;
 
 use App\Services\ReceiptPresenter;
 use App\Support\MockData;
+use App\Livewire\Concerns\GuardsSettings;
 use App\Livewire\Concerns\NotifiesSave;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
@@ -19,6 +20,7 @@ use Livewire\Component;
 #[Title('Pengaturan Struk')]
 class Receipt extends Component
 {
+    use GuardsSettings;
     use NotifiesSave;
     public const PAPERS = ['58mm' => '58 mm (kasir kecil)', '80mm' => '80 mm (kasir standar)'];
 
@@ -82,6 +84,9 @@ class Receipt extends Component
     public function save(): void
     {
         $this->saved = false;
+        if (! $this->ensureCanEdit('receipt')) {
+            return;
+        }
         $this->saveWithToast(function () {
             $data = $this->validate();
             $data['header'] = trim($data['header'] ?? '') ?: null;
