@@ -103,11 +103,60 @@ class Index extends Component
         $now = now();
 
         return match ($this->period) {
-            '7-hari' => [$now->copy()->subDays(6)->startOfDay(), $now->copy()->endOfDay()],
-            '30-hari' => [$now->copy()->subDays(29)->startOfDay(), $now->copy()->endOfDay()],
-            'bulan-ini' => [$now->copy()->startOfMonth(), $now->copy()->endOfDay()],
-            default => [$now->copy()->startOfDay(), $now->copy()->endOfDay()],
+            '7-hari' => [$now->copy()->subDays(6)->startOfDay(), $now->copy()],
+            '30-hari' => [$now->copy()->subDays(29)->startOfDay(), $now->copy()],
+            'bulan-ini' => [$now->copy()->startOfMonth(), $now->copy()],
+            default => [$now->copy()->startOfDay(), $now->copy()],
         };
+    }
+
+    /**
+     * Rentang pembanding yang setara: hari ini ↔ kemarin s.d. jam yang sama,
+     * N hari ↔ N hari sebelumnya, bulan ini ↔ tanggal yang sama di bulan lalu.
+     *
+     * @return array{0: Carbon, 1: Carbon}
+     */
+    #[Computed]
+    public function previousRange(): array
+    {
+        [$start, $end] = $this->range;
+
+        return match ($this->period) {
+            '7-hari' => [$start->copy()->subDays(7), $end->copy()->subDays(7)],
+            '30-hari' => [$start->copy()->subDays(30), $end->copy()->subDays(30)],
+            'bulan-ini' => [$start->copy()->subMonthNoOverflow(), $end->copy()->subMonthNoOverflow()],
+            default => [$start->copy()->subDay(), $end->copy()->subDay()],
+        };
+    }
+
+    /** Ringkasan periode sebelumnya + persentase perubahan tiap angka. */
+    #[Computed]
+    public function comparison(): array
+    {
+        [$start, $end] = $this->previousRange;
+        $previous = $this->summarize($this->between($start, $end));
+        $current = $this->summary;
+
+        $changes = [];
+        foreach (['revenue', 'gross_profit', 'count', 'items', 'average'] as $key) {
+            $changes[$key] = $previous[$key] > 0
+                ? (int) round(($current[$key] - $previous[$key]) / $previous[$key] * 100)
+                : null;
+        }
+
+        return [
+            'previous' => $previous,
+            'changes' => $changes,
+            'label' => match ($this->period) {
+                '7-hari' => '7 hari sebelumnya',
+                '30-hari' => '30 hari sebelumnya',
+                'bulan-ini' => 'periode sama bulan lalu',
+                default => 'kemarin jam segini',
+            },
+            'range_label' => $start->isSameDay($end)
+                ? $start->translatedFormat('d M Y').' s.d. '.$end->format('H:i')
+                : $start->translatedFormat('d M').' – '.$end->translatedFormat('d M Y'),
+        ];
     }
 
     #[Computed]
@@ -115,7 +164,12 @@ class Index extends Component
     {
         [$start, $end] = $this->range;
 
-        return array_values(array_filter(MockData::transactions(30), function ($t) use ($start, $end) {
+        return $this->between($start, $end);
+    }
+
+    private function between(Carbon $start, Carbon $end): array
+    {
+        return array_values(array_filter(MockData::transactions(90), function ($t) use ($start, $end) {
             $at = Carbon::parse($t['created_at']);
 
             return $at->gte($start) && $at->lte($end);
@@ -125,7 +179,12 @@ class Index extends Component
     #[Computed]
     public function summary(): array
     {
-        $tx = collect($this->transactions);
+        return $this->summarize($this->transactions);
+    }
+
+    private function summarize(array $transactions): array
+    {
+        $tx = collect($transactions);
         $costs = collect(MockData::seedProducts())->pluck('cost_price', 'name');
         $revenue = $tx->sum('total');
         $cost = $tx->flatMap(fn ($t) => $t['items'])->sum(fn ($i) => ($costs[$i['product_name']] ?? 0) * $i['quantity']);

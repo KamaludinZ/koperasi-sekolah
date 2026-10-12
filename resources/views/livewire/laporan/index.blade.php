@@ -26,27 +26,37 @@
     <div class="space-y-5 px-4 py-5 sm:px-6">
         @include('livewire.laporan.partials.today-card')
 
-        <h2 class="pt-1 text-sm font-semibold text-stone-700">Rekap periode: {{ \App\Livewire\Laporan\Index::PERIODS[$period] }}</h2>
+        @php
+            $cmp = $this->comparison;
+            $prev = $cmp['previous'];
+            $ch = $cmp['changes'];
+        @endphp
+        <div class="flex flex-wrap items-baseline justify-between gap-2 pt-1">
+            <h2 class="text-sm font-semibold text-stone-700">Rekap periode: {{ \App\Livewire\Laporan\Index::PERIODS[$period] }}</h2>
+            <p class="text-xs text-stone-500">Dibandingkan dengan {{ $cmp['label'] }} ({{ $cmp['range_label'] }})</p>
+        </div>
 
-        {{-- Angka utama --}}
+        {{-- Angka utama + perbandingan --}}
         <section class="grid grid-cols-2 gap-3 lg:grid-cols-4" aria-label="Ringkasan penjualan">
             <div class="col-span-2 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 lg:col-span-1">
                 <p class="text-xs text-emerald-800">Total penjualan</p>
                 <p class="text-2xl font-bold text-emerald-900 tabular-nums">{{ $rp($s['revenue']) }}</p>
+                <x-laporan.delta :pct="$ch['revenue']" :previous="$rp($prev['revenue'])" />
             </div>
             <div class="rounded-xl border border-stone-200 bg-white px-4 py-3">
-                <p class="text-xs text-stone-500">Laba kotor</p>
+                <p class="text-xs text-stone-500">Laba kotor <span class="text-stone-400">· margin {{ $s['margin'] }}%</span></p>
                 <p class="text-xl font-bold tabular-nums">{{ $rp($s['gross_profit']) }}</p>
-                <p class="text-xs text-stone-500">margin {{ $s['margin'] }}%</p>
+                <x-laporan.delta :pct="$ch['gross_profit']" :previous="$rp($prev['gross_profit'])" />
             </div>
             <div class="rounded-xl border border-stone-200 bg-white px-4 py-3">
-                <p class="text-xs text-stone-500">Transaksi</p>
+                <p class="text-xs text-stone-500">Transaksi <span class="text-stone-400">· rata-rata {{ $rp($s['average']) }}</span></p>
                 <p class="text-xl font-bold tabular-nums">{{ $s['count'] }}</p>
-                <p class="text-xs text-stone-500">rata-rata {{ $rp($s['average']) }}</p>
+                <x-laporan.delta :pct="$ch['count']" :previous="$prev['count']" />
             </div>
             <div class="rounded-xl border border-stone-200 bg-white px-4 py-3">
                 <p class="text-xs text-stone-500">Barang terjual</p>
                 <p class="text-xl font-bold tabular-nums">{{ $s['items'] }}</p>
+                <x-laporan.delta :pct="$ch['items']" :previous="$prev['items']" />
             </div>
         </section>
 

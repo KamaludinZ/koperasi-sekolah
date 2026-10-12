@@ -97,4 +97,31 @@ class IndexTest extends TestCase
 
         $this->assertSame($expected, array_sum(array_column($points, 'value')));
     }
+
+    public function test_comparison_uses_equivalent_previous_range(): void
+    {
+        $c = Livewire::test(Index::class)->call('setPeriod', '7-hari');
+        [$start, $end] = $c->instance()->previousRange;
+        $this->assertSame('2026-10-01 00:00:00', $start->toDateTimeString());
+        $this->assertSame('2026-10-07 15:00:00', $end->toDateTimeString());
+
+        $expected = collect(\App\Support\MockData::transactions(90))
+            ->filter(fn ($t) => $t['created_at'] >= '2026-10-01' && $t['created_at'] <= '2026-10-07 15:00:00')
+            ->sum('total');
+        $cmp = $c->instance()->comparison;
+        $this->assertSame($expected, $cmp['previous']['revenue']);
+        $this->assertSame(
+            (int) round(($c->instance()->summary['revenue'] - $expected) / $expected * 100),
+            $cmp['changes']['revenue'],
+        );
+        $c->assertSee('Dibandingkan dengan 7 hari sebelumnya');
+    }
+
+    public function test_month_compares_with_same_dates_last_month(): void
+    {
+        [$start, $end] = Livewire::test(Index::class)->call('setPeriod', 'bulan-ini')->instance()->previousRange;
+
+        $this->assertSame('2026-09-01', $start->toDateString());
+        $this->assertSame('2026-09-14 15:00:00', $end->toDateTimeString());
+    }
 }
