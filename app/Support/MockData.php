@@ -140,6 +140,14 @@ class MockData
                 'url' => null, 'created_at' => now()->subHours($hours)->toDateTimeString()];
         }
 
+        foreach (self::announcements() as $a) {
+            if ($a['expires_at'] && $a['expires_at'] < now()->toDateString()) {
+                continue;
+            }
+            $rows[] = ['id' => $a['id'], 'type' => 'pengumuman', 'target' => $a['target'], 'title' => $a['title'],
+                'message' => $a['message'], 'url' => null, 'created_at' => $a['created_at']];
+        }
+
         $role = auth()->user()?->role?->name;
 
         return collect($rows)
@@ -150,6 +158,46 @@ class MockData
             ->sortByDesc('created_at')
             ->values()
             ->all();
+    }
+
+    /**
+     * Pengumuman buatan pengurus/admin (tiruan, session), terbaru dulu.
+     *
+     * @return list<array{id: int, title: string, message: string, target: string, show_public: bool, expires_at: ?string, author: ?string, created_at: string}>
+     */
+    public static function announcements(): array
+    {
+        return collect(session('mock.announcements', []))->sortByDesc('created_at')->values()->all();
+    }
+
+    public static function saveAnnouncement(array $data): array
+    {
+        $all = collect(session('mock.announcements', []));
+        $row = [
+            'id' => 1000 + ($all->max(fn ($a) => $a['id'] - 1000) ?? 0) + 1,
+            ...$data,
+            'author' => auth()->user()?->name,
+            'created_at' => now()->toDateTimeString(),
+        ];
+        session(['mock.announcements' => $all->push($row)->values()->all()]);
+
+        return $row;
+    }
+
+    public static function deleteAnnouncement(int $id): bool
+    {
+        $all = collect(session('mock.announcements', []));
+        session(['mock.announcements' => $all->reject(fn ($a) => $a['id'] === $id)->values()->all()]);
+
+        return $all->contains('id', $id);
+    }
+
+    /** Pengumuman aktif untuk beranda publik. */
+    public static function publicAnnouncements(): array
+    {
+        return collect(self::announcements())
+            ->filter(fn ($a) => $a['show_public'] && (! $a['expires_at'] || $a['expires_at'] >= now()->toDateString()))
+            ->values()->all();
     }
 
     public static function markNotifications(array $ids, bool $read = true): void

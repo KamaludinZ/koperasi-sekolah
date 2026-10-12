@@ -42,6 +42,9 @@ Route::post('/keluar', LogoutController::class)->name('logout');
 Route::get('/akun/kata-sandi', Akun\Password::class)->middleware(['menu', 'auth'])->name('akun.password');
 Route::get('/akun/sesi', Akun\Sessions::class)->middleware(['menu', 'auth'])->name('akun.sessions');
 Route::get('/notifikasi', Notifikasi\Index::class)->middleware(['menu', 'auth'])->name('notifikasi');
+Route::get('/notifikasi/pengumuman', Notifikasi\Announcements::class)
+    ->middleware(['menu', 'auth', 'peran:admin,pengurus'])
+    ->name('notifikasi.pengumuman');
 Route::middleware('auth')->group(function () {
     Route::put('/akun/kata-sandi', PasswordController::class)
         ->middleware('throttle:10,1')

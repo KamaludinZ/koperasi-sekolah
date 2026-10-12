@@ -13,9 +13,17 @@
             <h1 class="text-lg font-semibold">Notifikasi</h1>
             <p class="text-xs text-stone-500">Peringatan stok, pengumuman, dan kabar sistem. <span class="rounded bg-amber-100 px-1.5 py-0.5 text-[11px] font-medium text-amber-800">data tiruan</span></p>
         </div>
+        <div class="flex flex-wrap gap-2">
+        @if (in_array(auth()->user()?->roleName(), ['admin', 'pengurus'], true))
+            <a href="{{ route('notifikasi.pengumuman') }}" wire:navigate class="inline-flex items-center gap-2 rounded-xl bg-emerald-700 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-800">
+                <svg class="size-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+                Buat pengumuman
+            </a>
+        @endif
         @if ($this->counts['belum'] > 0)
             <button type="button" wire:click="markAllRead" wire:loading.attr="disabled" wire:target="markAllRead" class="rounded-xl disabled:opacity-60 border border-stone-300 bg-white px-4 py-2 text-sm font-semibold text-stone-800 hover:bg-stone-50">Tandai semua dibaca</button>
         @endif
+        </div>
     </header>
 
     <div class="mx-auto w-full max-w-3xl space-y-4 px-4 py-5 sm:px-6">

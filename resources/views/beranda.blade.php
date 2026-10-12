@@ -67,6 +67,21 @@
     </header>
 
     <main>
+        @if (count($announcements))
+            <section class="mx-auto max-w-6xl px-4 pt-12 sm:px-6" aria-labelledby="pengumuman">
+                <h2 id="pengumuman" class="ornament-divider text-xs font-semibold tracking-[0.2em] text-amber-600 uppercase">Pengumuman</h2>
+                <div class="mt-4 grid gap-3 md:grid-cols-2">
+                    @foreach (array_slice($announcements, 0, 4) as $a)
+                        <article class="rounded-2xl border-l-4 border-amber-400 bg-white p-5 shadow-sm ring-1 ring-stone-200">
+                            <h3 class="font-display text-xl font-bold text-emerald-950">{{ $a['title'] }}</h3>
+                            <p class="mt-1.5 text-sm leading-relaxed whitespace-pre-line text-stone-700">{{ $a['message'] }}</p>
+                            <p class="mt-2 text-xs text-stone-500">{{ \Illuminate\Support\Carbon::parse($a['created_at'])->translatedFormat('d F Y') }}@if ($a['expires_at']) · berlaku sampai {{ \Illuminate\Support\Carbon::parse($a['expires_at'])->translatedFormat('d F Y') }}@endif</p>
+                        </article>
+                    @endforeach
+                </div>
+            </section>
+        @endif
+
         {{-- Layanan --}}
         <section id="layanan" class="mx-auto max-w-6xl scroll-mt-6 px-4 py-16 sm:px-6">
             <p class="ornament-divider mx-auto max-w-xs text-xs font-semibold tracking-[0.2em] text-amber-600 uppercase">Layanan kami</p>
