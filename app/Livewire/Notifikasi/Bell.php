@@ -7,11 +7,15 @@ use Livewire\Attributes\On;
 use Livewire\Component;
 
 /**
- * Lonceng notifikasi di sidebar dengan jumlah belum dibaca; ikut diperbarui saat
- * notifikasi ditandai dibaca (event `notifications-changed`).
+ * Lonceng notifikasi (sidebar & bar atas ponsel): badge jumlah belum dibaca, panel
+ * pratinjau 5 notifikasi terbaru dengan tandai dibaca / tandai semua / buka tautan,
+ * diperbarui tiap 60 detik dan saat notifikasi berubah (`notifications-changed`).
+ * Tahap frontend: data tiruan (MockData::notifications).
  */
 class Bell extends Component
 {
+    public const PREVIEW = 5;
+
     public bool $compact = false;
 
     #[On('notifications-changed')]
@@ -20,8 +24,37 @@ class Bell extends Component
         // render ulang
     }
 
+    public function markRead(int $id): void
+    {
+        MockData::markNotifications([$id]);
+        $this->dispatch('notifications-changed');
+    }
+
+    public function markAllRead(): void
+    {
+        $ids = collect(MockData::notifications())->where('is_read', false)->pluck('id')->all();
+        MockData::markNotifications($ids);
+        $this->dispatch('notifications-changed');
+    }
+
+    public function open(int $id)
+    {
+        $n = collect(MockData::notifications())->firstWhere('id', $id);
+        if (! $n) {
+            return null;
+        }
+        MockData::markNotifications([$id]);
+
+        return $this->redirect($n['url'] ?? route('notifikasi'), navigate: true);
+    }
+
     public function render()
     {
-        return view('livewire.notifikasi.bell', ['unread' => MockData::unreadNotifications()]);
+        $all = collect(MockData::notifications());
+
+        return view('livewire.notifikasi.bell', [
+            'unread' => $all->where('is_read', false)->count(),
+            'latest' => $all->take(self::PREVIEW)->all(),
+        ]);
     }
 }
