@@ -4,10 +4,20 @@ namespace Tests\Feature\Barang;
 
 use App\Livewire\Barang\Index;
 use Livewire\Livewire;
+use Database\Seeders\ProductSeeder;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
 class PaginationTest extends TestCase
 {
+    use RefreshDatabase;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+        $this->seed(ProductSeeder::class);
+    }
+
     public function test_first_page_shows_ten_of_fourteen(): void
     {
         $page = Livewire::test(Index::class)

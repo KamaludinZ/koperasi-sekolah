@@ -6,10 +6,20 @@ use App\Livewire\Barang\Index;
 use App\Livewire\Barang\MinStockSettings;
 use App\Support\MockData;
 use Livewire\Livewire;
+use Database\Seeders\ProductSeeder;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
 class MinStockSettingsTest extends TestCase
 {
+    use RefreshDatabase;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+        $this->seed(ProductSeeder::class);
+    }
+
     public function test_opens_with_current_values(): void
     {
         Livewire::test(MinStockSettings::class)

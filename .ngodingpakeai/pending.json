@@ -1,6 +1,6 @@
 {
   "repo": "Koperasi Sekolah",
-  "generatedForCommit": "d244938b3d1c4f26fd3372e229fe234d08e8a34c",
+  "generatedForCommit": "a00dcdd4eb0b75c11867f74532651ff64f14aa77",
   "files": [
     {
       "path": ".claude/skills/ngodingpakeai/SKILL.md",
@@ -106,7 +106,7 @@
     },
     {
       "path": "app/Models/Category.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 368
     },
@@ -114,19 +114,19 @@
       "path": "app/Models/Product.php",
       "reason": "changed",
       "language": "php",
-      "size": 1264
+      "size": 1279
     },
     {
       "path": "app/Models/Setting.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 747
     },
     {
       "path": "app/Models/StockMovement.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 701
+      "size": 1865
     },
     {
       "path": "app/Models/Transaction.php",
@@ -154,9 +154,9 @@
     },
     {
       "path": "app/Services/CheckoutService.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 5518
+      "size": 5275
     },
     {
       "path": "app/Services/ProductCatalog.php",
@@ -175,6 +175,12 @@
       "reason": "needs_summary",
       "language": "php",
       "size": 1700
+    },
+    {
+      "path": "app/Services/StockService.php",
+      "reason": "new",
+      "language": "php",
+      "size": 3417
     },
     {
       "path": "app/Support/MockData.php",
@@ -298,13 +304,13 @@
     },
     {
       "path": "database/factories/CategoryFactory.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 297
     },
     {
       "path": "database/factories/ProductFactory.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 999
     },
@@ -346,9 +352,15 @@
     },
     {
       "path": "database/migrations/2026_10_12_000003_add_product_constraints_and_settings_table.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 2564
+    },
+    {
+      "path": "database/migrations/2026_10_12_000004_add_stock_snapshot_to_stock_movements_table.php",
+      "reason": "new",
+      "language": "php",
+      "size": 911
     },
     {
       "path": "database/seeders/DatabaseSeeder.php",
@@ -946,9 +958,15 @@
     },
     {
       "path": "tests/Feature/Database/ProductTransactionSchemaTest.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 3379
+    },
+    {
+      "path": "tests/Feature/Database/StockServiceTest.php",
+      "reason": "new",
+      "language": "php",
+      "size": 2713
     },
     {
       "path": "tests/Feature/ExampleTest.php",

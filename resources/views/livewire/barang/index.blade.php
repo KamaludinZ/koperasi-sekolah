@@ -90,7 +90,7 @@
             </select>
         </div>
 
-        @if (count($this->products) === 0)
+        @if ($this->paginated->total() === 0)
             <div class="rounded-xl border border-dashed border-stone-300 bg-white px-6 py-14 text-center">
                 <p class="text-sm font-medium text-stone-600">Tidak ada barang yang cocok</p>
                 <button type="button" wire:click="resetFilters" class="mt-2 text-sm font-medium text-emerald-700 hover:underline">Hapus filter</button>

@@ -5,10 +5,20 @@ namespace Tests\Feature\Barang;
 use App\Livewire\Barang\Index;
 use App\Support\MockData;
 use Livewire\Livewire;
+use Database\Seeders\ProductSeeder;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
 class ProductFormTest extends TestCase
 {
+    use RefreshDatabase;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+        $this->seed(ProductSeeder::class);
+    }
+
     public function test_can_add_new_product(): void
     {
         Livewire::test(Index::class)

@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Barang\ProductListController;
 use App\Http\Controllers\Kasir\CheckoutController;
 use App\Http\Controllers\Kasir\ProductSearchController;
 use App\Http\Controllers\Kasir\TransactionReceiptController;
@@ -28,3 +29,6 @@ Route::get('/kasir/transaksi/{transaction}/struk.pdf', [TransactionReceiptContro
     ->name('kasir.transactions.receipt.pdf');
 
 Route::get('/barang', Barang\Index::class)->name('barang');
+Route::get('/barang/daftar', ProductListController::class)
+    ->middleware('throttle:120,1')
+    ->name('barang.list');

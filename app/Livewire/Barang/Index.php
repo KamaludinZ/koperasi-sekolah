@@ -3,7 +3,9 @@
 namespace App\Livewire\Barang;
 
 use App\Livewire\Forms\ProductForm;
-use App\Support\MockData;
+use App\Models\Product;
+use App\Services\ProductCatalog;
+use App\Services\ProductListing;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\On;
@@ -15,7 +17,7 @@ use Livewire\WithPagination;
 
 /**
  * Halaman daftar barang: semua barang beserta harga dan sisa stok.
- * Masih memakai data tiruan sampai tabel products tersedia.
+ * Data dibaca dari tabel products lewat ProductListing.
  */
 #[Layout('components.layouts.app')]
 #[Title('Barang & Stok')]
@@ -26,7 +28,7 @@ class Index extends Component
     #[Url(as: 'per', except: 10)]
     public int $perPage = 10;
 
-    public const PER_PAGE_OPTIONS = [10, 25, 50];
+    public const PER_PAGE_OPTIONS = ProductListing::PER_PAGE_OPTIONS;
 
     #[Url(as: 'q', except: '')]
     public string $search = '';
@@ -61,58 +63,23 @@ class Index extends Component
         'price_desc' => 'Harga termahal',
     ];
 
+    /** Halaman aktif dari hasil filter (query database berpaginasi). */
     #[Computed]
-    public function products(): array
+    public function paginated(): LengthAwarePaginator
     {
-        $term = mb_strtolower(trim($this->search));
-
-        $items = collect(MockData::products())
-            ->filter(fn ($p) => $this->category === '' || $p['category'] === $this->category)
-            ->filter(fn ($p) => match ($this->status) {
-                'menipis' => $p['stock'] > 0 && $p['stock'] <= $p['min_stock'],
-                'habis' => $p['stock'] <= 0,
-                'nonaktif' => ! $p['is_active'],
-                default => true,
-            })
-            ->filter(fn ($p) => $term === ''
-                || str_contains(mb_strtolower($p['name']), $term)
-                || str_contains(mb_strtolower($p['code']), $term));
-
-        $items = match ($this->sort) {
-            'stock' => $items->sortBy('stock'),
-            'price' => $items->sortBy('price'),
-            'price_desc' => $items->sortByDesc('price'),
-            default => $items->sortBy('name', SORT_NATURAL | SORT_FLAG_CASE),
-        };
-
-        return $items->values()->all();
+        return app(ProductListing::class)->paginate([
+            'search' => $this->search,
+            'category' => $this->category,
+            'status' => $this->status,
+            'sort' => $this->sort,
+        ], $this->perPage, $this->getPage());
     }
 
     /** Barang aktif yang perlu segera ditambah stoknya (habis + menipis). */
     #[Computed]
     public function lowStock(): array
     {
-        return array_map(fn ($p) => [
-            ...$p,
-            // Saran restok: kembalikan stok ke dua kali batas minimum.
-            'suggested' => max($p['min_stock'] * 2 - $p['stock'], 1),
-        ], MockData::lowStockProducts());
-    }
-
-    /** Halaman aktif dari hasil filter (data tiruan dipaginasi di memori). */
-    #[Computed]
-    public function paginated(): LengthAwarePaginator
-    {
-        $perPage = in_array($this->perPage, self::PER_PAGE_OPTIONS, true) ? $this->perPage : 10;
-        $all = $this->products;
-        $page = max(1, min($this->getPage(), (int) ceil(count($all) / $perPage) ?: 1));
-
-        return new LengthAwarePaginator(
-            array_slice($all, ($page - 1) * $perPage, $perPage),
-            count($all),
-            $perPage,
-            $page,
-        );
+        return app(ProductListing::class)->lowStock();
     }
 
     /** Filter apa pun berubah → kembali ke halaman 1. */
@@ -126,15 +93,7 @@ class Index extends Component
     #[Computed]
     public function stats(): array
     {
-        $all = collect(MockData::products());
-
-        return [
-            'total' => $all->count(),
-            'low' => $all->filter(fn ($p) => $p['stock'] > 0 && $p['stock'] <= $p['min_stock'])->count(),
-            'out' => $all->filter(fn ($p) => $p['stock'] <= 0)->count(),
-            'inactive' => $all->where('is_active', false)->count(),
-            'stock_value' => $all->sum(fn ($p) => $p['cost_price'] * $p['stock']),
-        ];
+        return app(ProductListing::class)->stats();
     }
 
     /** Klik kartu ringkasan: aktifkan filter status, klik lagi untuk melepas. */
@@ -153,7 +112,8 @@ class Index extends Component
 
     public function edit(int $productId): void
     {
-        $product = MockData::findProduct($productId);
+        $model = Product::with('category:id,name')->find($productId);
+        $product = $model ? ProductCatalog::toArray($model) : null;
         if (! $product) {
             return;
         }
@@ -172,7 +132,7 @@ class Index extends Component
         $this->flash = $isNew
             ? "{$product['name']} ditambahkan."
             : "Perubahan {$product['name']} disimpan.";
-        unset($this->products, $this->paginated, $this->stats, $this->lowStock);
+        unset($this->paginated, $this->stats, $this->lowStock);
     }
 
     public function cancel(): void
@@ -184,7 +144,7 @@ class Index extends Component
     public function refreshAfterMinStock(string $message): void
     {
         $this->flash = $message;
-        unset($this->products, $this->paginated, $this->stats, $this->lowStock);
+        unset($this->paginated, $this->stats, $this->lowStock);
     }
 
     public function resetFilters(): void
@@ -196,7 +156,7 @@ class Index extends Component
     public function render()
     {
         return view('livewire.barang.index', [
-            'categories' => MockData::categories(),
+            'categories' => app(ProductListing::class)->categories(),
         ]);
     }
 }

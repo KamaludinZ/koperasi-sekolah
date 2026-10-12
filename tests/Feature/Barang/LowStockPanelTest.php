@@ -3,12 +3,22 @@
 namespace Tests\Feature\Barang;
 
 use App\Livewire\Barang\Index;
-use App\Support\MockData;
+use App\Models\Product;
 use Livewire\Livewire;
+use Database\Seeders\ProductSeeder;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
 class LowStockPanelTest extends TestCase
 {
+    use RefreshDatabase;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+        $this->seed(ProductSeeder::class);
+    }
+
     public function test_panel_lists_out_of_stock_first_then_low(): void
     {
         $codes = array_column(Livewire::test(Index::class)->instance()->lowStock, 'code');
@@ -28,8 +38,8 @@ class LowStockPanelTest extends TestCase
 
     public function test_inactive_products_are_excluded_and_restock_clears_warning(): void
     {
-        MockData::saveProduct(['id' => 5, 'is_active' => false]);
-        MockData::saveProduct(['id' => 13, 'stock' => 50]);
+        Product::where('code', 'ATK005')->update(['is_active' => false]);
+        Product::where('code', 'SRG002')->update(['stock' => 50]);
 
         $codes = array_column(Livewire::test(Index::class)->instance()->lowStock, 'code');
         $this->assertSame(['MKN003', 'ATK003'], $codes);
