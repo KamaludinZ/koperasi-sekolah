@@ -13,7 +13,7 @@
 @php
     $nav = [
         ['label' => 'Kasir', 'route' => 'kasir', 'icon' => 'M3 3h18v4H3zM5 7v13h14V7M9 11h6'],
-        ['label' => 'Barang & Stok', 'route' => null, 'icon' => 'M20 7l-8-4-8 4m16 0v10l-8 4m8-14l-8 4m0 10l-8-4V7m8 14V11'],
+        ['label' => 'Barang & Stok', 'route' => 'barang', 'icon' => 'M20 7l-8-4-8 4m16 0v10l-8 4m8-14l-8 4m0 10l-8-4V7m8 14V11'],
         ['label' => 'Transaksi', 'route' => null, 'icon' => 'M9 5h10M9 12h10M9 19h10M5 5h.01M5 12h.01M5 19h.01'],
         ['label' => 'Anggota', 'route' => null, 'icon' => 'M17 20h5v-2a4 4 0 00-5-3.9M9 20H2v-2a4 4 0 014-4h3a4 4 0 014 4v2zM12 7a3 3 0 11-6 0 3 3 0 016 0zm8 2a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z'],
         ['label' => 'Laporan', 'route' => null, 'icon' => 'M4 20V10m6 10V4m6 16v-7m4 7H2'],

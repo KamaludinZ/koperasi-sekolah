@@ -1,6 +1,6 @@
 {
   "repo": "Koperasi Sekolah",
-  "generatedForCommit": "2a3d4c96a5bfe5312ee0165d929ca7ba6a9cd4d1",
+  "generatedForCommit": "4850de677ff8ce34cce4f2e85b7c3e48bff9129f",
   "files": [
     {
       "path": ".claude/skills/ngodingpakeai/SKILL.md",
@@ -52,7 +52,7 @@
     },
     {
       "path": "app/Livewire/Kasir/Cart.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 6024
     },
@@ -82,7 +82,7 @@
     },
     {
       "path": "app/Support/MockData.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 3284
     },
@@ -268,7 +268,7 @@
     },
     {
       "path": "resources/css/app.css",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "css",
       "size": 1012
     },
@@ -286,39 +286,39 @@
     },
     {
       "path": "resources/views/components/layouts/app.blade.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 3625
+      "size": 4772
     },
     {
       "path": "resources/views/livewire/kasir/cart.blade.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 5347
+      "size": 6932
     },
     {
       "path": "resources/views/livewire/kasir/index.blade.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 1097
+      "size": 1158
     },
     {
       "path": "resources/views/livewire/kasir/partials/payment-panel.blade.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 8705
     },
     {
       "path": "resources/views/livewire/kasir/partials/receipt.blade.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 2248
     },
     {
       "path": "resources/views/livewire/kasir/product-picker.blade.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 5112
+      "size": 5157
     },
     {
       "path": "routes/console.php",
@@ -394,7 +394,7 @@
     },
     {
       "path": "storage/framework/views/28c267bfd327fcb162e337d394bf553e.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 11057
     },
@@ -406,27 +406,27 @@
     },
     {
       "path": "storage/framework/views/52f5e0e2173f932d2ee123ac25c31cea.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 7433
+      "size": 8848
     },
     {
       "path": "storage/framework/views/798b34bc9486b4ac75524eea46040336.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 5092
+      "size": 6174
     },
     {
       "path": "storage/framework/views/915a8066dbfdfee9fc6e01ff537e877e.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 2077
+      "size": 2138
     },
     {
       "path": "storage/framework/views/92583c14c7d686b3adb28a0f23b70c9d.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 6856
+      "size": 6901
     },
     {
       "path": "storage/framework/views/a168b0ebcff266df6b662fc4b6d06e88.blade.php",
@@ -436,7 +436,7 @@
     },
     {
       "path": "storage/framework/views/bb2941f959f36c967c040104018a3c16.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 3234
     },
@@ -466,7 +466,7 @@
     },
     {
       "path": "tests/Feature/Kasir/PaymentTest.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 2681
     },
