@@ -6,3 +6,10 @@
 # docs/internal/
 # *.snap
 # fixtures/
+
+# Artefak Laravel hasil generate (sudah di-ignore oleh .gitignore bertingkat):
+# Blade terkompilasi, cache paket/layanan, cache facade, file unggahan & struk PDF.
+storage/framework/
+storage/app/
+storage/logs/
+bootstrap/cache/
