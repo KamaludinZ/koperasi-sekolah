@@ -24,6 +24,53 @@ class Show extends Component
         $this->profile = $found;
     }
 
+    /** Dialog setor/tarik: null (tertutup), 'setor', atau 'tarik'. */
+    public ?string $mode = null;
+
+    public ?int $amount = null;
+
+    public string $note = '';
+
+    public ?array $lastEntry = null;
+
+    public function openSaving(string $mode): void
+    {
+        if (! in_array($mode, ['setor', 'tarik'], true) || ! $this->profile['is_active']) {
+            return;
+        }
+
+        $this->resetValidation();
+        $this->reset('amount', 'note', 'lastEntry');
+        $this->mode = $mode;
+    }
+
+    public function closeSaving(): void
+    {
+        $this->mode = null;
+    }
+
+    public function saveSaving(): void
+    {
+        abort_unless($this->profile['is_active'] && in_array($this->mode, ['setor', 'tarik'], true), 403);
+
+        $balance = $this->profile['balance'];
+        $this->validate([
+            'amount' => ['required', 'integer', 'min:1000', 'max:'.($this->mode === 'tarik' ? $balance : 10_000_000)],
+            'note' => ['nullable', 'string', 'max:150'],
+        ], [
+            'amount.required' => 'Masukkan jumlah uang.',
+            'amount.min' => 'Minimal Rp1.000.',
+            'amount.max' => $this->mode === 'tarik'
+                ? 'Penarikan melebihi saldo (Rp'.number_format($balance, 0, ',', '.').').'
+                : 'Maksimal Rp10.000.000 per setoran.',
+        ]);
+
+        $this->lastEntry = MockData::recordSaving($this->profile['id'], $this->mode, $this->amount, trim($this->note) ?: null);
+        $this->profile = MockData::findMember($this->profile['id']);
+        $this->mode = null;
+        unset($this->savings, $this->stats);
+    }
+
     #[Computed]
     public function savings(): array
     {

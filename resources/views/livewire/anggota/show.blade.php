@@ -73,13 +73,24 @@
                     @endif
                 </p>
                 <div class="mt-4 grid grid-cols-2 gap-2">
-                    <button type="button" disabled title="Segera hadir"
-                            class="rounded-xl bg-white py-2.5 text-sm font-semibold text-emerald-900 disabled:cursor-not-allowed disabled:opacity-70">Setor</button>
-                    <button type="button" disabled title="Segera hadir"
-                            class="rounded-xl border border-emerald-400/60 py-2.5 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-70">Tarik</button>
+                    <button type="button" wire:click="openSaving('setor')" @disabled(! $m['is_active'])
+                            class="rounded-xl bg-white py-2.5 text-sm font-semibold text-emerald-900 hover:bg-emerald-50 disabled:cursor-not-allowed disabled:opacity-60">+ Setor</button>
+                    <button type="button" wire:click="openSaving('tarik')" @disabled(! $m['is_active'] || $m['balance'] <= 0)
+                            class="rounded-xl border border-emerald-400/60 py-2.5 text-sm font-semibold text-white hover:bg-emerald-800 disabled:cursor-not-allowed disabled:opacity-50">− Tarik</button>
                 </div>
+                @unless ($m['is_active'])
+                    <p class="mt-2 text-xs text-emerald-200">Anggota nonaktif tidak dapat setor/tarik.</p>
+                @endunless
             </div>
+            @if ($lastEntry)
+                <div class="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-900" role="status">
+                    {{ $lastEntry['type'] === 'setor' ? 'Setoran' : 'Penarikan' }} <strong class="tabular-nums">{{ $rp($lastEntry['amount']) }}</strong> tercatat.
+                    Saldo sekarang <strong class="tabular-nums">{{ $rp($lastEntry['balance_after']) }}</strong>.
+                </div>
+            @endif
             <p class="text-xs text-stone-400">Data tiruan — saldo & mutasi akan diambil dari database pada tahap backend.</p>
         </aside>
     </div>
+
+    @include('livewire.anggota.partials.saving-form')
 </div>

@@ -133,6 +133,35 @@ class MockData
      */
     public static function savings(int $memberId): array
     {
+        return session("mock.savings.{$memberId}") ?? self::seedSavings($memberId);
+    }
+
+    /** Catat setor/tarik tiruan: tambah mutasi & perbarui saldo anggota. */
+    public static function recordSaving(int $memberId, string $type, int $amount, ?string $note, string $user = 'Kasir Demo'): array
+    {
+        $member = self::findMember($memberId);
+        $ledger = self::savings($memberId);
+        $balance = $member['balance'] + ($type === 'setor' ? $amount : -$amount);
+
+        $entry = [
+            'id' => $memberId * 100 + count($ledger) + 1,
+            'member_id' => $memberId,
+            'type' => $type,
+            'amount' => $amount,
+            'balance_after' => $balance,
+            'note' => $note ?: ($type === 'setor' ? 'Setoran tabungan' : 'Penarikan tabungan'),
+            'user' => $user,
+            'created_at' => now()->toDateTimeString(),
+        ];
+
+        session(["mock.savings.{$memberId}" => [...$ledger, $entry]]);
+        self::saveMember(['id' => $memberId, 'balance' => $balance]);
+
+        return $entry;
+    }
+
+    private static function seedSavings(int $memberId): array
+    {
         $member = self::findMember($memberId);
         if (! $member || $member['balance'] <= 0 && $memberId % 2 === 1) {
             return [];
