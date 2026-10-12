@@ -2,7 +2,7 @@
 <div class="flex min-h-0 flex-1 flex-col overflow-y-auto">
     <header class="border-b border-stone-200 bg-white px-4 py-4 sm:px-6">
         <h1 class="text-lg font-semibold">Riwayat Transaksi</h1>
-        <p class="text-xs text-stone-500">Semua penjualan dari yang terbaru. <span class="rounded bg-amber-100 px-1.5 py-0.5 text-[11px] font-medium text-amber-800">data tiruan</span></p>
+        <p class="text-xs text-stone-500">Semua penjualan dari yang terbaru. <span class="rounded bg-amber-100 px-1.5 py-0.5 text-[11px] font-medium text-amber-800">data tiruan</span> Klik baris untuk melihat rincian.</p>
     </header>
 
     <div class="space-y-5 px-4 py-5 sm:px-6">
@@ -51,23 +51,12 @@
                                 <th class="px-4 py-2 text-right">Barang</th>
                                 <th class="px-4 py-2">Bayar</th>
                                 <th class="px-4 py-2 text-right">Total</th>
+                                <th class="w-8"><span class="sr-only">Detail</span></th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-stone-100">
                             @foreach ($day['rows'] as $t)
-                                <tr wire:key="tx-{{ $t['id'] }}" class="hover:bg-stone-50">
-                                    <td class="px-4 py-2.5 text-stone-600 tabular-nums">{{ substr($t['created_at'], 11, 5) }}</td>
-                                    <td class="px-4 py-2.5 font-mono text-xs">{{ $t['invoice_number'] }}</td>
-                                    <td class="px-4 py-2.5 text-stone-600">{{ $t['cashier'] }}</td>
-                                    <td class="px-4 py-2.5 text-stone-600">{{ $t['member'] ?? '—' }}</td>
-                                    <td class="px-4 py-2.5 text-right tabular-nums">{{ $t['item_count'] }}</td>
-                                    <td class="px-4 py-2.5">
-                                        <span @class(['rounded px-1.5 py-0.5 text-[11px] font-medium',
-                                                      'bg-stone-100 text-stone-700' => $t['payment_method'] === 'tunai',
-                                                      'bg-sky-100 text-sky-800' => $t['payment_method'] !== 'tunai'])>{{ $methods[$t['payment_method']] ?? $t['payment_method'] }}</span>
-                                    </td>
-                                    <td class="px-4 py-2.5 text-right font-semibold tabular-nums">{{ $rp($t['total']) }}</td>
-                                </tr>
+                                <x-transaksi.row :tx="$t" wire:key="tx-{{ $t['id'] }}" />
                             @endforeach
                         </tbody>
                     </table>
@@ -76,13 +65,7 @@
                 {{-- Kartu (ponsel) --}}
                 <ul class="divide-y divide-stone-100 overflow-hidden rounded-xl border border-stone-200 bg-white md:hidden">
                     @foreach ($day['rows'] as $t)
-                        <li wire:key="txm-{{ $t['id'] }}" class="flex items-center justify-between gap-3 px-4 py-3">
-                            <div class="min-w-0">
-                                <p class="font-mono text-xs">{{ $t['invoice_number'] }}</p>
-                                <p class="truncate text-xs text-stone-500">{{ substr($t['created_at'], 11, 5) }} · {{ $t['item_count'] }} barang · {{ $methods[$t['payment_method']] ?? $t['payment_method'] }}</p>
-                            </div>
-                            <span class="shrink-0 font-semibold tabular-nums">{{ $rp($t['total']) }}</span>
-                        </li>
+                        <x-transaksi.row :tx="$t" variant="card" wire:key="txm-{{ $t['id'] }}" />
                     @endforeach
                 </ul>
             </section>

@@ -2,7 +2,6 @@
 
 namespace App\Livewire\Transaksi;
 
-use App\Services\CheckoutService;
 use App\Support\MockData;
 use Illuminate\Support\Carbon;
 use Livewire\Attributes\Computed;
@@ -55,8 +54,6 @@ class Index extends Component
 
     public function render()
     {
-        return view('livewire.transaksi.index', [
-            'methods' => CheckoutService::PAYMENT_METHODS,
-        ]);
+        return view('livewire.transaksi.index');
     }
 }

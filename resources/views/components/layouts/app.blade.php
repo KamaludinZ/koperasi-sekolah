@@ -35,7 +35,7 @@
         </div>
         <nav class="flex-1 space-y-0.5 px-3">
             @foreach ($nav as $item)
-                @php $active = $item['route'] && request()->routeIs($item['route']); @endphp
+                @php $active = $item['route'] && request()->routeIs($item['route'], $item['route'].'.*'); @endphp
                 @if ($item['route'])
                     <a href="{{ route($item['route']) }}" wire:navigate
                        @class(['flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition',

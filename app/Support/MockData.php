@@ -95,6 +95,11 @@ class MockData
         return array_reverse($rows);
     }
 
+    public static function findTransaction(int $id): ?array
+    {
+        return collect(self::transactions())->firstWhere('id', $id);
+    }
+
     /** Data contoh awal — juga dipakai ProductSeeder. */
     public static function seedProducts(): array
     {
