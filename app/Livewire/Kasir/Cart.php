@@ -202,7 +202,7 @@ class Cart extends Component
 
     private function catalog(): array
     {
-        return collect(MockData::products())->keyBy('id')->all();
+        return collect(MockData::activeProducts())->keyBy('id')->all();
     }
 
     public function render()

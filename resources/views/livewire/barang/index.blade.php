@@ -5,14 +5,18 @@
             <h1 class="text-lg font-semibold">Barang & Stok</h1>
             <p class="text-xs text-stone-500">Daftar barang koperasi beserta harga dan sisa stok.</p>
         </div>
-        <button type="button" disabled title="Segera hadir"
-                class="inline-flex items-center gap-2 rounded-xl bg-emerald-700 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-emerald-800 disabled:cursor-not-allowed disabled:opacity-60">
+        <button type="button" wire:click="create"
+                class="inline-flex items-center gap-2 rounded-xl bg-emerald-700 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-emerald-800">
             <svg class="size-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
             Tambah barang
         </button>
     </header>
 
     <div class="space-y-4 px-4 py-5 sm:px-6">
+        @if ($flash)
+            <p class="rounded-lg bg-emerald-50 px-4 py-2.5 text-sm text-emerald-900" role="status">{{ $flash }}</p>
+        @endif
+
         {{-- Ringkasan --}}
         <dl class="grid grid-cols-2 gap-3 lg:grid-cols-4">
             <div class="rounded-xl border border-stone-200 bg-white px-4 py-3">
@@ -73,17 +77,24 @@
                             <th class="px-4 py-2.5 text-right">Harga beli</th>
                             <th class="px-4 py-2.5 text-right">Harga jual</th>
                             <th class="px-4 py-2.5 text-right">Stok</th>
+                            <th class="px-4 py-2.5"><span class="sr-only">Aksi</span></th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-stone-100">
                         @foreach ($this->products as $p)
                             <tr wire:key="row-{{ $p['id'] }}" class="hover:bg-stone-50">
                                 <td class="px-4 py-3 font-mono text-xs text-stone-500">{{ $p['code'] }}</td>
-                                <td class="px-4 py-3 font-medium">{{ $p['name'] }}</td>
+                                <td class="px-4 py-3 font-medium">
+                                    {{ $p['name'] }}
+                                    @unless ($p['is_active'])<span class="ml-1 rounded bg-stone-200 px-1.5 py-0.5 text-[11px] font-medium text-stone-600">Nonaktif</span>@endunless
+                                </td>
                                 <td class="px-4 py-3 text-stone-600">{{ $p['category'] }}</td>
                                 <td class="px-4 py-3 text-right text-stone-600 tabular-nums">{{ $rp($p['cost_price']) }}</td>
                                 <td class="px-4 py-3 text-right font-medium tabular-nums">{{ $rp($p['price']) }}</td>
                                 <td class="px-4 py-3 text-right"><x-stock-badge :stock="$p['stock']" :min="$p['min_stock']" :unit="$p['unit']" /></td>
+                                <td class="px-4 py-3 text-right">
+                                    <button type="button" wire:click="edit({{ $p['id'] }})" class="text-sm font-medium text-emerald-700 hover:underline">Ubah</button>
+                                </td>
                             </tr>
                         @endforeach
                     </tbody>
@@ -93,11 +104,11 @@
             {{-- Kartu (ponsel) --}}
             <ul class="space-y-2 md:hidden">
                 @foreach ($this->products as $p)
-                    <li wire:key="card-{{ $p['id'] }}" class="rounded-xl border border-stone-200 bg-white px-4 py-3">
+                    <li wire:key="card-{{ $p['id'] }}" wire:click="edit({{ $p['id'] }})" class="cursor-pointer rounded-xl border border-stone-200 bg-white px-4 py-3 active:bg-stone-50">
                         <div class="flex items-start justify-between gap-3">
                             <div class="min-w-0">
                                 <p class="font-mono text-[11px] text-stone-400">{{ $p['code'] }} · {{ $p['category'] }}</p>
-                                <p class="truncate font-medium">{{ $p['name'] }}</p>
+                                <p class="truncate font-medium">{{ $p['name'] }} @unless ($p['is_active'])<span class="text-xs font-normal text-stone-500">(nonaktif)</span>@endunless</p>
                             </div>
                             <x-stock-badge :stock="$p['stock']" :min="$p['min_stock']" :unit="$p['unit']" class="shrink-0" />
                         </div>
@@ -108,4 +119,6 @@
             <p class="text-xs text-stone-500">Menampilkan {{ count($this->products) }} dari {{ $this->stats['total'] }} barang.</p>
         @endif
     </div>
+
+    @include('livewire.barang.partials.product-form')
 </div>

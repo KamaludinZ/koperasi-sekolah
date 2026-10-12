@@ -30,7 +30,42 @@ class MockData
         return 0;
     }
 
+    private const SESSION_KEY = 'mock.products';
+
+    /**
+     * Semua barang (aktif & nonaktif). Perubahan dari form barang disimpan di
+     * session supaya bisa dicoba tanpa database.
+     */
     public static function products(): array
+    {
+        $products = session(self::SESSION_KEY) ?? self::seedProducts();
+
+        return array_map(fn ($p) => $p + ['is_active' => true], array_values($products));
+    }
+
+    /** Barang yang boleh dijual di layar kasir. */
+    public static function activeProducts(): array
+    {
+        return array_values(array_filter(self::products(), fn ($p) => $p['is_active']));
+    }
+
+    public static function findProduct(int $id): ?array
+    {
+        return collect(self::products())->firstWhere('id', $id);
+    }
+
+    /** Simpan barang baru (tanpa id) atau perbarui barang yang ada. Mengembalikan barang tersimpan. */
+    public static function saveProduct(array $data): array
+    {
+        $products = collect(self::products())->keyBy('id');
+        $data['id'] ??= ($products->keys()->max() ?? 0) + 1;
+        $products[$data['id']] = [...($products[$data['id']] ?? []), ...$data];
+        session([self::SESSION_KEY => $products->values()->all()]);
+
+        return $products[$data['id']];
+    }
+
+    private static function seedProducts(): array
     {
         return [
             ['id' => 1, 'code' => 'ATK001', 'name' => 'Buku Tulis 38 Lembar', 'category' => 'Alat Tulis', 'price' => 4000, 'cost_price' => 3200, 'stock' => 120, 'min_stock' => 20, 'unit' => 'pcs'],

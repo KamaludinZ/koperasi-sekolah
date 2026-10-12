@@ -29,7 +29,7 @@ class ProductPicker extends Component
     {
         $term = mb_strtolower(trim($this->search));
 
-        return array_values(array_filter(MockData::products(), function (array $p) use ($term) {
+        return array_values(array_filter(MockData::activeProducts(), function (array $p) use ($term) {
             if ($this->category !== '' && $p['category'] !== $this->category) {
                 return false;
             }
@@ -42,9 +42,9 @@ class ProductPicker extends Component
 
     public function pick(int $productId): void
     {
-        $product = collect(MockData::products())->firstWhere('id', $productId);
+        $product = MockData::findProduct($productId);
 
-        if (! $product || $product['stock'] < 1) {
+        if (! $product || ! $product['is_active'] || $product['stock'] < 1) {
             return;
         }
 

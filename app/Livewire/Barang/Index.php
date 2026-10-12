@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Barang;
 
+use App\Livewire\Forms\ProductForm;
 use App\Support\MockData;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
@@ -25,6 +26,12 @@ class Index extends Component
 
     #[Url(except: 'name')]
     public string $sort = 'name';
+
+    public ProductForm $form;
+
+    public bool $editing = false;
+
+    public ?string $flash = null;
 
     public const SORTS = [
         'name' => 'Nama (A–Z)',
@@ -65,6 +72,43 @@ class Index extends Component
             'out' => $all->where('stock', 0)->count(),
             'stock_value' => $all->sum(fn ($p) => $p['cost_price'] * $p['stock']),
         ];
+    }
+
+    public function create(): void
+    {
+        $this->form->reset();
+        $this->form->resetValidation();
+        $this->flash = null;
+        $this->editing = true;
+    }
+
+    public function edit(int $productId): void
+    {
+        $product = MockData::findProduct($productId);
+        if (! $product) {
+            return;
+        }
+
+        $this->form->load($product);
+        $this->flash = null;
+        $this->editing = true;
+    }
+
+    public function save(): void
+    {
+        $isNew = $this->form->id === null;
+        $product = $this->form->save();
+
+        $this->editing = false;
+        $this->flash = $isNew
+            ? "{$product['name']} ditambahkan."
+            : "Perubahan {$product['name']} disimpan.";
+        unset($this->products, $this->stats);
+    }
+
+    public function cancel(): void
+    {
+        $this->editing = false;
     }
 
     public function resetFilters(): void
