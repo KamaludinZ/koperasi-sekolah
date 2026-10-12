@@ -4,6 +4,7 @@ namespace App\Livewire\Pengaturan;
 
 use App\Support\MockData;
 use App\Support\PriceCalculator;
+use App\Livewire\Concerns\NotifiesSave;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Component;
@@ -18,6 +19,7 @@ use Livewire\Component;
 #[Title('Pajak & Pembulatan')]
 class Tax extends Component
 {
+    use NotifiesSave;
     public bool $enabled = false;
 
     public string $label = 'Pajak';
@@ -110,11 +112,13 @@ class Tax extends Component
     public function save(): void
     {
         $this->saved = false;
-        $this->validate();
+        $this->saveWithToast(function () {
+            $this->validate();
 
-        MockData::saveSettings('tax', $this->current());
-        $this->rate = (string) ($this->current()['rate'] + 0);
-        $this->saved = true;
+            MockData::saveSettings('tax', $this->current());
+            $this->rate = (string) ($this->current()['rate'] + 0);
+            $this->saved = true;
+        }, 'Pengaturan pajak & pembulatan disimpan.');
     }
 
     public function render()

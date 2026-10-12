@@ -4,6 +4,7 @@ namespace App\Livewire\Pengaturan;
 
 use App\Services\ReceiptPresenter;
 use App\Support\MockData;
+use App\Livewire\Concerns\NotifiesSave;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Component;
@@ -18,6 +19,7 @@ use Livewire\Component;
 #[Title('Pengaturan Struk')]
 class Receipt extends Component
 {
+    use NotifiesSave;
     public const PAPERS = ['58mm' => '58 mm (kasir kecil)', '80mm' => '80 mm (kasir standar)'];
 
     public string $header = '';
@@ -80,14 +82,16 @@ class Receipt extends Component
     public function save(): void
     {
         $this->saved = false;
-        $data = $this->validate();
-        $data['header'] = trim($data['header'] ?? '') ?: null;
-        $data['subheader'] = trim($data['subheader'] ?? '') ?: null;
-        $data['note'] = trim($data['note'] ?? '') ?: null;
-        $data['footer'] = trim($data['footer']);
+        $this->saveWithToast(function () {
+            $data = $this->validate();
+            $data['header'] = trim($data['header'] ?? '') ?: null;
+            $data['subheader'] = trim($data['subheader'] ?? '') ?: null;
+            $data['note'] = trim($data['note'] ?? '') ?: null;
+            $data['footer'] = trim($data['footer']);
 
-        MockData::saveSettings('receipt', $data);
-        $this->saved = true;
+            MockData::saveSettings('receipt', $data);
+            $this->saved = true;
+        }, 'Pengaturan struk disimpan. Struk berikutnya memakai format baru.');
     }
 
     public function resetDefaults(): void

@@ -14,9 +14,6 @@
 
     <form wire:submit="save" class="grid gap-5 px-4 py-6 sm:px-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,22rem)]" novalidate>
         <div class="min-w-0 space-y-5">
-            @if ($saved)
-                <p class="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-900" role="status">Pengaturan struk disimpan. Struk berikutnya memakai format baru.</p>
-            @endif
 
             <section class="space-y-4 rounded-2xl border border-stone-200 bg-white p-5" aria-labelledby="rc-head">
                 <h2 id="rc-head" class="font-semibold">Kepala struk</h2>

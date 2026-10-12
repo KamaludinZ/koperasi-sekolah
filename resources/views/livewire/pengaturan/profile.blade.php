@@ -15,12 +15,6 @@
 
     <form wire:submit="save" class="grid gap-5 px-4 py-6 sm:px-6 xl:grid-cols-[minmax(0,1fr)_20rem]" novalidate>
         <div class="min-w-0 space-y-5">
-            @if ($saved)
-                <p class="flex items-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-900" role="status">
-                    <svg class="size-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" aria-hidden="true"><path d="m5 13 4 4L19 7"/></svg>
-                    Profil koperasi disimpan. Struk dan beranda langsung memakai data baru.
-                </p>
-            @endif
 
             {{-- Identitas --}}
             <section class="space-y-4 rounded-2xl border border-stone-200 bg-white p-5" aria-labelledby="sec-identity">

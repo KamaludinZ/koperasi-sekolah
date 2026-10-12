@@ -97,6 +97,7 @@
         {{ $slot }}
     </div>
 </div>
+<x-toasts />
 @livewireScripts
 </body>
 </html>

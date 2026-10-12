@@ -4,6 +4,7 @@ namespace App\Livewire\Pengaturan;
 
 use App\Support\MockData;
 use App\Support\OpeningHours;
+use App\Livewire\Concerns\NotifiesSave;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Component;
@@ -19,6 +20,7 @@ use Livewire\WithFileUploads;
 #[Title('Profil Koperasi')]
 class Profile extends Component
 {
+    use NotifiesSave;
     use WithFileUploads;
 
     public string $name = '';
@@ -110,21 +112,22 @@ class Profile extends Component
     public function save(): void
     {
         $this->saved = false;
-        $this->validate();
+        $this->saveWithToast(function () {
+            $this->validate();
 
-        if ($this->logoUpload) {
-            $this->logo = 'data:'.$this->logoUpload->getMimeType().';base64,'.base64_encode($this->logoUpload->get());
-            $this->logoUpload = null;
-        }
+            if ($this->logoUpload) {
+                $this->logo = 'data:'.$this->logoUpload->getMimeType().';base64,'.base64_encode($this->logoUpload->get());
+                $this->logoUpload = null;
+            }
 
-        MockData::saveSettings('profile', [
-            'name' => trim($this->name), 'short_name' => trim($this->short_name), 'school' => trim($this->school),
-            'address' => trim($this->address), 'phone' => trim($this->phone), 'email' => trim($this->email) ?: null,
-            'motto' => trim($this->motto), 'logo' => $this->logo,
-            'schedule' => collect($this->schedule)->map(fn ($h) => $h['open'] ? ['open' => $h['from'], 'close' => $h['to']] : null)->all(),
-        ]);
-
-        $this->saved = true;
+            MockData::saveSettings('profile', [
+                'name' => trim($this->name), 'short_name' => trim($this->short_name), 'school' => trim($this->school),
+                'address' => trim($this->address), 'phone' => trim($this->phone), 'email' => trim($this->email) ?: null,
+                'motto' => trim($this->motto), 'logo' => $this->logo,
+                'schedule' => collect($this->schedule)->map(fn ($h) => $h['open'] ? ['open' => $h['from'], 'close' => $h['to']] : null)->all(),
+            ]);
+            $this->saved = true;
+        }, 'Profil koperasi disimpan. Struk dan beranda langsung memakai data baru.');
         $this->dispatch('profile-saved');
     }
 
