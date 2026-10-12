@@ -3,9 +3,9 @@
 namespace App\Livewire\Forms;
 
 use App\Models\Product;
+use App\Services\MinStockService;
 use App\Services\ProductCatalog;
 use App\Services\ProductService;
-use App\Support\MockData;
 use Livewire\Form;
 
 /**
@@ -50,7 +50,7 @@ class ProductForm extends Form
     {
         $this->reset();
         $this->resetValidation();
-        $this->min_stock = MockData::defaultMinStock();
+        $this->min_stock = app(MinStockService::class)->defaultMinStock();
     }
 
     /** Isi form dari data barang yang akan diubah. */

@@ -3,8 +3,8 @@
 namespace App\Support;
 
 /**
- * Data tiruan untuk tahap frontend. Akan diganti query ke PostgreSQL
- * (tabel products & categories) saat layer backend dikerjakan.
+ * Data contoh & pengaturan sementara. Barang/kategori kini ada di database
+ * (lihat ProductSeeder); identitas koperasi & pajak menunggu tabel settings (fase 4).
  */
 class MockData
 {
@@ -28,73 +28,6 @@ class MockData
     public static function taxRate(): float
     {
         return 0;
-    }
-
-    private const SESSION_KEY = 'mock.products';
-
-    /**
-     * Semua barang (aktif & nonaktif). Perubahan dari form barang disimpan di
-     * session supaya bisa dicoba tanpa database.
-     */
-    public static function products(): array
-    {
-        $products = session(self::SESSION_KEY) ?? self::seedProducts();
-
-        return array_map(fn ($p) => $p + ['is_active' => true], array_values($products));
-    }
-
-    /** Batas stok minimum bawaan untuk barang baru (nanti dari tabel settings). */
-    public static function defaultMinStock(): int
-    {
-        return session('mock.default_min_stock', 5);
-    }
-
-    public static function setDefaultMinStock(int $value): void
-    {
-        session(['mock.default_min_stock' => $value]);
-    }
-
-    /** Perbarui batas minimum banyak barang sekaligus: [productId => min_stock]. */
-    public static function saveMinStocks(array $minStocks): void
-    {
-        $products = collect(self::products())
-            ->map(fn ($p) => isset($minStocks[$p['id']]) ? [...$p, 'min_stock' => (int) $minStocks[$p['id']]] : $p);
-        session([self::SESSION_KEY => $products->values()->all()]);
-    }
-
-    /** Barang yang boleh dijual di layar kasir. */
-    public static function activeProducts(): array
-    {
-        return array_values(array_filter(self::products(), fn ($p) => $p['is_active']));
-    }
-
-    /**
-     * Barang aktif yang stoknya habis atau di bawah/sama dengan batas minimum,
-     * paling kritis (rasio stok/batas terkecil) di atas.
-     */
-    public static function lowStockProducts(): array
-    {
-        return collect(self::activeProducts())
-            ->filter(fn ($p) => $p['stock'] <= $p['min_stock'])
-            ->sortBy(fn ($p) => $p['min_stock'] > 0 ? $p['stock'] / $p['min_stock'] : 0)
-            ->values()
-            ->all();
-    }
-
-    public static function findProduct(int $id): ?array
-    {
-        return collect(self::products())->firstWhere('id', $id);
-    }
-
-    /** Simpan barang baru (tanpa id) atau perbarui barang yang ada. Mengembalikan barang tersimpan. */
-    public static function saveProduct(array $data): array
-    {
-        $products = collect(self::products())->keyBy('id');
-        $data['id'] ??= ($products->keys()->max() ?? 0) + 1;
-        $products[$data['id']] = [...($products[$data['id']] ?? []), ...$data];
-        session([self::SESSION_KEY => $products->values()->all()]);
-
-        return $products[$data['id']];
     }
 
     /** Data contoh awal — juga dipakai ProductSeeder. */

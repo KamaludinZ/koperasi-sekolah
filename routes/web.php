@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Barang\ProductController;
 use App\Http\Controllers\Barang\ProductListController;
+use App\Http\Controllers\Barang\StockAlertController;
 use App\Http\Controllers\Kasir\CheckoutController;
 use App\Http\Controllers\Kasir\ProductSearchController;
 use App\Http\Controllers\Kasir\TransactionReceiptController;
@@ -40,3 +41,8 @@ Route::put('/barang/{product}', [ProductController::class, 'update'])
     ->whereNumber('product')
     ->middleware('throttle:60,1')
     ->name('barang.update');
+Route::get('/barang/stok-menipis', [StockAlertController::class, 'lowStock'])->name('barang.low-stock');
+Route::get('/barang/batas-minimum', [StockAlertController::class, 'minStocks'])->name('barang.min-stock');
+Route::put('/barang/batas-minimum', [StockAlertController::class, 'updateMinStocks'])
+    ->middleware('throttle:30,1')
+    ->name('barang.min-stock.update');

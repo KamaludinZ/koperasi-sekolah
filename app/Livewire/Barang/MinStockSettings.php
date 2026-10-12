@@ -2,7 +2,10 @@
 
 namespace App\Livewire\Barang;
 
-use App\Support\MockData;
+use App\Models\Product;
+use App\Services\MinStockService;
+use App\Services\ProductCatalog;
+use App\Services\ProductListing;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\On;
 use Livewire\Component;
@@ -31,8 +34,8 @@ class MinStockSettings extends Component
     public function show(): void
     {
         $this->resetValidation();
-        $this->minStocks = collect(MockData::products())->pluck('min_stock', 'id')->all();
-        $this->defaultMinStock = MockData::defaultMinStock();
+        $this->minStocks = Product::pluck('min_stock', 'id')->all();
+        $this->defaultMinStock = app(MinStockService::class)->defaultMinStock();
         $this->reset('bulkCategory', 'bulkValue', 'filter');
         $this->open = true;
     }
@@ -50,10 +53,12 @@ class MinStockSettings extends Component
             'bulkValue.min' => 'Tidak boleh negatif.',
         ]);
 
-        foreach (MockData::products() as $p) {
-            if ($this->bulkCategory === '' || $p['category'] === $this->bulkCategory) {
-                $this->minStocks[$p['id']] = $this->bulkValue;
-            }
+        $ids = Product::query()
+            ->when($this->bulkCategory !== '', fn ($q) => $q->whereHas('category', fn ($c) => $c->where('name', $this->bulkCategory)))
+            ->pluck('id');
+
+        foreach ($ids as $id) {
+            $this->minStocks[$id] = $this->bulkValue;
         }
     }
 
@@ -71,23 +76,22 @@ class MinStockSettings extends Component
             'defaultMinStock.min' => 'Tidak boleh negatif.',
         ]);
 
-        MockData::saveMinStocks($this->minStocks);
-        MockData::setDefaultMinStock($this->defaultMinStock);
+        $service = app(MinStockService::class);
+        $changed = $service->updateMany(array_map('intval', $this->minStocks));
+        $service->setDefaultMinStock($this->defaultMinStock);
 
         $this->open = false;
-        $this->dispatch('min-stock-updated', message: 'Batas minimum stok diperbarui.');
+        $this->dispatch('min-stock-updated', message: $changed > 0
+            ? "Batas minimum {$changed} barang diperbarui."
+            : 'Batas minimum stok disimpan.');
     }
 
     #[Computed]
     public function rows(): array
     {
-        $term = mb_strtolower(trim($this->filter));
-
-        return collect(MockData::products())
-            ->filter(fn ($p) => $term === ''
-                || str_contains(mb_strtolower($p['name']), $term)
-                || str_contains(mb_strtolower($p['code']), $term)
-                || mb_strtolower($p['category']) === $term)
+        return app(ProductListing::class)->query(['search' => $this->filter])
+            ->get()
+            ->map(fn (Product $p) => ProductCatalog::toArray($p))
             ->sortBy([['category', 'asc'], ['name', 'asc']])
             ->groupBy('category')
             ->all();
@@ -96,7 +100,7 @@ class MinStockSettings extends Component
     public function render()
     {
         return view('livewire.barang.min-stock-settings', [
-            'categories' => MockData::categories(),
+            'categories' => app(ProductListing::class)->categories(),
         ]);
     }
 }

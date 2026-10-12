@@ -4,7 +4,8 @@ namespace Tests\Feature\Barang;
 
 use App\Livewire\Barang\Index;
 use App\Livewire\Barang\MinStockSettings;
-use App\Support\MockData;
+use App\Models\Product;
+use App\Services\ProductListing;
 use Livewire\Livewire;
 use Database\Seeders\ProductSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -40,8 +41,8 @@ class MinStockSettingsTest extends TestCase
             ->assertSet('open', false)
             ->assertDispatched('min-stock-updated');
 
-        $this->assertSame(150, MockData::findProduct(1)['min_stock']);
-        $this->assertContains('ATK001', array_column(MockData::lowStockProducts(), 'code'));
+        $this->assertSame(150, Product::find(1)->min_stock);
+        $this->assertContains('ATK001', array_column(app(ProductListing::class)->lowStock(), 'code'));
     }
 
     public function test_apply_to_category(): void
@@ -55,7 +56,8 @@ class MinStockSettingsTest extends TestCase
             ->assertSet('minStocks.1', 20)
             ->call('save');
 
-        $this->assertSame(40, MockData::findProduct(10)['min_stock']);
+        $this->assertSame(40, Product::find(10)->min_stock);
+        $this->assertSame(20, Product::find(1)->min_stock);
     }
 
     public function test_rejects_negative_and_saves_default_for_new_products(): void
