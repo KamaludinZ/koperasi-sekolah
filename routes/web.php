@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Akun\SessionController;
 use App\Http\Controllers\Anggota\MemberController;
 use App\Http\Controllers\Anggota\SavingsController;
 use App\Http\Controllers\Auth\LoginController;
@@ -32,6 +33,14 @@ Route::get('/masuk', Login::class)->name('login');
 Route::post('/masuk', LoginController::class)->middleware('throttle:30,1')->name('login.store');
 Route::post('/keluar', LogoutController::class)->name('logout');
 Route::get('/akun/kata-sandi', Akun\Password::class)->name('akun.password');
+Route::get('/akun/sesi', Akun\Sessions::class)->name('akun.sessions');
+Route::middleware('auth')->group(function () {
+    Route::get('/akun/sesi/daftar', [SessionController::class, 'index'])->name('akun.sessions.list');
+    Route::delete('/akun/sesi/{session}', [SessionController::class, 'destroy'])->name('akun.sessions.destroy');
+    Route::post('/akun/sesi/keluarkan-lain', [SessionController::class, 'destroyOthers'])
+        ->middleware('throttle:10,1')
+        ->name('akun.sessions.others');
+});
 
 Route::get('/kasir', Kasir\Index::class)->name('kasir');
 Route::get('/kasir/barang/cari', ProductSearchController::class)

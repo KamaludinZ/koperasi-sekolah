@@ -12,7 +12,11 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware): void {
         // Batasi menu sesuai peran petugas.
-        $middleware->web(append: [\App\Http\Middleware\EnsureMenuAccess::class]);
+        // Sesi petugas (akun nonaktif / tidak aktif terlalu lama) lalu batasi menu sesuai peran.
+        $middleware->web(append: [
+            \App\Http\Middleware\EnsureActiveSession::class,
+            \App\Http\Middleware\EnsureMenuAccess::class,
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //
