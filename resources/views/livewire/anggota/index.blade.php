@@ -9,14 +9,18 @@
             <h1 class="text-lg font-semibold">Anggota & Tabungan</h1>
             <p class="text-xs text-stone-500">Data siswa dan guru anggota koperasi beserta saldo tabungannya. <span class="rounded bg-amber-100 px-1.5 py-0.5 text-[11px] font-medium text-amber-800">data tiruan</span></p>
         </div>
-        <button type="button" disabled title="Segera hadir"
-                class="inline-flex items-center gap-2 rounded-xl bg-emerald-700 px-4 py-2.5 text-sm font-semibold text-white shadow-sm disabled:cursor-not-allowed disabled:opacity-60">
+        <button type="button" wire:click="create"
+                class="inline-flex items-center gap-2 rounded-xl bg-emerald-700 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-emerald-800">
             <svg class="size-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
             Tambah anggota
         </button>
     </header>
 
     <div class="space-y-4 px-4 py-5 sm:px-6">
+        @if ($flash)
+            <p class="rounded-lg bg-emerald-50 px-4 py-2.5 text-sm text-emerald-900" role="status">{{ $flash }}</p>
+        @endif
+
         <div class="grid grid-cols-2 gap-3 lg:grid-cols-4">
             <div class="rounded-xl border border-stone-200 bg-white px-4 py-3">
                 <p class="text-xs text-stone-500">Anggota aktif</p>
@@ -83,7 +87,9 @@
                                 @if ($m['phone']) <span class="hidden sm:inline">· {{ $m['phone'] }}</span> @endif
                             </p>
                         </div>
-                        <div class="text-right">
+                        <button type="button" wire:click="edit({{ $m['id'] }})" aria-label="Ubah data {{ $m['name'] }}"
+                                class="rounded-lg px-2 py-1 text-sm font-medium text-emerald-700 hover:bg-emerald-50">Ubah</button>
+                        <div class="w-24 text-right">
                             <p class="text-[11px] text-stone-500">Saldo</p>
                             <p @class(['font-semibold tabular-nums', 'text-stone-400' => $m['balance'] === 0, 'text-emerald-800' => $m['balance'] > 0])>{{ $rp($m['balance']) }}</p>
                         </div>
@@ -93,4 +99,6 @@
             <p class="text-xs text-stone-500">Menampilkan {{ count($this->members) }} anggota.</p>
         @endif
     </div>
+
+    @include('livewire.anggota.partials.member-form')
 </div>

@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Anggota;
 
+use App\Livewire\Forms\MemberForm;
 use App\Support\MockData;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
@@ -18,6 +19,12 @@ use Livewire\Component;
 class Index extends Component
 {
     public const TYPES = ['siswa' => 'Siswa', 'guru' => 'Guru'];
+
+    public MemberForm $form;
+
+    public bool $editing = false;
+
+    public ?string $flash = null;
 
     #[Url(as: 'q', except: '')]
     public string $search = '';
@@ -73,6 +80,45 @@ class Index extends Component
     public function classes(): array
     {
         return collect(MockData::members())->pluck('class')->filter()->unique()->sort()->values()->all();
+    }
+
+    public function create(): void
+    {
+        $this->form->blank($this->type === 'guru' ? 'guru' : 'siswa');
+        $this->flash = null;
+        $this->editing = true;
+    }
+
+    public function edit(int $memberId): void
+    {
+        $member = MockData::findMember($memberId);
+        if (! $member) {
+            return;
+        }
+
+        $this->form->load($member);
+        $this->flash = null;
+        $this->editing = true;
+    }
+
+    public function updatedFormType(): void
+    {
+        $this->form->switchType();
+    }
+
+    public function save(): void
+    {
+        $isNew = $this->form->id === null;
+        $member = $this->form->save();
+
+        $this->editing = false;
+        $this->flash = $isNew ? "{$member['name']} terdaftar sebagai anggota." : "Data {$member['name']} diperbarui.";
+        unset($this->members, $this->stats, $this->classes);
+    }
+
+    public function cancel(): void
+    {
+        $this->editing = false;
     }
 
     public function resetFilters(): void

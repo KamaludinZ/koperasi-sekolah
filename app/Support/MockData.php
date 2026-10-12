@@ -103,6 +103,45 @@ class MockData
     /** Anggota koperasi tiruan (siswa & guru) dengan saldo tabungan, untuk tahap frontend. */
     public static function members(): array
     {
+        return session('mock.members') ?? self::seedMembers();
+    }
+
+    public static function findMember(int $id): ?array
+    {
+        return collect(self::members())->firstWhere('id', $id);
+    }
+
+    /** Simpan anggota baru (tanpa id) atau perbarui yang ada ke session. */
+    public static function saveMember(array $data): array
+    {
+        $members = collect(self::members())->keyBy('id');
+        $data['id'] ??= ($members->keys()->max() ?? 0) + 1;
+        $members[$data['id']] = [
+            'balance' => 0,
+            'joined_at' => now()->toDateString(),
+            ...($members[$data['id']] ?? []),
+            ...$data,
+        ];
+        session(['mock.members' => $members->values()->all()]);
+
+        return $members[$data['id']];
+    }
+
+    /** Kode anggota berikutnya, mis. S-2026-013 / G-2026-005. */
+    public static function nextMemberCode(string $type): string
+    {
+        $prefix = ($type === 'guru' ? 'G' : 'S').'-'.now()->year.'-';
+        $count = collect(self::members())->filter(fn ($m) => str_starts_with($m['member_code'], $type === 'guru' ? 'G-' : 'S-'))->count();
+
+        do {
+            $code = $prefix.str_pad((string) ++$count, 3, '0', STR_PAD_LEFT);
+        } while (collect(self::members())->contains('member_code', $code));
+
+        return $code;
+    }
+
+    private static function seedMembers(): array
+    {
         $rows = [
             ['S-2024-001', 'Andi Pratama', 'siswa', '7A', '0812-1111-2001', 85000, true],
             ['S-2024-002', 'Siti Nurhaliza', 'siswa', '8B', '0812-1111-2002', 142500, true],
