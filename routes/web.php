@@ -9,6 +9,7 @@ use App\Http\Controllers\Kasir\TransactionReceiptController;
 use App\Livewire\Anggota;
 use App\Livewire\Barang;
 use App\Livewire\Kasir;
+use App\Livewire\Laporan;
 use App\Livewire\Transaksi;
 use Illuminate\Support\Facades\Route;
 
@@ -58,3 +59,5 @@ Route::get('/anggota', Anggota\Index::class)->name('anggota');
 Route::get('/anggota/{member}', Anggota\Show::class)
     ->whereNumber('member')
     ->name('anggota.show');
+
+Route::get('/laporan', Laporan\Index::class)->name('laporan');
