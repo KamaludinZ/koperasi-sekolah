@@ -45,6 +45,7 @@ class TransactionFactory extends Factory
                     'product_id' => $p->id,
                     'product_name' => $p->name,
                     'price' => $p->price,
+                    'cost_price' => $p->cost_price,
                     'quantity' => $qty,
                     'subtotal' => $p->price * $qty,
                 ]);

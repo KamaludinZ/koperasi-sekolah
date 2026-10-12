@@ -3,6 +3,9 @@
 namespace Tests\Feature\Laporan;
 
 use App\Livewire\Laporan\Index;
+use App\Models\Transaction;
+use Database\Seeders\ProductSeeder;
+use Database\Seeders\TransactionSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Carbon;
 use Livewire\Livewire;
@@ -16,6 +19,12 @@ class IndexTest extends TestCase
     {
         parent::setUp();
         Carbon::setTestNow('2026-10-14 15:00:00');
+        $this->seed([ProductSeeder::class, TransactionSeeder::class]); // ±90 hari riwayat contoh
+    }
+
+    private function revenue(string $from, string $to): int
+    {
+        return (int) Transaction::whereBetween('created_at', [$from, $to])->sum('total');
     }
 
     protected function tearDown(): void
@@ -68,8 +77,7 @@ class IndexTest extends TestCase
 
     public function test_today_compares_with_yesterday_same_time(): void
     {
-        $all = collect(\App\Support\MockData::transactions(30));
-        $expected = $all->filter(fn ($t) => str_starts_with($t['created_at'], '2026-10-13') && substr($t['created_at'], 11) <= '15:00:00')->sum('total');
+        $expected = $this->revenue('2026-10-13 00:00:00', '2026-10-13 15:00:00');
 
         $this->assertSame($expected, Livewire::test(Index::class)->instance()->today['compare']);
     }
@@ -91,9 +99,7 @@ class IndexTest extends TestCase
     public function test_chart_total_matches_transactions(): void
     {
         $points = Livewire::test(Index::class)->call('setChartPeriod', '7-hari')->instance()->chartPoints;
-        $expected = collect(\App\Support\MockData::transactions(90))
-            ->filter(fn ($t) => $t['created_at'] >= '2026-10-08')
-            ->sum('total');
+        $expected = $this->revenue('2026-10-08 00:00:00', '2026-10-14 15:00:00');
 
         $this->assertSame($expected, array_sum(array_column($points, 'value')));
     }
@@ -105,9 +111,7 @@ class IndexTest extends TestCase
         $this->assertSame('2026-10-01 00:00:00', $start->toDateTimeString());
         $this->assertSame('2026-10-07 15:00:00', $end->toDateTimeString());
 
-        $expected = collect(\App\Support\MockData::transactions(90))
-            ->filter(fn ($t) => $t['created_at'] >= '2026-10-01' && $t['created_at'] <= '2026-10-07 15:00:00')
-            ->sum('total');
+        $expected = $this->revenue('2026-10-01 00:00:00', '2026-10-07 15:00:00');
         $cmp = $c->instance()->comparison;
         $this->assertSame($expected, $cmp['previous']['revenue']);
         $this->assertSame(
@@ -149,8 +153,7 @@ class IndexTest extends TestCase
         $this->assertStringContainsString('RINCIAN TRANSAKSI', $csv);
         $this->assertStringNotContainsString('BARANG TERJUAL', $csv);
 
-        $expected = collect(\App\Support\MockData::transactions(90))
-            ->filter(fn ($t) => $t['created_at'] >= '2026-10-01')->sum('total');
+        $expected = $this->revenue('2026-10-01 00:00:00', '2026-10-14 23:59:59');
         $this->assertStringContainsString('"Total penjualan";'.$expected, $csv);
     }
 

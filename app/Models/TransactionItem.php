@@ -9,12 +9,13 @@ class TransactionItem extends Model
 {
     public $timestamps = false;
 
-    protected $fillable = ['transaction_id', 'product_id', 'product_name', 'price', 'quantity', 'subtotal'];
+    protected $fillable = ['transaction_id', 'product_id', 'product_name', 'price', 'cost_price', 'quantity', 'subtotal'];
 
     protected function casts(): array
     {
         return [
             'price' => 'decimal:2',
+            'cost_price' => 'decimal:2',
             'subtotal' => 'decimal:2',
             'quantity' => 'integer',
         ];

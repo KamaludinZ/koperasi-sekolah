@@ -99,6 +99,7 @@ class CheckoutService
                     'product_id' => $product->id,
                     'product_name' => $product->name,
                     'price' => $line['price'],
+                    'cost_price' => $product->cost_price, // snapshot untuk laba kotor
                     'quantity' => $line['quantity'],
                     'subtotal' => $line['subtotal'],
                 ]);

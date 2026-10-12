@@ -10,7 +10,6 @@
             <h1 class="text-lg font-semibold">Laporan & Rekap</h1>
             <p class="text-xs text-stone-500">
                 {{ $start->isSameDay($end) ? $start->translatedFormat('l, d F Y') : $start->translatedFormat('d M').' – '.$end->translatedFormat('d M Y') }}
-                <span class="rounded bg-amber-100 px-1.5 py-0.5 text-[11px] font-medium text-amber-800">data tiruan</span>
             </p>
         </div>
         <div class="flex gap-1 rounded-xl bg-stone-100 p-1" role="group" aria-label="Periode laporan">

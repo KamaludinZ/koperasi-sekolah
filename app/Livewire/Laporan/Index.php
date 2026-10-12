@@ -2,7 +2,9 @@
 
 namespace App\Livewire\Laporan;
 
-use App\Support\MockData;
+use App\Services\ReceiptPresenter;
+use App\Services\SalesReport;
+use App\Services\TransactionHistory;
 use Illuminate\Support\Carbon;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
@@ -11,25 +13,16 @@ use Livewire\Attributes\Url;
 use Livewire\Component;
 
 /**
- * Laporan & Rekap untuk pengurus: hasil penjualan per periode dan barang terlaris.
- * Tahap frontend: dihitung dari transaksi tiruan (MockData::transactions).
+ * Laporan & Rekap untuk pengurus: hasil penjualan per periode dan barang terlaris,
+ * grafik, dan unduhan rekap CSV. Angka dari SalesReport.
  */
 #[Layout('components.layouts.app')]
 #[Title('Laporan & Rekap')]
 class Index extends Component
 {
-    public const PERIODS = [
-        'hari-ini' => 'Hari ini',
-        '7-hari' => '7 hari',
-        '30-hari' => '30 hari',
-        'bulan-ini' => 'Bulan ini',
-    ];
+    public const PERIODS = SalesReport::PERIODS;
 
-    public const CHART_PERIODS = [
-        '7-hari' => '7 hari',
-        '30-hari' => '30 hari',
-        '12-minggu' => '12 minggu',
-    ];
+    public const CHART_PERIODS = SalesReport::CHART_PERIODS;
 
     #[Url(as: 'grafik', except: '7-hari')]
     public string $chartPeriod = '7-hari';
@@ -92,9 +85,8 @@ class Index extends Component
             return null;
         }
 
-        $transactions = $this->between($start, $end);
         $filename = 'rekap-penjualan-'.$start->format('Ymd').'-'.$end->format('Ymd').'.csv';
-        $rows = $this->exportRows($transactions, $start, $end);
+        $rows = $this->exportRows($start, $end);
 
         return response()->streamDownload(function () use ($rows) {
             $out = fopen('php://output', 'w');
@@ -107,11 +99,11 @@ class Index extends Component
     }
 
     /** Susun baris CSV sesuai bagian yang dipilih. */
-    private function exportRows(array $transactions, Carbon $start, Carbon $end): array
+    private function exportRows(Carbon $start, Carbon $end): array
     {
-        $profile = \App\Services\ReceiptPresenter::class;
+        $report = app(SalesReport::class);
         $rows = [
-            ['Rekap Penjualan '.app($profile)->profile()['name']],
+            ['Rekap Penjualan '.app(ReceiptPresenter::class)->profile()['name']],
             ['Periode', $start->translatedFormat('d F Y').' s.d. '.$end->translatedFormat('d F Y')],
             ['Dibuat', now()->translatedFormat('d F Y H:i')],
             [],
@@ -119,7 +111,7 @@ class Index extends Component
         $sections = $this->exportSections;
 
         if (in_array('summary', $sections, true)) {
-            $s = $this->summarize($transactions);
+            $s = $report->summary($start, $end);
             $rows[] = ['RINGKASAN'];
             $rows[] = ['Total penjualan', $s['revenue']];
             $rows[] = ['Laba kotor', $s['gross_profit']];
@@ -133,29 +125,28 @@ class Index extends Component
         if (in_array('daily', $sections, true)) {
             $rows[] = ['REKAP PER HARI'];
             $rows[] = ['Tanggal', 'Transaksi', 'Barang terjual', 'Penjualan'];
-            foreach (collect($transactions)->groupBy(fn ($t) => substr($t['created_at'], 0, 10))->sortKeys() as $date => $day) {
-                $rows[] = [$date, $day->count(), $day->sum('item_count'), $day->sum('total')];
+            foreach ($report->daily($start, $end) as $day) {
+                $rows[] = [$day['date'], $day['count'], $day['items'], $day['revenue']];
             }
             $rows[] = [];
         }
 
         if (in_array('transactions', $sections, true)) {
             $rows[] = ['RINCIAN TRANSAKSI'];
-            $rows[] = ['Waktu', 'No. invoice', 'Kasir', 'Metode', 'Barang', 'Total'];
-            foreach (collect($transactions)->sortBy('created_at') as $t) {
-                $rows[] = [$t['created_at'], $t['invoice_number'], $t['cashier'], $t['payment_method'], $t['item_count'], $t['total']];
+            $rows[] = ['Waktu', 'No. invoice', 'Kasir', 'Anggota', 'Metode', 'Barang', 'Total'];
+            $query = app(TransactionHistory::class)->query(['from' => $start, 'to' => $end])->reorder()->orderBy('created_at')->orderBy('id');
+            foreach ($query->lazy(500) as $t) {
+                $r = TransactionHistory::toRow($t);
+                $rows[] = [$r['created_at'], $r['invoice_number'], $r['cashier'], $r['member'] ?? '', $r['payment_method_label'], $r['item_count'], $r['total']];
             }
             $rows[] = [];
         }
 
         if (in_array('products', $sections, true)) {
             $rows[] = ['BARANG TERJUAL'];
-            $rows[] = ['Barang', 'Jumlah', 'Penjualan'];
-            $items = collect($transactions)->flatMap(fn ($t) => $t['items'])->groupBy('product_name')
-                ->map(fn ($g, $name) => [$name, $g->sum('quantity'), $g->sum('subtotal')])
-                ->sortByDesc(fn ($r) => $r[1]);
-            foreach ($items as $r) {
-                $rows[] = $r;
+            $rows[] = ['Barang', 'Jumlah', 'Penjualan', 'Laba kotor'];
+            foreach ($report->topProducts($start, $end, null) as $p) {
+                $rows[] = [$p['name'], $p['quantity'], $p['revenue'], $p['profit']];
             }
         }
 
@@ -166,7 +157,7 @@ class Index extends Component
     {
         if (array_key_exists($period, self::PERIODS)) {
             $this->period = $period;
-            unset($this->range);
+            unset($this->range, $this->previousRange, $this->periodReport, $this->summary, $this->comparison, $this->topProducts);
             $this->syncExportRange();
         }
     }
@@ -178,214 +169,60 @@ class Index extends Component
         }
     }
 
-    /**
-     * Titik grafik penjualan: per hari (7/30 hari) atau per minggu (12 minggu),
-     * termasuk periode tanpa penjualan (nilai 0) agar sumbu waktu tidak bolong.
-     *
-     * @return list<array{label: string, tooltip: string, value: int, count: int}>
-     */
+    /** @return list<array{date: string, label: string, tooltip: string, value: int, count: int}> */
     #[Computed]
     public function chartPoints(): array
     {
-        $now = now();
-        $weekly = $this->chartPeriod === '12-minggu';
-        $start = match ($this->chartPeriod) {
-            '30-hari' => $now->copy()->subDays(29)->startOfDay(),
-            '12-minggu' => $now->copy()->startOfWeek()->subWeeks(11),
-            default => $now->copy()->subDays(6)->startOfDay(),
-        };
-
-        $buckets = [];
-        for ($d = $start->copy(); $d->lte($now); $weekly ? $d->addWeek() : $d->addDay()) {
-            $key = $d->toDateString();
-            $buckets[$key] = [
-                'label' => $weekly ? $d->translatedFormat('d M') : ($this->chartPeriod === '7-hari' ? $d->translatedFormat('D d') : $d->translatedFormat('d/m')),
-                'tooltip' => $weekly
-                    ? 'Minggu '.$d->translatedFormat('d M').' – '.$d->copy()->endOfWeek()->translatedFormat('d M Y')
-                    : $d->translatedFormat('l, d F Y'),
-                'value' => 0,
-                'count' => 0,
-            ];
-        }
-
-        foreach (MockData::transactions(90) as $t) {
-            $at = Carbon::parse($t['created_at']);
-            if ($at->lt($start)) {
-                continue;
-            }
-            $key = ($weekly ? $at->copy()->startOfWeek() : $at)->toDateString();
-            if (isset($buckets[$key])) {
-                $buckets[$key]['value'] += $t['total'];
-                $buckets[$key]['count']++;
-            }
-        }
-
-        return array_values($buckets);
+        return app(SalesReport::class)->chartPoints($this->chartPeriod);
     }
 
     /** @return array{0: Carbon, 1: Carbon} */
     #[Computed]
     public function range(): array
     {
-        $now = now();
-
-        return match ($this->period) {
-            '7-hari' => [$now->copy()->subDays(6)->startOfDay(), $now->copy()],
-            '30-hari' => [$now->copy()->subDays(29)->startOfDay(), $now->copy()],
-            'bulan-ini' => [$now->copy()->startOfMonth(), $now->copy()],
-            default => [$now->copy()->startOfDay(), $now->copy()],
-        };
+        return SalesReport::range($this->period);
     }
 
-    /**
-     * Rentang pembanding yang setara: hari ini ↔ kemarin s.d. jam yang sama,
-     * N hari ↔ N hari sebelumnya, bulan ini ↔ tanggal yang sama di bulan lalu.
-     *
-     * @return array{0: Carbon, 1: Carbon}
-     */
+    /** @return array{0: Carbon, 1: Carbon} */
     #[Computed]
     public function previousRange(): array
     {
-        [$start, $end] = $this->range;
+        return SalesReport::previousRange($this->period);
+    }
 
-        return match ($this->period) {
-            '7-hari' => [$start->copy()->subDays(7), $end->copy()->subDays(7)],
-            '30-hari' => [$start->copy()->subDays(30), $end->copy()->subDays(30)],
-            'bulan-ini' => [$start->copy()->subMonthNoOverflow(), $end->copy()->subMonthNoOverflow()],
-            default => [$start->copy()->subDay(), $end->copy()->subDay()],
-        };
+    #[Computed]
+    public function periodReport(): array
+    {
+        return app(SalesReport::class)->periodReport($this->period);
+    }
+
+    #[Computed]
+    public function summary(): array
+    {
+        return $this->periodReport['summary'];
     }
 
     /** Ringkasan periode sebelumnya + persentase perubahan tiap angka. */
     #[Computed]
     public function comparison(): array
     {
-        [$start, $end] = $this->previousRange;
-        $previous = $this->summarize($this->between($start, $end));
-        $current = $this->summary;
-
-        $changes = [];
-        foreach (['revenue', 'gross_profit', 'count', 'items', 'average'] as $key) {
-            $changes[$key] = $previous[$key] > 0
-                ? (int) round(($current[$key] - $previous[$key]) / $previous[$key] * 100)
-                : null;
-        }
-
-        return [
-            'previous' => $previous,
-            'changes' => $changes,
-            'label' => match ($this->period) {
-                '7-hari' => '7 hari sebelumnya',
-                '30-hari' => '30 hari sebelumnya',
-                'bulan-ini' => 'periode sama bulan lalu',
-                default => 'kemarin jam segini',
-            },
-            'range_label' => $start->isSameDay($end)
-                ? $start->translatedFormat('d M Y').' s.d. '.$end->format('H:i')
-                : $start->translatedFormat('d M').' – '.$end->translatedFormat('d M Y'),
-        ];
+        return $this->periodReport['comparison'];
     }
 
-    #[Computed]
-    public function transactions(): array
-    {
-        [$start, $end] = $this->range;
-
-        return $this->between($start, $end);
-    }
-
-    private function between(Carbon $start, Carbon $end): array
-    {
-        return array_values(array_filter(MockData::transactions(90), function ($t) use ($start, $end) {
-            $at = Carbon::parse($t['created_at']);
-
-            return $at->gte($start) && $at->lte($end);
-        }));
-    }
-
-    #[Computed]
-    public function summary(): array
-    {
-        return $this->summarize($this->transactions);
-    }
-
-    private function summarize(array $transactions): array
-    {
-        $tx = collect($transactions);
-        $costs = collect(MockData::seedProducts())->pluck('cost_price', 'name');
-        $revenue = $tx->sum('total');
-        $cost = $tx->flatMap(fn ($t) => $t['items'])->sum(fn ($i) => ($costs[$i['product_name']] ?? 0) * $i['quantity']);
-
-        return [
-            'revenue' => $revenue,
-            'count' => $tx->count(),
-            'items' => $tx->sum('item_count'),
-            'gross_profit' => $revenue - $cost,
-            'margin' => $revenue > 0 ? (int) round(($revenue - $cost) / $revenue * 100) : 0,
-            'average' => $tx->count() ? (int) round($revenue / $tx->count()) : 0,
-        ];
-    }
-
-    /**
-     * Ringkasan hari ini (tidak bergantung pilihan periode), dibandingkan dengan
-     * kemarin sampai jam yang sama, plus penjualan per jam untuk grafik mini.
-     */
+    /** Ringkasan hari ini (tidak bergantung pilihan periode). */
     #[Computed]
     public function today(): array
     {
-        $now = now();
-        $all = collect(MockData::transactions(30));
-        $today = $all->filter(fn ($t) => Carbon::parse($t['created_at'])->isSameDay($now));
-        $yesterdaySoFar = $all->filter(function ($t) use ($now) {
-            $at = Carbon::parse($t['created_at']);
-
-            return $at->isSameDay($now->copy()->subDay()) && $at->format('H:i:s') <= $now->format('H:i:s');
-        });
-
-        $revenue = $today->sum('total');
-        $before = $yesterdaySoFar->sum('total');
-
-        $best = $today->flatMap(fn ($t) => $t['items'])->groupBy('product_name')
-            ->map(fn ($items) => $items->sum('quantity'))->sortDesc();
-
-        // Penjualan per jam jam operasional 07–15.
-        $hourly = collect(range(7, 15))->mapWithKeys(fn ($h) => [$h => 0])->all();
-        foreach ($today as $t) {
-            $h = (int) substr($t['created_at'], 11, 2);
-            if (array_key_exists($h, $hourly)) {
-                $hourly[$h] += $t['total'];
-            }
-        }
-
-        return [
-            'revenue' => $revenue,
-            'count' => $today->count(),
-            'items' => $today->sum('item_count'),
-            'compare' => $before,
-            'change' => $before > 0 ? (int) round(($revenue - $before) / $before * 100) : null,
-            'best' => $best->isEmpty() ? null : ['name' => $best->keys()->first(), 'quantity' => $best->first()],
-            'last_at' => $today->max('created_at'),
-            'hourly' => $hourly,
-            'current_hour' => (int) $now->format('G'),
-        ];
+        return app(SalesReport::class)->today();
     }
 
     /** Barang terlaris pada periode (berdasarkan jumlah terjual). */
     #[Computed]
     public function topProducts(): array
     {
-        return collect($this->transactions)
-            ->flatMap(fn ($t) => $t['items'])
-            ->groupBy('product_name')
-            ->map(fn ($items, $name) => [
-                'name' => $name,
-                'quantity' => $items->sum('quantity'),
-                'revenue' => $items->sum('subtotal'),
-            ])
-            ->sortByDesc('quantity')
-            ->take(5)
-            ->values()
-            ->all();
+        [$start, $end] = $this->range;
+
+        return app(SalesReport::class)->topProducts($start, $end, 5);
     }
 
     public function render()
