@@ -6,6 +6,7 @@ use App\Support\MockData;
 use Illuminate\Support\Carbon;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
+use Livewire\Attributes\On;
 use Livewire\Attributes\Title;
 use Livewire\Attributes\Url;
 use Livewire\Component;
@@ -32,6 +33,9 @@ class Index extends Component
 
     #[Url(as: 'tampil', except: 'semua')]
     public string $filter = 'semua';
+
+    /** @var list<int> notifikasi yang dicentang untuk aksi massal */
+    public array $selected = [];
 
     #[Computed]
     public function all(): array
@@ -74,6 +78,7 @@ class Index extends Component
     {
         if (array_key_exists($filter, self::FILTERS)) {
             $this->filter = $filter;
+            $this->selected = [];
         }
     }
 
@@ -101,10 +106,41 @@ class Index extends Component
 
     public function markAllRead(): void
     {
-        $ids = collect($this->items)->where('is_read', false)->pluck('id')->all();
+        $ids = collect($this->items)->where('is_read', false)->pluck('id')->values()->all();
         MockData::markNotifications($ids);
         $this->refresh();
-        $this->dispatch('toast', type: 'success', message: count($ids).' notifikasi ditandai sudah dibaca.');
+        $this->dispatch('toast', type: 'success', message: count($ids).' notifikasi ditandai sudah dibaca.',
+            action: ['label' => 'Urungkan', 'event' => 'undo-mark-read', 'params' => ['ids' => $ids]]);
+    }
+
+    /** Batalkan "tandai semua dibaca" dari tombol Urungkan di toast. */
+    #[On('undo-mark-read')]
+    public function undoMarkRead(array $ids = []): void
+    {
+        $known = collect($this->all)->pluck('id')->all();
+        MockData::markNotifications(array_values(array_intersect(array_map('intval', $ids), $known)), false);
+        $this->refresh();
+    }
+
+    public function toggleSelectAll(): void
+    {
+        $visible = collect($this->items)->pluck('id')->all();
+        $this->selected = count(array_intersect($visible, $this->selected)) === count($visible) ? [] : $visible;
+    }
+
+    /** Tandai notifikasi yang dicentang sebagai dibaca / belum dibaca. */
+    public function markSelected(bool $read = true): void
+    {
+        $known = collect($this->all)->pluck('id')->all();
+        $ids = array_values(array_intersect(array_map('intval', $this->selected), $known));
+        if ($ids === []) {
+            return;
+        }
+
+        MockData::markNotifications($ids, $read);
+        $this->selected = [];
+        $this->refresh();
+        $this->dispatch('toast', type: 'success', message: count($ids).' notifikasi ditandai '.($read ? 'sudah' : 'belum').' dibaca.');
     }
 
     public static function dayLabel(string $date): string

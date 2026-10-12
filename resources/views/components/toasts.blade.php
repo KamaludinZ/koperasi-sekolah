@@ -1,17 +1,19 @@
 {{--
     Notifikasi toast global. Dipicu event browser `toast` {type: success|error|info, message}
     (dari Livewire: $this->dispatch('toast', ...)) atau window.dispatchEvent(new CustomEvent('toast', {detail})).
-    Berhasil hilang sendiri setelah 4 detik; gagal bertahan 8 detik atau sampai ditutup.
+    Opsional `action` {label, event, params} → tombol yang memicu event Livewire (mis. Urungkan).
+    Berhasil hilang sendiri setelah 4 detik; gagal/beraksi bertahan 8 detik atau sampai ditutup.
 --}}
 <div x-data="{
         items: [],
         push(detail) {
             const d = Array.isArray(detail) ? detail[0] : detail;
             const id = Date.now() + Math.random();
-            this.items.push({ id, type: d.type || 'info', message: d.message });
-            setTimeout(() => this.remove(id), d.type === 'error' ? 8000 : 4000);
+            this.items.push({ id, type: d.type || 'info', message: d.message, action: d.action || null });
+            setTimeout(() => this.remove(id), d.type === 'error' || d.action ? 8000 : 4000);
         },
         remove(id) { this.items = this.items.filter(i => i.id !== id) },
+        run(t) { window.Livewire.dispatch(t.action.event, t.action.params || {}); this.remove(t.id) },
      }"
      x-on:toast.window="push($event.detail)"
      x-on:focus-first-error.window="$nextTick(() => setTimeout(() => {
@@ -33,6 +35,9 @@
             <svg x-show="t.type === 'success'" class="mt-0.5 size-4 shrink-0 text-amber-300" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" aria-hidden="true"><path d="m5 13 4 4L19 7"/></svg>
             <svg x-show="t.type !== 'success'" class="mt-0.5 size-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 8v4m0 4h.01"/></svg>
             <p class="flex-1" x-text="t.message"></p>
+            <template x-if="t.action">
+                <button type="button" x-on:click="run(t)" class="shrink-0 rounded-md px-2 py-0.5 text-sm font-semibold text-amber-300 underline-offset-2 hover:underline" x-text="t.action.label"></button>
+            </template>
             <button type="button" x-on:click="remove(t.id)" class="-mr-1 shrink-0 opacity-70 hover:opacity-100" aria-label="Tutup notifikasi">
                 <svg class="size-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg>
             </button>

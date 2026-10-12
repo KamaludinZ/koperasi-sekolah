@@ -14,7 +14,7 @@
             <p class="text-xs text-stone-500">Peringatan stok, pengumuman, dan kabar sistem. <span class="rounded bg-amber-100 px-1.5 py-0.5 text-[11px] font-medium text-amber-800">data tiruan</span></p>
         </div>
         @if ($this->counts['belum'] > 0)
-            <button type="button" wire:click="markAllRead" class="rounded-xl border border-stone-300 bg-white px-4 py-2 text-sm font-semibold text-stone-800 hover:bg-stone-50">Tandai semua dibaca</button>
+            <button type="button" wire:click="markAllRead" wire:loading.attr="disabled" wire:target="markAllRead" class="rounded-xl disabled:opacity-60 border border-stone-300 bg-white px-4 py-2 text-sm font-semibold text-stone-800 hover:bg-stone-50">Tandai semua dibaca</button>
         @endif
     </header>
 
@@ -29,6 +29,20 @@
             @endforeach
         </div>
 
+        @if (count($this->items))
+            @php $visible = collect($this->items)->pluck('id')->all(); $allSelected = count($visible) && count(array_intersect($visible, $selected)) === count($visible); @endphp
+            <div class="flex flex-wrap items-center gap-3 rounded-xl border border-stone-200 bg-white px-4 py-2 text-sm">
+                <label class="flex items-center gap-2">
+                    <input type="checkbox" wire:click="toggleSelectAll" @checked($allSelected) class="size-4 accent-emerald-700"> Pilih semua
+                </label>
+                @if (count($selected))
+                    <span class="text-stone-500">{{ count($selected) }} dipilih</span>
+                    <button type="button" wire:click="markSelected(true)" wire:loading.attr="disabled" wire:target="markSelected" class="ml-auto rounded-lg bg-emerald-700 px-3 py-1.5 font-semibold text-white hover:bg-emerald-800 disabled:opacity-60">Tandai dibaca</button>
+                    <button type="button" wire:click="markSelected(false)" wire:loading.attr="disabled" wire:target="markSelected" class="rounded-lg border border-stone-300 px-3 py-1.5 font-medium text-stone-700 hover:bg-stone-50 disabled:opacity-60">Tandai belum dibaca</button>
+                @endif
+            </div>
+        @endif
+
         @forelse ($this->days as $date => $items)
             <section wire:key="nday-{{ $date }}" aria-labelledby="nday-{{ $date }}">
                 <h2 id="nday-{{ $date }}" class="mb-1.5 text-sm font-semibold">{{ \App\Livewire\Notifikasi\Index::dayLabel($date) }}</h2>
@@ -36,6 +50,7 @@
                     @foreach ($items as $n)
                         @php [$tone, $icon] = $style[$n['type']] ?? $style['sistem']; @endphp
                         <li wire:key="notif-{{ $n['id'] }}" @class(['flex items-start gap-3 px-4 py-3', 'bg-emerald-50/50' => ! $n['is_read']])>
+                            <input type="checkbox" value="{{ $n['id'] }}" wire:model.live="selected" aria-label="Pilih: {{ $n['title'] }}" class="mt-2.5 size-4 shrink-0 accent-emerald-700">
                             <span class="mt-0.5 grid size-9 shrink-0 place-items-center rounded-lg {{ $tone }}" title="{{ $types[$n['type']] }}">
                                 <svg class="size-4" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" aria-hidden="true"><path d="{{ $icon }}"/></svg>
                             </span>
@@ -52,7 +67,7 @@
                                     @if ($n['url'])
                                         <button type="button" wire:click="open({{ $n['id'] }})" class="font-semibold text-emerald-800 hover:underline">Lihat barang →</button>
                                     @endif
-                                    <button type="button" wire:click="toggleRead({{ $n['id'] }})" class="text-stone-500 hover:text-stone-800">
+                                    <button type="button" wire:click="toggleRead({{ $n['id'] }})" wire:loading.attr="disabled" wire:target="toggleRead({{ $n['id'] }})" class="text-stone-500 hover:text-stone-800 disabled:opacity-50">
                                         {{ $n['is_read'] ? 'Tandai belum dibaca' : 'Tandai dibaca' }}
                                     </button>
                                 </div>
