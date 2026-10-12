@@ -200,37 +200,75 @@ class SalesReport
             ->all();
     }
 
+    public const CHART_UNITS = ['hari', 'minggu', 'bulan'];
+
     /**
-     * Titik grafik penjualan: per hari (7/30 hari) atau per minggu (12 minggu),
-     * termasuk periode tanpa penjualan (nilai 0) agar sumbu waktu tidak bolong.
+     * Titik grafik untuk pilihan cepat: 7/30 hari (per hari) atau 12 minggu (per minggu).
      *
-     * @return list<array{date: string, label: string, tooltip: string, value: int, count: int}>
+     * @return list<array{date: string, end: string, label: string, tooltip: string, value: int, count: int}>
      */
     public function chartPoints(string $chartPeriod): array
     {
         $now = now();
-        $weekly = $chartPeriod === '12-minggu';
-        $start = match ($chartPeriod) {
-            '30-hari' => $now->copy()->subDays(29)->startOfDay(),
-            '12-minggu' => $now->copy()->startOfWeek()->subWeeks(11),
-            default => $now->copy()->subDays(6)->startOfDay(),
+
+        return match ($chartPeriod) {
+            '30-hari' => $this->chart($now->copy()->subDays(29)->startOfDay(), $now, 'hari', 'd/m'),
+            '12-minggu' => $this->chart($now->copy()->startOfWeek()->subWeeks(11), $now, 'minggu'),
+            default => $this->chart($now->copy()->subDays(6)->startOfDay(), $now, 'hari', 'D d'),
         };
+    }
+
+    /** Satuan grafik yang wajar untuk panjang rentang: ≤ 62 hari per hari, ≤ 1 tahun per minggu, selebihnya per bulan. */
+    public static function unitFor(Carbon $start, Carbon $end): string
+    {
+        $days = $start->copy()->startOfDay()->diffInDays($end->copy()->startOfDay()) + 1;
+
+        return $days <= 62 ? 'hari' : ($days <= 366 ? 'minggu' : 'bulan');
+    }
+
+    /**
+     * Titik grafik penjualan per hari/minggu/bulan dalam rentang, termasuk periode
+     * tanpa penjualan (nilai 0) agar sumbu waktu tidak bolong. Minggu dimulai Senin;
+     * titik pertama/terakhir bisa berupa minggu/bulan parsial.
+     *
+     * @return list<array{date: string, end: string, label: string, tooltip: string, value: int, count: int}>
+     */
+    public function chart(Carbon $start, Carbon $end, string $unit = 'hari', ?string $dayLabel = null): array
+    {
+        $bucketStart = fn (Carbon $d) => match ($unit) {
+            'minggu' => $d->copy()->startOfWeek(),
+            'bulan' => $d->copy()->startOfMonth(),
+            default => $d->copy()->startOfDay(),
+        };
+        $dayLabel ??= $start->diffInDays($end) <= 7 ? 'D d' : 'd/m';
 
         $buckets = [];
-        for ($d = $start->copy(); $d->lte($now); $weekly ? $d->addWeek() : $d->addDay()) {
+        for ($d = $bucketStart($start); $d->lte($end); $unit === 'minggu' ? $d->addWeek() : ($unit === 'bulan' ? $d->addMonthNoOverflow() : $d->addDay())) {
+            $last = match ($unit) {
+                'minggu' => $d->copy()->endOfWeek(),
+                'bulan' => $d->copy()->endOfMonth(),
+                default => $d->copy()->endOfDay(),
+            };
             $buckets[$d->toDateString()] = [
                 'date' => $d->toDateString(),
-                'label' => $weekly ? $d->translatedFormat('d M') : ($chartPeriod === '7-hari' ? $d->translatedFormat('D d') : $d->translatedFormat('d/m')),
-                'tooltip' => $weekly
-                    ? 'Minggu '.$d->translatedFormat('d M').' – '.$d->copy()->endOfWeek()->translatedFormat('d M Y')
-                    : $d->translatedFormat('l, d F Y'),
+                'end' => $last->toDateString(),
+                'label' => match ($unit) {
+                    'minggu' => $d->translatedFormat('d M'),
+                    'bulan' => $d->translatedFormat('M Y'),
+                    default => $d->translatedFormat($dayLabel),
+                },
+                'tooltip' => match ($unit) {
+                    'minggu' => 'Minggu '.$d->translatedFormat('d M').' – '.$last->translatedFormat('d M Y'),
+                    'bulan' => $d->translatedFormat('F Y'),
+                    default => $d->translatedFormat('l, d F Y'),
+                },
                 'value' => 0,
                 'count' => 0,
             ];
         }
 
-        foreach (Transaction::query()->betweenDates($start, $now)->get(['created_at', 'total']) as $t) {
-            $key = ($weekly ? $t->created_at->copy()->startOfWeek() : $t->created_at)->toDateString();
+        foreach (Transaction::query()->betweenDates($start, $end)->get(['created_at', 'total']) as $t) {
+            $key = $bucketStart($t->created_at)->toDateString();
             if (isset($buckets[$key])) {
                 $buckets[$key]['value'] += (int) round((float) $t->total);
                 $buckets[$key]['count']++;

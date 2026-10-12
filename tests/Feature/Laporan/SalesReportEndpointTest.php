@@ -68,4 +68,61 @@ class SalesReportEndpointTest extends TestCase
         $this->getJson('/laporan/ringkasan?periode=tahun-ini')->assertUnprocessable();
         $this->getJson('/laporan/grafik?rentang=1-tahun')->assertUnprocessable();
     }
+
+    public function test_chart_quick_ranges_include_totals_and_peak(): void
+    {
+        $this->getJson('/laporan/grafik')
+            ->assertOk()
+            ->assertJsonCount(7, 'data')
+            ->assertJsonPath('meta.range', '7-hari')
+            ->assertJsonPath('meta.from', '2026-10-08')
+            ->assertJsonPath('meta.total', 35000)
+            ->assertJsonPath('meta.count', 4)
+            ->assertJsonPath('meta.peak.date', '2026-10-13')
+            ->assertJsonPath('meta.peak.value', 24000)
+            ->assertJsonPath('data.6.label', 'Rab 14');
+
+        $this->getJson('/laporan/grafik?rentang=12-minggu')
+            ->assertJsonCount(12, 'data')
+            ->assertJsonPath('meta.unit', 'minggu')
+            ->assertJsonPath('data.11.date', '2026-10-12')
+            ->assertJsonPath('data.11.end', '2026-10-18');
+    }
+
+    public function test_chart_custom_range_with_auto_and_chosen_unit(): void
+    {
+        Transaction::factory()->withItems([$this->pid('ATK002') => 3])->at('2026-08-20 09:00:00')->create();
+
+        $this->getJson('/laporan/grafik?dari=2026-10-12&sampai=2026-10-14')
+            ->assertJsonPath('meta.range', 'kustom')
+            ->assertJsonPath('meta.unit', 'hari')
+            ->assertJsonCount(3, 'data')
+            ->assertJsonPath('data.1.value', 24000);
+
+        // 2 bulan lebih → otomatis per minggu; minggu pertama parsial dimulai Senin.
+        $this->getJson('/laporan/grafik?dari=2026-08-01&sampai=2026-10-14')
+            ->assertJsonPath('meta.unit', 'minggu')
+            ->assertJsonPath('data.0.date', '2026-07-27')
+            ->assertJsonPath('meta.total', 44000);
+
+        $this->getJson('/laporan/grafik?dari=2026-08-01&sampai=2026-10-14&satuan=bulan')
+            ->assertJsonCount(3, 'data')
+            ->assertJsonPath('data.0.label', 'Agt 2026')
+            ->assertJsonPath('data.0.value', 9000)
+            ->assertJsonPath('data.2.value', 35000);
+
+        // Hari kosong tetap muncul dengan nilai 0.
+        $this->getJson('/laporan/grafik?dari=2026-10-01&sampai=2026-10-02')
+            ->assertJsonPath('data.0.value', 0)
+            ->assertJsonPath('meta.peak', null);
+    }
+
+    public function test_chart_validation(): void
+    {
+        $this->getJson('/laporan/grafik?dari=2026-10-01')->assertJsonValidationErrors('sampai');
+        $this->getJson('/laporan/grafik?dari=2026-10-10&sampai=2026-10-01')->assertJsonValidationErrors('sampai');
+        $this->getJson('/laporan/grafik?dari=2026-10-20&sampai=2026-10-21')->assertJsonValidationErrors('dari');
+        $this->getJson('/laporan/grafik?dari=2024-01-01&sampai=2026-10-14&satuan=hari')->assertJsonValidationErrors('satuan');
+        $this->getJson('/laporan/grafik?dari=2026-10-01&sampai=2026-10-14&satuan=tahun')->assertJsonValidationErrors('satuan');
+    }
 }
