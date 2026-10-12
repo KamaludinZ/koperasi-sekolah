@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use App\Models\Category;
 use App\Models\Product;
+use App\Services\NotificationService;
 use App\Support\MockData;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
@@ -31,5 +32,8 @@ class ProductSeeder extends Seeder
                 'is_active' => true,
             ]);
         }
+
+        // Event model dimatikan, jadi peringatan stok barang contoh dibuat di sini.
+        app(NotificationService::class)->syncStockAlerts();
     }
 }

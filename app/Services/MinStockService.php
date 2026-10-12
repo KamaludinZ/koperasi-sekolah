@@ -43,6 +43,7 @@ class MinStockService
             foreach ($minStocks as $id => $value) {
                 if ($current->has($id) && (int) $current[$id] !== (int) $value) {
                     Product::whereKey($id)->update(['min_stock' => max(0, (int) $value)]);
+                    app(NotificationService::class)->queueStockCheck((int) $id);
                     $changed++;
                 }
             }
@@ -60,9 +61,10 @@ class MinStockService
     /** Terapkan satu nilai ke semua barang di kategori (atau semua barang bila null). */
     public function applyToCategory(?string $category, int $value): int
     {
-        $changed = Product::query()
-            ->when($category, fn ($q) => $q->whereHas('category', fn ($c) => $c->where('name', $category)))
-            ->update(['min_stock' => max(0, $value)]);
+        $scope = Product::query()->when($category, fn ($q) => $q->whereHas('category', fn ($c) => $c->where('name', $category)));
+        $ids = (clone $scope)->pluck('id')->all();
+        $changed = $scope->update(['min_stock' => max(0, $value)]);
+        app(NotificationService::class)->queueStockCheck(...$ids);
 
         AuditLog::record('stock.min_updated', 'stok', 'Batas minimum '.($category ? "kategori {$category}" : 'semua barang')." disetel ke {$value} ({$changed} barang)",
             null, ['category' => $category, 'value' => $value, 'count' => $changed]);

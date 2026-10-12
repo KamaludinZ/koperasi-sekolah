@@ -55,19 +55,20 @@ class NotificationSchemaTest extends TestCase
         $this->assertCount(3, Notification::active()->get());
     }
 
-    public function test_deleting_user_or_product_keeps_notification(): void
+    public function test_deleting_user_keeps_announcement_and_product_removes_its_stock_alert(): void
     {
         $user = User::factory()->create();
-        $product = Product::create(['code' => 'X1', 'name' => 'Roti', 'price' => 1000]);
-        $n = Notification::factory()->stock()->create(['product_id' => $product->id, 'created_by' => $user->id]);
+        $product = Product::create(['code' => 'X1', 'name' => 'Roti', 'price' => 1000, 'stock' => 0]);
+        $alert = Notification::where('product_id', $product->id)->firstOrFail(); // dibuat otomatis (stok 0)
+        $n = Notification::factory()->create(['created_by' => $user->id]);
         $n->readers()->attach($user->id, ['read_at' => now()]);
 
-        $product->delete();
         $user->delete();
+        $product->delete();
 
-        $this->assertNull($n->fresh()->product_id);
         $this->assertNull($n->fresh()->created_by);
         $this->assertSame(0, DB::table('notification_reads')->count());
+        $this->assertNull($alert->fresh());
     }
 
     public function test_postgres_rejects_invalid_type_target_and_public_non_announcement(): void

@@ -6,6 +6,7 @@ use App\Http\Middleware\EnsureMenuAccess;
 use App\Http\Middleware\EnsureRole;
 use App\Models\Role;
 use App\Models\User;
+use App\Services\NotificationService;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
 use Livewire\Livewire;
@@ -17,7 +18,8 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        // Satu instans per request agar antrean pemeriksaan stok terkumpul lalu diproses sekali.
+        $this->app->scoped(NotificationService::class);
     }
 
     /**

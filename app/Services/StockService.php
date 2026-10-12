@@ -70,6 +70,7 @@ class StockService
 
             Product::whereKey($product->id)->update(['stock' => $after]);
             $product->setAttribute('stock', $after)->syncOriginalAttribute('stock');
+            app(NotificationService::class)->queueStockCheck($product->id);
 
             return StockMovement::create([
                 'product_id' => $product->id,

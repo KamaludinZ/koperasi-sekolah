@@ -6,6 +6,7 @@ use App\Models\Notification;
 use App\Models\Product;
 use App\Models\User;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
 
 /**
  * Kotak notifikasi petugas (tabel notifications + notification_reads): daftar terbaru
@@ -15,6 +16,34 @@ use Illuminate\Support\Collection;
 class NotificationService
 {
     public const FILTERS = ['semua', 'belum', 'stok', 'pengumuman', 'sistem'];
+
+    /** @var array<int, true> barang yang menunggu pemeriksaan peringatan stok */
+    private array $pendingStock = [];
+
+    /**
+     * Antre pemeriksaan peringatan stok untuk barang-barang ini; dijalankan sekali
+     * setelah transaksi database selesai (langsung bila tidak sedang dalam transaksi).
+     * Dipanggil dari StockService, MinStockService, dan event model Product.
+     */
+    public function queueStockCheck(int ...$productIds): void
+    {
+        foreach ($productIds as $id) {
+            $this->pendingStock[$id] = true;
+        }
+
+        // Callback pertama yang jalan memproses seluruh antrean; sisanya tidak berbuat apa-apa.
+        // (Bila transaksi dibatalkan, callback ikut dibuang dan antrean diproses pada commit berikutnya.)
+        if ($productIds !== []) {
+            DB::afterCommit(function () {
+                if ($this->pendingStock === []) {
+                    return;
+                }
+                $ids = array_keys($this->pendingStock);
+                $this->pendingStock = [];
+                $this->syncStockAlerts(Product::whereKey($ids)->get(), $ids);
+            });
+        }
+    }
 
     /**
      * @return list<array{id: int, type: string, type_label: string, title: string, message: string, target: string, target_label: string, url: ?string, is_read: bool, author: ?string, show_public: bool, expires_at: ?string, created_at: string}>
@@ -96,8 +125,14 @@ class NotificationService
      * barang aktif yang menipis/habis (sekali per kondisi, lewat dedupe_key), hapus
      * peringatan barang yang stoknya sudah aman. Mengembalikan jumlah notifikasi baru.
      */
-    public function syncStockAlerts(?Collection $products = null): int
+    public function syncStockAlerts(?Collection $products = null, ?array $productIds = null): int
     {
+        // Barang yang dihapus/dinonaktifkan tidak perlu diperingatkan lagi.
+        Notification::where('type', 'stok')
+            ->where(fn ($q) => $q->whereNull('product_id')->orWhereIn('product_id', Product::where('is_active', false)->select('id')))
+            ->when($productIds !== null, fn ($q) => $q->where(fn ($w) => $w->whereNull('product_id')->orWhereIn('product_id', $productIds)))
+            ->delete();
+
         $products ??= Product::active()->get();
         $created = 0;
 

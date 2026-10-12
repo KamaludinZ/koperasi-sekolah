@@ -89,12 +89,11 @@ class NotificationEndpointTest extends TestCase
         $this->assertSame(0, $service->syncStockAlerts()); // sudah ada, tidak dobel
 
         $penggaris = Product::where('name', 'Penggaris 30 cm')->first();
-        $penggaris->update(['stock' => 100]);
-        $service->syncStockAlerts();
+        $penggaris->update(['stock' => 100]); // otomatis (ProductObserver)
         $this->assertFalse(Notification::where('product_id', $penggaris->id)->exists());
 
         $penggaris->update(['stock' => 0]);
-        $this->assertSame(1, $service->syncStockAlerts());
+        $this->assertSame(0, $service->syncStockAlerts()); // sudah dibuat otomatis
         $this->assertSame(['Stok Penggaris 30 cm habis'], Notification::where('product_id', $penggaris->id)->pluck('title')->all());
     }
 
