@@ -2,30 +2,31 @@
 
 namespace App\Livewire\Transaksi;
 
-use App\Support\MockData;
+use App\Models\Transaction;
+use App\Services\TransactionHistory;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Carbon;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Attributes\Url;
 use Livewire\Component;
+use Livewire\WithPagination;
 
 /**
  * Riwayat transaksi: semua penjualan dari terbaru ke lama, dikelompokkan per hari,
- * dengan filter tanggal (pilihan cepat atau rentang kustom).
- * Tahap frontend: memakai data tiruan (MockData::transactions).
+ * dengan filter tanggal (pilihan cepat atau rentang kustom), ringkasan periode
+ * dan paginasi. Data dari TransactionHistory.
  */
 #[Layout('components.layouts.app')]
 #[Title('Riwayat Transaksi')]
 class Index extends Component
 {
-    public const PRESETS = [
-        'semua' => 'Semua',
-        'hari-ini' => 'Hari ini',
-        'kemarin' => 'Kemarin',
-        '7-hari' => '7 hari terakhir',
-        'bulan-ini' => 'Bulan ini',
-    ];
+    use WithPagination;
+
+    public const PRESETS = TransactionHistory::PRESETS;
+
+    public const PER_PAGE = 50;
 
     #[Url(as: 'periode', except: 'semua')]
     public string $preset = 'semua';
@@ -54,6 +55,7 @@ class Index extends Component
         $this->preset = $preset;
         $this->from = '';
         $this->to = '';
+        $this->resetPage();
     }
 
     /** Input tanggal diubah → mode kustom. */
@@ -61,6 +63,7 @@ class Index extends Component
     {
         if (in_array($property, ['from', 'to'], true)) {
             $this->preset = 'kustom';
+            $this->resetPage();
             $this->validate([
                 'from' => ['nullable', 'date_format:Y-m-d'],
                 'to' => ['nullable', 'date_format:Y-m-d', 'after_or_equal:from'],
@@ -80,133 +83,63 @@ class Index extends Component
     #[Computed]
     public function range(): array
     {
-        $today = now();
-
-        return match ($this->preset) {
-            'hari-ini' => [$today->copy()->startOfDay(), $today->copy()->endOfDay()],
-            'kemarin' => [$today->copy()->subDay()->startOfDay(), $today->copy()->subDay()->endOfDay()],
-            '7-hari' => [$today->copy()->subDays(6)->startOfDay(), $today->copy()->endOfDay()],
-            'bulan-ini' => [$today->copy()->startOfMonth(), $today->copy()->endOfDay()],
-            'kustom' => [
-                $this->parseDate($this->from)?->startOfDay(),
-                $this->parseDate($this->to)?->endOfDay(),
-            ],
-            default => [null, null],
-        };
+        return $this->preset === 'kustom'
+            ? TransactionHistory::range('semua', $this->validDate($this->from), $this->validDate($this->to))
+            : TransactionHistory::range($this->preset);
     }
 
     #[Computed]
-    public function transactions(): array
+    public function transactions(): LengthAwarePaginator
     {
         [$start, $end] = $this->range;
 
-        return $this->between($start ?? Carbon::createFromTimestamp(0), $end ?? now()->addYear());
+        return app(TransactionHistory::class)->paginate(['from' => $start, 'to' => $end], self::PER_PAGE, $this->getPage());
     }
 
-    /** Transaksi dikelompokkan per tanggal (Y-m-d), terbaru dulu, beserta subtotal harian. */
+    /**
+     * Transaksi halaman ini dikelompokkan per tanggal (Y-m-d), terbaru dulu.
+     * Jumlah & total harian dihitung dari seluruh transaksi hari itu (bukan hanya halaman ini).
+     */
     #[Computed]
     public function days(): array
     {
-        return collect($this->transactions)
-            ->groupBy(fn ($t) => substr($t['created_at'], 0, 10))
-            ->map(fn ($rows, $date) => [
-                'date' => Carbon::parse($date),
-                'rows' => $rows->all(),
-                'count' => $rows->count(),
-                'total' => $rows->sum('total'),
-            ])
-            ->values()
-            ->all();
+        $rows = collect($this->transactions->items())->groupBy(fn ($t) => substr($t['created_at'], 0, 10));
+        if ($rows->isEmpty()) {
+            return [];
+        }
+
+        $dates = $rows->keys();
+        $totals = Transaction::query()
+            ->betweenDates(Carbon::parse($dates->last())->startOfDay(), Carbon::parse($dates->first())->endOfDay())
+            ->get(['created_at', 'total'])
+            ->groupBy(fn ($t) => $t->created_at->toDateString());
+
+        return $rows->map(fn ($dayRows, $date) => [
+            'date' => Carbon::parse($date),
+            'rows' => $dayRows->all(),
+            'count' => $totals[$date]?->count() ?? $dayRows->count(),
+            'total' => (int) round((float) ($totals[$date]?->sum('total') ?? $dayRows->sum('total'))),
+        ])->values()->all();
     }
 
     #[Computed]
     public function summary(): array
     {
-        $summary = self::summarize($this->transactions);
-        $summary['previous'] = null;
-
-        // Bandingkan dengan periode sebelumnya yang sama panjangnya (bila rentang lengkap).
         [$start, $end] = $this->range;
-        if ($start && $end) {
-            $days = (int) $start->copy()->startOfDay()->diffInDays($end->copy()->startOfDay()) + 1;
-            $prevEnd = $start->copy()->subDay()->endOfDay();
-            $prevStart = $start->copy()->subDays($days)->startOfDay();
-            $previous = self::summarize($this->between($prevStart, $prevEnd));
 
-            $summary['previous'] = [
-                ...$previous,
-                'label' => $days === 1 ? $prevStart->translatedFormat('d M') : $prevStart->translatedFormat('d M').' – '.$prevEnd->translatedFormat('d M'),
-                'count_change' => self::percentChange($previous['count'], $summary['count']),
-                'total_change' => self::percentChange($previous['total'], $summary['total']),
-            ];
-        }
-
-        return $summary;
-    }
-
-    /** @param  list<array>  $transactions */
-    private static function summarize(array $transactions): array
-    {
-        $all = collect($transactions);
-        $total = $all->sum('total');
-
-        return [
-            'count' => $all->count(),
-            'total' => $total,
-            'items' => $all->sum('item_count'),
-            'average' => $all->count() ? (int) round($all->avg('total')) : 0,
-            'by_method' => collect(\App\Services\CheckoutService::PAYMENT_METHODS)
-                ->map(fn ($label, $method) => [
-                    'label' => $label,
-                    'count' => $all->where('payment_method', $method)->count(),
-                    'total' => $sum = $all->where('payment_method', $method)->sum('total'),
-                    'share' => $total > 0 ? round($sum / $total * 100) : 0,
-                ])
-                ->all(),
-        ];
-    }
-
-    /** Persentase perubahan; null bila pembanding nol. */
-    private static function percentChange(int|float $before, int|float $after): ?int
-    {
-        return $before > 0 ? (int) round(($after - $before) / $before * 100) : null;
-    }
-
-    private function between(Carbon $start, Carbon $end): array
-    {
-        return array_values(array_filter(MockData::transactions(), function ($t) use ($start, $end) {
-            $at = Carbon::parse($t['created_at']);
-
-            return $at->gte($start) && $at->lte($end);
-        }));
+        return app(TransactionHistory::class)->summary($start, $end);
     }
 
     /** Label rentang aktif untuk ditampilkan, mis. "1–12 Oktober 2026". */
     #[Computed]
     public function rangeLabel(): ?string
     {
-        [$start, $end] = $this->range;
-        if (! $start && ! $end) {
-            return null;
-        }
-        if ($start && $end && $start->isSameDay($end)) {
-            return $start->translatedFormat('d F Y');
-        }
-
-        return ($start ? $start->translatedFormat('d M Y') : '…').' – '.($end ? $end->translatedFormat('d M Y') : '…');
+        return TransactionHistory::rangeLabel(...$this->range);
     }
 
-    private function parseDate(string $value): ?Carbon
+    private function validDate(string $value): ?string
     {
-        if ($value === '') {
-            return null;
-        }
-
-        try {
-            return Carbon::createFromFormat('Y-m-d', $value);
-        } catch (\Throwable) {
-            return null;
-        }
+        return preg_match('/^\d{4}-\d{2}-\d{2}$/', $value) ? $value : null;
     }
 
     public function render()

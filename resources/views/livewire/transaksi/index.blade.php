@@ -2,7 +2,7 @@
 <div class="flex min-h-0 flex-1 flex-col overflow-y-auto">
     <header class="border-b border-stone-200 bg-white px-4 py-4 sm:px-6">
         <h1 class="text-lg font-semibold">Riwayat Transaksi</h1>
-        <p class="text-xs text-stone-500">Semua penjualan dari yang terbaru. <span class="rounded bg-amber-100 px-1.5 py-0.5 text-[11px] font-medium text-amber-800">data tiruan</span> Klik baris untuk melihat rincian.</p>
+        <p class="text-xs text-stone-500">Semua penjualan dari yang terbaru. Klik baris untuk melihat rincian.</p>
     </header>
 
     <div class="space-y-5 px-4 py-5 sm:px-6">
@@ -100,5 +100,9 @@
                 @endif
             </div>
         @endforelse
+
+        @if ($this->transactions->hasPages())
+            @include('livewire.transaksi.partials.pagination', ['paginator' => $this->transactions])
+        @endif
     </div>
 </div>

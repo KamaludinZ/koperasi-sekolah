@@ -2,7 +2,9 @@
 
 namespace Tests\Feature\Transaksi;
 
-use App\Support\MockData;
+use App\Models\Transaction;
+use App\Models\User;
+use Database\Seeders\ProductSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -10,47 +12,56 @@ class NavigationTest extends TestCase
 {
     use RefreshDatabase;
 
+    /** @var list<Transaction> lama → baru */
+    private array $txs;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+        $this->seed(ProductSeeder::class);
+        $cashier = User::factory()->create(['name' => 'Bu Rina']);
+        $this->txs = collect(['2026-10-12 08:00:00', '2026-10-13 08:00:00', '2026-10-14 08:00:00'])
+            ->map(fn ($at) => Transaction::factory()->withItems()->at($at)->create(['user_id' => $cashier->id]))
+            ->all();
+    }
+
     public function test_list_rows_link_to_detail(): void
     {
-        $first = MockData::transactions()[0];
+        $newest = $this->txs[2];
 
         $this->get('/transaksi')
-            ->assertSee(route('transaksi.show', $first['id']), false)
-            ->assertSee('Lihat detail transaksi '.$first['invoice_number']);
+            ->assertSee(route('transaksi.show', $newest), false)
+            ->assertSee('Lihat detail transaksi '.$newest->invoice_number);
     }
 
     public function test_detail_page_with_newer_and_older_links(): void
     {
-        $all = MockData::transactions();
-        $middle = $all[1];
+        [$old, $middle, $new] = $this->txs;
 
-        $this->get("/transaksi/{$middle['id']}")
+        $this->get("/transaksi/{$middle->id}")
             ->assertOk()
-            ->assertSee($middle['invoice_number'])
-            ->assertSee(route('transaksi.show', $all[0]['id']), false)
-            ->assertSee(route('transaksi.show', $all[2]['id']), false)
+            ->assertSee($middle->invoice_number)
+            ->assertSee(route('transaksi.show', $new), false)
+            ->assertSee(route('transaksi.show', $old), false)
             ->assertSee(route('transaksi'), false);
     }
 
     public function test_newest_has_no_newer_link_and_unknown_is_404(): void
     {
-        $newest = MockData::transactions()[0];
-
-        $this->get("/transaksi/{$newest['id']}")->assertOk()->assertDontSee('x-ref="newer"', false);
+        $this->get("/transaksi/{$this->txs[2]->id}")->assertOk()->assertDontSee('x-ref="newer"', false);
         $this->get('/transaksi/99999')->assertNotFound();
     }
 
     public function test_detail_shows_items_payment_and_receipt(): void
     {
-        $tx = MockData::transactions()[0];
-        $item = $tx['items'][0];
+        $tx = $this->txs[2];
 
-        $this->get("/transaksi/{$tx['id']}")
+        $this->get("/transaksi/{$tx->id}")
             ->assertSee('Rincian barang')
-            ->assertSee($item['product_name'])
+            ->assertSee($tx->items()->first()->product_name)
             ->assertSee('Kembalian')
             ->assertSee('print-area', false)
             ->assertSee('Cetak ulang struk')
-            ->assertSee($tx['cashier']);
+            ->assertSee('Bu Rina');
     }
 }

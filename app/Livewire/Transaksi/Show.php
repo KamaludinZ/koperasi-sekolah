@@ -2,13 +2,14 @@
 
 namespace App\Livewire\Transaksi;
 
-use App\Support\MockData;
+use App\Models\Transaction;
+use App\Services\TransactionHistory;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
 
 /**
  * Halaman detail satu transaksi, dengan navigasi ke transaksi lebih baru/lama.
- * Tahap frontend: memakai data tiruan (MockData::transactions).
+ * Data dari TransactionHistory::detail (sama dengan GET /transaksi/{id}/rincian).
  */
 #[Layout('components.layouts.app')]
 class Show extends Component
@@ -19,15 +20,11 @@ class Show extends Component
 
     public ?int $olderId = null;
 
-    public function mount(int $transaction): void
+    public function mount(Transaction $transaction): void
     {
-        $all = MockData::transactions(); // terbaru dulu
-        $index = collect($all)->search(fn ($t) => $t['id'] === $transaction);
-        abort_if($index === false, 404);
-
-        $this->tx = $all[$index];
-        $this->newerId = $all[$index - 1]['id'] ?? null;
-        $this->olderId = $all[$index + 1]['id'] ?? null;
+        $this->tx = app(TransactionHistory::class)->detail($transaction);
+        $this->newerId = $this->tx['newer_id'];
+        $this->olderId = $this->tx['older_id'];
     }
 
     public function render()
