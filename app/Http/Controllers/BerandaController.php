@@ -7,6 +7,7 @@ use App\Models\Member;
 use App\Models\Product;
 use App\Services\SalesReport;
 use App\Support\MockData;
+use App\Support\OpeningHours;
 use Illuminate\Support\Carbon;
 use Illuminate\View\View;
 
@@ -17,12 +18,6 @@ use Illuminate\View\View;
  */
 class BerandaController extends Controller
 {
-    /** Jam buka per hari ISO (1 = Senin … 7 = Minggu). Nanti dari pengaturan (fase 4). */
-    public const OPENING_HOURS = [
-        1 => ['07:00', '14:00'], 2 => ['07:00', '14:00'], 3 => ['07:00', '14:00'], 4 => ['07:00', '14:00'],
-        5 => ['07:00', '11:00'], 6 => ['07:00', '12:00'],
-    ];
-
     public function __invoke(SalesReport $report): View
     {
         return view('beranda', [
@@ -40,27 +35,9 @@ class BerandaController extends Controller
     }
 
     /** @return array{open: bool, label: string, detail: string} */
-    public static function openStatus(Carbon $now): array
+    public static function openStatus(Carbon $now, ?array $schedule = null): array
     {
-        $today = self::OPENING_HOURS[$now->dayOfWeekIso] ?? null;
-        $time = $now->format('H:i');
-
-        if ($today && $time >= $today[0] && $time < $today[1]) {
-            return ['open' => true, 'label' => 'Sedang buka', 'detail' => 'Tutup pukul '.str_replace(':', '.', $today[1])];
-        }
-
-        // Cari hari buka berikutnya.
-        for ($i = 0; $i <= 7; $i++) {
-            $day = $now->copy()->addDays($i);
-            $hours = self::OPENING_HOURS[$day->dayOfWeekIso] ?? null;
-            if ($hours && ($i > 0 || $time < $hours[0])) {
-                $when = $i === 0 ? 'hari ini' : ($i === 1 ? 'besok' : $day->translatedFormat('l'));
-
-                return ['open' => false, 'label' => 'Sedang tutup', 'detail' => "Buka {$when} pukul ".str_replace(':', '.', $hours[0])];
-            }
-        }
-
-        return ['open' => false, 'label' => 'Sedang tutup', 'detail' => ''];
+        return OpeningHours::status($schedule ?? MockData::profile()['schedule'], $now);
     }
 
     /** Barang terlaris 30 hari terakhir yang masih tersedia (cadangan: barang aktif). */

@@ -138,7 +138,8 @@
                     @foreach ($profile['hours'] as $h)
                         <div class="flex justify-between py-2.5 text-sm"><dt class="text-stone-600">{{ $h['days'] }}</dt><dd class="font-semibold text-stone-900 tabular-nums">{{ $h['time'] }}</dd></div>
                     @endforeach
-                    <div class="flex justify-between py-2.5 text-sm"><dt class="text-stone-600">Minggu &amp; hari libur</dt><dd class="font-semibold text-stone-400">Tutup</dd></div>
+                    @php $closed = \App\Support\OpeningHours::closedDays($profile['schedule']); @endphp
+                    <div class="flex justify-between py-2.5 text-sm"><dt class="text-stone-600">{{ $closed ? implode(', ', $closed).' & ' : '' }}hari libur</dt><dd class="font-semibold text-stone-400">Tutup</dd></div>
                 </dl>
                 <p class="mt-4 rounded-xl bg-amber-50 px-4 py-3 text-sm text-amber-900">Saat jam istirahat dan shalat berjamaah, layanan kasir dijeda sejenak.</p>
             </div>

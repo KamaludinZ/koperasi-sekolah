@@ -36,7 +36,7 @@ class Index extends Component
     #[Computed]
     public function checklist(): array
     {
-        $p = $this->settings['profile'];
+        $p = MockData::profile();
         $r = $this->settings['receipt'];
 
         return [
@@ -44,7 +44,7 @@ class Index extends Component
             ['label' => 'Alamat & nomor kontak', 'done' => filled($p['address']) && filled($p['phone'])],
             ['label' => 'Logo koperasi', 'done' => filled($p['logo'])],
             ['label' => 'Tulisan kaki struk', 'done' => filled($r['footer'])],
-            ['label' => 'Jam buka', 'done' => count($p['hours'] ?? []) > 0],
+            ['label' => 'Jam buka', 'done' => count($p['hours']) > 0],
         ];
     }
 

@@ -1,0 +1,103 @@
+<?php
+
+namespace Tests\Feature\Pengaturan;
+
+use App\Http\Controllers\BerandaController;
+use App\Livewire\Pengaturan\Profile;
+use App\Support\MockData;
+use App\Support\OpeningHours;
+use Database\Seeders\ProductSeeder;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Carbon;
+use Livewire\Livewire;
+use Tests\TestCase;
+
+class ProfileTest extends TestCase
+{
+    use RefreshDatabase;
+
+    protected function setUp(): void
+    {
+        parent::setUp(); // admin
+        $this->seed(ProductSeeder::class);
+    }
+
+    public function test_form_is_prefilled(): void
+    {
+        $this->get('/pengaturan/profil')->assertOk()->assertSee('Identitas')->assertSee('Jam buka')->assertSee('Kepala struk');
+
+        Livewire::test(Profile::class)
+            ->assertSet('name', 'Koperasi Siswa Al-Hikmah')
+            ->assertSet('schedule.1', ['open' => true, 'from' => '07:00', 'to' => '14:00'])
+            ->assertSet('schedule.7.open', false);
+    }
+
+    public function test_save_updates_profile_receipt_and_public_home(): void
+    {
+        Livewire::test(Profile::class)
+            ->set('name', 'Koperasi Siswa An-Nur')
+            ->set('short_name', 'Kopsis An-Nur')
+            ->set('school', 'MTs An-Nur')
+            ->set('phone', '0811-222-333')
+            ->set('schedule.6.open', false)
+            ->set('schedule.5.to', '11:30')
+            ->call('save')
+            ->assertHasNoErrors()
+            ->assertSet('saved', true);
+
+        $p = MockData::profile();
+        $this->assertSame('Koperasi Siswa An-Nur', $p['name']);
+        $this->assertNull($p['schedule'][6]);
+        $this->assertSame([['days' => 'Senin – Kamis', 'time' => '07.00 – 14.00'], ['days' => 'Jumat', 'time' => '07.00 – 11.30']], $p['hours']);
+
+        $this->get('/')->assertSee('Kopsis An-Nur')->assertSee('MTs An-Nur')->assertSee('Sabtu, Minggu &amp; hari libur', false);
+        $this->get('/pengaturan')->assertSee('Koperasi Siswa An-Nur');
+    }
+
+    public function test_validation(): void
+    {
+        Livewire::test(Profile::class)
+            ->set('name', '')
+            ->set('phone', 'abc')
+            ->set('email', 'bukan-email')
+            ->set('schedule.1.to', '06:00')
+            ->call('save')
+            ->assertHasErrors(['name', 'phone', 'email', 'schedule.1.to'])
+            ->assertSet('saved', false);
+    }
+
+    public function test_logo_upload_and_remove(): void
+    {
+        $c = Livewire::test(Profile::class)
+            ->set('logoUpload', UploadedFile::fake()->image('logo.png', 200, 200))
+            ->assertHasNoErrors()
+            ->call('save')
+            ->assertHasNoErrors();
+        $this->assertStringStartsWith('data:image/png;base64,', MockData::profile()['logo']);
+        $this->get('/pengaturan')->assertSee('5 dari 5 sudah lengkap');
+
+        $c->call('removeLogo')->call('save');
+        $this->assertNull(MockData::profile()['logo']);
+
+        Livewire::test(Profile::class)->set('logoUpload', UploadedFile::fake()->create('logo.pdf', 10, 'application/pdf'))->assertHasErrors('logoUpload');
+        Livewire::test(Profile::class)->set('logoUpload', UploadedFile::fake()->image('kecil.png', 20, 20))->assertHasErrors('logoUpload');
+    }
+
+    public function test_opening_hours_grouping_and_status(): void
+    {
+        $this->assertSame([['days' => 'Senin – Kamis', 'time' => '07.00 – 14.00'], ['days' => 'Jumat', 'time' => '07.00 – 11.00'], ['days' => 'Sabtu', 'time' => '07.00 – 12.00']],
+            OpeningHours::group(OpeningHours::DEFAULT));
+        $this->assertSame(['Minggu'], OpeningHours::closedDays(OpeningHours::DEFAULT));
+
+        $custom = [1 => ['open' => '08:00', 'close' => '10:00'], 3 => ['open' => '08:00', 'close' => '10:00']];
+        $this->assertSame(['days' => 'Senin', 'time' => '08.00 – 10.00'], OpeningHours::group($custom)[0]);
+        $this->assertSame('Buka Rabu pukul 08.00', BerandaController::openStatus(Carbon::parse('2026-10-12 11:00'), $custom)['detail']);
+    }
+
+    public function test_only_admin(): void
+    {
+        $this->loginAs('pengurus');
+        $this->get('/pengaturan/profil')->assertForbidden();
+    }
+}

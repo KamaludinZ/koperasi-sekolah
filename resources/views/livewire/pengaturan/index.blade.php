@@ -1,7 +1,7 @@
 @php
     $rp = fn ($n) => 'Rp'.number_format((int) $n, 0, ',', '.');
     $s = $this->settings;
-    $p = $s['profile'];
+    $p = \App\Support\MockData::profile();
     $r = $s['receipt'];
     $t = $s['tax'];
     $done = collect($this->checklist)->where('done', true)->count();
@@ -94,7 +94,9 @@
                     @foreach ($p['hours'] as $h)
                         <div class="flex justify-between py-1.5"><dt class="text-stone-600">{{ $h['days'] }}</dt><dd class="font-medium tabular-nums">{{ $h['time'] }}</dd></div>
                     @endforeach
-                    <div class="flex justify-between py-1.5"><dt class="text-stone-600">Minggu & libur</dt><dd class="text-stone-400">Tutup</dd></div>
+                    @if ($closed = \App\Support\OpeningHours::closedDays($p['schedule']))
+                        <div class="flex justify-between py-1.5"><dt class="text-stone-600">{{ implode(', ', $closed) }} & libur</dt><dd class="text-stone-400">Tutup</dd></div>
+                    @endif
                 </dl>
                 <p class="mt-3 text-xs text-stone-500">Ditampilkan di beranda publik. Diubah lewat profil koperasi.</p>
             </section>

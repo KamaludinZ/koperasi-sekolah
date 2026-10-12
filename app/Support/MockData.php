@@ -13,8 +13,18 @@ class MockData
         return ['Alat Tulis', 'Makanan', 'Minuman', 'Seragam'];
     }
 
-    /** Identitas koperasi & teks struk (nanti dari tabel settings). */
+    /** Identitas koperasi & teks struk: dari pengaturan tiruan bila sudah diubah (nanti tabel settings). */
     public static function profile(): array
+    {
+        $saved = session('mock.settings.profile');
+        $profile = $saved ?? self::defaultProfile();
+        $profile['hours'] = OpeningHours::group($profile['schedule']);
+        $profile['receipt_footer'] = session('mock.settings.receipt.footer') ?? $profile['receipt_footer'];
+
+        return $profile;
+    }
+
+    private static function defaultProfile(): array
     {
         return [
             'name' => 'Koperasi Siswa Al-Hikmah',
@@ -22,11 +32,9 @@ class MockData
             'school' => 'Madrasah Tsanawiyah Negeri 1 Contoh',
             'address' => 'Jl. Pendidikan No. 1, Kota Contoh',
             'phone' => '0812-3456-7890',
-            'hours' => [
-                ['days' => 'Senin – Kamis', 'time' => '07.00 – 14.00'],
-                ['days' => 'Jumat', 'time' => '07.00 – 11.00'],
-                ['days' => 'Sabtu', 'time' => '07.00 – 12.00'],
-            ],
+            'email' => null,
+            'logo' => null,
+            'schedule' => OpeningHours::DEFAULT,
             'motto' => 'Jujur, amanah, dan saling menolong dalam kebaikan.',
             'receipt_footer' => 'Terima kasih, semoga berkah. Jazakumullah khairan.',
         ];
@@ -39,7 +47,7 @@ class MockData
     public static function settings(): array
     {
         return session('mock.settings') ?? [
-            'profile' => [...self::profile(), 'logo' => null, 'email' => null],
+            'profile' => self::defaultProfile(),
             'receipt' => [
                 'header' => 'Koperasi Siswa Al-Hikmah',
                 'subheader' => 'Madrasah Tsanawiyah Negeri 1 Contoh',
@@ -65,6 +73,7 @@ class MockData
     {
         $all = self::settings();
         $all[$section] = [...$all[$section], ...$values];
+        unset($all[$section]['hours']); // turunan dari schedule
         $all['updated_at'] = now()->toDateTimeString();
         $all['updated_by'] = auth()->user()?->name;
         session(['mock.settings' => $all]);
