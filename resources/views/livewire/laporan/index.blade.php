@@ -87,14 +87,6 @@
             </section>
         </div>
 
-        {{-- Export (diisi pada task export laporan) --}}
-        <section class="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-stone-200 bg-white p-4">
-            <div>
-                <h2 class="text-sm font-semibold">Export laporan</h2>
-                <p class="text-xs text-stone-500">Unduh rekap penjualan periode ini untuk dilaporkan ke sekolah.</p>
-            </div>
-            <button type="button" disabled title="Segera hadir"
-                    class="rounded-xl border border-stone-300 px-4 py-2 text-sm font-medium text-stone-500 disabled:cursor-not-allowed">Unduh rekap</button>
-        </section>
+        @include('livewire.laporan.partials.export-panel')
     </div>
 </div>

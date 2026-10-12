@@ -1,6 +1,6 @@
 {
   "repo": "Koperasi Sekolah",
-  "generatedForCommit": "54446ac19f9ba975a641fce39ff54ee6f83d3e76",
+  "generatedForCommit": "e8c08f17efe9eb567cb8de3f03a3c219475211bd",
   "files": [
     {
       "path": ".claude/skills/ngodingpakeai/SKILL.md",
@@ -144,7 +144,7 @@
       "path": "app/Livewire/Laporan/Index.php",
       "reason": "changed",
       "language": "php",
-      "size": 7149
+      "size": 9247
     },
     {
       "path": "app/Livewire/Transaksi/Index.php",
@@ -454,13 +454,13 @@
     },
     {
       "path": "package-lock.json",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "json",
       "size": 92765
     },
     {
       "path": "package.json",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "json",
       "size": 472
     },
@@ -496,7 +496,7 @@
     },
     {
       "path": "resources/js/app.js",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "javascript",
       "size": 166
     },
@@ -508,9 +508,15 @@
     },
     {
       "path": "resources/js/sales-chart.js",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "javascript",
       "size": 2885
+    },
+    {
+      "path": "resources/views/components/laporan/delta.blade.php",
+      "reason": "new",
+      "language": "php",
+      "size": 807
     },
     {
       "path": "resources/views/components/layouts/app.blade.php",
@@ -642,11 +648,11 @@
       "path": "resources/views/livewire/laporan/index.blade.php",
       "reason": "changed",
       "language": "php",
-      "size": 5420
+      "size": 6116
     },
     {
       "path": "resources/views/livewire/laporan/partials/sales-chart.blade.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 2866
     },
@@ -751,6 +757,12 @@
       "reason": "needs_summary",
       "language": "php",
       "size": 4848
+    },
+    {
+      "path": "storage/framework/views/0e5a3bbae451136886b5406f2c4ccb78.php",
+      "reason": "new",
+      "language": "php",
+      "size": 2371
     },
     {
       "path": "storage/framework/views/11762cee78b18a71c9360376789f4806.php",
@@ -922,7 +934,7 @@
     },
     {
       "path": "storage/framework/views/65e4c2735458f685667e565a812b1c5a.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 4426
     },
@@ -1116,7 +1128,7 @@
       "path": "storage/framework/views/e17ceb89e1cd3f5fe664f3412bead3d6.php",
       "reason": "changed",
       "language": "php",
-      "size": 7114
+      "size": 14167
     },
     {
       "path": "storage/framework/views/e27f66cac0fd83c2264fcbb4d52c1aff.php",
@@ -1314,7 +1326,7 @@
       "path": "tests/Feature/Laporan/IndexTest.php",
       "reason": "changed",
       "language": "php",
-      "size": 3612
+      "size": 4880
     },
     {
       "path": "tests/Feature/Transaksi/DateFilterTest.php",

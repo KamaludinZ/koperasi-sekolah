@@ -124,4 +124,49 @@ class IndexTest extends TestCase
         $this->assertSame('2026-09-01', $start->toDateString());
         $this->assertSame('2026-09-14 15:00:00', $end->toDateTimeString());
     }
+
+    public function test_export_range_follows_period(): void
+    {
+        Livewire::test(Index::class)
+            ->assertSet('exportFrom', '2026-10-14')
+            ->call('setPeriod', '7-hari')
+            ->assertSet('exportFrom', '2026-10-08')
+            ->assertSet('exportTo', '2026-10-14');
+    }
+
+    public function test_export_downloads_csv_with_selected_sections(): void
+    {
+        $c = Livewire::test(Index::class)
+            ->set('exportFrom', '2026-10-01')
+            ->set('exportTo', '2026-10-14')
+            ->set('exportSections', ['summary', 'transactions'])
+            ->call('export')
+            ->assertHasNoErrors()
+            ->assertFileDownloaded('rekap-penjualan-20261001-20261014.csv');
+
+        $csv = base64_decode($c->effects['download']['content']);
+        $this->assertStringContainsString('RINGKASAN', $csv);
+        $this->assertStringContainsString('RINCIAN TRANSAKSI', $csv);
+        $this->assertStringNotContainsString('BARANG TERJUAL', $csv);
+
+        $expected = collect(\App\Support\MockData::transactions(90))
+            ->filter(fn ($t) => $t['created_at'] >= '2026-10-01')->sum('total');
+        $this->assertStringContainsString('"Total penjualan";'.$expected, $csv);
+    }
+
+    public function test_export_validation(): void
+    {
+        Livewire::test(Index::class)
+            ->set('exportFrom', '2026-10-10')
+            ->set('exportTo', '2026-10-01')
+            ->set('exportSections', [])
+            ->call('export')
+            ->assertHasErrors(['exportTo', 'exportSections'])
+            ->assertNoFileDownloaded();
+
+        Livewire::test(Index::class)
+            ->set('exportTo', '2026-12-01')
+            ->call('export')
+            ->assertHasErrors(['exportTo' => 'before_or_equal']);
+    }
 }
