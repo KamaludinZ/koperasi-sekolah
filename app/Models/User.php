@@ -8,12 +8,19 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Foundation\Auth\User as Authenticatable;
-use Illuminate\Notifications\Notifiable;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Notifications\RoutesNotifications;
 
 class User extends Authenticatable
 {
-    /** @use HasFactory<UserFactory> */
-    use HasFactory, Notifiable;
+    /**
+     * RoutesNotifications (bukan Notifiable): notifikasi aplikasi memakai tabel
+     * notifications milik koperasi (App\Models\Notification), bukan kanal database Laravel.
+     *
+     * @use HasFactory<UserFactory>
+     */
+    use HasFactory, RoutesNotifications;
 
     /**
      * The attributes that are mass assignable.
@@ -58,6 +65,24 @@ class User extends Authenticatable
     public function role(): BelongsTo
     {
         return $this->belongsTo(Role::class);
+    }
+
+    /** Notifikasi yang pernah dibaca/disembunyikan petugas ini (pivot notification_reads). */
+    public function notificationReads(): BelongsToMany
+    {
+        return $this->belongsToMany(Notification::class, 'notification_reads')->withPivot(['read_at', 'dismissed_at']);
+    }
+
+    /** Pengumuman yang dibuat petugas ini. */
+    public function authoredNotifications(): HasMany
+    {
+        return $this->hasMany(Notification::class, 'created_by');
+    }
+
+    /** Kotak notifikasi petugas: sesuai peran, masih berlaku, belum disembunyikan, + status dibaca. */
+    public function inbox(): Builder
+    {
+        return Notification::query()->inboxFor($this);
     }
 
     public function scopeActive(Builder $query): void
