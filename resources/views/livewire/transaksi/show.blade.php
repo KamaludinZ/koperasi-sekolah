@@ -86,8 +86,15 @@
                         @if ($tx['discount'] > 0)
                             <tr><td colspan="3" class="px-4 pt-1 text-right text-stone-600">Diskon</td><td class="px-4 pt-1 text-right tabular-nums">-{{ $rp($tx['discount']) }}</td></tr>
                         @endif
-                        <tr><td colspan="3" class="px-4 pt-1 text-right text-stone-600">Pajak</td><td class="px-4 pt-1 text-right tabular-nums">{{ $rp($tx['tax']) }}</td></tr>
-                        <tr><td colspan="3" class="px-4 pt-1 pb-3 text-right font-semibold">Total</td><td class="px-4 pt-1 pb-3 text-right font-bold tabular-nums">{{ $rp($tx['total']) }}</td></tr>
+                        @php $taxName = ($tx['tax_label'] ?? null ?: 'Pajak').(($tx['tax_rate'] ?? 0) > 0 ? ' '.str_replace('.', ',', (string) ($tx['tax_rate'] + 0)).'%' : ''); @endphp
+                        <tr><td colspan="3" class="px-4 pt-1 text-right text-stone-600">{{ $taxName }}</td><td class="px-4 pt-1 text-right tabular-nums">{{ $rp($tx['tax']) }}</td></tr>
+                        @if (($tx['rounding'] ?? 0) !== 0)
+                            <tr><td colspan="3" class="px-4 pt-1 text-right text-stone-600">Pembulatan</td><td class="px-4 pt-1 text-right tabular-nums">{{ $tx['rounding'] > 0 ? '+' : '−' }}{{ $rp(abs($tx['rounding'])) }}</td></tr>
+                        @endif
+                        <tr><td colspan="3" @class(['px-4 pt-1 text-right font-semibold', 'pb-3' => ! ($tx['tax_included'] ?? 0)])>Total</td><td @class(['px-4 pt-1 text-right font-bold tabular-nums', 'pb-3' => ! ($tx['tax_included'] ?? 0)])>{{ $rp($tx['total']) }}</td></tr>
+                        @if (($tx['tax_included'] ?? 0) > 0)
+                            <tr><td colspan="3" class="px-4 pt-1 pb-3 text-right text-xs text-stone-500">Sudah termasuk {{ $taxName }}</td><td class="px-4 pt-1 pb-3 text-right text-xs text-stone-500 tabular-nums">{{ $rp($tx['tax_included']) }}</td></tr>
+                        @endif
                     </tfoot>
                 </table>
             </section>

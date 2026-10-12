@@ -6,7 +6,8 @@ use App\Services\CheckoutService;
 use App\Services\ProductCatalog;
 use App\Services\ReceiptPdfService;
 use App\Services\ReceiptPresenter;
-use App\Support\MockData;
+use App\Services\SettingsService;
+use App\Support\PriceCalculator;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\On;
 use Illuminate\Validation\ValidationException;
@@ -14,7 +15,7 @@ use Livewire\Component;
 
 /**
  * Keranjang belanja kasir. Menerima event `product-picked` dari
- * ProductPicker dan menghitung subtotal, pajak, dan total secara otomatis.
+ * ProductPicker dan menghitung subtotal, pajak, pembulatan, dan total (PriceCalculator).
  * Isi keranjang: [productId => qty]; harga diambil ulang dari data barang.
  */
 class Cart extends Component
@@ -193,15 +194,23 @@ class Cart extends Component
     public function summary(): array
     {
         $subtotal = array_sum(array_column($this->lines, 'subtotal'));
-        $taxRate = MockData::taxRate();
-        $tax = (int) round($subtotal * $taxRate / 100);
+        $tax = app(SettingsService::class)->tax();
+        $price = PriceCalculator::compute($subtotal, $tax, $this->paymentMethod);
 
         return [
             'count' => array_sum(array_column($this->lines, 'quantity')),
             'subtotal' => $subtotal,
-            'tax_rate' => $taxRate,
-            'tax' => $tax,
-            'total' => $subtotal + $tax,
+            'tax_enabled' => (bool) $tax['enabled'],
+            'tax_label' => $tax['label'],
+            'tax_rate' => $tax['enabled'] ? (float) $tax['rate'] : 0.0,
+            'tax' => $price['tax'],
+            'tax_included' => $price['tax_included'],
+            'rounding' => $price['rounding'],
+            'total' => $price['payable'], // yang dibayar pembeli (setelah pembulatan)
+            // Total & pembulatan per metode bayar (pembulatan bisa khusus tunai) untuk panel bayar.
+            'totals' => collect(self::PAYMENT_METHODS)->map(fn ($label, $method) => $method === $this->paymentMethod
+                ? ['payable' => $price['payable'], 'rounding' => $price['rounding']]
+                : ['payable' => ($p = PriceCalculator::compute($subtotal, $tax, $method))['payable'], 'rounding' => $p['rounding']])->all(),
         ];
     }
 

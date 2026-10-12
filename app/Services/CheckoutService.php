@@ -4,19 +4,20 @@ namespace App\Services;
 
 use App\Models\Product;
 use App\Models\Transaction;
-use App\Support\MockData;
+use App\Support\PriceCalculator;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
 /**
  * Menyimpan transaksi penjualan kasir secara atomik:
- * kunci baris barang → validasi stok → hitung total di server →
+ * kunci baris barang → validasi stok → hitung total di server (pajak & pembulatan
+ * dari pengaturan, lihat PriceCalculator) →
  * simpan transaksi + item (snapshot nama & harga) → kurangi stok → catat mutasi stok.
  */
 class CheckoutService
 {
-    public function __construct(private StockService $stock) {}
+    public function __construct(private StockService $stock, private SettingsService $settings) {}
 
     public const PAYMENT_METHODS = ['tunai' => 'Tunai', 'qris' => 'QRIS / Transfer'];
 
@@ -70,8 +71,9 @@ class CheckoutService
             }
 
             $subtotal = array_sum(array_column($lines, 'subtotal'));
-            $tax = (int) round($subtotal * MockData::taxRate() / 100);
-            $total = $subtotal + $tax;
+            $taxSettings = $this->settings->tax();
+            $price = PriceCalculator::compute($subtotal, $taxSettings, $paymentMethod);
+            $total = $price['payable'];
             $paid = $paymentMethod === 'tunai' ? $paid : $total;
 
             if ($paid === null || $paid < $total) {
@@ -82,8 +84,12 @@ class CheckoutService
                 'user_id' => $userId,
                 'member_id' => $memberId,
                 'subtotal' => $subtotal,
-                'tax' => $tax,
+                'tax' => $price['tax'],
+                'tax_label' => $taxSettings['enabled'] ? $taxSettings['label'] : null,
+                'tax_rate' => $taxSettings['enabled'] ? (float) $taxSettings['rate'] : 0,
+                'tax_included' => $price['tax_included'],
                 'discount' => 0,
+                'rounding' => $price['rounding'],
                 'total' => $total,
                 'paid' => $paid,
                 'change' => $paid - $total,
@@ -116,6 +122,10 @@ class CheckoutService
                     'paid' => $paid,
                     'change' => $paid - $total,
                     'member_id' => $memberId,
+                    'subtotal' => $subtotal,
+                    'tax' => $price['tax'] ?: null,
+                    'tax_included' => $price['tax_included'] ?: null,
+                    'rounding' => $price['rounding'] ?: null,
                 ],
                 $total,
             );

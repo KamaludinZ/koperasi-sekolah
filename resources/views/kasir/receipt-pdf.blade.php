@@ -52,10 +52,17 @@
         @if ($tx['discount'] > 0)
             <tr><td>Diskon</td><td class="r">-Rp{{ $n($tx['discount']) }}</td></tr>
         @endif
+        @php $taxName = ($tx['tax_label'] ?? null ?: 'Pajak').(($tx['tax_rate'] ?? 0) > 0 ? ' '.str_replace('.', ',', (string) ($tx['tax_rate'] + 0)).'%' : ''); @endphp
         @if ($tx['tax'] > 0)
-            <tr><td>Pajak</td><td class="r">Rp{{ $n($tx['tax']) }}</td></tr>
+            <tr><td>{{ $taxName }}</td><td class="r">Rp{{ $n($tx['tax']) }}</td></tr>
+        @endif
+        @if (($tx['rounding'] ?? 0) !== 0)
+            <tr><td>Pembulatan</td><td class="r">{{ $tx['rounding'] < 0 ? '-' : '' }}Rp{{ $n(abs($tx['rounding'])) }}</td></tr>
         @endif
         <tr class="b"><td>TOTAL</td><td class="r">Rp{{ $n($tx['total']) }}</td></tr>
+        @if (($tx['tax_included'] ?? 0) > 0)
+            <tr><td>Termasuk {{ $taxName }}</td><td class="r">Rp{{ $n($tx['tax_included']) }}</td></tr>
+        @endif
         <tr><td>Bayar ({{ $tx['payment_method_label'] }})</td><td class="r">Rp{{ $n($tx['paid']) }}</td></tr>
         <tr><td>Kembali</td><td class="r">Rp{{ $n($tx['change']) }}</td></tr>
     </table>

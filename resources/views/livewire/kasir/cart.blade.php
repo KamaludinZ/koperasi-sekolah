@@ -71,11 +71,20 @@
 
     <div class="space-y-2 border-t border-stone-200 px-5 py-4 text-sm">
         <div class="flex justify-between text-stone-600"><span>Subtotal</span><span class="tabular-nums">{{ $rp($summary['subtotal']) }}</span></div>
-        <div class="flex justify-between text-stone-600"><span>Pajak ({{ $summary['tax_rate'] }}%)</span><span class="tabular-nums">{{ $rp($summary['tax']) }}</span></div>
+        @php $rate = str_replace('.', ',', (string) ($summary['tax_rate'] + 0)); @endphp
+        @if ($summary['tax'] > 0)
+            <div class="flex justify-between text-stone-600"><span>{{ $summary['tax_label'] }} ({{ $rate }}%)</span><span class="tabular-nums">{{ $rp($summary['tax']) }}</span></div>
+        @endif
+        @if ($summary['rounding'] !== 0)
+            <div class="flex justify-between text-stone-600"><span>Pembulatan</span><span class="tabular-nums">{{ $summary['rounding'] > 0 ? '+' : '−' }}{{ $rp(abs($summary['rounding'])) }}</span></div>
+        @endif
         <div class="flex items-baseline justify-between pt-1">
             <span class="font-semibold">Total</span>
             <span class="text-2xl font-bold text-emerald-900 tabular-nums">{{ $rp($summary['total']) }}</span>
         </div>
+        @if ($summary['tax_included'] > 0)
+            <p class="text-right text-xs text-stone-500">Sudah termasuk {{ $summary['tax_label'] }} {{ $rate }}%: {{ $rp($summary['tax_included']) }}</p>
+        @endif
     </div>
     </div>
 

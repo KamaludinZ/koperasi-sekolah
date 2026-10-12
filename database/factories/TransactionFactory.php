@@ -27,6 +27,20 @@ class TransactionFactory extends Factory
     }
 
     /**
+     * Jaga total = subtotal - discount + tax + rounding (constraint di PostgreSQL):
+     * bila tes hanya mengisi total, subtotal diturunkan darinya.
+     */
+    public function configure(): static
+    {
+        return $this->afterMaking(function (Transaction $tx) {
+            $expected = (float) $tx->subtotal - (float) $tx->discount + (float) $tx->tax + (float) ($tx->rounding ?? 0);
+            if ((float) $tx->subtotal === 0.0 && (float) $tx->total !== $expected) {
+                $tx->subtotal = (float) $tx->total + (float) $tx->discount - (float) $tx->tax - (float) ($tx->rounding ?? 0);
+            }
+        });
+    }
+
+    /**
      * Isi item dari barang yang ada, lalu hitung ulang total agar konsisten.
      *
      * @param  array<int, int>  $lines  [productId => qty]; kosong = 1–3 barang acak

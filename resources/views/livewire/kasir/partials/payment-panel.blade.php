@@ -1,6 +1,6 @@
 {{-- Panel bayar & kembalian. Kembalian dihitung instan di klien; server memvalidasi ulang saat konfirmasi. --}}
 @php
-    $total = $summary['total'];
+    $total = $summary['totals']['tunai']['payable'] ?? $summary['total']; // tombol nominal cepat hanya untuk tunai
     $quick = collect([5000, 10000, 20000, 50000, 100000])
         ->map(fn ($step) => (int) (ceil($total / $step) * $step))
         ->prepend($total)
@@ -12,7 +12,9 @@
 
 @if ($paying)
     <div class="fixed inset-0 z-40 flex items-end justify-center bg-stone-950/50 p-0 sm:items-center sm:p-4"
-         x-data="{ paid: $wire.entangle('paid'), method: $wire.entangle('paymentMethod'), total: {{ $total }} }"
+         x-data="{ paid: $wire.entangle('paid'), method: $wire.entangle('paymentMethod'), totals: @js($summary['totals']),
+                  get total() { return this.totals[this.method]?.payable ?? 0 }, get rounding() { return this.totals[this.method]?.rounding ?? 0 },
+                  rp(n) { return 'Rp' + Math.abs(n).toLocaleString('id-ID') } }"
          x-init="$nextTick(() => $refs.paid?.focus())"
          x-on:keydown.escape.window="$wire.closePayment()"
          role="dialog" aria-modal="true" aria-labelledby="payment-title">
@@ -32,7 +34,10 @@
                 @enderror
                 <div class="rounded-xl bg-emerald-50 px-4 py-3">
                     <p class="text-xs font-medium text-emerald-800">Total belanja · {{ $summary['count'] }} barang</p>
-                    <p class="text-3xl font-bold text-emerald-900 tabular-nums">{{ $rp($total) }}</p>
+                    <p class="text-3xl font-bold text-emerald-900 tabular-nums" x-text="rp(total)">{{ $rp($summary['total']) }}</p>
+                    <p x-show="rounding !== 0" x-cloak class="text-xs text-emerald-800 tabular-nums">
+                        Termasuk pembulatan <span x-text="(rounding > 0 ? '+' : '−') + rp(rounding)"></span>
+                    </p>
                 </div>
 
                 <fieldset>
@@ -76,7 +81,7 @@
                 </div>
 
                 <p x-show="method !== 'tunai'" x-cloak class="rounded-lg bg-stone-50 px-4 py-3 text-sm text-stone-600">
-                    Pastikan pembayaran non-tunai sebesar <strong class="tabular-nums">{{ $rp($total) }}</strong> sudah diterima sebelum menyelesaikan transaksi.
+                    Pastikan pembayaran non-tunai sebesar <strong class="tabular-nums" x-text="rp(total)">{{ $rp($summary['total']) }}</strong> sudah diterima sebelum menyelesaikan transaksi.
                 </p>
             </div>
 
