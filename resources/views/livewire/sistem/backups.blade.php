@@ -21,6 +21,8 @@
     </header>
 
     <div class="space-y-5 px-4 py-5 sm:px-6">
+        <x-sistem.backup-status :status="$this->status" retry="retry" />
+
         <div class="grid grid-cols-2 gap-3 lg:grid-cols-4">
             <div class="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3">
                 <p class="text-xs text-emerald-800">Cadangan terakhir berhasil</p>

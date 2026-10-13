@@ -3,6 +3,7 @@
 namespace App\Livewire\Sistem;
 
 use App\Livewire\Concerns\NotifiesSave;
+use App\Support\BackupStatus;
 use App\Support\MockData;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
@@ -84,6 +85,20 @@ class Backups extends Component
     }
 
     #[Computed]
+    public function status(): array
+    {
+        return BackupStatus::summarize($this->all);
+    }
+
+    /** Ulangi cadangan setelah kegagalan (lengkap, terjadwal ulang). */
+    public function retry(): void
+    {
+        $this->newType = 'lengkap';
+        $this->newNote = 'Ulang setelah cadangan gagal';
+        $this->create();
+    }
+
+    #[Computed]
     public function selected(): ?array
     {
         return $this->selectedId ? collect($this->all)->firstWhere('id', $this->selectedId) : null;
@@ -122,7 +137,7 @@ class Backups extends Component
             'note' => trim($this->newNote) ?: null, 'by' => auth()->user()->name, 'checksum' => substr(md5((string) $at->timestamp), 0, 16),
         ]);
         $this->creating = false;
-        unset($this->all, $this->rows, $this->stats);
+        unset($this->all, $this->rows, $this->stats, $this->status);
         $this->toast('success', 'Cadangan dibuat. (simulasi)');
     }
 

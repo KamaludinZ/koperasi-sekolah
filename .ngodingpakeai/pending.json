@@ -1,6 +1,6 @@
 {
   "repo": "Koperasi Sekolah",
-  "generatedForCommit": "5908ef333e49da75b2fb920dc521fd7b7513a1f6",
+  "generatedForCommit": "170aa29ed40c008ba242f9931d5b561d55303076",
   "files": [
     {
       "path": ".claude/skills/ngodingpakeai/SKILL.md",
@@ -645,8 +645,14 @@
       "size": 2768
     },
     {
-      "path": "app/Livewire/Sistem/Health.php",
+      "path": "app/Livewire/Sistem/Backups.php",
       "reason": "new",
+      "language": "php",
+      "size": 4495
+    },
+    {
+      "path": "app/Livewire/Sistem/Health.php",
+      "reason": "needs_summary",
       "language": "php",
       "size": 1238
     },
@@ -1252,15 +1258,15 @@
     },
     {
       "path": "app/Support/Menu.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 7674
     },
     {
       "path": "app/Support/MockData.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 15359
+      "size": 17553
     },
     {
       "path": "app/Support/OpeningHours.php",
@@ -1306,7 +1312,7 @@
     },
     {
       "path": "app/Support/SystemHealth.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 7882
     },
@@ -1756,7 +1762,7 @@
     },
     {
       "path": "database/migrations/2026_10_13_000027_add_sistem_menu_to_admin_role.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 1227
     },
@@ -2002,7 +2008,7 @@
     },
     {
       "path": "resources/views/components/sistem/nav.blade.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 1046
     },
@@ -2499,8 +2505,14 @@
       "size": 12154
     },
     {
-      "path": "resources/views/livewire/sistem/health.blade.php",
+      "path": "resources/views/livewire/sistem/backups.blade.php",
       "reason": "new",
+      "language": "php",
+      "size": 11252
+    },
+    {
+      "path": "resources/views/livewire/sistem/health.blade.php",
+      "reason": "needs_summary",
       "language": "php",
       "size": 6902
     },
@@ -2568,7 +2580,7 @@
       "path": "routes/web.php",
       "reason": "changed",
       "language": "php",
-      "size": 28438
+      "size": 28522
     },
     {
       "path": "tests/Concerns/MakesProductImports.php",
@@ -2740,7 +2752,7 @@
     },
     {
       "path": "tests/Feature/Auth/RoleMenuTest.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 3342
     },
@@ -3429,8 +3441,14 @@
       "size": 4433
     },
     {
-      "path": "tests/Feature/Sistem/HealthPageTest.php",
+      "path": "tests/Feature/Sistem/BackupsPageTest.php",
       "reason": "new",
+      "language": "php",
+      "size": 2478
+    },
+    {
+      "path": "tests/Feature/Sistem/HealthPageTest.php",
+      "reason": "needs_summary",
       "language": "php",
       "size": 2390
     },

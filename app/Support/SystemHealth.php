@@ -113,13 +113,15 @@ class SystemHealth
             ['last_run' => $last]);
     }
 
-    /** Tiruan: cadangan terakhir. */
+    /** Cadangan terakhir (tahap ini dari data tiruan MockData::backups). */
     private static function backup(): array
     {
-        $last = now()->subHours(20)->setMinute(0)->toDateTimeString();
+        $s = BackupStatus::summarize(MockData::backups());
+        $last = $s['last_ok'];
 
-        return self::check('backup', 'Cadangan data', 'ok', 'Cadangan terakhir '.\Illuminate\Support\Carbon::parse($last)->diffForHumans().', 2,4 MB.',
-            ['last_at' => $last, 'size' => 2_516_582, 'mock' => true]);
+        return self::check('backup', 'Cadangan data', $s['status'],
+            $last ? 'Cadangan terakhir '.\Illuminate\Support\Carbon::parse($last['created_at'])->diffForHumans().', '.self::bytes($last['size']).'.'.($s['failed'] ? " {$s['failed']} gagal dalam 14 malam." : '') : 'Belum ada cadangan yang berhasil.',
+            ['last_at' => $last['created_at'] ?? null, 'size' => $last['size'] ?? 0, 'failed' => $s['failed'], 'mock' => true]);
     }
 
     private static function app(): array

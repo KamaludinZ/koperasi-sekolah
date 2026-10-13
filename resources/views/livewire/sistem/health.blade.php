@@ -79,6 +79,10 @@
                 @endif
             </section>
 
+            <div class="space-y-5">
+            <a href="{{ route('sistem.cadangan') }}" wire:navigate class="block hover:opacity-95">
+                <x-sistem.backup-status :status="\App\Support\BackupStatus::summarize(\App\Support\MockData::backups())" compact />
+            </a>
             <aside class="h-fit rounded-2xl border border-stone-200 bg-white p-5" aria-labelledby="met-title">
                 <h2 id="met-title" class="font-semibold">Angka ringkas</h2>
                 <dl class="mt-3 grid grid-cols-2 gap-3 text-sm">
@@ -87,6 +91,7 @@
                     @endforeach
                 </dl>
             </aside>
+            </div>
         </div>
     </div>
 </div>
