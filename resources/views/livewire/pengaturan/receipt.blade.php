@@ -2,7 +2,7 @@
     $input = 'w-full rounded-lg border border-stone-300 bg-white px-3 py-2 text-sm outline-none focus:border-emerald-600 focus:ring-4 focus:ring-emerald-600/15';
     $label = 'mb-1 block text-sm font-medium text-stone-700';
     $preview = $this->previewProfile();
-    $rp = fn ($n) => 'Rp'.number_format($n, 0, ',', '.');
+    $rp = fn ($n) => \App\Support\Rupiah::format($n);
     $mm = \App\Services\ReceiptPresenter::paperWidth($preview);
 @endphp
 <div class="flex min-h-0 flex-1 flex-col overflow-y-auto">

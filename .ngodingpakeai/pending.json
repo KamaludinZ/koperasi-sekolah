@@ -1,6 +1,6 @@
 {
   "repo": "Koperasi Sekolah",
-  "generatedForCommit": "2cce9911cdb2849536440a802c8ab0961c0f6f9d",
+  "generatedForCommit": "117fef763f145c2a2982d73eb901900af2e4a9ef",
   "files": [
     {
       "path": ".claude/skills/ngodingpakeai/SKILL.md",
@@ -376,9 +376,9 @@
     },
     {
       "path": "app/Livewire/Audit/Changes.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 8839
+      "size": 9008
     },
     {
       "path": "app/Livewire/Audit/Index.php",
@@ -988,9 +988,9 @@
     },
     {
       "path": "app/Services/AuditChangeQuery.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 6329
+      "size": 6386
     },
     {
       "path": "app/Services/AuditIntegrity.php",
@@ -1288,9 +1288,9 @@
     },
     {
       "path": "app/Services/UserService.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 9231
+      "size": 9810
     },
     {
       "path": "app/Support/AccessDenied.php",
@@ -2530,9 +2530,9 @@
     },
     {
       "path": "resources/views/livewire/pengaturan/index.blade.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 10293
+      "size": 10859
     },
     {
       "path": "resources/views/livewire/pengaturan/profile.blade.php",
@@ -2572,9 +2572,9 @@
     },
     {
       "path": "resources/views/livewire/pengguna/index.blade.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 10584
+      "size": 10995
     },
     {
       "path": "resources/views/livewire/pengguna/locked.blade.php",
@@ -2584,7 +2584,7 @@
     },
     {
       "path": "resources/views/livewire/pengguna/partials/user-form.blade.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 8878
     },
@@ -2830,15 +2830,21 @@
     },
     {
       "path": "tests/Feature/Audit/ChangesPageTest.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 5473
+      "size": 5504
     },
     {
       "path": "tests/Feature/Audit/MasterDataObserverTest.php",
       "reason": "needs_summary",
       "language": "php",
       "size": 6616
+    },
+    {
+      "path": "tests/Feature/Audit/SettingsAndAccountHistoryTest.php",
+      "reason": "new",
+      "language": "php",
+      "size": 2458
     },
     {
       "path": "tests/Feature/Audit/TrashPageTest.php",
@@ -3580,7 +3586,7 @@
     },
     {
       "path": "tests/Feature/Pengguna/IndexTest.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 8078
     },

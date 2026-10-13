@@ -1,6 +1,6 @@
 @php
     $input = 'rounded-lg border border-stone-300 bg-white px-3 py-2 text-sm outline-none focus:border-emerald-600 focus:ring-4 focus:ring-emerald-600/15';
-    $rp = fn ($n) => ($n < 0 ? '−' : '').'Rp'.number_format(abs($n), 0, ',', '.');
+    $rp = fn ($n) => \App\Support\Rupiah::format($n);
     $pv = $this->preview();
     $cur = $this->current();
     $option = 'flex cursor-pointer items-start gap-2.5 rounded-lg border border-stone-300 px-3 py-2.5 text-sm has-checked:border-emerald-600 has-checked:bg-emerald-50';
@@ -77,7 +77,7 @@
                         <span class="text-stone-700">Kelipatan</span>
                         @foreach (\App\Support\PriceCalculator::UNITS as $u)
                             <label class="cursor-pointer rounded-full border border-stone-300 px-3 py-1 has-checked:border-emerald-700 has-checked:bg-emerald-900 has-checked:text-white">
-                                <input type="radio" wire:model.live="rounding_unit" value="{{ $u }}" class="sr-only"> Rp{{ number_format($u, 0, ',', '.') }}
+                                <input type="radio" wire:model.live="rounding_unit" value="{{ $u }}" class="sr-only"> {{ \App\Support\Rupiah::format($u) }}
                             </label>
                         @endforeach
                     </div>
@@ -114,7 +114,7 @@
                         <div class="flex justify-between"><span class="text-emerald-200">Harga barang</span><span class="tabular-nums">{{ $rp($c['subtotal']) }}</span></div>
                         @if ($c['tax'])<div class="flex justify-between"><span class="text-emerald-200">{{ $cur['label'] }} {{ $cur['rate'] + 0 }}%</span><span class="tabular-nums">{{ $rp($c['tax']) }}</span></div>@endif
                         @if ($c['tax_included'])<div class="flex justify-between text-xs"><span class="text-emerald-300">termasuk {{ $cur['label'] }}</span><span class="tabular-nums">{{ $rp($c['tax_included']) }}</span></div>@endif
-                        @if ($c['rounding'])<div class="flex justify-between"><span class="text-emerald-200">Pembulatan</span><span class="tabular-nums">{{ $rp($c['rounding']) }}</span></div>@endif
+                        @if ($c['rounding'])<div class="flex justify-between"><span class="text-emerald-200">Pembulatan</span><span class="tabular-nums">{{ \App\Support\Rupiah::format($c['rounding'], signed: true) }}</span></div>@endif
                         <div class="mt-1 flex justify-between border-t border-emerald-700 pt-1 font-semibold text-white"><span>Dibayar</span><span class="tabular-nums">{{ $rp($c['payable']) }}</span></div>
                     </div>
                 @endforeach

@@ -79,4 +79,13 @@ class TaxSettingsTest extends TestCase
         $this->loginAs('kasir');
         $this->get('/pengaturan/pajak')->assertForbidden();
     }
+
+    public function test_preview_uses_uniform_rupiah_format(): void
+    {
+        $html = \Livewire\Livewire::test(\App\Livewire\Pengaturan\Tax::class)
+            ->set('rounding', 'up')->set('rounding_unit', 500)->html();
+        $this->assertStringContainsString('Rp500', $html);
+        $this->assertStringNotContainsString('Rp ', strip_tags($html));
+        $this->assertMatchesRegularExpression('/[+−]Rp\d/', strip_tags($html));
+    }
 }

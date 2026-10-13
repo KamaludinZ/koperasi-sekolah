@@ -1,6 +1,6 @@
 @use('App\Livewire\Pengaturan\Returns')
 @php
-    $rp = fn ($n) => 'Rp'.number_format((int) $n, 0, ',', '.');
+    $rp = fn ($n) => \App\Support\Rupiah::format($n);
     $input = 'w-full rounded-lg border bg-white py-2 pr-16 pl-3 text-sm tabular-nums outline-none focus:ring-4';
     $ok = 'border-stone-300 focus:border-emerald-600 focus:ring-emerald-600/15';
     $bad = 'border-red-400 focus:ring-red-500/15';

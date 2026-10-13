@@ -1,5 +1,5 @@
 @php
-    $rp = fn ($n) => 'Rp'.number_format((int) $n, 0, ',', '.');
+    $rp = fn ($n) => \App\Support\Rupiah::format($n);
     $s = $this->settings;
     $p = \App\Support\MockData::profile();
     $r = $s['receipt'];
