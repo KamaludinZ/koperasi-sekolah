@@ -118,6 +118,40 @@ class SupplierBillService
         });
     }
 
+    /** Aturan validasi pembayaran (endpoint & form). */
+    public static function paymentRules(): array
+    {
+        return [
+            'alokasi' => ['required', 'array', 'min:1', 'max:50'],
+            'alokasi.*' => ['nullable', 'integer', 'min:0', 'max:10000000000'],
+            'paid_at' => ['required', 'date_format:Y-m-d', 'before_or_equal:today'],
+            'method' => ['required', \Illuminate\Validation\Rule::in(array_keys(SupplierPayment::METHODS))],
+            'reference' => ['nullable', 'string', 'max:50'],
+            'note' => ['nullable', 'string', 'max:200'],
+        ];
+    }
+
+    /**
+     * Batalkan satu pembayaran yang salah input (khusus Admin): baris pembayaran dihapus, sisa
+     * tagihan dihitung ulang, dan pembatalan tercatat di audit beserta alasannya.
+     */
+    public function cancelPayment(SupplierPayment $payment, string $reason): SupplierBill
+    {
+        return DB::transaction(function () use ($payment, $reason) {
+            $bill = SupplierBill::with(['supplier', 'order'])->whereKey($payment->supplier_bill_id)->lockForUpdate()->firstOrFail();
+            $amount = $payment->amount;
+            $payment->delete();
+            $bill->syncPaid();
+            AuditLog::record('payable.payment_cancelled', 'pengadaan',
+                "Pembayaran Rp".number_format($amount, 0, ',', '.')." untuk {$bill->order?->number} ke {$bill->supplier->name} dibatalkan",
+                ['type' => 'supplier_bill', 'id' => $bill->id, 'label' => $bill->order?->number],
+                ['paid_at' => $payment->paid_at->toDateString(), 'method' => $payment->method, 'reference' => $payment->reference], $amount,
+                reason: mb_substr(trim($reason), 0, 200));
+
+            return $bill;
+        });
+    }
+
     /**
      * Kirim notifikasi untuk tagihan yang jatuh tempo hari ini/≤ 3 hari lagi atau sudah lewat
      * (sekali per tagihan per keadaan). Mengembalikan jumlah notifikasi baru.

@@ -182,6 +182,10 @@ Route::middleware('menu:pengadaan')->group(function () {
     Route::get('/pengadaan/hutang', Pengadaan\Payables::class)->name('pengadaan.hutang');
     Route::get('/pengadaan/hutang/data', [SupplierBillController::class, 'index'])->name('pengadaan.hutang.data');
     Route::get('/pengadaan/hutang/{bill}/data', [SupplierBillController::class, 'show'])->whereNumber('bill')->name('pengadaan.hutang.show');
+    Route::post('/pengadaan/hutang/bayar', [SupplierBillController::class, 'pay'])
+        ->middleware(['can:kelola-pengadaan', 'throttle:30,1'])->name('pengadaan.hutang.pay');
+    Route::post('/pengadaan/hutang/pembayaran/{payment}/batal', [SupplierBillController::class, 'cancelPayment'])->whereNumber('payment')
+        ->middleware(['peran:admin', 'throttle:30,1'])->name('pengadaan.hutang.payment.cancel');
     Route::get('/pengadaan/hutang/bayar', Pengadaan\PaymentForm::class)->name('pengadaan.hutang.bayar');
     Route::get('/pengadaan/supplier', Pengadaan\Suppliers::class)->name('pengadaan.supplier');
     Route::get('/pengadaan/supplier/data', [SupplierController::class, 'index'])->name('pengadaan.supplier.data');

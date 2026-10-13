@@ -203,7 +203,33 @@ class Payables extends Component
 
     public function closeHistory(): void
     {
-        $this->historyId = null;
+        $this->reset('historyId', 'cancelPaymentId', 'cancelPaymentReason');
+        $this->resetValidation();
+    }
+
+    public ?int $cancelPaymentId = null;
+
+    public string $cancelPaymentReason = '';
+
+    #[Computed]
+    public function isAdmin(): bool
+    {
+        return (bool) auth()->user()?->hasRole(\App\Models\Role::ADMIN);
+    }
+
+    /** Batalkan pembayaran salah input (khusus Admin, wajib alasan). */
+    public function cancelPayment(): void
+    {
+        $payment = $this->isAdmin && $this->cancelPaymentId ? \App\Models\SupplierPayment::find($this->cancelPaymentId) : null;
+        if (! $payment) {
+            return;
+        }
+        $this->validate(['cancelPaymentReason' => ['required', 'string', 'min:3', 'max:200']],
+            ['cancelPaymentReason.required' => 'Tulis alasan pembatalan.', 'cancelPaymentReason.min' => 'Alasan minimal 3 huruf.']);
+        app(SupplierBillService::class)->cancelPayment($payment, $this->cancelPaymentReason);
+        $this->reset('cancelPaymentId', 'cancelPaymentReason');
+        unset($this->all, $this->payables, $this->counts, $this->summary, $this->history);
+        $this->dispatch('toast', type: 'success', message: 'Pembayaran dibatalkan dan sisa hutang dihitung ulang.');
     }
 
     public function render()

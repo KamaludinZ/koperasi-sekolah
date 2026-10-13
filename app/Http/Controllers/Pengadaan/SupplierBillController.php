@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Pengadaan;
 
 use App\Http\Controllers\Controller;
 use App\Models\SupplierBill;
+use App\Models\SupplierPayment;
 use App\Services\SupplierBillService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -13,7 +14,10 @@ use Illuminate\Validation\Rule;
  * Hutang supplier (JSON; menu Pengadaan). Tagihan dibuat otomatis saat barang diterima.
  * - GET /pengadaan/hutang/data?status=belum-lunas|lewat|minggu-ini|lunas|semua&supplier=&dari=&sampai=
  *       → tagihan (jatuh tempo terdekat dulu) + ringkasan (sisa, lewat tempo, ≤ 7 hari, dibayar bulan ini)
- * - GET /pengadaan/hutang/{bill}/data → tagihan + pembayaran
+ * - GET  /pengadaan/hutang/{bill}/data → tagihan + pembayaran
+ * - POST /pengadaan/hutang/bayar {alokasi: {tagihan_id: jumlah}, paid_at, method: tunai|transfer, reference?, note?}
+ *        → 201 pembayaran (satu supplier; tiap jumlah ≤ sisa tagihan)
+ * - POST /pengadaan/hutang/pembayaran/{payment}/batal {alasan} → batalkan pembayaran salah input (khusus Admin)
  */
 class SupplierBillController extends Controller
 {
@@ -48,5 +52,27 @@ class SupplierBillController extends Controller
     public function show(SupplierBill $bill, SupplierBillService $bills): JsonResponse
     {
         return response()->json(['data' => SupplierBillService::toArray($bill->load(['supplier', 'order'])) + ['payments' => $bills->payments($bill)]]);
+    }
+
+    public function pay(Request $request, SupplierBillService $bills): JsonResponse
+    {
+        $data = $request->validate(SupplierBillService::paymentRules(), [
+            'alokasi.required' => 'Pilih tagihan yang dibayar.',
+            'paid_at.before_or_equal' => 'Tanggal bayar tidak boleh setelah hari ini.',
+            'method.in' => 'Cara bayar tidak dikenal.',
+        ]);
+        $payments = $bills->pay($data['alokasi'], $data, $request->user());
+
+        return response()->json(['data' => collect($payments)->map(fn (SupplierPayment $p) => [
+            'id' => $p->id, 'bill_id' => $p->supplier_bill_id, 'amount' => $p->amount, 'bill_status' => $p->bill->fresh()->status,
+        ])], 201);
+    }
+
+    public function cancelPayment(Request $request, SupplierPayment $payment, SupplierBillService $bills): JsonResponse
+    {
+        $data = $request->validate(['alasan' => ['required', 'string', 'min:3', 'max:200']], ['alasan.required' => 'Tulis alasan pembatalan.']);
+        $bill = $bills->cancelPayment($payment, $data['alasan']);
+
+        return response()->json(['data' => SupplierBillService::toArray($bill)]);
     }
 }

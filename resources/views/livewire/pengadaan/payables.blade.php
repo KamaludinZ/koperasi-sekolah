@@ -149,6 +149,20 @@
                             <li class="px-3 py-2">
                                 <p class="flex justify-between"><span class="font-semibold tabular-nums">{{ $rp($x['amount']) }}</span><span class="text-xs text-stone-500">{{ $date($x['paid_at']) }}</span></p>
                                 <p class="text-xs text-stone-500">{{ Payables::METHODS[$x['method']] }}@if ($x['reference']) · {{ $x['reference'] }}@endif · {{ $x['user'] }}@if ($x['note']) · {{ $x['note'] }}@endif</p>
+                                @if ($this->isAdmin)
+                                    @if ($cancelPaymentId === $x['id'])
+                                        <div class="mt-2 space-y-1.5">
+                                            <input type="text" wire:model="cancelPaymentReason" maxlength="200" placeholder="Alasan pembatalan" class="w-full rounded-lg border border-stone-300 px-2.5 py-1.5 text-xs">
+                                            @error('cancelPaymentReason') <p class="text-xs text-red-600">{{ $message }}</p> @enderror
+                                            <div class="flex justify-end gap-2">
+                                                <button type="button" wire:click="$set('cancelPaymentId', null)" class="rounded px-2 py-1 text-xs text-stone-600 hover:bg-stone-100">Batal</button>
+                                                <button type="button" wire:click="cancelPayment" class="rounded bg-red-700 px-2 py-1 text-xs font-semibold text-white hover:bg-red-800">Batalkan pembayaran</button>
+                                            </div>
+                                        </div>
+                                    @else
+                                        <button type="button" wire:click="$set('cancelPaymentId', {{ $x['id'] }})" class="mt-1 text-xs font-medium text-red-700 hover:underline">Batalkan (salah input)</button>
+                                    @endif
+                                @endif
                             </li>
                         @empty
                             <li class="px-3 py-6 text-center text-xs text-stone-400">Belum ada pembayaran.</li>
