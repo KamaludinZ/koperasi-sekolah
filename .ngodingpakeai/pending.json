@@ -1,6 +1,6 @@
 {
   "repo": "Koperasi Sekolah",
-  "generatedForCommit": "a8e0d087b70466cb814e0b8144b58dca0ee7f5be",
+  "generatedForCommit": "c0c66f2bc5a491756c47d277b75696a2c5f8b831",
   "files": [
     {
       "path": ".claude/skills/ngodingpakeai/SKILL.md",
@@ -441,6 +441,12 @@
       "size": 3373
     },
     {
+      "path": "app/Livewire/Barang/StockHistory.php",
+      "reason": "new",
+      "language": "php",
+      "size": 3764
+    },
+    {
       "path": "app/Livewire/Concerns/GuardsSettings.php",
       "reason": "needs_summary",
       "language": "php",
@@ -490,7 +496,7 @@
     },
     {
       "path": "app/Livewire/Kasir/Cart.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 20542
     },
@@ -952,7 +958,7 @@
     },
     {
       "path": "app/Providers/AppServiceProvider.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 3597
     },
@@ -1336,7 +1342,7 @@
     },
     {
       "path": "app/Support/Rupiah.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 868
     },
@@ -1924,7 +1930,7 @@
     },
     {
       "path": "resources/js/app.js",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "javascript",
       "size": 1360
     },
@@ -1966,9 +1972,9 @@
     },
     {
       "path": "resources/views/components/barang/nav.blade.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 718
+      "size": 759
     },
     {
       "path": "resources/views/components/brand/favicon.blade.php",
@@ -2140,13 +2146,13 @@
     },
     {
       "path": "resources/views/kasir/receipt-pdf.blade.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 5819
     },
     {
       "path": "resources/views/kasir/receipt-print.blade.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 1414
     },
@@ -2284,9 +2290,9 @@
     },
     {
       "path": "resources/views/livewire/barang/index.blade.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 12243
+      "size": 12460
     },
     {
       "path": "resources/views/livewire/barang/min-stock-settings.blade.php",
@@ -2308,9 +2314,15 @@
     },
     {
       "path": "resources/views/livewire/barang/partials/product-form.blade.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 7965
+      "size": 7947
+    },
+    {
+      "path": "resources/views/livewire/barang/stock-history.blade.php",
+      "reason": "new",
+      "language": "php",
+      "size": 6784
     },
     {
       "path": "resources/views/livewire/kas/index.blade.php",
@@ -2338,7 +2350,7 @@
     },
     {
       "path": "resources/views/livewire/kasir/cart.blade.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 8171
     },
@@ -2362,7 +2374,7 @@
     },
     {
       "path": "resources/views/livewire/kasir/partials/payment-panel.blade.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 25231
     },
@@ -2374,13 +2386,13 @@
     },
     {
       "path": "resources/views/livewire/kasir/partials/receipt.blade.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 6836
     },
     {
       "path": "resources/views/livewire/kasir/product-picker.blade.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 6166
     },
@@ -2644,9 +2656,9 @@
     },
     {
       "path": "routes/web.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 29349
+      "size": 29446
     },
     {
       "path": "tests/Concerns/MakesProductImports.php",
@@ -2949,6 +2961,12 @@
       "size": 2339
     },
     {
+      "path": "tests/Feature/Barang/StockHistoryPageTest.php",
+      "reason": "new",
+      "language": "php",
+      "size": 2502
+    },
+    {
       "path": "tests/Feature/BerandaTest.php",
       "reason": "needs_summary",
       "language": "php",
@@ -3238,7 +3256,7 @@
     },
     {
       "path": "tests/Feature/Kasir/RupiahFormatTest.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 1103
     },

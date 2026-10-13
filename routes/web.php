@@ -226,6 +226,7 @@ Route::middleware('menu:barang')->group(function () {
     Route::get('/barang', Barang\Index::class)->name('barang');
     Route::get('/barang/kategori', Barang\Catalog::class)->name('barang.kategori');
     Route::get('/barang/riwayat-stok', Barang\StockHistory::class)->name('barang.riwayat-stok');
+    Route::get('/barang/saran-restok', Barang\Restock::class)->name('barang.saran-restok');
     Route::get('/barang/kategori/data', [CategoryController::class, 'index'])->name('barang.kategori.data');
     Route::middleware(['can:kelola-katalog', 'throttle:60,1'])->group(function () {
         Route::post('/barang/kategori', [CategoryController::class, 'store'])->name('barang.kategori.store');
