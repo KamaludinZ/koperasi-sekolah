@@ -4,6 +4,7 @@ use App\Http\Controllers\Akun\PasswordController;
 use App\Http\Controllers\Akun\SessionController;
 use App\Http\Controllers\Anggota\MemberController;
 use App\Http\Controllers\Anggota\SavingsController;
+use App\Http\Controllers\Audit\AuditLogController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\LogoutController;
 use App\Http\Controllers\Barang\ProductController;
@@ -242,6 +243,8 @@ Route::middleware(['menu:audit', 'peran:admin,pengurus'])->group(function () {
     Route::get('/audit', Audit\Index::class)->name('audit');
     Route::get('/audit/perubahan', Audit\Changes::class)->name('audit.perubahan');
     Route::get('/audit/terhapus', Audit\Trash::class)->name('audit.terhapus');
+    Route::get('/audit/data', [AuditLogController::class, 'index'])->name('audit.data');
+    Route::get('/audit/perubahan/data', [AuditLogController::class, 'changes'])->name('audit.perubahan.data');
 });
 
 Route::middleware('menu:pengaturan')->group(function () {

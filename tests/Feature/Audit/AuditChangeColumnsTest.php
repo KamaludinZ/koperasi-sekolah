@@ -73,4 +73,21 @@ class AuditChangeColumnsTest extends TestCase
         $this->expectException(QueryException::class);
         ActivityLog::create(['event' => 'x', 'category' => 'barang', 'description' => 'x', 'action' => 'dimusnahkan']);
     }
+
+    public function test_old_setting_rows_get_subject_and_prefixed_keys(): void
+    {
+        $path = 'database/migrations/2026_10_13_000010_backfill_setting_subjects_in_activity_logs.php';
+        Artisan::call('migrate:rollback', ['--path' => $path]);
+        $id = DB::table('activity_logs')->insertGetId([
+            'event' => 'setting.updated', 'category' => 'pengaturan', 'description' => 'Pajak diubah', 'action' => 'diubah',
+            'properties' => json_encode(['section' => 'tax']), 'old_values' => json_encode(['rate' => 0]), 'new_values' => json_encode(['rate' => 2.5]),
+            'created_at' => now(),
+        ]);
+        Artisan::call('migrate', ['--path' => $path]);
+
+        $log = ActivityLog::find($id);
+        $this->assertSame(['setting', 3, 'Pajak & pembulatan'], [$log->subject_type, $log->subject_id, $log->subject_label]);
+        $this->assertSame(['tax.rate' => 0], $log->old_values);
+        $this->assertSame(['tax.rate' => 2.5], $log->new_values);
+    }
 }

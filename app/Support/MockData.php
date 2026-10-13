@@ -357,60 +357,6 @@ class MockData
         ];
     }
 
-    /**
-     * Riwayat perubahan data master tiruan (barang, kategori, anggota, pengaturan) untuk halaman
-     * Audit → Perubahan data. Kontrak yang diasumsikan untuk backend:
-     * GET /audit/perubahan/data → {id, at, entity, action, subject_id, subject_label, actor_name,
-     * actor_role, changes: {kolom: {from, to}}, reason, ip_address}, terbaru dulu.
-     *
-     * @return list<array{id: int, at: string, entity: string, action: string, subject_id: int, subject_label: string, actor_name: string, actor_role: string, changes: array<string, array{from: mixed, to: mixed}>, reason: ?string, ip_address: string}>
-     */
-    public static function masterChanges(): array
-    {
-        $admin = ['Admin Koperasi', 'admin'];
-        $dedi = ['Pak Dedi', 'pengurus'];
-        $rina = ['Bu Rina', 'kasir'];
-        // [hari lalu, jam, entitas, aksi, id objek, label objek, pelaku, perubahan, alasan]
-        $rows = [
-            [0, '14:12', 'barang', 'diubah', 3, 'ATK003 · Pensil 2B', $admin, ['price' => [2500, 3000], 'cost_price' => [2000, 2300]], 'Harga dari pemasok naik'],
-            [0, '10:41', 'pengaturan', 'diubah', 4, 'Diskon manual', $admin, ['discount.max_percent' => [10, 15], 'discount.reason_required' => [false, true]], null],
-            [0, '08:05', 'anggota', 'diubah', 4, 'S-2024-004 · Dewi Lestari', $rina, ['phone' => [null, '0812-1111-2044']], null],
-            [1, '15:30', 'barang', 'dihapus', 15, 'MKN004 · Wafer Stroberi', $dedi, ['name' => ['Wafer Stroberi', null], 'price' => [2500, null], 'is_active' => [false, null]], 'Tidak dijual lagi'],
-            [1, '13:02', 'kategori', 'dibuat', 5, 'Perlengkapan Ibadah', $dedi, ['name' => [null, 'Perlengkapan Ibadah']], null],
-            [1, '13:05', 'barang', 'dibuat', 16, 'IBD001 · Peci Hitam', $dedi, ['code' => [null, 'IBD001'], 'name' => [null, 'Peci Hitam'], 'category_id' => [null, 'Perlengkapan Ibadah'], 'price' => [null, 25000], 'cost_price' => [null, 20000], 'unit' => [null, 'pcs'], 'min_stock' => [null, 5]], null],
-            [1, '09:20', 'anggota', 'diubah', 9, 'S-2024-009 · Galih Saputra', $admin, ['is_active' => [true, false]], 'Pindah sekolah'],
-            [2, '16:45', 'pengaturan', 'diubah', 3, 'Pajak & pembulatan', $admin, ['tax.rate' => [0, 2.5], 'tax.rounding' => ['tidak', '100']], null],
-            [2, '11:10', 'barang', 'diubah', 13, 'SRG002 · Topi Sekolah', $dedi, ['min_stock' => [3, 5]], null],
-            [2, '11:08', 'barang', 'diubah', 8, 'MKN003 · Keripik Singkong', $dedi, ['min_stock' => [5, 10]], null],
-            [3, '14:00', 'anggota', 'dibuat', 21, 'S-2026-021 · Aisyah Rahmawati', $rina, ['member_code' => [null, 'S-2026-021'], 'name' => [null, 'Aisyah Rahmawati'], 'type' => [null, 'siswa'], 'class' => [null, '7C']], null],
-            [3, '10:15', 'barang', 'diubah', 10, 'MNM002 · Teh Kotak', $admin, ['name' => ['Teh Kotak 200 ml', 'Teh Kotak'], 'price' => [4000, 4500]], 'Penyesuaian harga'],
-            [4, '15:55', 'barang', 'dipulihkan', 5, 'ATK005 · Penggaris 30 cm', $admin, ['is_active' => [false, true]], 'Terhapus tidak sengaja'],
-            [4, '15:40', 'barang', 'dihapus', 5, 'ATK005 · Penggaris 30 cm', $dedi, ['name' => ['Penggaris 30 cm', null], 'price' => [3500, null]], null],
-            [5, '09:30', 'pengaturan', 'diubah', 1, 'Profil koperasi', $admin, ['profile.phone' => ['0274-555-010', '0274-555-011'], 'profile.hours' => ['07.00–14.00', '06.45–14.30']], null],
-            [6, '13:25', 'kategori', 'diubah', 3, 'Minuman', $dedi, ['name' => ['Minuman Dingin', 'Minuman']], null],
-            [6, '08:50', 'anggota', 'diubah', 2, 'S-2024-002 · Siti Nurhaliza', $rina, ['class' => ['7B', '8B']], 'Naik kelas'],
-            [8, '10:00', 'anggota', 'dihapus', 19, 'S-2023-019 · Rahmat Hidayat', $admin, ['name' => ['Rahmat Hidayat', null], 'class' => ['9A', null]], 'Lulus, saldo sudah dikembalikan'],
-            [9, '14:30', 'pengaturan', 'diubah', 2, 'Format struk', $admin, ['receipt.paper' => ['58', '80'], 'receipt.footer' => ['Terima kasih', 'Terima kasih, semoga berkah']], null],
-            [11, '12:12', 'barang', 'diubah', 1, 'ATK001 · Buku Tulis 38 Lembar', $admin, ['price' => [3500, 4000], 'cost_price' => [2800, 3200]], 'Harga dari pemasok naik'],
-            [12, '09:00', 'barang', 'diubah', 7, 'MKN002 · Biskuit Kelapa', $dedi, ['unit' => ['pcs', 'bks']], null],
-            [40, '10:30', 'kategori', 'dihapus', 6, 'Aksesoris', $admin, ['name' => ['Aksesoris', null]], 'Digabung ke Seragam'],
-        ];
-
-        return array_map(fn (array $r, int $i) => [
-            'id' => 9000 - $i,
-            'at' => now()->subDays($r[0])->setTimeFromTimeString($r[1])->toDateTimeString(),
-            'entity' => $r[2],
-            'action' => $r[3],
-            'subject_id' => $r[4],
-            'subject_label' => $r[5],
-            'actor_name' => $r[6][0],
-            'actor_role' => $r[6][1],
-            'changes' => array_map(fn ($c) => ['from' => $c[0], 'to' => $c[1]], $r[7]),
-            'reason' => $r[8],
-            'ip_address' => '192.168.1.'.(10 + $i % 4),
-        ], $rows, array_keys($rows));
-    }
-
     /** Lama data terhapus disimpan sebelum dibersihkan permanen (kebijakan retensi tiruan). */
     public const TRASH_KEEP_DAYS = 30;
 

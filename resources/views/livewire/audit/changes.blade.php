@@ -2,7 +2,7 @@
 @php
     $roles = \App\Models\Role::LABELS;
     $s = $this->summary;
-    $filtered = $this->filtered;
+    $total = $this->total;
     $actionTone = [
         'dibuat' => 'bg-emerald-100 text-emerald-800',
         'diubah' => 'bg-sky-100 text-sky-800',
@@ -18,7 +18,6 @@
                 <h1 class="text-lg font-semibold">Audit & Riwayat</h1>
                 <p class="text-xs text-stone-500">Siapa mengubah data barang, kategori, anggota, dan pengaturan — beserta nilai sebelum & sesudahnya.</p>
             </div>
-            <span class="rounded-full bg-amber-100 px-3 py-1 text-xs font-medium text-amber-900">Data contoh</span>
         </div>
         <x-audit.nav active="audit.perubahan" />
     </header>
@@ -95,7 +94,7 @@
 
         @if ($subject !== '')
             <div class="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-2.5 text-sm">
-                <p>Riwayat <span class="font-semibold">{{ $this->subjectLabel ?? $subject }}</span> · {{ count($filtered) }} perubahan</p>
+                <p>Riwayat <span class="font-semibold">{{ $this->subjectLabel ?? $subject }}</span> · {{ $total }} perubahan</p>
                 <button type="button" wire:click="$set('subject', '')" class="font-semibold text-emerald-800 hover:underline">Tutup riwayat objek</button>
             </div>
         @endif
@@ -127,10 +126,12 @@
                                                 </span>
                                             @endif
                                         </span>
-                                        @if ($r['action'] === 'diubah' || $r['action'] === 'dipulihkan')
+                                        @if ($fields === [])
+                                            <span class="mt-1 block text-xs text-stone-500">{{ $r['description'] }}</span>
+                                        @elseif ($r['action'] === 'diubah' || $r['action'] === 'dipulihkan')
                                             <span class="mt-1 flex flex-wrap gap-x-3 gap-y-0.5 text-xs">
                                                 @foreach (array_slice($fields, 0, 3) as $f)
-                                                    <span class="text-stone-600">{{ Changes::FIELDS[$f] ?? $f }}:
+                                                    <span class="text-stone-600">{{ Changes::label($f) }}:
                                                         <span class="text-red-700 line-through decoration-red-300">{{ Changes::format($f, $r['changes'][$f]['from']) }}</span>
                                                         → <span class="font-semibold text-emerald-800">{{ Changes::format($f, $r['changes'][$f]['to']) }}</span></span>
                                                 @endforeach
@@ -140,7 +141,7 @@
                                             <span class="mt-1 block text-xs text-stone-500">{{ count($fields) }} kolom {{ $r['action'] === 'dibuat' ? 'diisi' : 'tersimpan sebelum dihapus' }}</span>
                                         @endif
                                         <span class="mt-0.5 block text-xs text-stone-500">
-                                            <span class="font-medium text-stone-700">{{ $r['actor_name'] }}</span> · {{ $roles[$r['actor_role']] ?? $r['actor_role'] }}
+                                            <span class="font-medium text-stone-700">{{ $r['actor_name'] }}</span>@if ($r['actor_role']) · {{ $roles[$r['actor_role']] ?? $r['actor_role'] }}@endif
                                             @if ($r['reason']) · <span class="italic">“{{ $r['reason'] }}”</span>@endif
                                         </span>
                                     </span>
@@ -159,14 +160,14 @@
                 </div>
             @endforelse
 
-            @if (count($filtered) > $limit)
+            @if ($total > $limit)
                 <div class="text-center">
                     <button type="button" wire:click="more" class="rounded-xl border border-stone-300 bg-white px-4 py-2 text-sm font-semibold text-stone-700 hover:bg-stone-50">
-                        Tampilkan lebih banyak <span class="font-normal text-stone-500">({{ count($filtered) - $limit }} lagi)</span>
+                        Tampilkan lebih banyak <span class="font-normal text-stone-500">({{ $total - $limit }} lagi)</span>
                     </button>
                 </div>
-            @elseif ($filtered)
-                <p class="text-center text-xs text-stone-400">{{ count($filtered) }} perubahan ditampilkan · riwayat tidak dapat diubah atau dihapus</p>
+            @elseif ($total > 0)
+                <p class="text-center text-xs text-stone-400">{{ $total }} perubahan ditampilkan · riwayat tidak dapat diubah atau dihapus</p>
             @endif
         </section>
     </div>
@@ -190,11 +191,16 @@
                 <div class="min-h-0 flex-1 space-y-5 overflow-y-auto px-5 py-5 text-sm">
                     <dl class="grid grid-cols-[7rem_1fr] gap-x-3 gap-y-2">
                         <dt class="text-stone-500">Waktu</dt><dd class="tabular-nums">{{ \Illuminate\Support\Carbon::parse($r['at'])->translatedFormat('l, d F Y · H:i') }}</dd>
-                        <dt class="text-stone-500">Petugas</dt><dd>{{ $r['actor_name'] }} <span class="text-stone-500">· {{ $roles[$r['actor_role']] ?? $r['actor_role'] }}</span></dd>
+                        <dt class="text-stone-500">Petugas</dt><dd>{{ $r['actor_name'] }}@if ($r['actor_role']) <span class="text-stone-500">· {{ $roles[$r['actor_role']] ?? $r['actor_role'] }}</span>@endif</dd>
                         <dt class="text-stone-500">Alasan</dt><dd>{{ $r['reason'] ?? '—' }}</dd>
-                        <dt class="text-stone-500">Alamat IP</dt><dd class="font-mono text-xs">{{ $r['ip_address'] }}</dd>
+                        @if ($this->canSeeIp)
+                            <dt class="text-stone-500">Alamat IP</dt><dd class="font-mono text-xs">{{ $r['ip_address'] ?? '—' }}</dd>
+                        @endif
                     </dl>
 
+                    @if ($r['changes'] === [])
+                        <p class="rounded-lg bg-stone-50 px-3 py-2 text-sm text-stone-600">{{ $r['description'] }}. Nilai per kolom tidak tercatat untuk aktivitas ini.</p>
+                    @else
                     <section>
                         <h3 class="mb-2 font-semibold">{{ $r['action'] === 'dihapus' ? 'Data sebelum dihapus' : 'Perubahan' }}</h3>
                         <table class="w-full overflow-hidden rounded-lg border border-stone-200 text-xs">
@@ -202,7 +208,7 @@
                             <tbody class="divide-y divide-stone-100">
                                 @foreach ($r['changes'] as $f => $c)
                                     <tr @class(['bg-amber-50/60' => in_array($f, Changes::SENSITIVE, true)])>
-                                        <td class="px-3 py-1.5 font-medium">{{ Changes::FIELDS[$f] ?? $f }}</td>
+                                        <td class="px-3 py-1.5 font-medium">{{ Changes::label($f) }}</td>
                                         <td @class(['px-3 py-1.5', 'text-red-700 line-through decoration-red-300' => $c['from'] !== null, 'text-stone-400' => $c['from'] === null])>{{ Changes::format($f, $c['from']) }}</td>
                                         <td @class(['px-3 py-1.5', 'font-medium text-emerald-800' => $c['to'] !== null, 'text-stone-400' => $c['to'] === null])>{{ Changes::format($f, $c['to']) }}</td>
                                     </tr>
@@ -213,6 +219,7 @@
                             <p class="mt-1.5 text-xs text-amber-800">Baris berwarna adalah kolom sensitif (harga, status, batas diskon, pajak).</p>
                         @endif
                     </section>
+                    @endif
                 </div>
 
                 <div class="border-t border-stone-200 px-5 py-3">

@@ -2,9 +2,10 @@
 
 namespace App\Livewire\Audit;
 
+use App\Models\ActivityLog;
+use App\Models\Role;
+use App\Services\AuditChangeQuery;
 use App\Services\AuditQuery;
-use App\Support\MockData;
-use Illuminate\Support\Carbon;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
@@ -14,8 +15,9 @@ use Livewire\Component;
 /**
  * Audit → Perubahan data (admin & pengurus): riwayat dibuat/diubah/dihapus/dipulihkan untuk
  * barang, kategori, anggota, dan pengaturan beserta kolom sebelum → sesudah. Filter jenis data,
- * aksi, petugas, periode, kata kunci, dan riwayat satu objek. Tahap ini memakai
- * MockData::masterChanges(); backend menyusul dengan kontrak yang sama.
+ * aksi, petugas, periode, kata kunci, perubahan sensitif, dan riwayat satu objek. Data dari
+ * activity_logs lewat AuditChangeQuery (kontrak sama dengan GET /audit/perubahan/data).
+ * Alamat IP hanya ditampilkan kepada Admin.
  */
 #[Layout('components.layouts.app')]
 #[Title('Perubahan Data')]
@@ -41,16 +43,33 @@ class Changes extends Component
         'code' => 'Kode', 'name' => 'Nama', 'category_id' => 'Kategori', 'price' => 'Harga jual', 'cost_price' => 'Harga modal',
         'min_stock' => 'Batas minimum', 'unit' => 'Satuan', 'is_active' => 'Aktif', 'member_code' => 'Kode anggota',
         'type' => 'Jenis', 'class' => 'Kelas', 'phone' => 'No. HP', 'email' => 'Email',
-        'discount.max_percent' => 'Batas diskon (%)', 'discount.reason_required' => 'Alasan diskon wajib',
-        'tax.rate' => 'Tarif pajak (%)', 'tax.rounding' => 'Pembulatan', 'profile.phone' => 'Telepon koperasi',
-        'profile.hours' => 'Jam buka', 'receipt.paper' => 'Lebar kertas (mm)', 'receipt.footer' => 'Penutup struk',
+        'profile.app_name' => 'Nama aplikasi', 'profile.name' => 'Nama koperasi', 'profile.short_name' => 'Nama singkat',
+        'profile.school' => 'Nama madrasah', 'profile.address' => 'Alamat', 'profile.phone' => 'Telepon koperasi',
+        'profile.email' => 'Email koperasi', 'profile.logo' => 'Logo', 'profile.schedule' => 'Jam buka', 'profile.hours' => 'Jam buka',
+        'profile.motto' => 'Motto',
+        'receipt.header' => 'Judul struk', 'receipt.subheader' => 'Sub-judul struk', 'receipt.show_logo' => 'Logo di struk',
+        'receipt.show_address' => 'Alamat di struk', 'receipt.show_phone' => 'Telepon di struk', 'receipt.show_cashier' => 'Nama kasir di struk',
+        'receipt.show_member' => 'Anggota di struk', 'receipt.note' => 'Catatan struk', 'receipt.footer' => 'Penutup struk',
+        'receipt.paper' => 'Lebar kertas',
+        'tax.label' => 'Nama pajak', 'tax.enabled' => 'Pajak aktif', 'tax.rate' => 'Tarif pajak (%)', 'tax.included' => 'Pajak termasuk harga',
+        'tax.rounding' => 'Pembulatan', 'tax.rounding_unit' => 'Kelipatan pembulatan', 'tax.cash_only' => 'Pembulatan hanya tunai',
+        'discount.enabled' => 'Diskon manual aktif', 'discount.max_percent' => 'Batas diskon (%)', 'discount.max_amount' => 'Batas diskon (Rp)',
+        'discount.reason_required' => 'Alasan diskon wajib',
     ];
 
     /** Kolom bernilai uang (ditampilkan sebagai Rupiah). */
-    public const MONEY = ['price', 'cost_price'];
+    public const MONEY = ['price', 'cost_price', 'discount.max_amount'];
+
+    /** Label kolom; kolom tanpa label dibaca dari namanya (mis. "show_logo" → "Show logo"). */
+    public static function label(string $field): string
+    {
+        return self::FIELDS[$field] ?? ucfirst(str_replace('_', ' ', \Illuminate\Support\Str::afterLast($field, '.')));
+    }
+
+
 
     /** Kolom sensitif: perubahannya (bukan pengisian awal) ditandai agar mudah ditinjau, begitu pula penghapusan. */
-    public const SENSITIVE = ['price', 'cost_price', 'is_active', 'discount.max_percent', 'tax.rate'];
+    public const SENSITIVE = AuditChangeQuery::SENSITIVE;
 
     #[Url(as: 'jenis', except: '')]
     public string $entity = '';
@@ -134,8 +153,7 @@ class Changes extends Component
 
     public static function isSensitive(array $row): bool
     {
-        return $row['action'] === 'dihapus'
-            || ($row['action'] !== 'dibuat' && array_intersect(array_keys($row['changes']), self::SENSITIVE) !== []);
+        return AuditChangeQuery::isSensitive($row);
     }
 
     /** Nilai kolom untuk ditampilkan: Rupiah, Ya/Tidak, atau "—" bila kosong. */
@@ -144,72 +162,75 @@ class Changes extends Component
         return match (true) {
             $value === null || $value === '' => '—',
             is_bool($value) => $value ? 'Ya' : 'Tidak',
+            is_array($value) => json_encode($value, JSON_UNESCAPED_UNICODE),
             in_array($field, self::MONEY, true) => 'Rp'.number_format((int) $value, 0, ',', '.'),
             default => (string) $value,
         };
     }
 
-    /** @return list<array<string, mixed>> semua perubahan pada periode, terbaru dulu */
+    /** @return array{0: ?\Illuminate\Support\Carbon, 1: ?\Illuminate\Support\Carbon} */
     #[Computed]
-    public function all(): array
+    public function range(): array
     {
-        [$from] = AuditQuery::range($this->period);
+        return AuditQuery::range($this->period);
+    }
 
-        return collect(MockData::masterChanges())
-            ->filter(fn ($r) => $from === null || Carbon::parse($r['at'])->gte($from))
-            ->sortByDesc('at')->values()->all();
+    private function filters(): array
+    {
+        [$from, $to] = $this->range;
+
+        return [
+            'entity' => $this->entity, 'action' => $this->action, 'actor' => $this->actor, 'search' => $this->search,
+            'subject' => $this->subject, 'sensitive' => $this->sensitiveOnly, 'from' => $from, 'to' => $to,
+        ];
     }
 
     #[Computed]
-    public function filtered(): array
+    public function canSeeIp(): bool
     {
-        $term = mb_strtolower(trim($this->search));
+        return (bool) auth()->user()?->hasRole(Role::ADMIN);
+    }
 
-        return collect($this->all)
-            ->when($this->entity !== '', fn ($c) => $c->where('entity', $this->entity))
-            ->when($this->action !== '', fn ($c) => $c->where('action', $this->action))
-            ->when($this->actor !== '', fn ($c) => $c->where('actor_name', $this->actor))
-            ->when($this->subject !== '', fn ($c) => $c->filter(fn ($r) => $r['entity'].':'.$r['subject_id'] === $this->subject))
-            ->when($this->sensitiveOnly, fn ($c) => $c->filter(fn ($r) => self::isSensitive($r)))
-            ->when($term !== '', fn ($c) => $c->filter(fn ($r) => str_contains(mb_strtolower($r['subject_label'].' '.$r['actor_name'].' '.($r['reason'] ?? '')), $term)))
-            ->values()->all();
+    /** Jumlah perubahan yang cocok dengan saringan. */
+    #[Computed]
+    public function total(): int
+    {
+        return app(AuditChangeQuery::class)->query($this->filters())->reorder()->count();
+    }
+
+    /** @return list<array<string, mixed>> baris yang ditampilkan (sebanyak $limit), terbaru dulu */
+    #[Computed]
+    public function rows(): array
+    {
+        return app(AuditChangeQuery::class)->query($this->filters())->limit($this->limit)->get()
+            ->map(fn (ActivityLog $l) => AuditChangeQuery::toArray($l, $this->canSeeIp))->all();
     }
 
     /** Baris yang ditampilkan, dikelompokkan per tanggal. */
     #[Computed]
     public function days(): array
     {
-        return collect($this->filtered)->take($this->limit)
-            ->groupBy(fn ($r) => substr($r['at'], 0, 10))->all();
+        return collect($this->rows)->groupBy(fn ($r) => substr($r['at'], 0, 10))->all();
     }
 
     #[Computed]
     public function summary(): array
     {
-        $all = collect($this->all);
-
-        return [
-            'total' => $all->count(),
-            'by_entity' => collect(self::ENTITIES)->map(fn ($l, $k) => $all->where('entity', $k)->count())->all(),
-            'price_changes' => $all->filter(fn ($r) => $r['action'] === 'diubah' && isset($r['changes']['price']))->count(),
-            'deleted' => $all->where('action', 'dihapus')->count(),
-            'restored' => $all->where('action', 'dipulihkan')->count(),
-            'sensitive' => $all->filter(fn ($r) => self::isSensitive($r))->count(),
-            'actors' => $all->countBy('actor_name')->sortDesc()->all(),
-        ];
+        return app(AuditChangeQuery::class)->summary(...$this->range);
     }
 
     #[Computed]
     public function subjectLabel(): ?string
     {
-        return collect(MockData::masterChanges())
-            ->first(fn ($r) => $r['entity'].':'.$r['subject_id'] === $this->subject)['subject_label'] ?? null;
+        return $this->subject !== '' ? app(AuditChangeQuery::class)->subjectLabel($this->subject) : null;
     }
 
     #[Computed]
     public function selected(): ?array
     {
-        return $this->selectedId ? collect(MockData::masterChanges())->firstWhere('id', $this->selectedId) : null;
+        $log = $this->selectedId ? ActivityLog::query()->masterChanges()->find($this->selectedId) : null;
+
+        return $log ? AuditChangeQuery::toArray($log, $this->canSeeIp) : null;
     }
 
     public function render()

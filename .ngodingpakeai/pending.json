@@ -1,6 +1,6 @@
 {
   "repo": "Koperasi Sekolah",
-  "generatedForCommit": "6725ff2e2e5a43eeacd713a780e5a7d5dc95d565",
+  "generatedForCommit": "5d4c3a30af1798c8b73150d10699ff97c9f1e479",
   "files": [
     {
       "path": ".claude/skills/ngodingpakeai/SKILL.md",
@@ -472,7 +472,7 @@
     },
     {
       "path": "app/Models/ActivityLog.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 3162
     },
@@ -490,9 +490,15 @@
     },
     {
       "path": "app/Models/Category.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 368
+      "size": 540
+    },
+    {
+      "path": "app/Models/Concerns/Auditable.php",
+      "reason": "new",
+      "language": "php",
+      "size": 1376
     },
     {
       "path": "app/Models/Coupon.php",
@@ -502,9 +508,9 @@
     },
     {
       "path": "app/Models/Member.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 2521
+      "size": 3062
     },
     {
       "path": "app/Models/Notification.php",
@@ -514,9 +520,9 @@
     },
     {
       "path": "app/Models/Product.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 1408
+      "size": 2401
     },
     {
       "path": "app/Models/Promo.php",
@@ -585,6 +591,12 @@
       "size": 2962
     },
     {
+      "path": "app/Observers/MasterDataObserver.php",
+      "reason": "new",
+      "language": "php",
+      "size": 3958
+    },
+    {
       "path": "app/Observers/ProductObserver.php",
       "reason": "needs_summary",
       "language": "php",
@@ -610,9 +622,9 @@
     },
     {
       "path": "app/Services/AuditLog.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 2698
+      "size": 4416
     },
     {
       "path": "app/Services/AuditQuery.php",
@@ -682,9 +694,9 @@
     },
     {
       "path": "app/Services/MemberService.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 8076
+      "size": 7140
     },
     {
       "path": "app/Services/MinStockService.php",
@@ -718,9 +730,9 @@
     },
     {
       "path": "app/Services/ProductService.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 5208
+      "size": 4426
     },
     {
       "path": "app/Services/PromoEngine.php",
@@ -778,9 +790,9 @@
     },
     {
       "path": "app/Services/SettingsService.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 15295
+      "size": 16478
     },
     {
       "path": "app/Services/ShiftService.php",
@@ -1162,7 +1174,7 @@
     },
     {
       "path": "database/migrations/2026_10_13_000009_add_change_columns_to_activity_logs_table.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 3780
     },
@@ -1186,9 +1198,9 @@
     },
     {
       "path": "database/seeders/MemberSeeder.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 1567
+      "size": 1771
     },
     {
       "path": "database/seeders/NotificationSeeder.php",
@@ -1198,9 +1210,9 @@
     },
     {
       "path": "database/seeders/ProductSeeder.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 1285
+      "size": 1489
     },
     {
       "path": "database/seeders/PromoSeeder.php",
@@ -1828,7 +1840,7 @@
     },
     {
       "path": "tests/Feature/Audit/AuditChangeColumnsTest.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 3408
     },
@@ -1849,6 +1861,12 @@
       "reason": "needs_summary",
       "language": "php",
       "size": 3593
+    },
+    {
+      "path": "tests/Feature/Audit/MasterDataObserverTest.php",
+      "reason": "new",
+      "language": "php",
+      "size": 6248
     },
     {
       "path": "tests/Feature/Audit/TrashPageTest.php",
