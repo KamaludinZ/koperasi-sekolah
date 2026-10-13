@@ -19,6 +19,7 @@
             <div class="flex items-center gap-1 sm:gap-2">
                 <a href="#barang" class="hidden rounded-lg px-3 py-2 text-sm text-emerald-100 hover:text-white md:block">Barang</a>
                 <a href="#layanan" class="hidden rounded-lg px-3 py-2 text-sm text-emerald-100 hover:text-white md:block">Layanan</a>
+                <a href="{{ route('pengumuman.publik') }}" class="hidden rounded-lg px-3 py-2 text-sm text-emerald-100 hover:text-white md:block">Pengumuman</a>
                 <a href="#kunjungi" class="hidden rounded-lg px-3 py-2 text-sm text-emerald-100 hover:text-white md:block">Jam buka</a>
                 <a href="{{ $loggedIn ? route('kasir') : route('login') }}"
                    class="shrink-0 rounded-xl bg-amber-400 px-4 py-2 text-sm font-semibold text-emerald-950 shadow-sm hover:bg-amber-300">{{ $loggedIn ? 'Buka aplikasi' : 'Masuk petugas' }}</a>
@@ -68,7 +69,10 @@
     <main>
         @if (count($announcements))
             <section class="mx-auto max-w-6xl px-4 pt-12 sm:px-6" aria-labelledby="pengumuman">
-                <h2 id="pengumuman" class="ornament-divider text-xs font-semibold tracking-[0.2em] text-amber-600 uppercase">Pengumuman</h2>
+                <div class="flex items-center justify-between gap-3">
+                    <h2 id="pengumuman" class="ornament-divider text-xs font-semibold tracking-[0.2em] text-amber-600 uppercase">Pengumuman</h2>
+                    @if (($announcementCount ?? count($announcements)) > 4)<a href="{{ route('pengumuman.publik') }}" class="text-sm font-semibold text-emerald-800 hover:underline">Lihat semua ({{ $announcementCount ?? count($announcements) }}) →</a>@endif
+                </div>
                 <div class="mt-4 grid gap-3 md:grid-cols-2">
                     @foreach (array_slice($announcements, 0, 4) as $a)
                         <article class="rounded-2xl border-l-4 border-amber-400 bg-white p-5 shadow-sm ring-1 ring-stone-200">

@@ -65,6 +65,12 @@ class AnnouncementService
             ->map(fn (Notification $n) => self::toArray($n))->all();
     }
 
+    /** Jumlah pengumuman publik yang masih berlaku. */
+    public function publicCount(): int
+    {
+        return Notification::public()->count();
+    }
+
     /** @param  array{title: string, message: string, target: string, show_public?: bool, expires_at?: ?string}  $data  sudah divalidasi */
     public function create(array $data, User $by): Notification
     {

@@ -74,6 +74,10 @@ Route::get('/favicon.svg', fn () => response(view('components.brand.mark', ['att
 ]))->name('favicon');
 
 Route::get('/', BerandaController::class)->name('beranda');
+Route::get('/pengumuman', fn () => view('pengumuman', [
+    'profile' => \App\Support\MockData::profile(),
+    'announcements' => app(\App\Services\AnnouncementService::class)->publicList(100),
+]))->name('pengumuman.publik');
 Route::get('/logo/{file}', [LogoController::class, 'show'])->where('file', LogoService::FILE_PATTERN)->name('logo');
 Route::get('/qris/{file}', function (string $file) {
     $disk = \Illuminate\Support\Facades\Storage::disk(\App\Services\QrisImageService::DISK);

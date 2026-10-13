@@ -24,6 +24,7 @@ class BerandaController extends Controller
             'profile' => MockData::profile(),
             'status' => self::openStatus(now()),
             'announcements' => MockData::publicAnnouncements(),
+            'announcementCount' => app(\App\Services\AnnouncementService::class)->publicCount(),
             'popular' => $this->popular($report),
             'categories' => Category::withCount(['products' => fn ($q) => $q->active()])->orderBy('name')->get()
                 ->filter(fn ($c) => $c->products_count > 0)->values(),

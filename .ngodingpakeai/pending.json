@@ -1,6 +1,6 @@
 {
   "repo": "Koperasi Sekolah",
-  "generatedForCommit": "82a253e788a99eb873aa3ea007e48c6af019d4e2",
+  "generatedForCommit": "5465a663f8e1be9309611609f9b2f75d4219928d",
   "files": [
     {
       "path": ".claude/skills/ngodingpakeai/SKILL.md",
@@ -634,7 +634,7 @@
     },
     {
       "path": "app/Livewire/Pengguna/ActiveSessions.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 1888
     },
@@ -1228,7 +1228,7 @@
     },
     {
       "path": "app/Services/SessionService.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 7661
     },
@@ -1291,6 +1291,12 @@
       "reason": "needs_summary",
       "language": "php",
       "size": 9231
+    },
+    {
+      "path": "app/Support/AccessDenied.php",
+      "reason": "new",
+      "language": "php",
+      "size": 1451
     },
     {
       "path": "app/Support/AuditGuard.php",
@@ -1390,9 +1396,9 @@
     },
     {
       "path": "bootstrap/app.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 1259
+      "size": 1880
     },
     {
       "path": "bootstrap/providers.php",
@@ -2062,7 +2068,7 @@
     },
     {
       "path": "resources/views/components/pengguna/nav.blade.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 712
     },
@@ -2560,7 +2566,7 @@
     },
     {
       "path": "resources/views/livewire/pengguna/active-sessions.blade.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 4825
     },
@@ -2686,7 +2692,7 @@
     },
     {
       "path": "routes/web.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 29633
     },
@@ -2835,8 +2841,14 @@
       "size": 6655
     },
     {
-      "path": "tests/Feature/Auth/ActiveSessionsAdminTest.php",
+      "path": "tests/Feature/Auth/AccessDeniedAuditTest.php",
       "reason": "new",
+      "language": "php",
+      "size": 1359
+    },
+    {
+      "path": "tests/Feature/Auth/ActiveSessionsAdminTest.php",
+      "reason": "needs_summary",
       "language": "php",
       "size": 2828
     },
