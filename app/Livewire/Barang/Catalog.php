@@ -2,6 +2,8 @@
 
 namespace App\Livewire\Barang;
 
+use App\Livewire\Concerns\NotifiesSave;
+use App\Models\Role;
 use App\Support\MockData;
 use Illuminate\Support\Facades\Route;
 use Livewire\Attributes\Computed;
@@ -12,13 +14,16 @@ use Livewire\Component;
 /**
  * Barang → Kategori & impor: halaman utama pengelolaan katalog. Daftar kategori (urutan, jumlah
  * barang, stok menipis, nilai stok) dan pintu masuk impor massal barang dari CSV/Excel beserta
- * riwayat impor terbaru. Tahap ini memakai MockData::categoryOverview() & importHistory();
- * backend menyusul dengan kontrak yang sama.
+ * riwayat impor terbaru. Admin & Pengurus mengelola kategori: tambah/ubah (nama & warna),
+ * hapus (barangnya dipindah ke kategori lain), dan atur urutan. Tahap ini memakai
+ * MockData (session) — backend menyusul dengan kontrak yang sama.
  */
 #[Layout('components.layouts.app')]
 #[Title('Kategori & Impor')]
 class Catalog extends Component
 {
+    use NotifiesSave;
+
     /** Status impor → [label, kelas lencana]. */
     public const IMPORT_STATUSES = [
         'pratinjau' => ['Menunggu diperiksa', 'bg-sky-100 text-sky-800'],
@@ -32,6 +37,181 @@ class Catalog extends Component
         'emerald' => 'bg-emerald-500', 'amber' => 'bg-amber-400', 'sky' => 'bg-sky-500',
         'violet' => 'bg-violet-500', 'teal' => 'bg-teal-500', 'rose' => 'bg-rose-500', 'stone' => 'bg-stone-400',
     ];
+
+    public bool $formOpen = false;
+
+    public ?int $editId = null;
+
+    public string $name = '';
+
+    public string $color = 'emerald';
+
+    public ?int $deleteId = null;
+
+    public ?int $moveTo = null;
+
+    public bool $reordering = false;
+
+    /** @var list<int> urutan id saat mengatur urutan */
+    public array $order = [];
+
+    #[Computed]
+    public function canManage(): bool
+    {
+        return (bool) auth()->user()?->hasRole(Role::ADMIN, Role::PENGURUS);
+    }
+
+    public function create(): void
+    {
+        if (! $this->guard()) {
+            return;
+        }
+        $this->reset('editId', 'name');
+        $this->color = collect(array_keys(self::COLORS))->first(fn ($c) => ! collect($this->categories)->contains('color', $c)) ?? 'stone';
+        $this->resetValidation();
+        $this->formOpen = true;
+    }
+
+    public function edit(int $id): void
+    {
+        $c = collect($this->categories)->firstWhere('id', $id);
+        if (! $c || ! $this->guard()) {
+            return;
+        }
+        $this->fill(['editId' => $id, 'name' => $c['name'], 'color' => $c['color'], 'formOpen' => true]);
+        $this->resetValidation();
+    }
+
+    public function save(): void
+    {
+        if (! $this->guard()) {
+            return;
+        }
+        $this->name = preg_replace('/\s+/', ' ', trim($this->name));
+        $this->saveWithToast(function () {
+            $this->validate([
+                'name' => ['required', 'string', 'min:2', 'max:50', function ($attr, $value, $fail) {
+                    $taken = collect($this->categories)->first(fn ($c) => $c['id'] !== $this->editId && mb_strtolower($c['name']) === mb_strtolower($value));
+                    if ($taken) {
+                        $fail('Nama kategori sudah dipakai.');
+                    }
+                }],
+                'color' => ['required', 'in:'.implode(',', array_keys(self::COLORS))],
+            ], [
+                'name.required' => 'Isi nama kategori.',
+                'name.min' => 'Nama kategori minimal 2 huruf.',
+                'name.max' => 'Nama kategori maksimal 50 huruf.',
+            ]);
+            MockData::saveCategory(['id' => $this->editId, 'name' => $this->name, 'color' => $this->color]);
+            unset($this->categories, $this->summary);
+            $this->formOpen = false;
+        }, $this->editId ? "Kategori {$this->name} diperbarui." : "Kategori {$this->name} ditambahkan.");
+    }
+
+    public function closeForm(): void
+    {
+        $this->formOpen = false;
+        $this->resetValidation();
+    }
+
+    public function confirmDelete(int $id): void
+    {
+        if (! $this->guard()) {
+            return;
+        }
+        $this->deleteId = $id;
+        $this->moveTo = null;
+        $this->resetValidation();
+    }
+
+    public function cancelDelete(): void
+    {
+        $this->reset('deleteId', 'moveTo');
+        $this->resetValidation();
+    }
+
+    public function delete(): void
+    {
+        $c = $this->deleting;
+        if (! $c || ! $this->guard()) {
+            $this->cancelDelete();
+
+            return;
+        }
+        if ($c['products'] > 0) {
+            $this->validate(['moveTo' => ['required', 'integer', 'not_in:'.$c['id'], 'in:'.collect($this->categories)->pluck('id')->implode(',')]],
+                ['moveTo.required' => 'Pilih kategori tujuan untuk '.$c['products'].' barang di dalamnya.', 'moveTo.*' => 'Pilih kategori tujuan yang lain.']);
+        }
+        MockData::deleteCategory($c['id'], $c['products'] > 0 ? (int) $this->moveTo : null);
+        unset($this->categories, $this->summary);
+        $target = collect($this->categories)->firstWhere('id', $this->moveTo)['name'] ?? null;
+        $this->cancelDelete();
+        $this->toast('success', "Kategori {$c['name']} dihapus".($target ? ", barangnya dipindah ke {$target}." : '.'));
+    }
+
+    #[Computed]
+    public function deleting(): ?array
+    {
+        return $this->deleteId ? collect($this->categories)->firstWhere('id', $this->deleteId) : null;
+    }
+
+    public function startReorder(): void
+    {
+        if (! $this->guard()) {
+            return;
+        }
+        $this->order = collect($this->categories)->pluck('id')->all();
+        $this->reordering = true;
+    }
+
+    public function move(int $id, int $step): void
+    {
+        $i = array_search($id, $this->order, true);
+        $j = $i === false ? false : $i + ($step < 0 ? -1 : 1);
+        if ($j === false || $j < 0 || $j >= count($this->order)) {
+            return;
+        }
+        [$this->order[$i], $this->order[$j]] = [$this->order[$j], $this->order[$i]];
+    }
+
+    public function saveOrder(): void
+    {
+        if (! $this->guard()) {
+            return;
+        }
+        MockData::reorderCategories($this->order);
+        unset($this->categories);
+        $this->reordering = false;
+        $this->toast('success', 'Urutan kategori disimpan.');
+    }
+
+    public function cancelReorder(): void
+    {
+        $this->reset('reordering', 'order');
+    }
+
+    /** Kategori sesuai urutan sementara saat mengatur urutan. */
+    #[Computed]
+    public function rows(): array
+    {
+        if (! $this->reordering) {
+            return $this->categories;
+        }
+        $byId = collect($this->categories)->keyBy('id');
+
+        return collect($this->order)->filter(fn ($id) => $byId->has($id))
+            ->map(fn ($id, $i) => [...$byId[$id], 'position' => $i + 1])->values()->all();
+    }
+
+    private function guard(): bool
+    {
+        if ($this->canManage) {
+            return true;
+        }
+        $this->toast('error', 'Hanya Admin dan Pengurus yang dapat mengelola kategori.');
+
+        return false;
+    }
 
     #[Computed]
     public function categories(): array

@@ -366,6 +366,56 @@ class MockData
      */
     public static function categoryOverview(): array
     {
+        return session('mock.categories') ?? self::seedCategories();
+    }
+
+    /** Simpan kategori baru (tanpa id) atau ubah nama/warna yang ada (session). */
+    public static function saveCategory(array $data): array
+    {
+        $rows = collect(self::categoryOverview())->keyBy('id');
+        if (isset($data['id']) && $rows->has($data['id'])) {
+            $rows[$data['id']] = [...$rows[$data['id']], 'name' => $data['name'], 'color' => $data['color'], 'updated_at' => now()->toDateTimeString()];
+        } else {
+            $id = ($rows->keys()->max() ?? 0) + 1;
+            $rows[$id] = ['id' => $id, 'name' => $data['name'], 'color' => $data['color'], 'position' => $rows->count() + 1,
+                'products' => 0, 'active_products' => 0, 'low_stock' => 0, 'stock_value' => 0, 'updated_at' => now()->toDateTimeString()];
+        }
+        session(['mock.categories' => $rows->sortBy('position')->values()->all()]);
+
+        return $rows[$data['id'] ?? $id];
+    }
+
+    /** Hapus kategori; barangnya dipindah ke kategori $moveTo (session). */
+    public static function deleteCategory(int $id, ?int $moveTo = null): void
+    {
+        $rows = collect(self::categoryOverview())->keyBy('id');
+        $gone = $rows->pull($id);
+        if ($gone && $moveTo && $rows->has($moveTo)) {
+            $target = $rows[$moveTo];
+            foreach (['products', 'active_products', 'low_stock', 'stock_value'] as $k) {
+                $target[$k] += $gone[$k];
+            }
+            $rows[$moveTo] = $target;
+        }
+        session(['mock.categories' => self::renumber($rows->sortBy('position')->values()->all())]);
+    }
+
+    /** Simpan urutan kategori baru dari daftar id (session). */
+    public static function reorderCategories(array $ids): void
+    {
+        $rows = collect(self::categoryOverview())->keyBy('id');
+        $ordered = collect($ids)->filter(fn ($id) => $rows->has($id))->map(fn ($id) => $rows[$id])
+            ->concat($rows->except($ids)->values())->values()->all();
+        session(['mock.categories' => self::renumber($ordered)]);
+    }
+
+    private static function renumber(array $rows): array
+    {
+        return array_map(fn ($r, $i) => [...$r, 'position' => $i + 1], $rows, array_keys($rows));
+    }
+
+    private static function seedCategories(): array
+    {
         $rows = [
             [1, 'Alat Tulis', 'emerald', 5, 5, 2, 1_284_000, 3],
             [2, 'Makanan', 'amber', 3, 3, 1, 302_400, 6],

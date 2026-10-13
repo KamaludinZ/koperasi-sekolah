@@ -64,7 +64,7 @@
             </div>
         @endif
 
-        <div class="grid gap-5 xl:grid-cols-[minmax(0,1fr)_24rem]">
+        <div class="grid gap-5 2xl:grid-cols-[minmax(0,1fr)_24rem]">
             {{-- Kategori --}}
             <section class="overflow-hidden rounded-xl border border-stone-200 bg-white" aria-labelledby="cat-title">
                 <div class="flex flex-wrap items-center justify-between gap-2 px-4 pt-4">
@@ -72,10 +72,17 @@
                         <h2 id="cat-title" class="font-semibold">Kategori barang</h2>
                         <p class="text-xs text-stone-500">Urutan ini dipakai di layar kasir dan laporan.</p>
                     </div>
-                    <div class="flex gap-2">
-                        <button type="button" disabled title="Segera hadir" class="rounded-xl border border-stone-300 bg-white px-3 py-2 text-sm font-medium text-stone-700 {{ $soon }}">Atur urutan</button>
-                        <button type="button" disabled title="Segera hadir" class="rounded-xl border border-emerald-700 px-3 py-2 text-sm font-semibold text-emerald-800 {{ $soon }}">Tambah kategori</button>
-                    </div>
+                    @if ($this->canManage)
+                        <div class="flex gap-2">
+                            @if ($reordering)
+                                <button type="button" wire:click="cancelReorder" class="rounded-xl px-3 py-2 text-sm font-medium text-stone-600 hover:bg-stone-100">Batal</button>
+                                <button type="button" wire:click="saveOrder" class="rounded-xl bg-emerald-700 px-3 py-2 text-sm font-semibold text-white hover:bg-emerald-800">Simpan urutan</button>
+                            @else
+                                <button type="button" wire:click="startReorder" class="rounded-xl border border-stone-300 bg-white px-3 py-2 text-sm font-medium text-stone-700 hover:bg-stone-50">Atur urutan</button>
+                                <button type="button" wire:click="create" class="rounded-xl border border-emerald-700 px-3 py-2 text-sm font-semibold text-emerald-800 hover:bg-emerald-50">Tambah kategori</button>
+                            @endif
+                        </div>
+                    @endif
                 </div>
                 <div class="mt-3 overflow-x-auto">
                     <table class="w-full min-w-[36rem] text-sm">
@@ -86,11 +93,12 @@
                                 <th class="px-3 py-2 text-right font-medium">Barang</th>
                                 <th class="px-3 py-2 text-right font-medium whitespace-nowrap">Stok menipis</th>
                                 <th class="px-4 py-2 font-medium">Nilai stok</th>
+                                @if ($this->canManage)<th class="px-4 py-2"><span class="sr-only">Aksi</span></th>@endif
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-stone-100">
-                            @foreach ($this->categories as $c)
-                                <tr wire:key="cat-{{ $c['id'] }}">
+                            @foreach ($this->rows as $c)
+                                <tr wire:key="cat-{{ $c['id'] }}" @class(['bg-amber-50/40' => $reordering])>
                                     <td class="px-4 py-2.5 text-stone-400 tabular-nums">{{ $c['position'] }}</td>
                                     <td class="px-2 py-2.5">
                                         <span class="flex items-center gap-2 font-medium">
@@ -113,6 +121,19 @@
                                             <span class="text-xs text-stone-600 tabular-nums">{{ $rp($c['stock_value']) }}</span>
                                         </span>
                                     </td>
+                                    @if ($this->canManage)
+                                        <td class="px-4 py-2.5 text-right whitespace-nowrap">
+                                            @if ($reordering)
+                                                <button type="button" wire:click="move({{ $c['id'] }}, -1)" @disabled($loop->first) aria-label="Naikkan {{ $c['name'] }}"
+                                                        class="rounded-lg border border-stone-300 p-1.5 text-stone-600 hover:bg-white disabled:opacity-30"><svg class="size-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 15 6-6 6 6"/></svg></button>
+                                                <button type="button" wire:click="move({{ $c['id'] }}, 1)" @disabled($loop->last) aria-label="Turunkan {{ $c['name'] }}"
+                                                        class="rounded-lg border border-stone-300 p-1.5 text-stone-600 hover:bg-white disabled:opacity-30"><svg class="size-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></button>
+                                            @else
+                                                <button type="button" wire:click="edit({{ $c['id'] }})" class="rounded-lg px-2 py-1 text-sm font-medium text-emerald-800 hover:bg-emerald-50">Ubah</button>
+                                                <button type="button" wire:click="confirmDelete({{ $c['id'] }})" class="rounded-lg px-2 py-1 text-sm font-medium text-red-700 hover:bg-red-50">Hapus</button>
+                                            @endif
+                                        </td>
+                                    @endif
                                 </tr>
                             @endforeach
                         </tbody>
@@ -121,7 +142,7 @@
             </section>
 
             {{-- Impor --}}
-            <aside class="space-y-4" aria-labelledby="imp-title">
+            <aside class="grid content-start gap-4 lg:grid-cols-2 2xl:grid-cols-1" aria-labelledby="imp-title">
                 <section class="relative isolate overflow-hidden rounded-xl bg-emerald-950 p-5 text-emerald-50">
                     <div class="pattern-madrasah absolute inset-0 -z-10 opacity-[0.08]" aria-hidden="true"></div>
                     <h2 id="imp-title" class="font-display text-xl font-bold text-white">Impor barang dari berkas</h2>
@@ -178,4 +199,65 @@
             </aside>
         </div>
     </div>
+    {{-- Form kategori --}}
+    @if ($formOpen)
+        <div class="fixed inset-0 z-50 grid place-items-center p-4" role="dialog" aria-modal="true" aria-labelledby="cat-form-title"
+             x-data x-on:keydown.escape.window="$wire.closeForm()">
+            <div class="absolute inset-0 bg-stone-950/50" wire:click="closeForm"></div>
+            <form wire:submit="save" class="relative w-full max-w-md rounded-2xl bg-white p-5 shadow-xl" novalidate>
+                <h2 id="cat-form-title" class="font-semibold">{{ $editId ? 'Ubah kategori' : 'Kategori baru' }}</h2>
+                <label class="mt-4 block text-sm">
+                    <span class="font-medium">Nama kategori</span>
+                    <input type="text" wire:model="name" maxlength="50" autofocus placeholder="mis. Perlengkapan Ibadah"
+                           @class(['mt-1 w-full rounded-lg border px-3 py-2 text-sm outline-none focus:ring-4', 'border-red-400 focus:ring-red-500/15' => $errors->has('name'), 'border-stone-300 focus:border-emerald-600 focus:ring-emerald-600/15' => ! $errors->has('name')])>
+                    @error('name') <span class="mt-1 block text-xs text-red-600">{{ $message }}</span> @enderror
+                </label>
+                <fieldset class="mt-4">
+                    <legend class="text-sm font-medium">Warna penanda</legend>
+                    <div class="mt-2 flex flex-wrap gap-2">
+                        @foreach (Catalog::COLORS as $key => $class)
+                            <label class="cursor-pointer rounded-full p-1 ring-2 ring-transparent has-checked:ring-emerald-700">
+                                <input type="radio" wire:model="color" value="{{ $key }}" class="sr-only" @checked($color === $key)>
+                                <span class="block size-6 rounded-full {{ $class }}" title="{{ $key }}"></span>
+                                <span class="sr-only">{{ $key }}</span>
+                            </label>
+                        @endforeach
+                    </div>
+                </fieldset>
+                <div class="mt-5 flex justify-end gap-2">
+                    <button type="button" wire:click="closeForm" class="rounded-xl px-4 py-2 text-sm font-medium text-stone-600 hover:bg-stone-100">Batal</button>
+                    <button type="submit" wire:loading.attr="disabled" wire:target="save" class="rounded-xl bg-emerald-700 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-800">Simpan</button>
+                </div>
+            </form>
+        </div>
+    @endif
+
+    {{-- Hapus kategori --}}
+    @if ($d = $this->deleting)
+        <div class="fixed inset-0 z-50 grid place-items-center p-4" role="dialog" aria-modal="true" aria-labelledby="cat-del-title"
+             x-data x-on:keydown.escape.window="$wire.cancelDelete()">
+            <div class="absolute inset-0 bg-stone-950/50" wire:click="cancelDelete"></div>
+            <form wire:submit="delete" class="relative w-full max-w-md rounded-2xl bg-white p-5 shadow-xl" novalidate>
+                <h2 id="cat-del-title" class="font-semibold">Hapus kategori {{ $d['name'] }}?</h2>
+                @if ($d['products'] > 0)
+                    <p class="mt-1 text-sm text-stone-600">Kategori ini berisi <span class="font-semibold">{{ $d['products'] }} barang</span>. Pindahkan barangnya ke:</p>
+                    <select wire:model="moveTo" aria-label="Kategori tujuan"
+                            @class(['mt-2 w-full rounded-lg border bg-white px-3 py-2 text-sm', 'border-red-400' => $errors->has('moveTo'), 'border-stone-300' => ! $errors->has('moveTo')])>
+                        <option value="">Pilih kategori tujuan…</option>
+                        @foreach ($this->categories as $c)
+                            @if ($c['id'] !== $d['id'])<option value="{{ $c['id'] }}">{{ $c['name'] }}</option>@endif
+                        @endforeach
+                    </select>
+                    @error('moveTo') <span class="mt-1 block text-xs text-red-600">{{ $message }}</span> @enderror
+                @else
+                    <p class="mt-1 text-sm text-stone-600">Kategori ini kosong.</p>
+                @endif
+                <p class="mt-3 text-xs text-stone-500">Kategori yang dihapus dapat dipulihkan Admin dari Audit → Data terhapus selama masa simpan.</p>
+                <div class="mt-5 flex justify-end gap-2">
+                    <button type="button" wire:click="cancelDelete" class="rounded-xl px-4 py-2 text-sm font-medium text-stone-600 hover:bg-stone-100">Batal</button>
+                    <button type="submit" wire:loading.attr="disabled" wire:target="delete" class="rounded-xl bg-red-700 px-4 py-2 text-sm font-semibold text-white hover:bg-red-800">Hapus kategori</button>
+                </div>
+            </form>
+        </div>
+    @endif
 </div>
