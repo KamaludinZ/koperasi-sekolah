@@ -8,6 +8,7 @@ use App\Http\Controllers\Audit\AuditLogController;
 use App\Http\Controllers\Audit\TrashController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\LogoutController;
+use App\Http\Controllers\Barang\ImportTemplateController;
 use App\Http\Controllers\Barang\ProductController;
 use App\Http\Controllers\BerandaController;
 use App\Http\Controllers\Barang\ProductListController;
@@ -150,6 +151,8 @@ Route::middleware('menu:promo')->group(function () {
 Route::middleware('menu:barang')->group(function () {
     Route::get('/barang', Barang\Index::class)->name('barang');
     Route::get('/barang/kategori', Barang\Catalog::class)->name('barang.kategori');
+    Route::get('/barang/impor/templat/{format}', ImportTemplateController::class)->whereIn('format', ['csv', 'xlsx'])->name('barang.impor.templat');
+    Route::get('/barang/impor', Barang\Import::class)->middleware('peran:admin,pengurus')->name('barang.impor');
     Route::get('/barang/daftar', ProductListController::class)
         ->middleware('throttle:120,1')
         ->name('barang.list');

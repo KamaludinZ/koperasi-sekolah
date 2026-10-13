@@ -1,6 +1,6 @@
 {
   "repo": "Koperasi Sekolah",
-  "generatedForCommit": "9631c8a97aaa8edd3c1784f6b4a850a93be91e5a",
+  "generatedForCommit": "4feaa8ba7c69569cbbddcd35a921f4db214bb0f7",
   "files": [
     {
       "path": ".claude/skills/ngodingpakeai/SKILL.md",
@@ -334,9 +334,9 @@
     },
     {
       "path": "app/Livewire/Barang/Catalog.php",
-      "reason": "new",
+      "reason": "changed",
       "language": "php",
-      "size": 2627
+      "size": 8444
     },
     {
       "path": "app/Livewire/Barang/Index.php",
@@ -930,7 +930,7 @@
       "path": "app/Support/MockData.php",
       "reason": "changed",
       "language": "php",
-      "size": 18139
+      "size": 20438
     },
     {
       "path": "app/Support/OpeningHours.php",
@@ -1444,7 +1444,7 @@
     },
     {
       "path": "resources/views/components/barang/nav.blade.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 718
     },
@@ -1684,13 +1684,13 @@
     },
     {
       "path": "resources/views/livewire/barang/catalog.blade.php",
-      "reason": "new",
+      "reason": "changed",
       "language": "php",
-      "size": 13104
+      "size": 20464
     },
     {
       "path": "resources/views/livewire/barang/index.blade.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 12243
     },
@@ -1930,7 +1930,7 @@
     },
     {
       "path": "routes/web.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 16773
     },
@@ -2086,9 +2086,9 @@
     },
     {
       "path": "tests/Feature/Barang/CatalogPageTest.php",
-      "reason": "new",
+      "reason": "changed",
       "language": "php",
-      "size": 1990
+      "size": 5063
     },
     {
       "path": "tests/Feature/Barang/IndexTest.php",

@@ -440,6 +440,11 @@ class MockData
      */
     public static function importHistory(): array
     {
+        return [...session('mock.imports', []), ...self::seedImports()];
+    }
+
+    private static function seedImports(): array
+    {
         $rows = [
             ['barang-semester-ganjil.xlsx', 'xlsx', 'pratinjau', 64, 0, 0, 0, 3, 'Pak Dedi', 0, null],
             ['harga-baru-oktober.csv', 'csv', 'selesai', 12, 0, 12, 0, 0, 'Admin Koperasi', 2, 1],
@@ -454,5 +459,21 @@ class MockData
             'created_at' => $at = now()->subDays($r[9])->setTime(9 + $i, 15)->toDateTimeString(),
             'finished_at' => $r[10] === null ? null : \Illuminate\Support\Carbon::parse($at)->addMinutes($r[10])->toDateTimeString(),
         ], $rows, array_keys($rows));
+    }
+
+    /**
+     * Catat unggahan impor tiruan (status pratinjau) di session dan kembalikan barisnya.
+     * Backend menyusul: POST /barang/impor → baca berkas, simpan baris ke tabel impor.
+     */
+    public static function createImport(string $fileName, string $format, string $mode, bool $updateStock, string $user): array
+    {
+        $import = [
+            'id' => 100 + count(session('mock.imports', [])), 'file_name' => $fileName, 'format' => $format, 'status' => 'pratinjau',
+            'mode' => $mode, 'update_stock' => $updateStock, 'total_rows' => 0, 'created' => 0, 'updated' => 0, 'skipped' => 0,
+            'failed' => 0, 'user' => $user, 'created_at' => now()->toDateTimeString(), 'finished_at' => null,
+        ];
+        session(['mock.imports' => [$import, ...session('mock.imports', [])]]);
+
+        return $import;
     }
 }
