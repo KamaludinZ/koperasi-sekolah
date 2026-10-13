@@ -1,6 +1,6 @@
 {
   "repo": "Koperasi Sekolah",
-  "generatedForCommit": "51fcc9458640f55e0f5f562f5941231cafdc8d6b",
+  "generatedForCommit": "33624176dffdff8806d5e79b0b0116738e3cb689",
   "files": [
     {
       "path": ".claude/skills/ngodingpakeai/SKILL.md",
@@ -1024,9 +1024,9 @@
     },
     {
       "path": "app/Services/BackupService.php",
-      "reason": "new",
+      "reason": "changed",
       "language": "php",
-      "size": 7952
+      "size": 9641
     },
     {
       "path": "app/Services/CashMovementService.php",
@@ -1462,7 +1462,7 @@
     },
     {
       "path": "config/koperasi.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 1560
     },
@@ -2718,7 +2718,7 @@
       "path": "routes/console.php",
       "reason": "changed",
       "language": "php",
-      "size": 3970
+      "size": 4324
     },
     {
       "path": "routes/web.php",
@@ -3634,9 +3634,15 @@
     },
     {
       "path": "tests/Feature/Sistem/BackupCommandTest.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 4003
+    },
+    {
+      "path": "tests/Feature/Sistem/BackupNotificationTest.php",
+      "reason": "new",
+      "language": "php",
+      "size": 2548
     },
     {
       "path": "tests/Feature/Sistem/BackupSchemaTest.php",
