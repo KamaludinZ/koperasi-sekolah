@@ -50,7 +50,77 @@
                             </label>
                         @endforeach
                     </div>
+                    @error('paymentMethod') <p class="mt-2 rounded-lg bg-amber-50 px-3 py-2 text-sm text-amber-900" role="alert">{{ $message }}</p> @enderror
                 </fieldset>
+
+                {{-- Anggota (wajib untuk tabungan & bon) --}}
+                <div x-show="method === 'tabungan' || method === 'bon'" x-cloak class="space-y-3">
+                    @php $m = $this->member; @endphp
+                    @if ($m)
+                        <div class="rounded-xl border border-stone-200 p-3">
+                            <div class="flex items-start justify-between gap-2">
+                                <div class="min-w-0">
+                                    <p class="truncate text-sm font-semibold">{{ $m['display_name'] }}</p>
+                                    <p class="font-mono text-xs text-stone-500">{{ $m['member_code'] }}</p>
+                                </div>
+                                <button type="button" wire:click="clearMember" class="shrink-0 text-xs font-medium text-stone-500 hover:text-stone-800">Ganti</button>
+                            </div>
+                            <dl class="mt-2 grid grid-cols-2 gap-2 text-xs">
+                                <div class="rounded-lg bg-stone-50 px-2.5 py-1.5" :class="method === 'tabungan' && 'ring-1 ring-emerald-500'">
+                                    <dt class="text-stone-500">Saldo tabungan</dt>
+                                    <dd class="text-sm font-semibold tabular-nums">{{ $rp($m['balance']) }}</dd>
+                                </div>
+                                <div class="rounded-lg bg-stone-50 px-2.5 py-1.5" :class="method === 'bon' && 'ring-1 ring-emerald-500'">
+                                    <dt class="text-stone-500">Sisa batas bon</dt>
+                                    <dd class="text-sm font-semibold tabular-nums">{{ $rp($m['credit']['available']) }} <span class="font-normal text-stone-500">/ {{ $rp($m['credit']['limit']) }}</span></dd>
+                                </div>
+                            </dl>
+                            @if ($m['credit']['outstanding'] > 0)
+                                <p @class(['mt-2 text-xs', 'font-semibold text-red-700' => $m['credit']['overdue'], 'text-stone-600' => ! $m['credit']['overdue']])>
+                                    Bon belum lunas {{ $rp($m['credit']['outstanding']) }} ({{ $m['credit']['open_bills'] }} catatan){{ $m['credit']['overdue'] ? ' — lewat jatuh tempo' : '' }}
+                                </p>
+                            @endif
+                            @php $tabShort = \App\Livewire\Kasir\Cart::shortfall('tabungan', $m, $summary['totals']['tabungan']['payable'] ?? $summary['total']);
+                                 $bonShort = \App\Livewire\Kasir\Cart::shortfall('bon', $m, $summary['totals']['bon']['payable'] ?? $summary['total']); @endphp
+                            <p x-show="method === 'tabungan'" class="mt-2 text-xs {{ $tabShort ? 'font-semibold text-red-700' : 'text-emerald-800' }}">
+                                {{ $tabShort ? 'Saldo kurang '.$rp($tabShort).'.' : 'Saldo setelah bayar: '.$rp($m['balance'] - ($summary['totals']['tabungan']['payable'] ?? $summary['total'])) }}
+                            </p>
+                            <p x-show="method === 'bon'" class="mt-2 text-xs {{ $bonShort ? 'font-semibold text-red-700' : 'text-stone-600' }}">
+                                {{ $bonShort ? 'Melebihi sisa batas bon sebesar '.$rp($bonShort).'.' : 'Dicatat sebagai bon atas nama anggota.' }}
+                            </p>
+                        </div>
+                        <fieldset x-show="method === 'bon'">
+                            <legend class="mb-1.5 text-sm font-medium">Jatuh tempo bon</legend>
+                            <div class="flex gap-2">
+                                @foreach (\App\Livewire\Kasir\Cart::BON_TERMS as $days => $label)
+                                    <label class="cursor-pointer rounded-full border border-stone-300 px-3 py-1 text-sm has-checked:border-emerald-700 has-checked:bg-emerald-900 has-checked:text-white">
+                                        <input type="radio" wire:model="bonDays" value="{{ $days }}" class="sr-only" @checked($bonDays === $days)> {{ $label }}
+                                    </label>
+                                @endforeach
+                            </div>
+                            <p class="mt-1 text-xs text-stone-500">Jatuh tempo {{ now()->addDays($bonDays)->translatedFormat('d M Y') }}.</p>
+                        </fieldset>
+                    @else
+                        <label class="block">
+                            <span class="mb-1.5 block text-sm font-medium">Anggota</span>
+                            <input type="search" wire:model.live.debounce.250ms="memberSearch" placeholder="Cari nama atau kode anggota…" autocomplete="off"
+                                   class="w-full rounded-xl border border-stone-300 px-3.5 py-2.5 text-sm outline-none focus:border-emerald-600 focus:ring-4 focus:ring-emerald-600/15">
+                        </label>
+                        @if ($this->memberResults)
+                            <ul class="divide-y divide-stone-100 overflow-hidden rounded-xl border border-stone-200">
+                                @foreach ($this->memberResults as $r)
+                                    <li><button type="button" wire:click="selectMember({{ $r['id'] }})" class="flex w-full items-center justify-between gap-3 px-3.5 py-2 text-left text-sm hover:bg-emerald-50">
+                                        <span class="min-w-0"><span class="block truncate font-medium">{{ $r['display_name'] }}</span><span class="font-mono text-xs text-stone-500">{{ $r['member_code'] }}</span></span>
+                                        <span class="shrink-0 text-xs text-stone-600 tabular-nums">{{ $rp($r['balance']) }}</span>
+                                    </button></li>
+                                @endforeach
+                            </ul>
+                        @elseif (mb_strlen(trim($memberSearch)) >= 2)
+                            <p class="text-xs text-stone-500">Anggota aktif tidak ditemukan.</p>
+                        @endif
+                    @endif
+                    @error('memberId') <p class="text-sm text-red-600" role="alert">{{ $message }}</p> @enderror
+                </div>
 
                 <div x-show="method === 'tunai'" class="space-y-3">
                     <label class="block">
@@ -80,7 +150,7 @@
                     </div>
                 </div>
 
-                <p x-show="method !== 'tunai'" x-cloak class="rounded-lg bg-stone-50 px-4 py-3 text-sm text-stone-600">
+                <p x-show="method === 'qris'" x-cloak class="rounded-lg bg-stone-50 px-4 py-3 text-sm text-stone-600">
                     Pastikan pembayaran non-tunai sebesar <strong class="tabular-nums" x-text="rp(total)">{{ $rp($summary['total']) }}</strong> sudah diterima sebelum menyelesaikan transaksi.
                 </p>
             </div>

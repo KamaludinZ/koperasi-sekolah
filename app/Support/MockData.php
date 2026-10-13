@@ -356,4 +356,30 @@ class MockData
             ['id' => 14, 'code' => 'SRG003', 'name' => 'Ikat Pinggang', 'category' => 'Seragam', 'price' => 18000, 'cost_price' => 14400, 'stock' => 14, 'min_stock' => 5, 'unit' => 'pcs'],
         ];
     }
+
+    /** Batas bon bawaan per jenis anggota (tiruan; backend menyusul dari pengaturan). */
+    public const CREDIT_LIMITS = ['siswa' => 50_000, 'guru' => 300_000];
+
+    /**
+     * Status bon (piutang) anggota tiruan. Kontrak backend: GET /anggota/{id}/bon →
+     * {limit, outstanding, available, open_bills, oldest_due_at, overdue}.
+     *
+     * @return array{limit: int, outstanding: int, available: int, open_bills: int, oldest_due_at: ?string, overdue: bool}
+     */
+    public static function memberCredit(int $memberId, string $type = 'siswa'): array
+    {
+        $limit = self::CREDIT_LIMITS[$type] ?? self::CREDIT_LIMITS['siswa'];
+        // Anggota ber-id genap punya bon contoh yang belum lunas; kelipatan 4 sudah lewat jatuh tempo.
+        $outstanding = $memberId % 2 === 0 ? min($limit, 12_000 + ($memberId % 5) * 4_000) : 0;
+        $overdue = $outstanding > 0 && $memberId % 4 === 0;
+
+        return [
+            'limit' => $limit,
+            'outstanding' => $outstanding,
+            'available' => max(0, $limit - $outstanding),
+            'open_bills' => $outstanding > 0 ? 1 + ($memberId % 3 === 0 ? 1 : 0) : 0,
+            'oldest_due_at' => $outstanding > 0 ? now()->addDays($overdue ? -3 : 9)->toDateString() : null,
+            'overdue' => $overdue,
+        ];
+    }
 }

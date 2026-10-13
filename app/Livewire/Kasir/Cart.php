@@ -3,13 +3,16 @@
 namespace App\Livewire\Kasir;
 
 use App\Services\CheckoutService;
+use App\Models\Member;
 use App\Services\CouponService;
+use App\Services\MemberService;
 use App\Services\ManualDiscountService;
 use App\Services\PromoEngine;
 use App\Services\ProductCatalog;
 use App\Services\ReceiptPdfService;
 use App\Services\ReceiptPresenter;
 use App\Services\SettingsService;
+use App\Support\MockData;
 use App\Support\PriceCalculator;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\On;
@@ -22,6 +25,8 @@ use Livewire\Component;
  * Isi keranjang: [productId => qty]; harga diambil ulang dari data barang.
  * Diskon manual (nominal/persen + alasan) dibatasi aturan diskon kasir
  * (pengaturan `discount`, lihat ManualDiscountService; admin boleh melewati batas) dan dipotong sebelum pajak.
+ * Metode bayar: tunai, QRIS/transfer, saldo tabungan anggota, atau bon (bayar nanti) — dua terakhir
+ * wajib memilih anggota; saldo dibaca dari data anggota, batas bon tahap ini dari MockData::memberCredit().
  */
 class Cart extends Component
 {
@@ -42,7 +47,20 @@ class Cart extends Component
     /** Ringkasan transaksi terakhir yang berhasil dibayar (untuk dialog sukses & struk). */
     public ?array $lastTransaction = null;
 
-    public const PAYMENT_METHODS = CheckoutService::PAYMENT_METHODS;
+    public const PAYMENT_METHODS = CheckoutService::PAYMENT_METHODS + ['tabungan' => 'Saldo tabungan', 'bon' => 'Bon (bayar nanti)'];
+
+    /** Metode yang memerlukan anggota. */
+    public const MEMBER_METHODS = ['tabungan', 'bon'];
+
+    /** Pilihan jatuh tempo bon (hari). */
+    public const BON_TERMS = [7 => '1 minggu', 14 => '2 minggu', 30 => '1 bulan'];
+
+    /** Anggota yang berbelanja (opsional; wajib untuk tabungan & bon). */
+    public ?int $memberId = null;
+
+    public string $memberSearch = '';
+
+    public int $bonDays = 14;
 
     /** Diskon manual yang diterapkan: ['type' => 'nominal'|'persen', 'value' => int, 'reason' => string]. */
     public ?array $discount = null;
@@ -130,6 +148,7 @@ class Cart extends Component
         $this->lastRemoved = null;
         $this->removeDiscount();
         $this->removeCoupon();
+        $this->clearMember();
     }
 
     public function editCoupon(): void
@@ -265,6 +284,47 @@ class Cart extends Component
         $this->paying = false;
     }
 
+    /** @return list<array<string, mixed>> hasil pencarian anggota aktif (maks. 6) */
+    #[Computed]
+    public function memberResults(): array
+    {
+        return mb_strlen(trim($this->memberSearch)) >= 2 ? app(MemberService::class)->search($this->memberSearch, 6) : [];
+    }
+
+    /** Anggota terpilih + saldo tabungan & status bon. */
+    #[Computed]
+    public function member(): ?array
+    {
+        $m = $this->memberId ? Member::active()->find($this->memberId) : null;
+
+        return $m ? MemberService::toArray($m) + ['credit' => MockData::memberCredit($m->id, $m->type)] : null;
+    }
+
+    public function selectMember(int $id): void
+    {
+        $this->memberId = Member::active()->whereKey($id)->exists() ? $id : null;
+        $this->memberSearch = '';
+        $this->resetValidation('memberId');
+        unset($this->member, $this->memberResults);
+    }
+
+    public function clearMember(): void
+    {
+        $this->reset('memberId', 'memberSearch');
+        unset($this->member);
+    }
+
+    /** Kekurangan bila saldo/batas bon tidak cukup (0 = cukup). */
+    public static function shortfall(string $method, ?array $member, int $total): int
+    {
+        return match (true) {
+            ! $member => 0,
+            $method === 'tabungan' => max(0, $total - (int) $member['balance']),
+            $method === 'bon' => max(0, $total - $member['credit']['available']),
+            default => 0,
+        };
+    }
+
     /**
      * Konfirmasi pembayaran: simpan transaksi ke database & kurangi stok
      * lewat CheckoutService (total dihitung ulang di server).
@@ -278,6 +338,29 @@ class Cart extends Component
 
         if ($this->paymentMethod !== 'tunai') {
             $this->paid = $summary['total'];
+        }
+
+        if (in_array($this->paymentMethod, self::MEMBER_METHODS, true)) {
+            $member = $this->member;
+            if (! $member) {
+                $this->addError('memberId', 'Pilih anggota yang membayar dengan '.mb_strtolower(self::PAYMENT_METHODS[$this->paymentMethod]).'.');
+
+                return;
+            }
+            if ($short = self::shortfall($this->paymentMethod, $member, $summary['total'])) {
+                $this->addError('memberId', ($this->paymentMethod === 'tabungan' ? 'Saldo tabungan kurang ' : 'Melebihi sisa batas bon sebesar ').'Rp'.number_format($short, 0, ',', '.').'.');
+
+                return;
+            }
+            if ($this->paymentMethod === 'bon' && $member['credit']['overdue']) {
+                $this->addError('memberId', 'Anggota masih punya bon yang lewat jatuh tempo. Minta dilunasi dulu.');
+
+                return;
+            }
+            // Tahap tampilan: transaksi tabungan & bon disimpan setelah backend pembayaran anggota tersedia.
+            $this->addError('paymentMethod', 'Pembayaran '.mb_strtolower(self::PAYMENT_METHODS[$this->paymentMethod]).' belum dapat disimpan (fitur sedang disiapkan).');
+
+            return;
         }
 
         $this->validate([
