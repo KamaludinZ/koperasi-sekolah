@@ -29,6 +29,17 @@ class ProductImportFormat
         'perbarui' => ['Hanya perbarui', 'Baris dengan kode baru dilewati.'],
     ];
 
+    /** Nama kolom lain yang sering dipakai → nama kolom baku. */
+    public const ALIASES = [
+        'kode_barang' => 'kode', 'barcode' => 'kode', 'sku' => 'kode',
+        'nama_barang' => 'nama', 'barang' => 'nama',
+        'harga' => 'harga_jual', 'harga_jual_rp' => 'harga_jual',
+        'harga_beli' => 'harga_modal', 'modal' => 'harga_modal',
+        'stok_awal' => 'stok', 'jumlah' => 'stok',
+        'min_stok' => 'batas_minimum', 'stok_minimum' => 'batas_minimum', 'minimum' => 'batas_minimum',
+        'unit' => 'satuan', 'status' => 'aktif',
+    ];
+
     /** Maksimal baris data per berkas. */
     public const MAX_ROWS = 2000;
 
@@ -139,5 +150,40 @@ class ProductImportFormat
     public static function isActive(string $value): bool
     {
         return $value === '' || in_array(mb_strtolower($value), self::YES, true);
+    }
+
+    /** Rapikan judul kolom: huruf kecil, tanpa BOM, spasi/strip → garis bawah, lalu terapkan alias. */
+    public static function normalizeHeader(string $header): string
+    {
+        $h = mb_strtolower(trim(str_replace("\xEF\xBB\xBF", '', $header)));
+        $h = trim(preg_replace('/[^a-z0-9]+/', '_', $h), '_');
+
+        return self::ALIASES[$h] ?? $h;
+    }
+
+    /**
+     * Petakan baris judul ke kolom baku.
+     *
+     * @param  list<string>  $headerRow
+     * @return array{map: array<int, string>, missing: list<string>, unknown: list<string>}
+     */
+    public static function mapHeaders(array $headerRow): array
+    {
+        $map = [];
+        $unknown = [];
+        foreach ($headerRow as $i => $raw) {
+            $col = self::normalizeHeader((string) $raw);
+            if ($col === '') {
+                continue;
+            }
+            if (isset(self::COLUMNS[$col]) && ! in_array($col, $map, true)) {
+                $map[$i] = $col;
+            } else {
+                $unknown[] = trim((string) $raw);
+            }
+        }
+        $missing = array_values(array_filter(array_keys(self::COLUMNS), fn ($c) => self::COLUMNS[$c][0] && ! in_array($c, $map, true)));
+
+        return ['map' => $map, 'missing' => $missing, 'unknown' => $unknown];
     }
 }

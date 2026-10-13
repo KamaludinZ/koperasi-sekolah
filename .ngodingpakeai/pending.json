@@ -1,6 +1,6 @@
 {
   "repo": "Koperasi Sekolah",
-  "generatedForCommit": "9cacc138aeed415c7c31adea0b2431931ca73a89",
+  "generatedForCommit": "c52d023d7812e01edd1653a70760b93e2dd87679",
   "files": [
     {
       "path": ".claude/skills/ngodingpakeai/SKILL.md",
@@ -121,6 +121,12 @@
       "reason": "needs_summary",
       "language": "php",
       "size": 1227
+    },
+    {
+      "path": "app/Http/Controllers/Barang/ProductImportController.php",
+      "reason": "new",
+      "language": "php",
+      "size": 927
     },
     {
       "path": "app/Http/Controllers/Barang/ProductListController.php",
@@ -610,7 +616,7 @@
     },
     {
       "path": "app/Models/Category.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 2537
     },
@@ -655,6 +661,18 @@
       "reason": "needs_summary",
       "language": "php",
       "size": 2555
+    },
+    {
+      "path": "app/Models/ProductImport.php",
+      "reason": "new",
+      "language": "php",
+      "size": 1465
+    },
+    {
+      "path": "app/Models/ProductImportRow.php",
+      "reason": "new",
+      "language": "php",
+      "size": 760
     },
     {
       "path": "app/Models/Promo.php",
@@ -885,6 +903,12 @@
       "size": 3178
     },
     {
+      "path": "app/Services/ProductImportService.php",
+      "reason": "new",
+      "language": "php",
+      "size": 4026
+    },
+    {
       "path": "app/Services/ProductListing.php",
       "reason": "needs_summary",
       "language": "php",
@@ -928,7 +952,7 @@
     },
     {
       "path": "app/Services/RetentionService.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 4396
     },
@@ -1426,9 +1450,15 @@
     },
     {
       "path": "database/migrations/2026_10_13_000016_restrict_category_delete_on_products.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 1440
+    },
+    {
+      "path": "database/migrations/2026_10_13_000017_create_product_imports_tables.php",
+      "reason": "new",
+      "language": "php",
+      "size": 3406
     },
     {
       "path": "database/seeders/ActivityLogSeeder.php",
@@ -2140,9 +2170,9 @@
     },
     {
       "path": "routes/web.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 19999
+      "size": 20223
     },
     {
       "path": "tests/Feature/Anggota/IndexTest.php",
@@ -2319,6 +2349,12 @@
       "size": 5801
     },
     {
+      "path": "tests/Feature/Barang/ImportUploadEndpointTest.php",
+      "reason": "new",
+      "language": "php",
+      "size": 3266
+    },
+    {
       "path": "tests/Feature/Barang/ImportUploadPageTest.php",
       "reason": "needs_summary",
       "language": "php",
@@ -2392,7 +2428,7 @@
     },
     {
       "path": "tests/Feature/Database/CategoryDeleteGuardTest.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 2772
     },
@@ -2434,7 +2470,7 @@
     },
     {
       "path": "tests/Feature/Database/RetentionCleanupTest.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 5202
     },
@@ -2452,7 +2488,7 @@
     },
     {
       "path": "tests/Feature/Database/SoftDeleteRetentionTest.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 4423
     },

@@ -29,14 +29,14 @@ class ImportUploadEndpointTest extends TestCase
     public function test_upload_stores_file_privately_and_records_import(): void
     {
         $res = $this->postJson('/barang/impor', ['berkas' => $this->csv('data barang.csv'), 'mode' => 'perbarui', 'perbarui_stok' => true])
-            ->assertCreated()->assertJsonPath('data.status', 'diunggah')->assertJsonPath('data.mode', 'perbarui')
+            ->assertCreated()->assertJsonPath('data.status', 'pratinjau')->assertJsonPath('data.total_rows', 2)->assertJsonPath('data.mode', 'perbarui')
             ->assertJsonPath('data.update_stock', true)->assertJsonPath('data.file_name', 'data barang.csv')->assertJsonPath('data.user', 'Admin Koperasi');
 
         $import = ProductImport::findOrFail($res->json('data.id'));
         Storage::disk('local')->assertExists($import->file_path);
         $this->assertStringStartsWith('imports/'.now()->format('Y/m').'/', $import->file_path);
         $this->assertStringEndsWith('.csv', $import->file_path);
-        $this->assertSame('import.uploaded', ActivityLog::latest('id')->value('event'));
+        $this->assertTrue(ActivityLog::where('event', 'import.uploaded')->exists());
     }
 
     public function test_update_stock_ignored_for_add_only_mode(): void

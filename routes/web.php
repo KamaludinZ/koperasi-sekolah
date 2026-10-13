@@ -185,6 +185,8 @@ Route::middleware('menu:barang')->group(function () {
     });
     Route::post('/barang/impor', [ProductImportController::class, 'store'])
         ->middleware(['can:kelola-katalog', 'throttle:10,1'])->name('barang.impor.store');
+    Route::get('/barang/impor/{import}/baris', [ProductImportController::class, 'rows'])->whereNumber('import')
+        ->middleware('can:kelola-katalog')->name('barang.impor.rows');
     Route::get('/barang/impor/templat/{format}', ImportTemplateController::class)->whereIn('format', ['csv', 'xlsx'])->name('barang.impor.templat');
     Route::get('/barang/impor', Barang\Import::class)->middleware('peran:admin,pengurus')->name('barang.impor');
     Route::get('/barang/impor/{import}/pratinjau', Barang\ImportPreview::class)->whereNumber('import')
