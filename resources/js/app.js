@@ -1,8 +1,10 @@
 import './bootstrap';
 import salesChart from './sales-chart';
+import registerCopy from './clipboard';
 
 document.addEventListener('alpine:init', () => {
     window.Alpine.data('salesChart', salesChart);
+    registerCopy(window.Alpine);
 });
 
 // Gagal terhubung / galat server saat aksi Livewire (mis. menyimpan) → tampilkan toast merah.

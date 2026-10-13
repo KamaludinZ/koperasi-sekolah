@@ -55,8 +55,30 @@ class ImportHistoryPageTest extends TestCase
         $c->assertFileDownloaded('baris-bermasalah-seragam-baru.csv');
 
         Livewire::test(ImportDetail::class, ['import' => 46])->assertSee('Berkas tidak dapat dibaca')->assertSee('Judul kolom tidak dikenali')
-            ->assertDontSee('Unduh CSV');
+            ->assertDontSee('Unduh baris bermasalah');
         Livewire::test(ImportDetail::class, ['import' => 49])->assertSee('Semua baris berhasil disimpan.');
         Livewire::test(ImportDetail::class, ['import' => 50])->assertSee('Buka pratinjau');
+    }
+
+    public function test_summary_and_problem_rows_can_be_copied(): void
+    {
+        $c = Livewire::test(ImportDetail::class, ['import' => 48]);
+        $this->assertSame('Impor barang seragam-baru.csv (08 Okt 2026 11:15, oleh Pak Dedi) — Sebagian tersimpan. 18 baris: 14 baru, 0 diperbarui, 1 dilewati, 3 gagal.',
+            $c->instance()->summaryText);
+        $tsv = explode("\n", $c->instance()->problemsTsv);
+        $this->assertSame("baris\tkode\tnama\tstatus\talasan", $tsv[0]);
+        $this->assertSame("6\tSRG010\tSabuk Pramuka\tgagal\tKategori \"Pramuka\" belum ada.", $tsv[1]);
+        $this->assertCount(5, $tsv);
+        $c->assertSee('Salin ringkasan')->assertSee('Salin baris')->assertSee('$copy', false);
+
+        $failed = Livewire::test(ImportDetail::class, ['import' => 46]);
+        $this->assertStringContainsString('Judul kolom tidak dikenali', $failed->instance()->summaryText);
+        $failed->assertDontSee('Salin baris');
+    }
+
+    public function test_result_report_downloads_as_csv_and_excel(): void
+    {
+        Livewire::test(ImportDetail::class, ['import' => 48])->call('download', 'csv')->assertFileDownloaded('hasil-impor-seragam-baru.csv');
+        Livewire::test(ImportDetail::class, ['import' => 48])->call('download', 'xlsx')->assertFileDownloaded('hasil-impor-seragam-baru.xlsx');
     }
 }

@@ -1,6 +1,6 @@
 {
   "repo": "Koperasi Sekolah",
-  "generatedForCommit": "b1da6bbf8c4f27a06f2da8b61707fa1c6f94d944",
+  "generatedForCommit": "187ab400bb3363bb1b2f6f987ef84f067cee8f5b",
   "files": [
     {
       "path": ".claude/skills/ngodingpakeai/SKILL.md",
@@ -351,8 +351,20 @@
       "size": 2667
     },
     {
-      "path": "app/Livewire/Barang/ImportPreview.php",
+      "path": "app/Livewire/Barang/ImportDetail.php",
       "reason": "new",
+      "language": "php",
+      "size": 1959
+    },
+    {
+      "path": "app/Livewire/Barang/ImportHistory.php",
+      "reason": "new",
+      "language": "php",
+      "size": 2360
+    },
+    {
+      "path": "app/Livewire/Barang/ImportPreview.php",
+      "reason": "needs_summary",
       "language": "php",
       "size": 8857
     },
@@ -948,7 +960,7 @@
       "path": "app/Support/MockData.php",
       "reason": "changed",
       "language": "php",
-      "size": 24742
+      "size": 26604
     },
     {
       "path": "app/Support/OpeningHours.php",
@@ -970,7 +982,7 @@
     },
     {
       "path": "app/Support/ProductImportFormat.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 6308
     },
@@ -1552,7 +1564,7 @@
     },
     {
       "path": "resources/views/components/toasts.blade.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 3592
     },
@@ -1714,13 +1726,25 @@
     },
     {
       "path": "resources/views/livewire/barang/catalog.blade.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 20464
+      "size": 20689
+    },
+    {
+      "path": "resources/views/livewire/barang/import-detail.blade.php",
+      "reason": "new",
+      "language": "php",
+      "size": 6377
+    },
+    {
+      "path": "resources/views/livewire/barang/import-history.blade.php",
+      "reason": "new",
+      "language": "php",
+      "size": 6772
     },
     {
       "path": "resources/views/livewire/barang/import-preview.blade.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 11820
     },
@@ -1974,7 +1998,7 @@
       "path": "routes/web.php",
       "reason": "changed",
       "language": "php",
-      "size": 17274
+      "size": 17577
     },
     {
       "path": "tests/Feature/Anggota/IndexTest.php",
@@ -2133,10 +2157,16 @@
       "size": 5063
     },
     {
-      "path": "tests/Feature/Barang/ImportPreviewPageTest.php",
+      "path": "tests/Feature/Barang/ImportHistoryPageTest.php",
       "reason": "new",
       "language": "php",
-      "size": 5796
+      "size": 2830
+    },
+    {
+      "path": "tests/Feature/Barang/ImportPreviewPageTest.php",
+      "reason": "changed",
+      "language": "php",
+      "size": 5801
     },
     {
       "path": "tests/Feature/Barang/ImportUploadPageTest.php",
