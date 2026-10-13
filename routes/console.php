@@ -84,3 +84,11 @@ Schedule::call(fn () => \Illuminate\Support\Facades\Cache::put('health:scheduler
 // Pemeliharaan antrean: hapus catatan pekerjaan gagal & batch lama.
 Schedule::command('queue:prune-failed', ['--hours' => config('koperasi.failed_jobs_hours', 720)])->dailyAt('03:00');
 Schedule::command('queue:prune-batches', ['--hours' => 48])->dailyAt('03:05');
+
+// Riwayat kesehatan sistem: cuplikan tiap 5 menit (Sistem → Kesehatan: strip 24 jam & gangguan).
+Artisan::command('kesehatan:periksa', function () {
+    $row = \App\Services\HealthCheckService::record();
+    $this->info("Kesehatan sistem: {$row->status} ({$row->duration_ms} ms).");
+})->purpose('Periksa & catat kesehatan sistem');
+
+Schedule::command('kesehatan:periksa')->everyFiveMinutes()->withoutOverlapping();

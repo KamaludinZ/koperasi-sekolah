@@ -29,6 +29,13 @@ class Health extends Component
         return SystemHealth::report();
     }
 
+    /** Strip 24 jam per komponen dari riwayat pemeriksaan. */
+    #[Computed]
+    public function history(): array
+    {
+        return SystemHealth::history(24);
+    }
+
     public function recheck(): void
     {
         unset($this->report);

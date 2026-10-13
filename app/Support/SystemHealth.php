@@ -22,6 +22,11 @@ class SystemHealth
         return HealthCheckService::report();
     }
 
+    public static function history(int $hours = 24): array
+    {
+        return HealthCheckService::history($hours);
+    }
+
     public static function bytes(int|float $b): string
     {
         return HealthCheckService::bytes($b);

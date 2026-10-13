@@ -28,7 +28,7 @@ class HealthCheckService
     public const DISK_FAIL = 5;
 
     /** @return array{status: string, checked_at: string, checks: list<array>, metrics: array, incidents: list<array>} */
-    public static function report(): array
+    public static function report(bool $withHistory = true): array
     {
         $checks = [self::database(), self::cache(), self::storage(), self::queue(), self::scheduler(), self::backup(), self::app()];
         $worst = collect($checks)->pluck('status')->contains('gangguan') ? 'gangguan'
@@ -39,8 +39,80 @@ class HealthCheckService
             'checked_at' => now()->toDateTimeString(),
             'checks' => $checks,
             'metrics' => self::metrics(),
-            'incidents' => self::incidents(),
+            'incidents' => $withHistory ? self::incidents() : [],
         ];
+    }
+
+    /** Peringkat status (makin besar makin buruk). */
+    public const RANK = ['ok' => 0, 'peringatan' => 1, 'gangguan' => 2];
+
+    /** Simpan cuplikan pemeriksaan saat ini ke riwayat; bersihkan riwayat > 30 hari. */
+    public static function record(): \App\Models\HealthCheck
+    {
+        $t = microtime(true);
+        $r = self::report(withHistory: false);
+        $row = \App\Models\HealthCheck::create([
+            'status' => $r['status'],
+            'results' => collect($r['checks'])->mapWithKeys(fn ($c) => [$c['key'] => ['status' => $c['status'], 'detail' => $c['detail']]])->all(),
+            'duration_ms' => (int) round((microtime(true) - $t) * 1000),
+        ]);
+        \App\Models\HealthCheck::where('created_at', '<', now()->subDays(30))->delete();
+
+        return $row;
+    }
+
+    /**
+     * Strip 24 jam per komponen: status terburuk tiap jam (null = tidak ada data).
+     *
+     * @return array<string, list<array{hour: string, status: ?string}>>
+     */
+    public static function history(int $hours = 24): array
+    {
+        if (! Schema::hasTable('health_checks')) {
+            return [];
+        }
+        $start = now()->startOfHour()->subHours($hours - 1);
+        $rows = \App\Models\HealthCheck::where('created_at', '>=', $start)->orderBy('created_at')->get(['results', 'created_at']);
+        $out = [];
+        foreach ($rows as $row) {
+            $h = $row->created_at->format('Y-m-d H:00');
+            foreach ($row->results as $key => $res) {
+                $prev = $out[$key][$h] ?? null;
+                if ($prev === null || self::RANK[$res['status']] > self::RANK[$prev]) {
+                    $out[$key][$h] = $res['status'];
+                }
+            }
+        }
+
+        return collect($out)->map(function ($byHour) use ($start, $hours) {
+            return collect(range(0, $hours - 1))->map(fn ($i) => ['hour' => $start->copy()->addHours($i)->format('Y-m-d H:00'),
+                'status' => $byHour[$start->copy()->addHours($i)->format('Y-m-d H:00')] ?? null])->all();
+        })->all();
+    }
+
+    /** Gangguan dari riwayat: rentang waktu komponen tidak normal (mulai → pulih), 30 hari terakhir. */
+    private static function historyIncidents(): array
+    {
+        if (! Schema::hasTable('health_checks')) {
+            return [];
+        }
+        $open = [];
+        $out = [];
+        foreach (\App\Models\HealthCheck::where('created_at', '>=', now()->subDays(30))->orderBy('created_at')->orderBy('id')->get() as $row) {
+            foreach ($row->results as $key => $res) {
+                if ($res['status'] !== 'ok' && ! isset($open[$key])) {
+                    $open[$key] = ['at' => $row->created_at->toDateTimeString(), 'check' => $key, 'status' => $res['status'], 'message' => $res['detail'], 'resolved_at' => null];
+                } elseif ($res['status'] !== 'ok' && self::RANK[$res['status']] > self::RANK[$open[$key]['status']]) {
+                    $open[$key]['status'] = $res['status'];
+                    $open[$key]['message'] = $res['detail'];
+                } elseif ($res['status'] === 'ok' && isset($open[$key])) {
+                    $out[] = [...$open[$key], 'resolved_at' => $row->created_at->toDateTimeString()];
+                    unset($open[$key]);
+                }
+            }
+        }
+
+        return [...$out, ...array_values($open)];
     }
 
     private static function check(string $key, string $label, string $status, string $detail, array $meta = []): array
@@ -189,6 +261,13 @@ class HealthCheckService
                     $rows->push(['at' => (string) $g->max('failed_at'), 'check' => 'queue', 'status' => 'peringatan',
                         'message' => count($g).' tugas antrean gagal.', 'resolved_at' => null]);
                 });
+        }
+
+        // Gangguan komponen dari riwayat pemeriksaan (antrean & cadangan sudah tercakup di atas).
+        foreach (self::historyIncidents() as $i) {
+            if (! in_array($i['check'], ['backup'], true)) {
+                $rows->push($i);
+            }
         }
 
         return $rows->sortByDesc('at')->take(10)->values()->all();

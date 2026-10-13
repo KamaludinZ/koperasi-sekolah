@@ -59,6 +59,32 @@
             @endforeach
         </section>
 
+        @php $hist = $this->history; $labels = collect($r['checks'])->pluck('label', 'key'); @endphp
+        <section class="rounded-2xl border border-stone-200 bg-white p-5" aria-labelledby="hist-title">
+            <div class="flex flex-wrap items-center justify-between gap-2">
+                <h2 id="hist-title" class="font-semibold">Riwayat 24 jam</h2>
+                <p class="flex gap-3 text-[11px] text-stone-500"><span><span class="mr-1 inline-block size-2 rounded-sm bg-emerald-500"></span>normal</span><span><span class="mr-1 inline-block size-2 rounded-sm bg-amber-400"></span>perhatian</span><span><span class="mr-1 inline-block size-2 rounded-sm bg-red-500"></span>gangguan</span><span><span class="mr-1 inline-block size-2 rounded-sm bg-stone-200"></span>tidak ada data</span></p>
+            </div>
+            @if ($hist)
+                <div class="mt-3 space-y-1.5" data-health-history>
+                    @foreach ($hist as $key => $cells)
+                        <div class="grid grid-cols-[8rem_minmax(0,1fr)] items-center gap-3 text-xs">
+                            <span class="truncate text-stone-600">{{ $labels[$key] ?? $key }}</span>
+                            <ol class="flex gap-0.5" aria-label="{{ $labels[$key] ?? $key }} 24 jam terakhir">
+                                @foreach ($cells as $cell)
+                                    <li class="flex-1" title="{{ \Illuminate\Support\Carbon::parse($cell['hour'])->format('H:00') }} — {{ $cell['status'] ? \App\Support\SystemHealth::STATUSES[$cell['status']] : 'tidak ada data' }}">
+                                        <span @class(['block h-4 rounded-sm', 'bg-emerald-500' => $cell['status'] === 'ok', 'bg-amber-400' => $cell['status'] === 'peringatan', 'bg-red-500' => $cell['status'] === 'gangguan', 'bg-stone-200' => $cell['status'] === null])></span>
+                                    </li>
+                                @endforeach
+                            </ol>
+                        </div>
+                    @endforeach
+                </div>
+            @else
+                <p class="mt-2 text-sm text-stone-500">Belum ada riwayat. Pemeriksaan otomatis berjalan tiap 5 menit setelah penjadwal aktif.</p>
+            @endif
+        </section>
+
         <div class="grid gap-5 lg:grid-cols-[minmax(0,1fr)_22rem]">
             <section class="rounded-2xl border border-stone-200 bg-white p-5" aria-labelledby="inc-title">
                 <h2 id="inc-title" class="font-semibold">Gangguan terbaru</h2>
