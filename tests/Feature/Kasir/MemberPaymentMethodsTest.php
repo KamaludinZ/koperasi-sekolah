@@ -48,8 +48,11 @@ class MemberPaymentMethodsTest extends TestCase
 
         $rich = Member::factory()->create(['balance' => 50000]);
         $c->call('selectMember', $rich->id)->call('pay')->assertHasNoErrors('memberId')->assertHasErrors('savingsConsent');
-        $c->set('savingsConsent', true)->call('pay')->assertHasNoErrors('savingsConsent')->assertHasErrors('paymentMethod');
-        $this->assertSame(0, Transaction::count()); // tahap tampilan: belum disimpan
+        $c->set('savingsConsent', true)->call('pay')->assertHasNoErrors()->assertSee('Sisa saldo')->assertSee('Rp42.000');
+        $tx = Transaction::sole();
+        $this->assertSame(['tabungan', $rich->id, 8000, 0], [$tx->payment_method, $tx->member_id, (int) $tx->paid, (int) $tx->change]);
+        $this->assertSame(42000.0, (float) $rich->fresh()->balance);
+        $this->assertNull($c->get('memberId'));
         $this->assertSame(0, Cart::shortfall('tabungan', ['balance' => 50000], 8000));
     }
 

@@ -417,10 +417,12 @@ class Cart extends Component
 
                 return;
             }
-            // Tahap tampilan: transaksi tabungan & bon disimpan setelah backend pembayaran anggota tersedia.
-            $this->addError('paymentMethod', 'Pembayaran '.mb_strtolower(self::PAYMENT_METHODS[$this->paymentMethod]).' belum dapat disimpan (fitur sedang disiapkan).');
+            if ($this->paymentMethod === 'bon') {
+                // Bon disimpan setelah service bon tersedia.
+                $this->addError('paymentMethod', 'Pembayaran '.mb_strtolower(self::PAYMENT_METHODS[$this->paymentMethod]).' belum dapat disimpan (fitur sedang disiapkan).');
 
-            return;
+                return;
+            }
         }
 
         $this->validate([
@@ -433,11 +435,13 @@ class Cart extends Component
 
         try {
             // Diskon dicek ulang di server (isi keranjang bisa berubah setelah diskon persen diterapkan).
-            $transaction = $checkout->checkout($this->items, $this->paymentMethod, $this->paid, auth()->id(), null, $this->discount, $this->appliedCoupon);
+            $memberId = in_array($this->paymentMethod, self::MEMBER_METHODS, true) ? $this->memberId : null;
+            $transaction = $checkout->checkout($this->items, $this->paymentMethod, $this->paid, auth()->id(), $memberId, $this->discount, $this->appliedCoupon);
         } catch (ValidationException $e) {
             foreach ($e->errors() as $field => $messages) {
                 $this->addError(match ($field) {
                     'payment_method' => 'paymentMethod',
+                    'member_id' => 'memberId',
                     'discount', 'coupon' => 'paid', // tampil di panel bayar
                     default => $field,
                 }, (['discount' => 'Diskon: ', 'coupon' => 'Kupon: '][$field] ?? '').implode(' ', $messages));

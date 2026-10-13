@@ -50,7 +50,15 @@ class ReceiptPresenter
             'total' => (int) $transaction->total,
             'paid' => (int) $transaction->paid,
             'change' => (int) $transaction->change,
-        ];
+        ] + $this->savingsInfo($transaction);
+    }
+
+    /** Saldo awal & akhir untuk transaksi bermetode tabungan. */
+    private function savingsInfo(Transaction $transaction): array
+    {
+        $entry = $transaction->payment_method === 'tabungan' ? app(SavingsPaymentService::class)->forTransaction($transaction->id) : null;
+
+        return $entry ? ['balance_before' => (int) round((float) $entry->balance_before), 'balance_after' => (int) round((float) $entry->balance_after)] : [];
     }
 
     /**

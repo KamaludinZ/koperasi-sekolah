@@ -1,6 +1,6 @@
 {
   "repo": "Koperasi Sekolah",
-  "generatedForCommit": "f9236b5ded5d033c9ba9033c37f0829a6e75f082",
+  "generatedForCommit": "8a25b860e43b3ea19e5ef607fc220d496afa0d15",
   "files": [
     {
       "path": ".claude/skills/ngodingpakeai/SKILL.md",
@@ -634,13 +634,13 @@
     },
     {
       "path": "app/Livewire/Transaksi/ReturnStatusNotice.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 1738
     },
     {
       "path": "app/Livewire/Transaksi/Returns.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 9203
     },
@@ -718,9 +718,27 @@
     },
     {
       "path": "app/Models/Member.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 3140
+      "size": 3419
+    },
+    {
+      "path": "app/Models/MemberCredit.php",
+      "reason": "new",
+      "language": "php",
+      "size": 2414
+    },
+    {
+      "path": "app/Models/MemberCreditAllocation.php",
+      "reason": "new",
+      "language": "php",
+      "size": 710
+    },
+    {
+      "path": "app/Models/MemberCreditPayment.php",
+      "reason": "new",
+      "language": "php",
+      "size": 1109
     },
     {
       "path": "app/Models/Notification.php",
@@ -784,9 +802,9 @@
     },
     {
       "path": "app/Models/SavingsTransaction.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 2293
+      "size": 2321
     },
     {
       "path": "app/Models/Setting.php",
@@ -820,9 +838,9 @@
     },
     {
       "path": "app/Models/Transaction.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 2644
+      "size": 2844
     },
     {
       "path": "app/Models/TransactionDiscount.php",
@@ -1635,6 +1653,12 @@
       "size": 1594
     },
     {
+      "path": "database/migrations/2026_10_13_000024_create_member_credits_tables.php",
+      "reason": "new",
+      "language": "php",
+      "size": 5367
+    },
+    {
       "path": "database/seeders/ActivityLogSeeder.php",
       "reason": "needs_summary",
       "language": "php",
@@ -2158,7 +2182,7 @@
     },
     {
       "path": "resources/views/livewire/kasir/index.blade.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 1344
     },
@@ -2386,13 +2410,13 @@
     },
     {
       "path": "resources/views/livewire/transaksi/return-status-notice.blade.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 2684
     },
     {
       "path": "resources/views/livewire/transaksi/returns.blade.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 18053
     },
@@ -2443,6 +2467,12 @@
       "reason": "needs_summary",
       "language": "php",
       "size": 2310
+    },
+    {
+      "path": "tests/Feature/Anggota/MemberCreditSchemaTest.php",
+      "reason": "new",
+      "language": "php",
+      "size": 5249
     },
     {
       "path": "tests/Feature/Anggota/MemberEndpointTest.php",
@@ -3286,7 +3316,7 @@
     },
     {
       "path": "tests/Feature/Transaksi/ReturnStatusNoticeTest.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 3197
     },

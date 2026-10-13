@@ -74,7 +74,7 @@ class TransactionListController extends Controller
             'periode' => ['nullable', Rule::in(array_keys(TransactionHistory::PRESETS))],
             'dari' => ['nullable', 'date_format:Y-m-d'],
             'sampai' => ['nullable', 'date_format:Y-m-d', 'after_or_equal:dari'],
-            'metode' => ['nullable', Rule::in(array_keys(CheckoutService::PAYMENT_METHODS))],
+            'metode' => ['nullable', Rule::in(array_keys(CheckoutService::PAYMENT_LABELS))],
             ...$extra,
         ], [
             'sampai.after_or_equal' => 'Tanggal akhir tidak boleh sebelum tanggal awal.',

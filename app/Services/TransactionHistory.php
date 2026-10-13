@@ -210,7 +210,7 @@ class TransactionHistory
             'discount' => (int) round((float) $rows->sum('discount')),
             'discounted' => (int) $rows->sum('discounted'),
             'average' => $count ? (int) round($total / $count) : 0,
-            'by_method' => collect(CheckoutService::PAYMENT_METHODS)
+            'by_method' => collect(CheckoutService::PAYMENT_LABELS)
                 ->map(function ($label, $key) use ($rows, $total) {
                     $sum = (int) round((float) ($rows[$key]->total ?? 0));
 
@@ -221,6 +221,8 @@ class TransactionHistory
                         'share' => $total > 0 ? (int) round($sum / $total * 100) : 0,
                     ];
                 })
+                // Tunai & QRIS selalu tampil; tabungan/bon hanya bila dipakai.
+                ->filter(fn ($m, $key) => isset(CheckoutService::PAYMENT_METHODS[$key]) || $m['count'] > 0)
                 ->all(),
         ];
     }

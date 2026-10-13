@@ -23,7 +23,8 @@ class CheckoutController extends Controller
             'items' => ['required', 'array', 'min:1', 'max:200'],
             'items.*.product_id' => ['required', 'integer', 'distinct'],
             'items.*.quantity' => ['required', 'integer', 'min:1', 'max:10000'],
-            'payment_method' => ['required', Rule::in(array_keys(CheckoutService::PAYMENT_METHODS))],
+            'payment_method' => ['required', Rule::in(CheckoutService::CHECKOUT_METHODS)],
+            'member_id' => ['nullable', 'integer', 'required_if:payment_method,tabungan'],
             'paid' => ['nullable', 'integer', 'min:0', 'required_if:payment_method,tunai'],
             'discount' => ['nullable', 'array:type,value,reason'],
             'discount.type' => ['required_with:discount', Rule::in(['persen', 'nominal'])],
@@ -37,7 +38,7 @@ class CheckoutController extends Controller
             $data['payment_method'],
             $data['paid'] ?? null,
             $request->user()?->id,
-            null,
+            $data['member_id'] ?? null,
             $data['discount'] ?? null,
             $data['coupon'] ?? null,
         );

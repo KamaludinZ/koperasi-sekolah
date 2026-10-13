@@ -27,6 +27,7 @@ class CheckoutService
         private ManualDiscountService $manualDiscounts,
         private PromoEngine $promos,
         private CouponService $coupons,
+        private SavingsPaymentService $savings,
     ) {}
 
     public const PAYMENT_METHODS = ['tunai' => 'Tunai', 'qris' => 'QRIS / Transfer'];
@@ -36,6 +37,9 @@ class CheckoutService
 
     /** Label semua metode bayar untuk struk, riwayat, dan lencana. */
     public const PAYMENT_LABELS = self::PAYMENT_METHODS + self::MEMBER_PAYMENT_METHODS;
+
+    /** Metode yang bisa disimpan lewat checkout (bon menyusul bersama service bon). */
+    public const CHECKOUT_METHODS = ['tunai', 'qris', 'tabungan'];
 
     /**
      * @param  array<int, int>  $items  [productId => quantity]
@@ -53,8 +57,11 @@ class CheckoutService
         if ($items === []) {
             throw ValidationException::withMessages(['items' => 'Keranjang masih kosong.']);
         }
-        if (! array_key_exists($paymentMethod, self::PAYMENT_METHODS)) {
+        if (! in_array($paymentMethod, self::CHECKOUT_METHODS, true)) {
             throw ValidationException::withMessages(['payment_method' => 'Metode bayar tidak dikenal.']);
+        }
+        if (array_key_exists($paymentMethod, self::MEMBER_PAYMENT_METHODS) && ! $memberId) {
+            throw ValidationException::withMessages(['member_id' => 'Pilih anggota yang membayar dengan '.mb_strtolower(self::PAYMENT_LABELS[$paymentMethod]).'.']);
         }
 
         return DB::transaction(function () use ($items, $paymentMethod, $paid, $userId, $memberId, $manualDiscount, $couponCode) {
@@ -128,6 +135,11 @@ class CheckoutService
                 'item_count' => array_sum(array_column($lines, 'quantity')),
             ]);
 
+            if ($paymentMethod === 'tabungan') {
+                // Saldo dipotong di transaksi DB yang sama: saldo kurang → seluruh penjualan dibatalkan.
+                $this->savings->charge($memberId, $total, $transaction, $userId);
+            }
+
             foreach ($promo['applied'] as $applied) {
                 $transaction->discounts()->create([
                     'source' => 'promo', 'promo_id' => $applied['id'], 'label' => $applied['name'], 'amount' => $applied['saving'],
@@ -167,7 +179,7 @@ class CheckoutService
             }
 
             AuditLog::record('sale.created', 'transaksi',
-                "Penjualan {$transaction->invoice_number}: ".count($lines).' jenis barang, '.self::PAYMENT_METHODS[$paymentMethod],
+                "Penjualan {$transaction->invoice_number}: ".count($lines).' jenis barang, '.self::PAYMENT_LABELS[$paymentMethod],
                 ['type' => 'transaction', 'id' => $transaction->id, 'label' => $transaction->invoice_number],
                 [
                     'items' => array_map(fn ($l) => ['name' => $l['product']->name, 'qty' => $l['quantity'], 'subtotal' => $l['subtotal']], $lines),
