@@ -3,6 +3,7 @@
     (dari Livewire: $this->dispatch('toast', ...)) atau window.dispatchEvent(new CustomEvent('toast', {detail})).
     Opsional `action` {label, event, params} → tombol yang memicu event Livewire (mis. Urungkan).
     Berhasil hilang sendiri setelah 4 detik; gagal/beraksi bertahan 8 detik atau sampai ditutup.
+    Toast setelah pindah halaman: session()->flash('toast', ['type' => ..., 'message' => ...]).
 --}}
 <div x-data="{
         items: [],
@@ -15,6 +16,7 @@
         remove(id) { this.items = this.items.filter(i => i.id !== id) },
         run(t) { window.Livewire.dispatch(t.action.event, t.action.params || {}); this.remove(t.id) },
      }"
+     @if (session('toast')) x-init="push(@js(session('toast')))" @endif
      x-on:toast.window="push($event.detail)"
      x-on:focus-first-error.window="$nextTick(() => setTimeout(() => {
         const el = document.querySelector('.text-red-600')?.closest('label, li, section, div')?.querySelector('input, textarea, select');

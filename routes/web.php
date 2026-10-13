@@ -153,6 +153,8 @@ Route::middleware('menu:barang')->group(function () {
     Route::get('/barang/kategori', Barang\Catalog::class)->name('barang.kategori');
     Route::get('/barang/impor/templat/{format}', ImportTemplateController::class)->whereIn('format', ['csv', 'xlsx'])->name('barang.impor.templat');
     Route::get('/barang/impor', Barang\Import::class)->middleware('peran:admin,pengurus')->name('barang.impor');
+    Route::get('/barang/impor/{import}/pratinjau', Barang\ImportPreview::class)->whereNumber('import')
+        ->middleware('peran:admin,pengurus')->name('barang.impor.pratinjau');
     Route::get('/barang/daftar', ProductListController::class)
         ->middleware('throttle:120,1')
         ->name('barang.list');

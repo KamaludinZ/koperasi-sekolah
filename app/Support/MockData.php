@@ -440,7 +440,10 @@ class MockData
      */
     public static function importHistory(): array
     {
-        return [...session('mock.imports', []), ...self::seedImports()];
+        $session = collect(session('mock.imports', []));
+
+        return $session->concat(collect(self::seedImports())->whereNotIn('id', $session->pluck('id')))
+            ->sortByDesc('created_at')->values()->all();
     }
 
     private static function seedImports(): array
@@ -475,5 +478,66 @@ class MockData
         session(['mock.imports' => [$import, ...session('mock.imports', [])]]);
 
         return $import;
+    }
+
+    /**
+     * Baris berkas impor tiruan (setelah dibaca). Kontrak backend: GET /barang/impor/{id}/baris →
+     * {line, values: {kolom: teks}, skipped}. Suntingan & lewati disimpan di session.
+     *
+     * @return list<array{line: int, values: array<string, string>, skipped: bool}>
+     */
+    public static function importRows(int $importId): array
+    {
+        $rows = session("mock.import_rows.{$importId}");
+        if ($rows !== null) {
+            return $rows;
+        }
+
+        $raw = [
+            ['ATK001', 'Buku Tulis 38 Lembar', 'Alat Tulis', '4.500', '3200', '120', '20', 'pcs', 'ya'],
+            ['ATK002', 'Pulpen Hitam', 'Alat Tulis', '3000', '2400', '85', '20', 'pcs', 'ya'],
+            ['atk010', 'Spidol Papan Tulis', 'Alat Tulis', '8000', '6500', '24', '5', 'pcs', 'ya'],
+            ['ATK011', 'Map Plastik', 'Alat Tulis', 'Rp 2.500', '1800', '50', '10', 'pcs', ''],
+            ['MKN004', 'Wafer Coklat', 'Makanan', '2500', '2000', '40', '10', 'bks', 'ya'],
+            ['MKN005', 'Kacang Atom', 'Snack', '2000', '1500', '30', '10', 'bks', 'ya'],
+            ['MNM004', 'Jus Jeruk Kotak', 'Minuman', '5000', '4000', '12', '6', 'kotak', 'ya'],
+            ['MNM005', '', 'Minuman', '3000', '2500', '24', '6', 'btl', 'ya'],
+            ['MNM006', 'Teh Botol', 'Minuman', 'tiga ribu', '2500', '24', '6', 'btl', 'ya'],
+            ['SRG004', 'Bet Lokasi', 'Seragam', '6000', '4500', '40', '10', 'pcs', 'ya'],
+            ['SRG005', 'Kaos Kaki Putih', 'Seragam', '9000', '9500', '20', '5', 'pasang', 'ya'],
+            ['ATK010', 'Spidol Papan Tulis Biru', 'Alat Tulis', '8000', '6500', '12', '5', 'pcs', 'ya'],
+            ['SRG002', 'Topi Sekolah', 'Seragam', '20000', '16000', '4', '5', 'pcs', 'tidak'],
+        ];
+
+        return array_map(fn ($r, $i) => [
+            'line' => $i + 2,
+            'values' => array_combine(ProductImportFormat::headers(), $r),
+            'skipped' => false,
+        ], $raw, array_keys($raw));
+    }
+
+    /** Simpan suntingan satu baris atau tanda lewati (session). */
+    public static function updateImportRow(int $importId, int $line, ?array $values = null, ?bool $skipped = null): void
+    {
+        $rows = array_map(function ($r) use ($line, $values, $skipped) {
+            if ($r['line'] !== $line) {
+                return $r;
+            }
+
+            return [...$r, 'values' => $values ?? $r['values'], 'skipped' => $skipped ?? $r['skipped']];
+        }, self::importRows($importId));
+        session(["mock.import_rows.{$importId}" => $rows]);
+    }
+
+    /** Tandai impor tiruan selesai dengan hasil hitungannya (session). */
+    public static function finishImport(int $importId, array $counts): void
+    {
+        $import = collect(self::importHistory())->firstWhere('id', $importId);
+        if (! $import) {
+            return;
+        }
+        $status = $counts['failed'] > 0 || $counts['skipped'] > 0 ? 'sebagian' : 'selesai';
+        $done = [...$import, ...$counts, 'status' => $status, 'finished_at' => now()->toDateTimeString()];
+        session(['mock.imports' => collect(session('mock.imports', []))->reject(fn ($i) => $i['id'] === $importId)->prepend($done)->values()->all()]);
     }
 }
