@@ -2,7 +2,8 @@
 
 namespace App\Livewire\Transaksi;
 
-use App\Support\MockData;
+use App\Models\TransactionReturn;
+use App\Services\TransactionReturnService;
 use Illuminate\Support\Carbon;
 use Livewire\Attributes\Computed;
 use Livewire\Component;
@@ -11,8 +12,8 @@ use Livewire\Component;
  * Pemberitahuan status pengajuan retur/pembatalan milik pengguna yang login (biasanya kasir):
  * pengajuan yang sudah diputus sejak terakhir dilihat tampil sebagai banner (disetujui/ditolak
  * beserta alasan penolakan), pengajuan yang masih menunggu ditampilkan jumlahnya.
- * "Sudah dilihat" disimpan di sesi. Tahap ini dari MockData::transactionReturns(); backend
- * menyusul dengan notifikasi tersimpan.
+ * "Sudah dilihat" disimpan di sesi. Data dari transaction_returns (keputusan otomatis atas pembatalan
+ * sendiri tidak ditampilkan); notifikasi tersimpan dikirim TransactionReturnService ke lonceng.
  */
 class ReturnStatusNotice extends Component
 {
@@ -24,9 +25,12 @@ class ReturnStatusNotice extends Component
     #[Computed]
     public function mine(): array
     {
-        $name = auth()->user()->name;
-
-        return array_values(array_filter(MockData::transactionReturns(), fn ($r) => $r['requested_by'] === $name));
+        return TransactionReturn::with(['items', 'transaction.user:id,name', 'requester:id,name', 'decider:id,name'])
+            ->where('requested_by', auth()->id())
+            ->where(fn ($q) => $q->where('status', 'menunggu')->orWhereNotNull('decided_by'))
+            ->where('requested_at', '>=', now()->subDays(30))
+            ->latest('requested_at')->latest('id')->limit(50)->get()
+            ->map(fn (TransactionReturn $r) => TransactionReturnService::toArray($r))->all();
     }
 
     /** Pengajuan yang diputus setelah terakhir dilihat. */

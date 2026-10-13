@@ -21,7 +21,7 @@ class Notification extends Model
 
     public const TARGETS = ['semua' => 'Semua petugas', 'admin' => 'Admin', 'kasir' => 'Kasir', 'pengurus' => 'Pengurus', 'anggota' => 'Anggota (disampaikan petugas)'];
 
-    protected $fillable = ['type', 'title', 'message', 'target', 'url', 'product_id', 'dedupe_key', 'show_public', 'expires_at', 'created_by'];
+    protected $fillable = ['type', 'title', 'message', 'target', 'user_id', 'url', 'product_id', 'dedupe_key', 'show_public', 'expires_at', 'created_by'];
 
     protected function casts(): array
     {
@@ -52,6 +52,12 @@ class Notification extends Model
         $query->where(fn ($q) => $q->whereNull('expires_at')->orWhereDate('expires_at', '>=', now()->toDateString()));
     }
 
+    /** Penerima notifikasi pribadi (null = notifikasi umum menurut peran). */
+    public function recipient(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'user_id');
+    }
+
     /** Untuk petugas berperan $role: Admin melihat semua; lainnya target semua, anggota, atau perannya. */
     public function scopeForRole(Builder $query, ?string $role): void
     {
@@ -61,7 +67,7 @@ class Notification extends Model
     }
 
     /**
-     * Kotak notifikasi petugas: sesuai peran, masih berlaku, tidak disembunyikan, terbaru dulu,
+     * Kotak notifikasi petugas: sesuai peran (atau pribadi untuknya), masih berlaku, tidak disembunyikan, terbaru dulu,
      * dengan kolom tambahan is_read (bool) & read_at milik petugas itu.
      */
     public function scopeInboxFor(Builder $query, User $user): void
@@ -72,7 +78,9 @@ class Notification extends Model
 
         $query->select('notifications.*')
             ->selectSub($reads('read_at'), 'read_at')
-            ->forRole($user->roleName())
+            // Notifikasi umum menurut peran, atau notifikasi pribadi milik petugas ini saja.
+            ->where(fn ($q) => $q->where(fn ($w) => $w->whereNull('notifications.user_id')->forRole($user->roleName()))
+                ->orWhere('notifications.user_id', $user->id))
             ->active()
             ->whereNotExists(fn ($q) => $q->from('notification_reads')
                 ->whereColumn('notification_reads.notification_id', 'notifications.id')

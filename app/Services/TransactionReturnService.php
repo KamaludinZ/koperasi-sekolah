@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\CashMovement;
 use App\Models\CashShift;
 use App\Models\MemberCredit;
+use App\Models\Notification;
 use App\Models\Product;
 use App\Models\Transaction;
 use App\Models\TransactionReturn;
@@ -140,6 +141,7 @@ class TransactionReturnService
             self::audit('return.requested', "Pengajuan retur {$r->number} untuk {$t->invoice_number}: {$r->quantity} barang, Rp".number_format($amount, 0, ',', '.')." ({$r->reason})",
                 $r, $t, ['items' => array_map(fn ($l) => ['name' => $l['item']->product_name, 'qty' => $l['qty']], $lines)],
                 'dibuat', null, self::snapshot($r), $r->note ? "{$r->reason}: {$r->note}" : $r->reason);
+            self::notify($r->load('requester:id,name'), $t, 'requested');
 
             return $r->load('items');
         });
@@ -212,6 +214,7 @@ class TransactionReturnService
             if ($auto = self::autoApproval($t, $amount, $by)) {
                 return $this->apply($r->load(['items', 'transaction']), null, $auto);
             }
+            self::notify($r->load('requester:id,name'), $t, 'requested');
 
             return $r->load('items');
         });
@@ -263,6 +266,7 @@ class TransactionReturnService
                 .($r->restock ? ", {$r->quantity} barang kembali ke stok" : ', barang tidak kembali ke stok').($r->isVoid() ? "; transaksi {$t->invoice_number} dibatalkan" : ''),
             $r, $t, ['auto' => $userId === null, 'transaction_voided' => $r->isVoid(), 'returned_amount' => $t->returned_amount],
             'diubah', ['status' => 'menunggu'], ['status' => 'disetujui', 'decided_by' => $userId ? $r->decider?->name : 'Otomatis'], $r->decision_note);
+        self::notify($r, $t, 'approved', $userId);
 
         return $r->fresh(['items', 'transaction']);
     }
@@ -281,6 +285,7 @@ class TransactionReturnService
 
             self::audit($r->isVoid() ? 'void.rejected' : 'return.rejected', ($r->isVoid() ? 'Pembatalan' : 'Retur')." {$r->number} ditolak: {$note}",
                 $r, $r->transaction, [], 'diubah', ['status' => 'menunggu'], ['status' => 'ditolak', 'decided_by' => $by->name], $note);
+            self::notify($r, $r->transaction, 'rejected', $by->id);
 
             return $r->fresh(['items', 'transaction']);
         });
@@ -411,6 +416,41 @@ class TransactionReturnService
             'decided_at' => $r->decided_at?->toDateTimeString(),
             'decision_note' => $r->decision_note,
         ];
+    }
+
+    /**
+     * Notifikasi: pengajuan baru yang menunggu → Admin/Pengurus; keputusan (bukan otomatis) → petugas
+     * yang mengajukan (notifikasi pribadi), kecuali ia sendiri pemutusnya.
+     */
+    private static function notify(TransactionReturn $r, Transaction $t, string $event, ?int $deciderId = null): void
+    {
+        $what = $r->isVoid() ? 'Pembatalan' : 'Retur';
+        $money = 'Rp'.number_format($r->amount, 0, ',', '.');
+        $url = route('transaksi.retur', ['q' => $r->number], false);
+
+        if ($event === 'requested') {
+            Notification::create([
+                'type' => 'sistem', 'target' => 'pengurus', 'dedupe_key' => "return-pending-{$r->id}", 'url' => $url,
+                'title' => "{$what} {$r->number} menunggu persetujuan",
+                'message' => "{$t->invoice_number} · {$money} · {$r->reason}".($r->requester ? " — diajukan {$r->requester->name}." : '.'),
+            ]);
+
+            return;
+        }
+
+        Notification::where('dedupe_key', "return-pending-{$r->id}")->delete(); // antrean sudah diputus
+        if (! $r->requested_by || $r->requested_by === $deciderId || $deciderId === null) {
+            return;
+        }
+        $approved = $event === 'approved';
+        Notification::create([
+            'type' => 'sistem', 'target' => 'semua', 'user_id' => $r->requested_by, 'created_by' => $deciderId,
+            'dedupe_key' => "return-decided-{$r->id}", 'url' => $url,
+            'title' => "{$what} {$r->number} ".($approved ? 'disetujui' : 'ditolak'),
+            'message' => $approved
+                ? "{$t->invoice_number}: kembalikan {$money} ke pembeli (".mb_strtolower($r->refundLabel()).').'.($r->restock ? ' Barang sudah masuk stok lagi.' : '')
+                : "{$t->invoice_number}: ditolak — {$r->decision_note}",
+        ]);
     }
 
     /** Nilai pengajuan yang dicatat di audit (riwayat objek retur). */
