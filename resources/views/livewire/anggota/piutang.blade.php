@@ -13,7 +13,6 @@
                 <h1 class="text-lg font-semibold">Anggota & Tabungan</h1>
                 <p class="text-xs text-stone-500">Bon (bayar nanti) anggota yang belum lunas dan riwayat pelunasannya.</p>
             </div>
-            <span class="rounded bg-stone-100 px-2 py-1 text-xs font-medium text-stone-500" title="Menunggu backend bon">Data contoh</span>
         </div>
         <x-anggota.nav active="anggota.piutang" />
     </header>
@@ -128,7 +127,7 @@
                                 <span class="min-w-0">
                                     <span class="block">{{ $e['kind'] === 'bon' ? 'Bon baru' : 'Pelunasan'.($e['method'] === 'tabungan' ? ' (potong tabungan)' : ' (tunai)') }} ·
                                         <a href="{{ route('anggota.show', $e['member']['id']) }}" wire:navigate class="font-medium text-emerald-800 hover:underline">{{ $e['member']['name'] }}</a></span>
-                                    <span class="block text-xs text-stone-500">{{ $date($e['date']) }} · <span class="font-mono">{{ $e['number'] }}</span>@if ($e['note']) · {{ $e['note'] }}@endif</span>
+                                    <span class="block text-xs text-stone-500">{{ \Illuminate\Support\Carbon::parse($e['date'])->translatedFormat('d M Y, H:i') }} · <span class="font-mono">{{ $e['number'] }}</span>@if ($e['note']) · {{ $e['note'] }}@endif</span>
                                 </span>
                             </span>
                             <span @class(['shrink-0 font-semibold tabular-nums', 'text-emerald-800' => $e['kind'] === 'pelunasan'])>{{ $e['kind'] === 'bon' ? '+' : '−' }}{{ $rp($e['amount']) }}</span>

@@ -289,6 +289,12 @@ Route::middleware('menu:transaksi')->group(function () {
 Route::middleware('menu:anggota')->group(function () {
     Route::get('/anggota', Anggota\Index::class)->name('anggota');
     Route::get('/anggota/piutang', Anggota\Piutang::class)->name('anggota.piutang');
+    Route::get('/anggota/piutang/daftar', [CreditController::class, 'debtors'])
+        ->middleware('throttle:120,1')
+        ->name('anggota.piutang.list');
+    Route::get('/anggota/piutang/riwayat', [CreditController::class, 'history'])
+        ->middleware('throttle:120,1')
+        ->name('anggota.piutang.history');
     Route::get('/anggota/daftar', [MemberController::class, 'index'])
         ->middleware('throttle:120,1')
         ->name('anggota.list');

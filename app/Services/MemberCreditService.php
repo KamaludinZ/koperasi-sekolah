@@ -37,7 +37,7 @@ class MemberCreditService
     }
 
     /**
-     * Ringkasan bon anggota (bentuk sama dengan MockData::memberCredit).
+     * Ringkasan bon anggota.
      *
      * @return array{limit: int, outstanding: int, available: int, open_bills: int, oldest_due_at: ?string, overdue: bool}
      */
@@ -208,6 +208,115 @@ class MemberCreditService
 
             return $payment->load('allocations.credit');
         });
+    }
+
+    /** Status piutang anggota dari jatuh tempo bon tertua: lewat | minggu (≤ 7 hari) | berjalan. */
+    public static function statusFor(?string $oldestDueAt): string
+    {
+        $due = $oldestDueAt ? Carbon::parse($oldestDueAt) : null;
+
+        return match (true) {
+            $due === null => 'berjalan',
+            $due->lt(today()) => 'lewat',
+            $due->lte(today()->addDays(7)) => 'minggu',
+            default => 'berjalan',
+        };
+    }
+
+    /**
+     * Anggota yang masih punya bon (termasuk anggota nonaktif), lewat jatuh tempo & terdekat dulu.
+     *
+     * @param  array{search?: ?string, type?: ?string, status?: ?string}  $filters
+     * @return list<array<string, mixed>>
+     */
+    public function debtors(array $filters = []): array
+    {
+        $agg = MemberCredit::open()
+            ->selectRaw('member_id, SUM(amount - paid) as outstanding, COUNT(*) as bills, MIN(due_at) as oldest_due_at')
+            ->groupBy('member_id');
+
+        $rows = Member::withTrashed()
+            ->joinSub($agg, 'c', 'c.member_id', '=', 'members.id')
+            ->search($filters['search'] ?? null)
+            ->ofType(($filters['type'] ?? '') ?: null)
+            ->orderBy('c.oldest_due_at')->orderByRaw('LOWER(members.name)')
+            ->get(['members.*', 'c.outstanding', 'c.bills', 'c.oldest_due_at'])
+            ->map(function (Member $m) {
+                $oldest = Carbon::parse($m->getAttribute('oldest_due_at'))->toDateString();
+
+                return MemberService::toArray($m) + [
+                    'bills' => (int) $m->getAttribute('bills'),
+                    'outstanding' => (int) $m->getAttribute('outstanding'),
+                    'limit' => self::limitFor($m),
+                    'oldest_due_at' => $oldest,
+                    'status' => self::statusFor($oldest),
+                ];
+            });
+
+        $rank = ['lewat' => 0, 'minggu' => 1, 'berjalan' => 2];
+        $status = $filters['status'] ?? '';
+
+        return $rows->filter(fn ($r) => $status === '' || $r['status'] === $status)
+            ->sortBy(fn ($r) => [$rank[$r['status']], $r['oldest_due_at'], mb_strtolower($r['name'])])
+            ->values()->all();
+    }
+
+    /** Ringkasan seluruh piutang. */
+    public function stats(): array
+    {
+        $d = collect($this->debtors());
+        $late = $d->where('status', 'lewat');
+
+        return [
+            'total' => (int) $d->sum('outstanding'),
+            'members' => $d->count(),
+            'late_total' => (int) $late->sum('outstanding'),
+            'late_members' => $late->count(),
+            'week_members' => $d->where('status', 'minggu')->count(),
+        ];
+    }
+
+    /**
+     * Riwayat bon baru & pelunasan seluruh anggota, terbaru dulu.
+     *
+     * @param  array{from?: ?Carbon, to?: ?Carbon, kind?: ?string, search?: ?string, type?: ?string, member_id?: ?int}  $filters
+     * @return array{rows: list<array<string, mixed>>, bon: int, paid: int}
+     */
+    public function history(array $filters = [], int $limit = 500): array
+    {
+        $kind = $filters['kind'] ?? '';
+        $memberScope = fn ($q) => $q->withTrashed()->search($filters['search'] ?? null)->ofType(($filters['type'] ?? '') ?: null);
+        $range = function ($q, string $col) use ($filters) {
+            $q->when($filters['from'] ?? null, fn ($w, $from) => $w->where($col, '>=', $from))
+                ->when($filters['to'] ?? null, fn ($w, $to) => $w->where($col, '<=', $to))
+                ->when($filters['member_id'] ?? null, fn ($w, $id) => $w->where('member_id', $id));
+        };
+        $member = fn (Member $m) => ['id' => $m->id, 'name' => $m->name, 'member_code' => $m->member_code];
+
+        $events = collect();
+        if ($kind === '' || $kind === 'bon') {
+            $q = MemberCredit::with(['member' => fn ($q) => $q->withTrashed(), 'transaction:id,invoice_number'])->whereHas('member', $memberScope)->latest('created_at')->latest('id')->limit($limit);
+            $range($q, 'created_at');
+            $events = $events->concat($q->get()->map(fn (MemberCredit $c) => [
+                'id' => 'bon-'.$c->id, 'date' => $c->created_at->toDateTimeString(), 'kind' => 'bon', 'number' => $c->number, 'amount' => $c->amount,
+                'method' => null, 'note' => $c->transaction?->invoice_number ?? $c->note, 'status' => $c->status, 'member' => $member($c->member),
+            ]));
+        }
+        if ($kind === '' || $kind === 'pelunasan') {
+            $q = MemberCreditPayment::with(['member' => fn ($q) => $q->withTrashed(), 'allocations.credit:id,number'])->whereHas('member', $memberScope)->latest('paid_at')->latest('id')->limit($limit);
+            $range($q, 'paid_at');
+            $events = $events->concat($q->get()->map(fn (MemberCreditPayment $p) => [
+                'id' => 'pln-'.$p->id, 'date' => $p->paid_at->toDateTimeString(), 'kind' => 'pelunasan', 'number' => $p->number, 'amount' => $p->amount,
+                'method' => $p->method, 'note' => $p->note ?? $p->allocations->map(fn ($a) => $a->credit?->number)->filter()->join(', '), 'status' => null, 'member' => $member($p->member),
+            ]));
+        }
+        $rows = $events->sortBy([['date', 'desc'], ['id', 'desc']])->take($limit)->values();
+
+        return [
+            'rows' => $rows->all(),
+            'bon' => (int) $rows->where('kind', 'bon')->sum('amount'),
+            'paid' => (int) $rows->where('kind', 'pelunasan')->sum('amount'),
+        ];
     }
 
     /** Bon belum lunas anggota, jatuh tempo terlama dulu. */

@@ -2,10 +2,7 @@
 
 namespace App\Livewire\Anggota;
 
-use App\Models\Member;
-use App\Services\MemberService;
-use App\Support\MockData;
-use Illuminate\Support\Carbon;
+use App\Services\MemberCreditService;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
@@ -14,8 +11,8 @@ use Livewire\Component;
 
 /**
  * Anggota → Piutang (bon): daftar anggota yang masih punya bon (sisa, batas, jatuh tempo, status)
- * dan riwayat bon & pelunasan seluruh anggota. Tahap ini dari MockData::memberBills() &
- * memberBonHistory(); backend piutang menyusul dengan bentuk data yang sama.
+ * dan riwayat bon & pelunasan seluruh anggota. Data dari MemberCreditService (sama dengan
+ * GET /anggota/piutang/daftar & /anggota/piutang/riwayat).
  */
 #[Layout('components.layouts.app')]
 #[Title('Piutang Anggota')]
@@ -69,48 +66,17 @@ class Piutang extends Component
         $this->limit += self::PER_PAGE;
     }
 
-    /** @return list<array<string, mixed>> anggota aktif (cocok pencarian & jenis) */
-    private function members(): array
-    {
-        return app(MemberService::class)->query(['search' => $this->search, 'type' => $this->type])
-            ->get()->map(fn (Member $m) => MemberService::toArray($m))->all();
-    }
-
-    /** Status bon satu anggota dari bon-bonnya. */
+    /** Status piutang dari bon-bon anggota (jatuh tempo tertua). */
     public static function statusOf(array $bills): string
     {
-        $due = collect($bills)->min('due_at');
-
-        return match (true) {
-            collect($bills)->contains('overdue', true) => 'lewat',
-            $due !== null && Carbon::parse($due)->lte(now()->addDays(7)) => 'minggu',
-            default => 'berjalan',
-        };
+        return MemberCreditService::statusFor(collect($bills)->min('due_at'));
     }
 
-    /** Semua anggota berbon (sebelum filter status), lewat jatuh tempo & jatuh tempo terdekat dulu. */
+    /** Anggota berbon yang cocok pencarian & jenis (sebelum filter status). */
     #[Computed]
     public function debtors(): array
     {
-        $rows = [];
-        foreach ($this->members() as $m) {
-            $bills = MockData::memberBills($m['id'], $m['type']);
-            if (! $bills) {
-                continue;
-            }
-            $credit = MockData::memberCredit($m['id'], $m['type']);
-            $rows[] = $m + [
-                'bills' => count($bills),
-                'outstanding' => $credit['outstanding'],
-                'limit' => $credit['limit'],
-                'oldest_due_at' => $credit['oldest_due_at'],
-                'status' => self::statusOf($bills),
-            ];
-        }
-        $rank = ['lewat' => 0, 'minggu' => 1, 'berjalan' => 2];
-        usort($rows, fn ($a, $b) => [$rank[$a['status']], $a['oldest_due_at'], $a['name']] <=> [$rank[$b['status']], $b['oldest_due_at'], $b['name']]);
-
-        return $rows;
+        return app(MemberCreditService::class)->debtors(['search' => $this->search, 'type' => $this->type]);
     }
 
     #[Computed]
@@ -122,38 +88,19 @@ class Piutang extends Component
     #[Computed]
     public function stats(): array
     {
-        $d = collect($this->debtors);
-        $late = $d->where('status', 'lewat');
-
-        return [
-            'total' => $d->sum('outstanding'),
-            'members' => $d->count(),
-            'late_total' => $late->sum('outstanding'),
-            'late_members' => $late->count(),
-            'week_members' => $d->where('status', 'minggu')->count(),
-        ];
+        return app(MemberCreditService::class)->stats();
     }
 
     /** Riwayat bon & pelunasan sesuai filter, terbaru dulu. */
     #[Computed]
     public function history(): array
     {
-        $from = $this->period === 'semua' ? null : now()->subDays((int) $this->period)->toDateString();
-        $events = [];
-        foreach ($this->members() as $m) {
-            foreach (MockData::memberBonHistory($m['id'], $m['type']) as $e) {
-                if (($this->kind === '' || $e['kind'] === $this->kind) && ($from === null || $e['date'] >= $from)) {
-                    $events[] = $e + ['member' => ['id' => $m['id'], 'name' => $m['name'], 'member_code' => $m['member_code']]];
-                }
-            }
-        }
-        usort($events, fn ($a, $b) => [$b['date'], $b['id']] <=> [$a['date'], $a['id']]);
-
-        return [
-            'rows' => $events,
-            'bon' => array_sum(array_map(fn ($e) => $e['kind'] === 'bon' ? $e['amount'] : 0, $events)),
-            'paid' => array_sum(array_map(fn ($e) => $e['kind'] === 'pelunasan' ? $e['amount'] : 0, $events)),
-        ];
+        return app(MemberCreditService::class)->history([
+            'search' => $this->search,
+            'type' => $this->type,
+            'kind' => $this->kind,
+            'from' => $this->period === 'semua' ? null : now()->subDays((int) $this->period)->startOfDay(),
+        ]);
     }
 
     public function render()
