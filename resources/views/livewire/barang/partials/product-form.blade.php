@@ -71,7 +71,7 @@
                     <p class="mt-2 text-xs" x-show="price > 0 && cost !== null && cost !== ''"
                        :class="price - cost < 0 ? 'text-red-600' : 'text-stone-500'">
                         Untung per barang:
-                        <strong class="tabular-nums" x-text="'Rp' + (price - cost).toLocaleString('id-ID')"></strong>
+                        <strong class="tabular-nums" x-text="window.rupiah(price - cost)"></strong>
                         <span x-show="cost > 0" x-text="'(' + Math.round((price - cost) / cost * 100) + '%)'"></span>
                         <span x-show="price - cost < 0">· harga jual di bawah harga beli</span>
                     </p>
