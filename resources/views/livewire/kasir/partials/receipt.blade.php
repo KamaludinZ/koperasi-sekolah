@@ -57,7 +57,13 @@
             <div class="flex justify-between text-[0.9em]"><span>Termasuk {{ $taxName }}</span><span>{{ $rp($tx['tax_included']) }}</span></div>
         @endif
         <div class="flex justify-between"><span>Bayar ({{ $tx['payment_method_label'] }})</span><span>{{ $rp($tx['paid']) }}</span></div>
-        <div class="flex justify-between"><span>Kembali</span><span>{{ $rp($tx['change']) }}</span></div>
+        @if (isset($tx['balance_after']))
+            <div class="flex justify-between"><span>Sisa saldo</span><span>{{ $rp($tx['balance_after']) }}</span></div>
+        @elseif (isset($tx['credit_due_at']))
+            <div class="flex justify-between"><span>Jatuh tempo</span><span>{{ \Illuminate\Support\Carbon::parse($tx['credit_due_at'])->format('d/m/Y') }}</span></div>
+        @else
+            <div class="flex justify-between"><span>Kembali</span><span>{{ $rp($tx['change']) }}</span></div>
+        @endif
         @if (($tx['discount'] ?? 0) > 0)
             <p class="pt-1 text-center font-bold">Anda hemat {{ $rp($tx['discount']) }}</p>
         @endif

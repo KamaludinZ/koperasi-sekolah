@@ -47,9 +47,36 @@ class MemberPaymentMethodsTest extends TestCase
         $c->call('selectMember', $poor->id)->call('pay')->assertHasErrors('memberId')->assertSee('Saldo tabungan kurang Rp3.000.');
 
         $rich = Member::factory()->create(['balance' => 50000]);
-        $c->call('selectMember', $rich->id)->call('pay')->assertHasNoErrors('memberId')->assertHasErrors('paymentMethod');
+        $c->call('selectMember', $rich->id)->call('pay')->assertHasNoErrors('memberId')->assertHasErrors('savingsConsent');
+        $c->set('savingsConsent', true)->call('pay')->assertHasNoErrors('savingsConsent')->assertHasErrors('paymentMethod');
         $this->assertSame(0, Transaction::count()); // tahap tampilan: belum disimpan
         $this->assertSame(0, Cart::shortfall('tabungan', ['balance' => 50000], 8000));
+    }
+
+    public function test_savings_breakdown_low_balance_and_switch_to_cash(): void
+    {
+        $m = Member::factory()->create(['balance' => 15000]);
+        $c = $this->cart()->set('paymentMethod', 'tabungan')->call('selectMember', $m->id)
+            ->assertSee('Saldo sekarang')->assertSee('Dipotong untuk belanja')->assertSee('Rp7.000')
+            ->assertSee('Saldo hampir habis')->assertSee('menyetujui saldo tabungannya dipotong Rp8.000');
+
+        $c->set('savingsConsent', true)->call('clearMember')->assertSet('savingsConsent', false);
+
+        $poor = Member::factory()->create(['balance' => 3000]);
+        $c->call('selectMember', $poor->id)->assertSee('Kekurangan')->assertSee('Rp5.000')->assertDontSee('menyetujui saldo')
+            ->call('switchToCash')->assertSet('paymentMethod', 'tunai')->set('paid', 10000)->call('pay')->assertHasNoErrors();
+        $this->assertSame('tunai', Transaction::sole()->payment_method);
+    }
+
+    public function test_receipt_shows_remaining_balance_for_savings(): void
+    {
+        $tx = ['invoice_number' => 'INV-1', 'created_at' => now(), 'cashier' => 'Kasir', 'items' => [], 'subtotal' => 8000, 'tax' => 0, 'total' => 8000,
+            'payment_method_label' => 'Saldo tabungan', 'paid' => 8000, 'change' => 0, 'balance_after' => 42000];
+        $profile = app(\App\Services\ReceiptPresenter::class)->profile();
+        $html = view('livewire.kasir.partials.receipt', ['tx' => $tx, 'profile' => $profile, 'rp' => fn ($n) => 'Rp'.number_format($n, 0, ',', '.')])->render();
+        $this->assertStringContainsString('Sisa saldo', $html);
+        $this->assertStringContainsString('Rp42.000', $html);
+        $this->assertStringNotContainsString('Kembali', $html);
     }
 
     public function test_bon_respects_limit_and_overdue(): void

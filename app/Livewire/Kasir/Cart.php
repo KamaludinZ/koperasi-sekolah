@@ -62,6 +62,12 @@ class Cart extends Component
 
     public int $bonDays = 14;
 
+    /** Anggota menyetujui saldo tabungannya dipotong (wajib untuk metode tabungan). */
+    public bool $savingsConsent = false;
+
+    /** Saldo tabungan di bawah batas ini setelah bayar ditandai menipis. */
+    public const LOW_BALANCE = 10_000;
+
     /** Diskon manual yang diterapkan: ['type' => 'nominal'|'persen', 'value' => int, 'reason' => string]. */
     public ?array $discount = null;
 
@@ -276,6 +282,7 @@ class Cart extends Component
         $this->resetValidation();
         $this->paymentMethod = 'tunai';
         $this->paid = null;
+        $this->savingsConsent = false;
         $this->paying = true;
     }
 
@@ -304,14 +311,23 @@ class Cart extends Component
     {
         $this->memberId = Member::active()->whereKey($id)->exists() ? $id : null;
         $this->memberSearch = '';
+        $this->savingsConsent = false;
         $this->resetValidation('memberId');
         unset($this->member, $this->memberResults);
     }
 
     public function clearMember(): void
     {
-        $this->reset('memberId', 'memberSearch');
+        $this->reset('memberId', 'memberSearch', 'savingsConsent');
         unset($this->member);
+    }
+
+    /** Saldo tidak cukup: pindah ke tunai tanpa kehilangan isi keranjang. */
+    public function switchToCash(): void
+    {
+        $this->paymentMethod = 'tunai';
+        $this->paid = null;
+        $this->resetValidation();
     }
 
     /** Kekurangan bila saldo/batas bon tidak cukup (0 = cukup). */
@@ -336,6 +352,7 @@ class Cart extends Component
             return;
         }
 
+        $this->resetErrorBag();
         if ($this->paymentMethod !== 'tunai') {
             $this->paid = $summary['total'];
         }
@@ -354,6 +371,11 @@ class Cart extends Component
             }
             if ($this->paymentMethod === 'bon' && $member['credit']['overdue']) {
                 $this->addError('memberId', 'Anggota masih punya bon yang lewat jatuh tempo. Minta dilunasi dulu.');
+
+                return;
+            }
+            if ($this->paymentMethod === 'tabungan' && ! $this->savingsConsent) {
+                $this->addError('savingsConsent', 'Pastikan anggota menyetujui pemotongan saldo tabungannya.');
 
                 return;
             }

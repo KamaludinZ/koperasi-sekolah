@@ -82,9 +82,37 @@
                             @endif
                             @php $tabShort = \App\Livewire\Kasir\Cart::shortfall('tabungan', $m, $summary['totals']['tabungan']['payable'] ?? $summary['total']);
                                  $bonShort = \App\Livewire\Kasir\Cart::shortfall('bon', $m, $summary['totals']['bon']['payable'] ?? $summary['total']); @endphp
-                            <p x-show="method === 'tabungan'" class="mt-2 text-xs {{ $tabShort ? 'font-semibold text-red-700' : 'text-emerald-800' }}">
-                                {{ $tabShort ? 'Saldo kurang '.$rp($tabShort).'.' : 'Saldo setelah bayar: '.$rp($m['balance'] - ($summary['totals']['tabungan']['payable'] ?? $summary['total'])) }}
-                            </p>
+                            @php $tabTotal = $summary['totals']['tabungan']['payable'] ?? $summary['total']; $after = $m['balance'] - $tabTotal; @endphp
+                            <div x-show="method === 'tabungan'" class="mt-3 space-y-2 border-t border-stone-100 pt-3" data-savings-breakdown>
+                                <dl class="space-y-1 text-xs">
+                                    <div class="flex justify-between"><dt class="text-stone-500">Saldo sekarang</dt><dd class="tabular-nums">{{ $rp($m['balance']) }}</dd></div>
+                                    <div class="flex justify-between"><dt class="text-stone-500">Dipotong untuk belanja</dt><dd class="tabular-nums text-red-700">−{{ $rp($tabTotal) }}</dd></div>
+                                    <div class="flex justify-between border-t border-dashed border-stone-200 pt-1 text-sm font-semibold">
+                                        <dt>{{ $tabShort ? 'Kekurangan' : 'Saldo setelah bayar' }}</dt>
+                                        <dd @class(['tabular-nums', 'text-red-700' => $tabShort, 'text-emerald-800' => ! $tabShort])>{{ $rp($tabShort ?: $after) }}</dd>
+                                    </div>
+                                </dl>
+                                @if ($m['balance'] > 0)
+                                    <div class="h-1.5 overflow-hidden rounded-full bg-stone-100" aria-hidden="true">
+                                        <span @class(['block h-full rounded-full', 'bg-red-500' => $tabShort, 'bg-emerald-600' => ! $tabShort]) style="width: {{ min(100, (int) round($tabTotal / $m['balance'] * 100)) }}%"></span>
+                                    </div>
+                                @endif
+                                @if ($tabShort)
+                                    <div class="flex items-center justify-between gap-2 rounded-lg bg-red-50 px-3 py-2 text-xs text-red-800" role="status">
+                                        <span>Saldo kurang {{ $rp($tabShort) }}. Kurangi belanja atau bayar tunai.</span>
+                                        <button type="button" wire:click="switchToCash" class="shrink-0 rounded-md bg-white px-2 py-1 font-semibold text-red-800 ring-1 ring-red-200 hover:bg-red-100">Bayar tunai</button>
+                                    </div>
+                                @else
+                                    @if ($after < \App\Livewire\Kasir\Cart::LOW_BALANCE)
+                                        <p class="text-xs text-amber-800">Saldo hampir habis setelah transaksi ini — ingatkan anggota untuk menabung lagi.</p>
+                                    @endif
+                                    <label class="flex cursor-pointer items-start gap-2 text-sm">
+                                        <input type="checkbox" wire:model="savingsConsent" class="mt-0.5 size-4 accent-emerald-700">
+                                        <span>Anggota sudah menyetujui saldo tabungannya dipotong {{ $rp($tabTotal) }}.</span>
+                                    </label>
+                                    @error('savingsConsent') <p class="text-xs text-red-600" role="alert">{{ $message }}</p> @enderror
+                                @endif
+                            </div>
                             <p x-show="method === 'bon'" class="mt-2 text-xs {{ $bonShort ? 'font-semibold text-red-700' : 'text-stone-600' }}">
                                 {{ $bonShort ? 'Melebihi sisa batas bon sebesar '.$rp($bonShort).'.' : 'Dicatat sebagai bon atas nama anggota.' }}
                             </p>
@@ -188,8 +216,8 @@
                     </p>
                 </div>
                 <div class="text-right">
-                    <p class="text-xs font-medium text-emerald-800">Kembalian</p>
-                    <p class="text-xl font-bold text-emerald-900 tabular-nums">{{ $rp($lastTransaction['change']) }}</p>
+                    <p class="text-xs font-medium text-emerald-800">{{ isset($lastTransaction['balance_after']) ? 'Sisa saldo' : 'Kembalian' }}</p>
+                    <p class="text-xl font-bold text-emerald-900 tabular-nums">{{ $rp($lastTransaction['balance_after'] ?? $lastTransaction['change']) }}</p>
                 </div>
             </div>
 
