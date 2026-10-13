@@ -91,11 +91,43 @@ class SalesReport
         ];
     }
 
+    /**
+     * Rentang kustom (tanggal Y-m-d) dan pembandingnya: rentang sama panjang tepat sebelumnya.
+     *
+     * @return array{0: array{0: Carbon, 1: Carbon}, 1: array{0: Carbon, 1: Carbon}}
+     */
+    public static function customRanges(string $from, string $to): array
+    {
+        $start = Carbon::parse($from)->startOfDay();
+        $end = Carbon::parse($to)->isToday() ? now() : Carbon::parse($to)->endOfDay();
+        $days = (int) $start->diffInDays(Carbon::parse($to)->startOfDay()) + 1;
+
+        return [[$start, $end], [$start->copy()->subDays($days), $start->copy()->subSecond()]];
+    }
+
+    /** Ringkasan rentang kustom + pembanding rentang sama panjang sebelumnya. */
+    public function customReport(string $from, string $to): array
+    {
+        [[$start, $end], [$prevStart, $prevEnd]] = self::customRanges($from, $to);
+        return $this->compare($start, $end, $prevStart, $prevEnd, ((int) $prevStart->diffInDays($start)).' hari sebelumnya');
+    }
+
     /** Ringkasan periode + periode pembanding dan persentase perubahan tiap angka. */
     public function periodReport(string $period): array
     {
         [$start, $end] = self::range($period);
         [$prevStart, $prevEnd] = self::previousRange($period);
+
+        return $this->compare($start, $end, $prevStart, $prevEnd, match ($period) {
+            '7-hari' => '7 hari sebelumnya',
+            '30-hari' => '30 hari sebelumnya',
+            'bulan-ini' => 'periode sama bulan lalu',
+            default => 'kemarin jam segini',
+        });
+    }
+
+    private function compare(Carbon $start, Carbon $end, Carbon $prevStart, Carbon $prevEnd, string $label): array
+    {
         $current = $this->summary($start, $end);
         $previous = $this->summary($prevStart, $prevEnd);
 
@@ -111,12 +143,7 @@ class SalesReport
             'comparison' => [
                 'previous' => $previous,
                 'changes' => $changes,
-                'label' => match ($period) {
-                    '7-hari' => '7 hari sebelumnya',
-                    '30-hari' => '30 hari sebelumnya',
-                    'bulan-ini' => 'periode sama bulan lalu',
-                    default => 'kemarin jam segini',
-                },
+                'label' => $label,
                 'range_label' => $prevStart->isSameDay($prevEnd)
                     ? $prevStart->translatedFormat('d M Y').' s.d. '.$prevEnd->format('H:i')
                     : $prevStart->translatedFormat('d M').' – '.$prevEnd->translatedFormat('d M Y'),

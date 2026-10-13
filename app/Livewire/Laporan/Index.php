@@ -30,6 +30,16 @@ class Index extends Component
     #[Url(as: 'periode', except: 'hari-ini')]
     public string $period = 'hari-ini';
 
+    /** Rentang kustom (Y-m-d) bila periode = kustom. */
+    #[Url(as: 'dari', except: '')]
+    public string $from = '';
+
+    #[Url(as: 'sampai', except: '')]
+    public string $to = '';
+
+    /** Rentang kustom terpanjang (hari). */
+    public const MAX_DAYS = 366;
+
     public const EXPORT_SECTIONS = SalesExport::SECTIONS;
 
     public const EXPORT_FORMATS = SalesExport::FORMATS;
@@ -45,7 +55,41 @@ class Index extends Component
 
     public function mount(): void
     {
+        if ($this->period === 'kustom' && ! $this->validCustom()) {
+            $this->period = 'hari-ini';
+        }
         $this->syncExportRange();
+    }
+
+    /** Terapkan rentang tanggal kustom (dari–sampai). */
+    public function applyCustom(): void
+    {
+        $this->validate([
+            'from' => ['required', 'date_format:Y-m-d', 'before_or_equal:today'],
+            'to' => ['required', 'date_format:Y-m-d', 'after_or_equal:from', 'before_or_equal:today', function ($a, $v, $fail) {
+                if (preg_match('/^\d{4}-\d{2}-\d{2}$/', $this->from) && Carbon::parse($this->from)->diffInDays(Carbon::parse($v)) + 1 > self::MAX_DAYS) {
+                    $fail('Rentang paling panjang '.self::MAX_DAYS.' hari.');
+                }
+            }],
+        ], [
+            'required' => 'Isi tanggal.',
+            'to.after_or_equal' => 'Tanggal akhir tidak boleh sebelum tanggal awal.',
+            'before_or_equal' => 'Tanggal tidak boleh melewati hari ini.',
+        ]);
+        $this->period = 'kustom';
+        $this->resetComputed();
+        $this->syncExportRange();
+    }
+
+    private function validCustom(): bool
+    {
+        return preg_match('/^\d{4}-\d{2}-\d{2}$/', $this->from) && preg_match('/^\d{4}-\d{2}-\d{2}$/', $this->to)
+            && $this->from <= $this->to && $this->to <= now()->toDateString();
+    }
+
+    private function resetComputed(): void
+    {
+        unset($this->range, $this->previousRange, $this->periodReport, $this->summary, $this->comparison, $this->topProducts, $this->discountReport);
     }
 
     /** Samakan rentang unduh dengan periode yang sedang dilihat. */
@@ -95,7 +139,9 @@ class Index extends Component
     {
         if (array_key_exists($period, self::PERIODS)) {
             $this->period = $period;
-            unset($this->range, $this->previousRange, $this->periodReport, $this->summary, $this->comparison, $this->topProducts, $this->discountReport);
+            $this->from = $this->to = '';
+            $this->resetValidation(['from', 'to']);
+            $this->resetComputed();
             $this->syncExportRange();
         }
     }
@@ -127,20 +173,22 @@ class Index extends Component
     #[Computed]
     public function range(): array
     {
-        return SalesReport::range($this->period);
+        return $this->period === 'kustom' && $this->validCustom() ? SalesReport::customRanges($this->from, $this->to)[0] : SalesReport::range($this->period);
     }
 
     /** @return array{0: Carbon, 1: Carbon} */
     #[Computed]
     public function previousRange(): array
     {
-        return SalesReport::previousRange($this->period);
+        return $this->period === 'kustom' && $this->validCustom() ? SalesReport::customRanges($this->from, $this->to)[1] : SalesReport::previousRange($this->period);
     }
 
     #[Computed]
     public function periodReport(): array
     {
-        return app(SalesReport::class)->periodReport($this->period);
+        return $this->period === 'kustom' && $this->validCustom()
+            ? app(SalesReport::class)->customReport($this->from, $this->to)
+            : app(SalesReport::class)->periodReport($this->period);
     }
 
     #[Computed]

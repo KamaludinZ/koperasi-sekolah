@@ -12,13 +12,27 @@
                 {{ $start->isSameDay($end) ? $start->translatedFormat('l, d F Y') : $start->translatedFormat('d M').' – '.$end->translatedFormat('d M Y') }}
             </p>
         </div>
-        <div class="flex gap-1 rounded-xl bg-stone-100 p-1" role="group" aria-label="Periode laporan">
-            @foreach (\App\Livewire\Laporan\Index::PERIODS as $key => $label)
-                <button type="button" wire:click="setPeriod('{{ $key }}')" aria-pressed="{{ $period === $key ? 'true' : 'false' }}"
-                        @class(['rounded-lg px-3 py-1.5 text-sm font-medium transition',
-                                'bg-white text-stone-900 shadow-sm' => $period === $key,
-                                'text-stone-600 hover:text-stone-900' => $period !== $key])>{{ $label }}</button>
-            @endforeach
+        <div class="flex flex-wrap items-center gap-2" x-data="{ custom: @js($period === 'kustom') }">
+            <div class="flex gap-1 rounded-xl bg-stone-100 p-1" role="group" aria-label="Periode laporan">
+                @foreach (\App\Livewire\Laporan\Index::PERIODS as $key => $label)
+                    <button type="button" wire:click="setPeriod('{{ $key }}')" x-on:click="custom = false" aria-pressed="{{ $period === $key ? 'true' : 'false' }}"
+                            @class(['rounded-lg px-3 py-1.5 text-sm font-medium transition',
+                                    'bg-white text-stone-900 shadow-sm' => $period === $key,
+                                    'text-stone-600 hover:text-stone-900' => $period !== $key])>{{ $label }}</button>
+                @endforeach
+                <button type="button" x-on:click="custom = true" aria-pressed="{{ $period === 'kustom' ? 'true' : 'false' }}"
+                        @class(['rounded-lg px-3 py-1.5 text-sm font-medium transition', 'bg-white text-stone-900 shadow-sm' => $period === 'kustom', 'text-stone-600 hover:text-stone-900' => $period !== 'kustom'])>Pilih tanggal</button>
+            </div>
+            <form x-show="custom" x-cloak wire:submit="applyCustom" class="flex flex-wrap items-start gap-2" aria-label="Rentang tanggal">
+                <label class="text-xs text-stone-600"><span class="sr-only">Dari</span>
+                    <input type="date" wire:model="from" max="{{ now()->toDateString() }}" class="rounded-lg border border-stone-300 bg-white px-2.5 py-1.5 text-sm">
+                    @error('from') <span class="block text-xs text-red-600">{{ $message }}</span> @enderror</label>
+                <span class="py-1.5 text-sm text-stone-500">–</span>
+                <label class="text-xs text-stone-600"><span class="sr-only">Sampai</span>
+                    <input type="date" wire:model="to" max="{{ now()->toDateString() }}" class="rounded-lg border border-stone-300 bg-white px-2.5 py-1.5 text-sm">
+                    @error('to') <span class="block text-xs text-red-600">{{ $message }}</span> @enderror</label>
+                <button type="submit" class="rounded-lg bg-emerald-700 px-3 py-1.5 text-sm font-semibold text-white hover:bg-emerald-800">Terapkan</button>
+            </form>
         </div>
     </header>
 
@@ -31,7 +45,7 @@
             $ch = $cmp['changes'];
         @endphp
         <div class="flex flex-wrap items-baseline justify-between gap-2 pt-1">
-            <h2 class="text-sm font-semibold text-stone-700">Rekap periode: {{ \App\Livewire\Laporan\Index::PERIODS[$period] }}</h2>
+            <h2 class="text-sm font-semibold text-stone-700">Rekap periode: {{ \App\Livewire\Laporan\Index::PERIODS[$period] ?? ($start->translatedFormat('d M').' – '.$end->translatedFormat('d M Y')) }}</h2>
             <p class="text-xs text-stone-500">Dibandingkan dengan {{ $cmp['label'] }} ({{ $cmp['range_label'] }})</p>
         </div>
 

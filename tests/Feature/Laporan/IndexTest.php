@@ -172,4 +172,29 @@ class IndexTest extends TestCase
             ->call('export')
             ->assertHasErrors(['exportTo' => 'before_or_equal']);
     }
+
+    public function test_custom_date_range(): void
+    {
+        \App\Models\Transaction::factory()->withItems([$this->pid('ATK001') => 2])->at(now()->subDays(10)->setTime(10, 0)->toDateTimeString())->create();
+        \App\Models\Transaction::factory()->withItems([$this->pid('ATK001') => 1])->at(now()->subDays(20)->setTime(10, 0)->toDateTimeString())->create();
+        $from = now()->subDays(12)->toDateString();
+        $to = now()->subDays(8)->toDateString();
+
+        $c = \Livewire\Livewire::test(\App\Livewire\Laporan\Index::class)->set('from', $from)->set('to', $to)->call('applyCustom')
+            ->assertHasNoErrors()->assertSet('period', 'kustom')->assertSet('exportFrom', $from)->assertSet('exportTo', $to);
+        $expected = app(\App\Services\SalesReport::class)->summary(Carbon::parse($from)->startOfDay(), Carbon::parse($to)->endOfDay());
+        $this->assertSame($expected, $c->instance()->summary);
+        $this->assertGreaterThanOrEqual(1, $c->instance()->summary['count']);
+        $this->assertSame('5 hari sebelumnya', $c->instance()->comparison['label']);
+        $prev = app(\App\Services\SalesReport::class)->summary(Carbon::parse($from)->subDays(5)->startOfDay(), Carbon::parse($from)->startOfDay()->subSecond());
+        $this->assertSame($prev['count'], $c->instance()->comparison['previous']['count']);
+        $c->assertSee('Rekap periode: '.Carbon::parse($from)->translatedFormat('d M'));
+
+        $c->set('to', now()->subDays(20)->toDateString())->call('applyCustom')->assertHasErrors('to');
+        $c->set('from', now()->subDays(400)->toDateString())->set('to', now()->toDateString())->call('applyCustom')->assertHasErrors('to');
+        $c->call('setPeriod', '7-hari')->assertSet('from', '')->assertSet('period', '7-hari');
+
+        \Livewire\Livewire::withQueryParams(['periode' => 'kustom', 'dari' => $from, 'sampai' => $to])->test(\App\Livewire\Laporan\Index::class)->assertSet('period', 'kustom');
+        \Livewire\Livewire::withQueryParams(['periode' => 'kustom', 'dari' => 'x'])->test(\App\Livewire\Laporan\Index::class)->assertSet('period', 'hari-ini');
+    }
 }
