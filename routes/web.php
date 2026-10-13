@@ -75,6 +75,14 @@ Route::get('/favicon.svg', fn () => response(view('components.brand.mark', ['att
 
 Route::get('/', BerandaController::class)->name('beranda');
 Route::get('/logo/{file}', [LogoController::class, 'show'])->where('file', LogoService::FILE_PATTERN)->name('logo');
+Route::get('/qris/{file}', function (string $file) {
+    $disk = \Illuminate\Support\Facades\Storage::disk(\App\Services\QrisImageService::DISK);
+    abort_unless($disk->exists(\App\Services\QrisImageService::path($file)), 404);
+
+    return $disk->response(\App\Services\QrisImageService::path($file), $file, [
+        'Cache-Control' => 'private, max-age=86400', 'X-Content-Type-Options' => 'nosniff', 'Content-Security-Policy' => "default-src 'none'",
+    ]);
+})->middleware('auth')->where('file', \App\Services\QrisImageService::FILE_PATTERN)->name('qris.image');
 
 Route::get('/masuk', Login::class)->name('login');
 Route::post('/masuk', LoginController::class)->middleware('throttle:30,1')->name('login.store');

@@ -3,6 +3,7 @@
     $label = 'mb-1 block text-sm font-medium text-stone-700';
     $err = fn ($f) => $errors->first($f);
     $logoSrc = $logoUpload && ! $errors->has('logoUpload') ? $logoUpload->temporaryUrl() : $logo;
+    $qrisSrc = $qrisUpload && ! $errors->has('qrisUpload') ? $qrisUpload->temporaryUrl() : $qris;
 @endphp
 <div class="flex min-h-0 flex-1 flex-col overflow-y-auto"
      x-data="{ dirty: false }" x-on:input="dirty = true" x-on:change="dirty = true" x-on:profile-saved.window="dirty = false"
@@ -75,6 +76,31 @@
                         </div>
                     </div>
                 </div>
+
+                {{-- QRIS --}}
+                <div>
+                    <span class="{{ $label }}">Gambar QRIS <span class="font-normal text-stone-500">(opsional)</span></span>
+                    <div class="flex flex-wrap items-center gap-4">
+                        @if ($qrisSrc)
+                            <img src="{{ $qrisSrc }}" alt="Pratinjau QRIS" class="size-24 rounded-xl bg-white object-contain ring-1 ring-stone-200">
+                        @else
+                            <span class="grid size-24 place-items-center rounded-xl border border-dashed border-stone-300 text-xs text-stone-400">Belum ada</span>
+                        @endif
+                        <div class="space-y-2">
+                            <label class="inline-flex cursor-pointer items-center gap-2 rounded-lg border border-stone-300 bg-white px-3 py-2 text-sm font-medium hover:bg-stone-50 focus-within:ring-4 focus-within:ring-emerald-600/15">
+                                <svg class="size-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 16V4m0 0-4 4m4-4 4 4M4 20h16"/></svg>
+                                {{ $qrisSrc ? 'Ganti QRIS' : 'Unggah QRIS' }}
+                                <input type="file" wire:model="qrisUpload" accept="image/png,image/jpeg,image/webp" class="sr-only">
+                            </label>
+                            @if ($qrisSrc)
+                                <button type="button" wire:click="removeQris" class="ml-2 text-sm font-medium text-red-700 hover:underline">Hapus</button>
+                            @endif
+                            <p class="text-xs text-stone-500" wire:loading.remove wire:target="qrisUpload">Foto/berkas QRIS dari bank, min. 200×200 px. Tampil di layar bayar kasir saat metode QRIS.</p>
+                            <p class="text-xs text-emerald-700" wire:loading wire:target="qrisUpload">Mengunggah…</p>
+                            @error('qrisUpload') <span class="block text-xs text-red-600">{{ $message }}</span> @enderror
+                        </div>
+                    </div>
+                </div>
             </section>
 
             {{-- Kontak --}}
@@ -123,7 +149,7 @@
             <div class="sticky bottom-0 -mx-4 flex items-center justify-end gap-3 border-t border-stone-200 bg-stone-100/95 px-4 py-3 backdrop-blur sm:-mx-6 sm:px-6">
                 <span x-show="dirty" x-cloak class="mr-auto text-xs font-medium text-amber-700">Ada perubahan yang belum disimpan</span>
                 <a href="{{ route('pengaturan') }}" wire:navigate class="rounded-xl border border-stone-300 bg-white px-4 py-2.5 text-sm font-medium text-stone-700 hover:bg-stone-50">Kembali</a>
-                <button type="submit" wire:loading.attr="disabled" wire:target="save,logoUpload"
+                <button type="submit" wire:loading.attr="disabled" wire:target="save,logoUpload,qrisUpload"
                         class="rounded-xl bg-emerald-700 px-5 py-2.5 text-sm font-semibold text-white hover:bg-emerald-800 disabled:opacity-60">Simpan profil</button>
             </div>
         </div>

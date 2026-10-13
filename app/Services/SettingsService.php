@@ -35,6 +35,7 @@ class SettingsService
             'phone' => '0812-3456-7890',
             'email' => null,
             'logo' => null,
+            'qris' => null,          // gambar QRIS statis untuk pembayaran non-tunai
             'schedule' => OpeningHours::DEFAULT,
             'motto' => 'Jujur, amanah, dan saling menolong dalam kebaikan.',
         ],
@@ -124,7 +125,7 @@ class SettingsService
     ];
 
     /** Field yang tidak dicatat nilainya di audit (terlalu besar). */
-    private const AUDIT_SKIP_VALUE = ['logo'];
+    private const AUDIT_SKIP_VALUE = ['logo', 'qris'];
 
     /**
      * Semua pengaturan + kapan & oleh siapa terakhir diubah.

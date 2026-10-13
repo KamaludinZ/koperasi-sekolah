@@ -223,9 +223,18 @@
                     </div>
                 </div>
 
-                <p x-show="method === 'qris'" x-cloak class="rounded-lg bg-stone-50 px-4 py-3 text-sm text-stone-600">
-                    Pastikan pembayaran non-tunai sebesar <strong class="tabular-nums" x-text="rp(total)">{{ $rp($summary['total']) }}</strong> sudah diterima sebelum menyelesaikan transaksi.
-                </p>
+                @php $qrisUrl = \App\Services\QrisImageService::url(app(\App\Services\SettingsService::class)->section('profile')['qris'] ?? null); @endphp
+                <div x-show="method === 'qris'" x-cloak class="space-y-3 rounded-xl bg-stone-50 px-4 py-3 text-sm text-stone-600" data-qris-panel>
+                    @if ($qrisUrl)
+                        <div class="flex flex-col items-center gap-2">
+                            <img src="{{ $qrisUrl }}" alt="Kode QRIS koperasi untuk dipindai pembeli" class="max-h-64 w-auto rounded-lg bg-white p-2 ring-1 ring-stone-200">
+                            <p class="text-center">Minta pembeli memindai QRIS dan membayar tepat <strong class="text-base text-stone-900 tabular-nums" x-text="rp(total)">{{ $rp($summary['total']) }}</strong>.</p>
+                        </div>
+                    @else
+                        <p class="text-xs text-stone-500">Gambar QRIS koperasi belum diunggah (Pengaturan → Profil koperasi).</p>
+                    @endif
+                    <p>Pastikan pembayaran sebesar <strong class="tabular-nums" x-text="rp(total)">{{ $rp($summary['total']) }}</strong> sudah masuk (cek notifikasi bank) sebelum menyelesaikan transaksi.</p>
+                </div>
             </div>
 
             <div class="flex gap-2 border-t border-stone-200 px-5 py-4">

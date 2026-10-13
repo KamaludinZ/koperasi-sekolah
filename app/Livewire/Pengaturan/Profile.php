@@ -3,6 +3,7 @@
 namespace App\Livewire\Pengaturan;
 
 use App\Services\LogoService;
+use App\Services\QrisImageService;
 use App\Support\MockData;
 use App\Support\OpeningHours;
 use App\Livewire\Concerns\GuardsSettings;
@@ -49,6 +50,14 @@ class Profile extends Component
     /** Logo tersimpan ditandai untuk dihapus saat disimpan. */
     public bool $logoRemoved = false;
 
+    /** URL gambar QRIS tersimpan (pratinjau). */
+    public ?string $qris = null;
+
+    public bool $qrisRemoved = false;
+
+    /** @var \Livewire\Features\SupportFileUploads\TemporaryUploadedFile|null */
+    public $qrisUpload = null;
+
     /** @var TemporaryUploadedFile|null */
     public $logoUpload = null;
 
@@ -65,6 +74,7 @@ class Profile extends Component
             'app_name' => MockData::settings()['profile']['app_name'] ?? '',
             'address' => $p['address'] ?? '', 'phone' => $p['phone'] ?? '', 'email' => $p['email'] ?? '',
             'motto' => $p['motto'] ?? '', 'logo' => $p['logo'] ?? null,
+            'qris' => QrisImageService::url(app(\App\Services\SettingsService::class)->section('profile')['qris'] ?? null),
         ]);
         foreach (OpeningHours::DAYS as $d => $label) {
             $h = $p['schedule'][$d] ?? null;
@@ -84,6 +94,7 @@ class Profile extends Component
             'email' => ['nullable', 'email', 'max:150'],
             'motto' => ['nullable', 'string', 'max:150'],
             'logoUpload' => \App\Services\UploadPolicy::rules('logo', required: false),
+            'qrisUpload' => QrisImageService::rules(),
             'schedule.*.open' => ['boolean'],
             'schedule.*.from' => ['required_if:schedule.*.open,true', 'date_format:H:i'],
             'schedule.*.to' => ['required_if:schedule.*.open,true', 'date_format:H:i', function ($attr, $value, $fail) {
@@ -103,6 +114,7 @@ class Profile extends Component
             'phone.regex' => 'Nomor telepon tidak valid.',
             'email.email' => 'Format email belum benar.',
             ...LogoService::messages('logoUpload'),
+            ...QrisImageService::messages('qrisUpload'),
             'date_format' => 'Format jam HH:MM.',
         ];
     }
@@ -110,6 +122,21 @@ class Profile extends Component
     public function updatedLogoUpload(): void
     {
         $this->validateOnly('logoUpload');
+    }
+
+    public function updatedQrisUpload(): void
+    {
+        $this->validateOnly('qrisUpload');
+    }
+
+    public function removeQris(): void
+    {
+        if (! $this->canEdit) {
+            return;
+        }
+        $this->qris = null;
+        $this->qrisUpload = null;
+        $this->qrisRemoved = true;
     }
 
     public function removeLogo(): void
@@ -139,6 +166,16 @@ class Profile extends Component
                 $logos->delete();
             }
             $this->logoRemoved = false;
+
+            $qris = app(QrisImageService::class);
+            if ($this->qrisUpload) {
+                $all = $qris->store($this->qrisUpload);
+                $this->qrisUpload = null;
+                $this->qris = QrisImageService::url($all['profile']['qris']);
+            } elseif ($this->qrisRemoved) {
+                $qris->delete();
+            }
+            $this->qrisRemoved = false;
 
             MockData::saveSettings('profile', [
                 'name' => trim($this->name), 'short_name' => trim($this->short_name), 'school' => trim($this->school),
