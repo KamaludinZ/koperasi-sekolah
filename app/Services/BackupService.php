@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\Backup;
+use App\Models\Notification;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Process;
 use Illuminate\Support\Facades\Schema;
@@ -81,6 +82,7 @@ class BackupService
             ])->save();
             AuditLog::record('backup.created', 'pengaturan', "Cadangan {$backup->name} dibuat (".Backup::TRIGGERS[$trigger].', '.self::bytes($backup->size).')',
                 null, ['backup_id' => $backup->id, 'type' => $type, 'tables' => count($counts)]);
+            Notification::where('dedupe_key', 'like', 'backup-%')->delete(); // masalah cadangan sudah teratasi
             $this->prune();
         } catch (Throwable $e) {
             $backup->forceFill([
@@ -88,12 +90,40 @@ class BackupService
                 'finished_at' => now(), 'duration_s' => (int) $started->diffInSeconds(now(), true),
             ])->save();
             AuditLog::record('backup.failed', 'pengaturan', "Cadangan {$backup->name} gagal: ".mb_strimwidth($e->getMessage(), 0, 150, '…'), null, ['backup_id' => $backup->id]);
+            $this->notify('backup-failed-'.now()->toDateString(), 'Cadangan data gagal',
+                mb_strimwidth($e->getMessage(), 0, 160, '…').' Saran: '.\App\Support\BackupStatus::advice($e->getMessage()));
             report($e);
         } finally {
             $this->cleanTmp($tmp);
         }
 
         return $backup->fresh();
+    }
+
+    /**
+     * Pemeriksaan harian: beri tahu Admin bila cadangan berhasil terakhir lebih lama dari batas
+     * (mis. penjadwal tidak berjalan). Mengembalikan true bila peringatan dibuat.
+     */
+    public function checkStale(): bool
+    {
+        $last = Backup::succeeded()->latestFirst()->first();
+        $hours = $last ? (int) floor($last->started_at->diffInHours(now(), true)) : null;
+        if ($hours !== null && $hours < \App\Support\BackupStatus::STALE_HOURS) {
+            return false;
+        }
+
+        return $this->notify('backup-stale-'.now()->toDateString(), 'Cadangan data terlambat',
+            $last ? "Cadangan berhasil terakhir {$hours} jam lalu. Periksa penjadwal (cron) di server atau buat cadangan manual."
+                : 'Belum ada cadangan yang berhasil. Buat cadangan pertama di Sistem → Cadangan data.');
+    }
+
+    /** Notifikasi sistem untuk Admin (sekali per kunci). */
+    private function notify(string $key, string $title, string $message): bool
+    {
+        return (bool) Notification::firstOrCreate(['dedupe_key' => $key], [
+            'type' => 'sistem', 'target' => 'admin', 'title' => $title, 'message' => $message,
+            'url' => \Illuminate\Support\Facades\Route::has('sistem.cadangan') ? route('sistem.cadangan', [], false) : null,
+        ])->wasRecentlyCreated;
     }
 
     /** Tabel yang dicadangkan, urut nama. */

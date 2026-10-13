@@ -71,6 +71,12 @@ Artisan::command('cadangan:buat {--jenis=lengkap : lengkap | basis data} {--cata
 Schedule::command('cadangan:buat')->dailyAt(config('koperasi.backup.time', '23:00'))
     ->when(fn () => (bool) config('koperasi.backup.enabled', true))->withoutOverlapping();
 
+Artisan::command('cadangan:periksa', function () {
+    $this->info(app(\App\Services\BackupService::class)->checkStale() ? 'Peringatan cadangan terlambat dikirim ke Admin.' : 'Cadangan terbaru masih dalam batas.');
+})->purpose('Peringatkan Admin bila tidak ada cadangan berhasil dalam 26 jam');
+
+Schedule::command('cadangan:periksa')->dailyAt('08:00');
+
 // Denyut penjadwal untuk pemantauan kesehatan (Sistem → Kesehatan).
 Schedule::call(fn () => \Illuminate\Support\Facades\Cache::put('health:scheduler_heartbeat', now()->toDateTimeString(), now()->addDay()))
     ->everyMinute()->name('health-heartbeat');
