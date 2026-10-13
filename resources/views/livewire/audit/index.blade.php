@@ -18,16 +18,19 @@
     $danger = ['auth.failed', 'auth.locked', 'auth.inactive', 'member.deleted', 'user.deactivated', 'savings.withdraw', 'shift.denied'];
 @endphp
 <div class="flex min-h-0 flex-1 flex-col overflow-y-auto">
-    <header class="flex flex-wrap items-center justify-between gap-3 border-b border-stone-200 bg-white px-4 py-4 sm:px-6">
-        <div>
-            <h1 class="text-lg font-semibold">Audit & Riwayat</h1>
-            <p class="text-xs text-stone-500">Jejak login, sirkulasi uang & barang, dan perubahan data oleh semua petugas. Riwayat tidak dapat diubah atau dihapus.</p>
+    <header class="border-b border-stone-200 bg-white px-4 pt-4 sm:px-6">
+        <div class="flex flex-wrap items-center justify-between gap-3">
+            <div>
+                <h1 class="text-lg font-semibold">Audit & Riwayat</h1>
+                <p class="text-xs text-stone-500">Jejak login, sirkulasi uang & barang, dan perubahan data oleh semua petugas. Riwayat tidak dapat diubah atau dihapus.</p>
+            </div>
+            <button type="button" wire:click="export" wire:loading.attr="disabled" wire:target="export"
+                    class="inline-flex items-center gap-2 rounded-xl border border-stone-300 bg-white px-4 py-2 text-sm font-semibold text-stone-800 hover:bg-stone-50">
+                <svg class="size-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v12m0 0-4-4m4 4 4-4M4 20h16"/></svg>
+                Unduh CSV
+            </button>
         </div>
-        <button type="button" wire:click="export" wire:loading.attr="disabled" wire:target="export"
-                class="inline-flex items-center gap-2 rounded-xl border border-stone-300 bg-white px-4 py-2 text-sm font-semibold text-stone-800 hover:bg-stone-50">
-            <svg class="size-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v12m0 0-4-4m4 4 4-4M4 20h16"/></svg>
-            Unduh CSV
-        </button>
+        <x-audit.nav active="audit" />
     </header>
 
     <div class="space-y-5 px-4 py-5 sm:px-6">

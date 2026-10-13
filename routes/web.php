@@ -237,7 +237,10 @@ Route::middleware(['menu:pengguna', 'peran:admin'])->group(function () {
         Route::post('/pengguna/{user}/status', [UserController::class, 'toggle'])->whereNumber('user')->name('pengguna.toggle');
     });
 });
-Route::get('/audit', Audit\Index::class)->middleware(['menu:audit', 'peran:admin,pengurus'])->name('audit');
+Route::middleware(['menu:audit', 'peran:admin,pengurus'])->group(function () {
+    Route::get('/audit', Audit\Index::class)->name('audit');
+    Route::get('/audit/perubahan', Audit\Changes::class)->name('audit.perubahan');
+});
 
 Route::middleware('menu:pengaturan')->group(function () {
     Route::get('/pengaturan', Pengaturan\Index::class)->name('pengaturan');
