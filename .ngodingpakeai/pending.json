@@ -1,6 +1,6 @@
 {
   "repo": "Koperasi Sekolah",
-  "generatedForCommit": "f2bba13aa54a1699fa0178d8ae825469c1d9d51e",
+  "generatedForCommit": "eae56bc9d17ddbe0ded29a7f66236a84346c8a97",
   "files": [
     {
       "path": ".claude/skills/ngodingpakeai/SKILL.md",
@@ -148,7 +148,7 @@
     },
     {
       "path": "app/Http/Controllers/BerandaController.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 2716
     },
@@ -538,9 +538,9 @@
     },
     {
       "path": "app/Livewire/Notifikasi/Index.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 5424
+      "size": 5518
     },
     {
       "path": "app/Livewire/Pengadaan/Index.php",
@@ -982,7 +982,7 @@
     },
     {
       "path": "app/Services/AnnouncementService.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 6596
     },
@@ -1978,7 +1978,7 @@
     },
     {
       "path": "resources/views/beranda.blade.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 15173
     },
@@ -2458,9 +2458,9 @@
     },
     {
       "path": "resources/views/livewire/notifikasi/announcements.blade.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 7502
+      "size": 7797
     },
     {
       "path": "resources/views/livewire/notifikasi/bell.blade.php",
@@ -2470,9 +2470,9 @@
     },
     {
       "path": "resources/views/livewire/notifikasi/index.blade.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 7508
+      "size": 8925
     },
     {
       "path": "resources/views/livewire/pengadaan/index.blade.php",
@@ -2686,7 +2686,7 @@
     },
     {
       "path": "resources/views/pengumuman.blade.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 2049
     },
@@ -2698,7 +2698,7 @@
     },
     {
       "path": "routes/web.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 29859
     },
@@ -3394,9 +3394,9 @@
     },
     {
       "path": "tests/Feature/Notifikasi/IndexTest.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 3017
+      "size": 3788
     },
     {
       "path": "tests/Feature/Notifikasi/MarkReadEndpointTest.php",
@@ -3424,7 +3424,7 @@
     },
     {
       "path": "tests/Feature/Notifikasi/PublicAnnouncementsPageTest.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 1309
     },

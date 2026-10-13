@@ -125,4 +125,18 @@ class ProfileTest extends TestCase
         $this->loginAs('pengurus');
         $this->get('/pengaturan/profil')->assertForbidden();
     }
+
+    public function test_open_status_indicator_in_profile_and_cashier(): void
+    {
+        $this->travelTo(now()->startOfWeek()->setTime(9, 0)); // Senin 09.00
+        $this->loginAs('admin');
+        $c = Livewire::test(Profile::class);
+        foreach (range(1, 7) as $d) {
+            $c->set("schedule.{$d}.open", $d <= 5)->set("schedule.{$d}.from", '07:00')->set("schedule.{$d}.to", '14:00');
+        }
+        $c->assertSeeHtml('data-open-status="buka"')->assertSee('Saat ini: Sedang buka');
+        $c->set('schedule.1.open', false)->assertSeeHtml('data-open-status="tutup"')->assertSee('Buka besok pukul 07.00');
+        $c->call('save')->assertHasNoErrors();
+        $this->get('/kasir')->assertSeeHtml('data-open-status="tutup"');
+    }
 }

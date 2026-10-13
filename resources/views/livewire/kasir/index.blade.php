@@ -3,7 +3,12 @@
     <header class="hidden items-center justify-between gap-4 border-b border-stone-200 bg-white px-4 py-3 sm:flex sm:px-6">
         <div>
             <h1 class="text-lg font-semibold">Layar Kasir</h1>
-            <p class="text-xs text-stone-500">{{ now()->translatedFormat('l, d F Y') }}</p>
+            @php $open = \App\Support\OpeningHours::status(\App\Support\MockData::profile()['schedule'], now()); @endphp
+            <p class="flex items-center gap-2 text-xs text-stone-500">{{ now()->translatedFormat('l, d F Y') }}
+                <span @class(['inline-flex items-center gap-1 rounded-full px-2 py-0.5 font-semibold', 'bg-emerald-100 text-emerald-800' => $open['open'], 'bg-stone-200 text-stone-700' => ! $open['open']]) title="{{ $open['detail'] }}" data-open-status="{{ $open['open'] ? 'buka' : 'tutup' }}">
+                    <span @class(['size-1.5 rounded-full', 'bg-emerald-600' => $open['open'], 'bg-stone-500' => ! $open['open']])></span>{{ $open['open'] ? 'Buka' : 'Tutup' }}
+                </span>
+            </p>
         </div>
         <div class="flex items-center gap-3">
             <div class="text-right leading-tight">

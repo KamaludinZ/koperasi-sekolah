@@ -124,8 +124,15 @@
 
             {{-- Jam buka --}}
             <section class="rounded-2xl border border-stone-200 bg-white p-5" aria-labelledby="sec-hours">
-                <h2 id="sec-hours" class="font-semibold">Jam buka</h2>
-                <p class="text-xs text-stone-500">Dipakai untuk status "Sedang buka/tutup" di beranda publik.</p>
+                @php $nowStatus = \App\Support\OpeningHours::status(collect($schedule)->map(fn ($h) => $h['open'] && $h['from'] && $h['to'] ? ['open' => $h['from'], 'close' => $h['to']] : null)->all(), now()); @endphp
+                <div class="flex flex-wrap items-center justify-between gap-2">
+                    <h2 id="sec-hours" class="font-semibold">Jam buka</h2>
+                    <span @class(['inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-semibold', 'bg-emerald-100 text-emerald-800' => $nowStatus['open'], 'bg-stone-200 text-stone-700' => ! $nowStatus['open']]) data-open-status="{{ $nowStatus['open'] ? 'buka' : 'tutup' }}">
+                        <span @class(['size-1.5 rounded-full', 'bg-emerald-600' => $nowStatus['open'], 'bg-stone-500' => ! $nowStatus['open']])></span>
+                        Saat ini: {{ $nowStatus['label'] }}@if ($nowStatus['detail']) · {{ $nowStatus['detail'] }}@endif
+                    </span>
+                </div>
+                <p class="text-xs text-stone-500">Dipakai untuk status "Sedang buka/tutup" di beranda publik dan layar kasir.</p>
                 <ul class="mt-3 divide-y divide-stone-100">
                     @foreach (\App\Support\OpeningHours::DAYS as $d => $dayName)
                         <li wire:key="day-{{ $d }}" class="flex flex-wrap items-center gap-3 py-2">
