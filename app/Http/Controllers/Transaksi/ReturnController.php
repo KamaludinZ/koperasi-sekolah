@@ -21,6 +21,8 @@ use Illuminate\Validation\Rule;
  * → 201 {data: pengajuan BTL-, auto_approved}. Pembatalan kecil oleh kasir yang sama langsung
  * `disetujui` (aturan nilai batas di pengaturan), selainnya `menunggu`.
  *
+ * GET  /transaksi/retur/daftar?status=&jenis=&q=&saya=1 → {data, counts, stats}
+ * GET  /transaksi/retur/menunggu         (gate setujui-retur) → {data: antrean terlama dulu}
  * GET  /transaksi/retur/{return}          → {data}
  * POST /transaksi/retur/{return}/setujui  {note?}  (gate setujui-retur; bukan pengaju) → {data}
  * POST /transaksi/retur/{return}/tolak    {note}   (gate setujui-retur; min. 5 karakter) → {data}
@@ -62,6 +64,28 @@ class ReturnController extends Controller
         $r = $returns->requestVoid($transaction, $data['reason'], $data['note'] ?? null, $request->user());
 
         return response()->json(['data' => TransactionReturnService::toArray($r), 'auto_approved' => $r->status === 'disetujui'], 201);
+    }
+
+    public function index(Request $request, TransactionReturnService $returns): JsonResponse
+    {
+        $data = $request->validate([
+            'status' => ['nullable', Rule::in(array_keys(TransactionReturn::STATUSES))],
+            'jenis' => ['nullable', Rule::in(array_keys(TransactionReturn::KINDS))],
+            'q' => ['nullable', 'string', 'max:60'],
+            'saya' => ['nullable', 'boolean'],
+        ]);
+        $filters = ['kind' => $data['jenis'] ?? null, 'search' => $data['q'] ?? null, 'requested_by' => ($data['saya'] ?? false) ? $request->user()->id : null];
+
+        return response()->json([
+            'data' => $returns->list([...$filters, 'status' => $data['status'] ?? null]),
+            'counts' => $returns->counts($filters),
+            'stats' => $returns->stats(),
+        ]);
+    }
+
+    public function queue(TransactionReturnService $returns): JsonResponse
+    {
+        return response()->json(['data' => $returns->queue()]);
     }
 
     public function show(TransactionReturn $return): JsonResponse

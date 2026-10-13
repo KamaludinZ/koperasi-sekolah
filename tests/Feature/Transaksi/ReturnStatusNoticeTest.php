@@ -68,9 +68,11 @@ class ReturnStatusNoticeTest extends TestCase
 
     public function test_mine_filter_on_returns_page(): void
     {
+        $me = auth()->user();
+        \App\Models\TransactionReturn::factory()->create(['requested_by' => $me->id]);
+        \App\Models\TransactionReturn::factory()->create(['requested_by' => User::factory()->create()->id]);
         $c = Livewire::test(Returns::class)->set('mine', true);
-        $this->assertNotEmpty($c->instance()->rows);
-        $this->assertSame(['Bu Rina'], array_values(array_unique(array_column($c->instance()->rows, 'requested_by'))));
-        $this->assertSame(count(array_filter($c->instance()->all, fn ($r) => $r['requested_by'] === 'Bu Rina')), $c->instance()->counts['semua']);
+        $this->assertSame([$me->id], array_values(array_unique(array_column($c->instance()->rows, 'requested_by_id'))));
+        $this->assertSame(1, $c->instance()->counts['semua']);
     }
 }

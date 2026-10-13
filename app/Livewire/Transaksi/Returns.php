@@ -4,7 +4,9 @@ namespace App\Livewire\Transaksi;
 
 use App\Livewire\Concerns\NotifiesSave;
 use App\Models\Transaction;
-use App\Support\MockData;
+use App\Models\TransactionReturn;
+use App\Services\TransactionReturnService;
+use Illuminate\Validation\ValidationException;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Route;
@@ -19,7 +21,7 @@ use Livewire\Component;
  * (status menunggu/disetujui/ditolak) dengan ringkasan & rincian, serta pencarian transaksi
  * untuk memulai pengajuan baru. Admin/Pengurus (gate `setujui-retur`) menyetujui atau menolak
  * pengajuan yang menunggu dari panel rincian; tidak boleh memutus pengajuan sendiri.
- * Tahap ini daftar dari MockData::transactionReturns() dan keputusan disimulasikan di layar.
+ * Data & keputusan lewat TransactionReturnService (sama dengan /transaksi/retur/daftar, .../setujui, .../tolak).
  */
 #[Layout('components.layouts.app')]
 #[Title('Retur & Pembatalan')]
@@ -33,7 +35,7 @@ class Returns extends Component
 
     public const STATUS_TONES = ['menunggu' => 'bg-amber-100 text-amber-900', 'disetujui' => 'bg-emerald-100 text-emerald-800', 'ditolak' => 'bg-red-100 text-red-800'];
 
-    public const REFUND_METHODS = ['tunai' => 'Uang tunai', 'qris' => 'Transfer balik', 'tabungan' => 'Masuk saldo tabungan', 'bon' => 'Mengurangi bon'];
+    public const REFUND_METHODS = TransactionReturn::REFUND_METHODS;
 
     /** Batas hari sejak pembelian untuk retur/pembatalan. */
 
@@ -58,22 +60,27 @@ class Returns extends Component
     /** Catatan keputusan persetujuan (wajib saat menolak). */
     public string $decisionNote = '';
 
-    /** @var array<int, array{status: string, by: string, at: string, note: ?string}> keputusan yang dibuat di layar (simulasi) */
-    public array $decisions = [];
-
     public function setStatus(string $status): void
     {
         $this->status = array_key_exists($status, self::STATUSES) ? $status : 'semua';
     }
 
+    private function service(): TransactionReturnService
+    {
+        return app(TransactionReturnService::class);
+    }
+
+    /** Filter jenis & "pengajuan saya" (dipakai daftar dan hitungan). */
+    private function baseFilters(): array
+    {
+        return ['kind' => $this->kind ?: null, 'requested_by' => $this->mine ? auth()->id() : null];
+    }
+
+    /** Semua pengajuan (tanpa filter) — untuk rincian & antrean. */
     #[Computed]
     public function all(): array
     {
-        return array_map(function ($r) {
-            $d = $this->decisions[$r['id']] ?? null;
-
-            return $d ? [...$r, 'status' => $d['status'], 'decided_by' => $d['by'], 'decided_at' => $d['at'], 'decision_note' => $d['note']] : $r;
-        }, MockData::transactionReturns());
+        return $this->service()->list();
     }
 
     #[Computed]
@@ -87,7 +94,7 @@ class Returns extends Component
     {
         return match (true) {
             ! $this->canApprove => 'Menunggu persetujuan Admin/Pengurus. Stok dan uang belum berubah sampai disetujui.',
-            $r['requested_by'] === auth()->user()->name => 'Pengajuan ini Anda buat sendiri — minta Admin/Pengurus lain untuk memutuskan.',
+            $r['requested_by_id'] === auth()->id() => 'Pengajuan ini Anda buat sendiri — minta Admin/Pengurus lain untuk memutuskan.',
             default => null,
         };
     }
@@ -122,14 +129,22 @@ class Returns extends Component
             'decisionNote.max' => 'Catatan maksimal 200 karakter.',
         ]);
 
-        // Simulasi: backend menyusul akan mengembalikan stok & dana saat disetujui.
-        $this->decisions[$id] = ['status' => $status, 'by' => auth()->user()->name, 'at' => now()->toDateTimeString(), 'note' => trim($this->decisionNote) ?: null];
+        $model = TransactionReturn::findOrFail($id);
+        try {
+            $done = $status === 'disetujui'
+                ? $this->service()->approve($model, auth()->user(), trim($this->decisionNote) ?: null)
+                : $this->service()->reject($model, auth()->user(), $this->decisionNote);
+        } catch (ValidationException $e) {
+            $this->addError('decisionNote', collect($e->errors())->flatten()->first());
+
+            return;
+        }
         $this->decisionNote = '';
         unset($this->all, $this->rows, $this->counts, $this->stats, $this->selected);
-        $what = $r['kind'] === 'batal' ? 'Pembatalan' : 'Retur';
+        $what = $done->isVoid() ? 'Pembatalan' : 'Retur';
         $this->toast('success', $status === 'disetujui'
-            ? "{$what} {$r['number']} disetujui. ".($r['kind'] === 'batal' || $r['restock'] ? 'Barang kembali ke stok dan ' : '')."dana {$this->rupiah($r['amount'])} dikembalikan. (simulasi)"
-            : "{$what} {$r['number']} ditolak. (simulasi)");
+            ? "{$what} {$done->number} disetujui. ".($done->isVoid() || $done->restock ? 'Barang kembali ke stok dan ' : '')."dana {$this->rupiah($done->amount)} dikembalikan (".mb_strtolower($done->refundLabel()).').'
+            : "{$what} {$done->number} ditolak.");
     }
 
     private function rupiah(int $n): string
@@ -140,52 +155,33 @@ class Returns extends Component
     #[Computed]
     public function rows(): array
     {
-        $q = mb_strtolower(trim($this->search));
-
-        return array_values(array_filter($this->all, fn ($r) => ($this->status === 'semua' || $r['status'] === $this->status)
-            && ($this->kind === '' || $r['kind'] === $this->kind)
-            && (! $this->mine || $r['requested_by'] === auth()->user()->name)
-            && ($q === '' || str_contains(mb_strtolower($r['number'].' '.$r['transaction']['invoice'].' '.implode(' ', array_column($r['items'], 'name'))), $q))));
+        return $this->service()->list([...$this->baseFilters(), 'status' => $this->status === 'semua' ? null : $this->status, 'search' => $this->search]);
     }
 
-    /** @return array<string, int> jumlah per status (setelah filter jenis) */
+    /** @return array<string, int> jumlah per status (setelah filter jenis & pengajuan saya) */
     #[Computed]
     public function counts(): array
     {
-        $rows = array_filter($this->all, fn ($r) => ($this->kind === '' || $r['kind'] === $this->kind) && (! $this->mine || $r['requested_by'] === auth()->user()->name));
-        $counts = array_fill_keys(array_keys(self::STATUSES), 0);
-        $counts['semua'] = count($rows);
-        foreach ($rows as $r) {
-            $counts[$r['status']]++;
-        }
-
-        return $counts;
+        return $this->service()->counts($this->baseFilters());
     }
 
     #[Computed]
     public function stats(): array
     {
-        $done = collect($this->all)->where('status', 'disetujui')->filter(fn ($r) => Carbon::parse($r['requested_at'])->isCurrentMonth());
-
-        return [
-            'pending' => collect($this->all)->where('status', 'menunggu')->count(),
-            'return_total' => $done->where('kind', 'retur')->sum('amount'),
-            'return_count' => $done->where('kind', 'retur')->count(),
-            'void_total' => $done->where('kind', 'batal')->sum('amount'),
-            'void_count' => $done->where('kind', 'batal')->count(),
-            'restocked' => $done->where('restock', true)->sum('qty'),
-        ];
+        return $this->service()->stats();
     }
 
     #[Computed]
     public function selected(): ?array
     {
-        return $this->selectedId ? collect($this->all)->firstWhere('id', $this->selectedId) : null;
+        $r = $this->selectedId ? TransactionReturn::find($this->selectedId) : null;
+
+        return $r ? TransactionReturnService::toArray($r) : null;
     }
 
     public function show(int $id): void
     {
-        $this->selectedId = collect($this->all)->contains('id', $id) ? $id : null;
+        $this->selectedId = TransactionReturn::whereKey($id)->exists() ? $id : null;
         $this->decisionNote = '';
         $this->resetValidation();
     }
@@ -198,7 +194,7 @@ class Returns extends Component
     /** Buka pengajuan menunggu tertua berikutnya (antrean persetujuan). */
     public function nextPending(): void
     {
-        $next = collect($this->all)->where('status', 'menunggu')->sortBy('requested_at')->first();
+        $next = $this->service()->queue(1)[0] ?? null;
         $next ? $this->show($next['id']) : $this->closeDetail();
     }
 
@@ -220,7 +216,7 @@ class Returns extends Component
                 'items' => $t->item_count,
                 'method' => $t->payment_method,
                 'created_at' => $t->created_at->toDateTimeString(),
-                'expired' => $t->created_at->lt(now()->subDays(\App\Services\TransactionReturnService::limitDays())->startOfDay()),
+                'expired' => TransactionReturnService::expired($t) || $t->isVoided(),
             ])->all();
     }
 

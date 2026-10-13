@@ -11,7 +11,6 @@
                 <h1 class="text-lg font-semibold">Riwayat Transaksi</h1>
                 <p class="text-xs text-stone-500">Retur barang dan pembatalan transaksi beserta status persetujuannya.</p>
             </div>
-            <span class="rounded bg-stone-100 px-2 py-1 text-xs font-medium text-stone-500" title="Menunggu backend retur">Data contoh</span>
         </div>
         <x-transaksi.nav active="transaksi.retur" />
     </header>
@@ -93,14 +92,14 @@
                                     </td>
                                     <td class="px-3 py-2.5">
                                         <a href="{{ route('transaksi.show', $r['transaction']['id']) }}" wire:navigate class="font-mono text-xs hover:text-emerald-800 hover:underline">{{ $r['transaction']['invoice'] }}</a>
-                                        <span class="block text-xs text-stone-500">{{ $r['requested_by'] }}</span>
+                                        <span class="block text-xs text-stone-500">{{ $r['requested_by'] ?? '—' }}</span>
                                     </td>
                                     <td class="px-3 py-2.5 text-stone-700">{{ $r['reason'] }}</td>
                                     <td class="px-3 py-2.5"><span class="rounded-md px-2 py-0.5 text-[11px] font-semibold whitespace-nowrap {{ Returns::STATUS_TONES[$r['status']] }}">{{ Returns::STATUSES[$r['status']] }}</span></td>
                                     <td class="px-4 py-2.5 text-right font-semibold tabular-nums">{{ $rp($r['amount']) }}</td>
                                 </tr>
                             @empty
-                                <tr><td colspan="5" class="px-4 py-10 text-center text-stone-400">{{ $this->all ? 'Tidak ada pengajuan yang cocok.' : 'Belum ada retur atau pembatalan.' }}</td></tr>
+                                <tr><td colspan="5" class="px-4 py-10 text-center text-stone-400">{{ \App\Models\TransactionReturn::exists() ? 'Tidak ada pengajuan yang cocok.' : 'Belum ada retur atau pembatalan.' }}</td></tr>
                             @endforelse
                         </tbody>
                     </table>
@@ -171,10 +170,10 @@
                         <dt class="text-stone-500">Alasan</dt><dd>{{ $sel['reason'] }}@if ($sel['note'])<span class="block text-xs text-stone-500">{{ $sel['note'] }}</span>@endif</dd>
                         <dt class="text-stone-500">Pengembalian dana</dt><dd>{{ $rp($sel['amount']) }} · {{ Returns::REFUND_METHODS[$sel['refund_method']] }}</dd>
                         <dt class="text-stone-500">Stok</dt><dd>{{ $sel['restock'] ? 'Barang dikembalikan ke stok' : 'Tidak kembali ke stok (rusak/kedaluwarsa)' }}</dd>
-                        <dt class="text-stone-500">Diajukan</dt><dd>{{ $sel['requested_by'] }} · {{ $dt($sel['requested_at']) }}</dd>
-                        @if ($sel['decided_by'])
+                        <dt class="text-stone-500">Diajukan</dt><dd>{{ $sel['requested_by'] ?? '—' }} · {{ $dt($sel['requested_at']) }}</dd>
+                        @if ($sel['decided_at'])
                             <dt class="text-stone-500">{{ $sel['status'] === 'ditolak' ? 'Ditolak' : 'Disetujui' }}</dt>
-                            <dd>{{ $sel['decided_by'] }} · {{ $dt($sel['decided_at']) }}@if ($sel['decision_note'])<span class="block text-xs text-red-700">{{ $sel['decision_note'] }}</span>@endif</dd>
+                            <dd>{{ $sel['decided_by'] ?? 'Otomatis' }} · {{ $dt($sel['decided_at']) }}@if ($sel['decision_note'])<span class="block text-xs text-red-700">{{ $sel['decision_note'] }}</span>@endif</dd>
                         @endif
                     </dl>
                     <section>

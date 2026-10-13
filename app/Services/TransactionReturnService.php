@@ -292,6 +292,72 @@ class TransactionReturnService
         });
     }
 
+    /**
+     * Daftar pengajuan terbaru dulu.
+     *
+     * @param  array{status?: ?string, kind?: ?string, search?: ?string, requested_by?: ?int, decided?: bool, from?: mixed, to?: mixed}  $filters
+     * @return list<array<string, mixed>>
+     */
+    public function list(array $filters = [], int $limit = 300): array
+    {
+        return $this->query($filters)->latest('requested_at')->latest('id')->limit($limit)->get()
+            ->map(fn (TransactionReturn $r) => self::toArray($r))->all();
+    }
+
+    /** Antrean persetujuan: pengajuan menunggu, terlama dulu. */
+    public function queue(int $limit = 100): array
+    {
+        return $this->query(['status' => 'menunggu'])->oldest('requested_at')->oldest('id')->limit($limit)->get()
+            ->map(fn (TransactionReturn $r) => self::toArray($r))->all();
+    }
+
+    /** @return array<string, int> jumlah per status (semua, menunggu, disetujui, ditolak) */
+    public function counts(array $filters = []): array
+    {
+        $rows = $this->query([...$filters, 'status' => null])->selectRaw('status, COUNT(*) as n')->groupBy('status')->pluck('n', 'status');
+        $counts = ['semua' => (int) $rows->sum()];
+        foreach (array_keys(TransactionReturn::STATUSES) as $s) {
+            $counts[$s] = (int) ($rows[$s] ?? 0);
+        }
+
+        return $counts;
+    }
+
+    /** Ringkasan: menunggu, retur & pembatalan disetujui bulan ini, unit kembali ke stok bulan ini. */
+    public function stats(): array
+    {
+        $month = TransactionReturn::where('status', 'disetujui')->where('decided_at', '>=', now()->startOfMonth());
+
+        return [
+            'pending' => TransactionReturn::pending()->count(),
+            'return_total' => (int) (clone $month)->where('kind', 'retur')->sum('amount'),
+            'return_count' => (clone $month)->where('kind', 'retur')->count(),
+            'void_total' => (int) (clone $month)->where('kind', 'batal')->sum('amount'),
+            'void_count' => (clone $month)->where('kind', 'batal')->count(),
+            'restocked' => (int) (clone $month)->where('restock', true)->sum('quantity'),
+        ];
+    }
+
+    private function query(array $f): \Illuminate\Database\Eloquent\Builder
+    {
+        $term = mb_strtoupper(trim((string) ($f['search'] ?? '')));
+
+        return TransactionReturn::query()
+            ->with(['items', 'transaction.user:id,name', 'requester:id,name', 'decider:id,name'])
+            ->when($f['status'] ?? null, fn ($q, $s) => $q->where('status', $s))
+            ->when($f['decided'] ?? false, fn ($q) => $q->decided())
+            ->ofKind(($f['kind'] ?? '') ?: null)
+            ->when($f['requested_by'] ?? null, fn ($q, $id) => $q->where('requested_by', $id))
+            ->when($f['from'] ?? null, fn ($q, $d) => $q->where('decided_at', '>=', $d))
+            ->when($f['to'] ?? null, fn ($q, $d) => $q->where('decided_at', '<=', $d))
+            ->when($term !== '', function ($q) use ($term) {
+                $like = '%'.str_replace(['\\', '%', '_'], ['\\\\', '\\%', '\\_'], $term).'%';
+                $q->where(fn ($w) => $w->whereRaw("UPPER(number) LIKE ? ESCAPE '\\'", [$like])
+                    ->orWhereHas('transaction', fn ($t) => $t->whereRaw("UPPER(invoice_number) LIKE ? ESCAPE '\\'", [$like]))
+                    ->orWhereHas('items', fn ($i) => $i->whereRaw("UPPER(product_name) LIKE ? ESCAPE '\\'", [$like])));
+            });
+    }
+
     /** @return array<string, mixed> bentuk data pengajuan untuk API & halaman */
     public static function toArray(TransactionReturn $r): array
     {

@@ -3,7 +3,9 @@
 namespace Tests\Feature\Transaksi;
 
 use App\Livewire\Transaksi\Returns;
+use App\Models\Product;
 use App\Models\Transaction;
+use App\Models\TransactionReturn;
 use App\Models\User;
 use Database\Seeders\ProductSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -15,19 +17,18 @@ class ReturnApprovalTest extends TestCase
 {
     use RefreshDatabase;
 
+    private TransactionReturn $older;
+
+    private TransactionReturn $newer;
+
     protected function setUp(): void
     {
         parent::setUp();
         $this->seed(ProductSeeder::class);
         $cashier = User::where('email', 'kasir@koperasi.test')->first();
-        foreach (range(13, 0) as $h) {
-            Transaction::factory()->withItems()->at(now()->subHours($h * 3)->toDateTimeString())->create(['user_id' => $cashier->id]);
-        }
-    }
-
-    private function pending(\Livewire\Features\SupportTesting\Testable $c): array
-    {
-        return array_values(array_filter($c->instance()->all, fn ($r) => $r['status'] === 'menunggu'));
+        $tx = fn () => Transaction::factory()->withItems([$this->pid('ATK001') => 2])->create(['user_id' => $cashier->id]);
+        $this->older = TransactionReturn::factory()->create(['transaction_id' => $tx()->id, 'requested_by' => $cashier->id, 'requested_at' => now()->subHours(2), 'restock' => true]);
+        $this->newer = TransactionReturn::factory()->create(['transaction_id' => $tx()->id, 'requested_by' => $cashier->id, 'requested_at' => now()->subHour()]);
     }
 
     public function test_gate_admin_and_pengurus_only(): void
@@ -41,30 +42,26 @@ class ReturnApprovalTest extends TestCase
 
     public function test_admin_approves_pending_request(): void
     {
-        $c = Livewire::test(Returns::class)->assertSee('menunggu persetujuan Anda')->call('nextPending');
-        $pending = $this->pending($c);
-        $oldest = collect($pending)->sortBy('requested_at')->first();
-        $c->assertSet('selectedId', $oldest['id'])->assertSee('Keputusan')->assertSee('Setujui');
+        $stock = Product::find($this->pid('ATK001'))->stock;
+        $c = Livewire::test(Returns::class)->assertSee('menunggu persetujuan Anda')->call('nextPending')
+            ->assertSet('selectedId', $this->older->id)->assertSee('Keputusan')->assertSee('Setujui');
 
-        $c->call('approve', $oldest['id'])->assertHasNoErrors();
-        $r = collect($c->instance()->all)->firstWhere('id', $oldest['id']);
-        $this->assertSame('disetujui', $r['status']);
-        $this->assertSame('Admin Koperasi', $r['decided_by']);
-        $this->assertCount(count($pending) - 1, $this->pending($c));
-        $c->assertDispatched('toast')->assertDontSee('Tolak</button>', false);
+        $c->call('approve', $this->older->id)->assertHasNoErrors()->assertDispatched('toast', type: 'success');
+        $this->assertSame(['disetujui', auth()->id()], [$this->older->fresh()->status, $this->older->fresh()->decided_by]);
+        $this->assertSame($stock + 1, Product::find($this->pid('ATK001'))->stock);
+        $this->assertSame(1, $c->instance()->counts['menunggu']);
 
-        $c->call('approve', $oldest['id'])->assertDispatched('toast', type: 'error');
+        $c->call('approve', $this->older->id)->assertDispatched('toast', type: 'error');
     }
 
     public function test_reject_requires_reason(): void
     {
-        $c = Livewire::test(Returns::class);
-        $id = $this->pending($c)[0]['id'];
-        $c->call('show', $id)->call('reject', $id)->assertHasErrors(['decisionNote' => 'required']);
+        $id = $this->newer->id;
+        $c = Livewire::test(Returns::class)->call('show', $id);
+        $c->call('reject', $id)->assertHasErrors(['decisionNote' => 'required']);
         $c->set('decisionNote', 'oke')->call('reject', $id)->assertHasErrors(['decisionNote' => 'min']);
         $c->set('decisionNote', 'Barang sudah dipakai')->call('reject', $id)->assertHasNoErrors()->assertSet('decisionNote', '');
-        $r = collect($c->instance()->all)->firstWhere('id', $id);
-        $this->assertSame(['ditolak', 'Barang sudah dipakai'], [$r['status'], $r['decision_note']]);
+        $this->assertSame(['ditolak', 'Barang sudah dipakai'], [$this->newer->fresh()->status, $this->newer->fresh()->decision_note]);
         $c->assertSee('Barang sudah dipakai');
     }
 
@@ -72,20 +69,15 @@ class ReturnApprovalTest extends TestCase
     {
         $this->loginAs('kasir@koperasi.test');
         $c = Livewire::test(Returns::class)->assertDontSee('menunggu persetujuan Anda');
-        $id = $this->pending($c)[0]['id'];
-        $c->call('show', $id)->assertSee('Menunggu persetujuan Admin/Pengurus')->assertDontSee('Keputusan');
-        $c->call('approve', $id)->assertForbidden();
+        $c->call('show', $this->older->id)->assertSee('Menunggu persetujuan Admin/Pengurus')->assertDontSee('Keputusan');
+        $c->call('approve', $this->older->id)->assertForbidden();
     }
 
     public function test_cannot_decide_own_request(): void
     {
-        $this->loginAs('pengurus@koperasi.test');
-        User::where('email', 'pengurus@koperasi.test')->update(['name' => 'Bu Rina']); // sama dengan nama pengaju (kasir transaksi)
-        auth()->user()->refresh();
-        $c = Livewire::test(Returns::class);
-        $id = $this->pending($c)[0]['id'];
-        $c->call('show', $id)->assertSee('Anda buat sendiri');
-        $c->call('approve', $id)->assertHasErrors('decisionNote');
-        $this->assertSame('menunggu', collect($c->instance()->all)->firstWhere('id', $id)['status']);
+        $this->older->update(['requested_by' => auth()->id()]);
+        $c = Livewire::test(Returns::class)->call('show', $this->older->id)->assertSee('Anda buat sendiri');
+        $c->call('approve', $this->older->id)->assertHasErrors('decisionNote');
+        $this->assertSame('menunggu', $this->older->fresh()->status);
     }
 }
