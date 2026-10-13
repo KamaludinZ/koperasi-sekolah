@@ -1,6 +1,6 @@
 {
   "repo": "Koperasi Sekolah",
-  "generatedForCommit": "cec45844203bcc1dc25fa48e16c398cb3ebd6320",
+  "generatedForCommit": "9db38dfa6090c3e31fcf478e87dc4c16e6ac92eb",
   "files": [
     {
       "path": ".claude/skills/ngodingpakeai/SKILL.md",
@@ -468,7 +468,7 @@
       "path": "app/Livewire/Kasir/Cart.php",
       "reason": "changed",
       "language": "php",
-      "size": 17727
+      "size": 19623
     },
     {
       "path": "app/Livewire/Kasir/Index.php",
@@ -2112,7 +2112,7 @@
       "path": "resources/views/livewire/kasir/partials/payment-panel.blade.php",
       "reason": "changed",
       "language": "php",
-      "size": 19336
+      "size": 24351
     },
     {
       "path": "resources/views/livewire/kasir/partials/promo-panel.blade.php",
@@ -2122,7 +2122,7 @@
     },
     {
       "path": "resources/views/livewire/kasir/partials/receipt.blade.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 5007
     },
@@ -2826,7 +2826,7 @@
       "path": "tests/Feature/Kasir/MemberPaymentMethodsTest.php",
       "reason": "changed",
       "language": "php",
-      "size": 5479
+      "size": 8128
     },
     {
       "path": "tests/Feature/Kasir/PaymentTest.php",

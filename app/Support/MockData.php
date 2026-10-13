@@ -382,4 +382,37 @@ class MockData
             'overdue' => $overdue,
         ];
     }
+
+    /**
+     * Bon belum lunas milik anggota (tiruan), jatuh tempo terlama dulu. Jumlahnya cocok dengan
+     * memberCredit(). Kontrak backend: GET /anggota/{id}/bon → bills[].
+     *
+     * @return list<array{id: string, number: string, invoice: string, created_at: string, due_at: string, amount: int, remaining: int, overdue: bool}>
+     */
+    public static function memberBills(int $memberId, string $type = 'siswa'): array
+    {
+        $credit = self::memberCredit($memberId, $type);
+        if ($credit['outstanding'] === 0) {
+            return [];
+        }
+
+        $first = $credit['open_bills'] > 1 ? (int) (round($credit['outstanding'] * 0.4 / 1000) * 1000) : $credit['outstanding'];
+        $amounts = array_values(array_filter([$first, $credit['outstanding'] - $first]));
+        $bills = [];
+        foreach ($amounts as $i => $amount) {
+            $due = \Illuminate\Support\Carbon::parse($credit['oldest_due_at'])->addDays($i * 7);
+            $bills[] = [
+                'id' => "B{$memberId}-".($i + 1),
+                'number' => 'BON-'.$due->copy()->subDays(14)->format('Ymd').'-'.str_pad((string) ($memberId * 10 + $i + 1), 4, '0', STR_PAD_LEFT),
+                'invoice' => 'INV-'.$due->copy()->subDays(14)->format('Ymd').'-'.str_pad((string) ($memberId * 7 + $i), 4, '0', STR_PAD_LEFT),
+                'created_at' => $due->copy()->subDays(14)->toDateString(),
+                'due_at' => $due->toDateString(),
+                'amount' => $amount,
+                'remaining' => $amount,
+                'overdue' => $due->isPast() && ! $due->isToday(),
+            ];
+        }
+
+        return $bills;
+    }
 }

@@ -83,8 +83,11 @@
                     Saldo sekarang <strong class="tabular-nums">{{ $rp($lastEntry['balance_after']) }}</strong>.
                 </div>
             @endif
+
+            @include('livewire.anggota.partials.bon-card')
         </aside>
     </div>
 
     @include('livewire.anggota.partials.saving-form')
+    @include('livewire.anggota.partials.repay-form')
 </div>
