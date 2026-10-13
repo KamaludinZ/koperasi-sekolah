@@ -1,6 +1,6 @@
 {
   "repo": "Koperasi Sekolah",
-  "generatedForCommit": "711e33e0dfcd624070bb51ca86de5465209ef469",
+  "generatedForCommit": "5b29916a10a1a4417fb7d17cb0f4b7701743b128",
   "files": [
     {
       "path": ".claude/skills/ngodingpakeai/SKILL.md",
@@ -621,8 +621,14 @@
       "size": 4529
     },
     {
-      "path": "app/Livewire/Transaksi/Returns.php",
+      "path": "app/Livewire/Transaksi/ReturnForm.php",
       "reason": "new",
+      "language": "php",
+      "size": 6398
+    },
+    {
+      "path": "app/Livewire/Transaksi/Returns.php",
+      "reason": "needs_summary",
       "language": "php",
       "size": 5293
     },
@@ -1144,7 +1150,7 @@
     },
     {
       "path": "app/Support/MockData.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 23420
     },
@@ -1870,7 +1876,7 @@
     },
     {
       "path": "resources/views/components/transaksi/nav.blade.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 669
     },
@@ -2332,7 +2338,7 @@
     },
     {
       "path": "resources/views/livewire/transaksi/index.blade.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 6881
     },
@@ -2349,16 +2355,22 @@
       "size": 4527
     },
     {
-      "path": "resources/views/livewire/transaksi/returns.blade.php",
+      "path": "resources/views/livewire/transaksi/return-form.blade.php",
       "reason": "new",
+      "language": "php",
+      "size": 9407
+    },
+    {
+      "path": "resources/views/livewire/transaksi/returns.blade.php",
+      "reason": "needs_summary",
       "language": "php",
       "size": 15023
     },
     {
       "path": "resources/views/livewire/transaksi/show.blade.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 10344
+      "size": 10771
     },
     {
       "path": "routes/console.php",
@@ -2370,7 +2382,7 @@
       "path": "routes/web.php",
       "reason": "changed",
       "language": "php",
-      "size": 24718
+      "size": 24873
     },
     {
       "path": "tests/Concerns/MakesProductImports.php",
@@ -3219,8 +3231,14 @@
       "size": 2142
     },
     {
-      "path": "tests/Feature/Transaksi/ReturnsPageTest.php",
+      "path": "tests/Feature/Transaksi/ReturnFormTest.php",
       "reason": "new",
+      "language": "php",
+      "size": 5049
+    },
+    {
+      "path": "tests/Feature/Transaksi/ReturnsPageTest.php",
+      "reason": "needs_summary",
       "language": "php",
       "size": 4397
     },

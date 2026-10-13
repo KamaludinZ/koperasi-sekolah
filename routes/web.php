@@ -264,6 +264,9 @@ Route::middleware('menu:transaksi')->group(function () {
     Route::get('/transaksi/{transaction}/retur', Transaksi\ReturnForm::class)
         ->whereNumber('transaction')
         ->name('transaksi.retur.buat');
+    Route::get('/transaksi/{transaction}/batal', Transaksi\VoidForm::class)
+        ->whereNumber('transaction')
+        ->name('transaksi.retur.batal');
     Route::get('/transaksi/{transaction}/rincian', TransactionDetailController::class)
         ->whereNumber('transaction')
         ->name('transaksi.detail');
