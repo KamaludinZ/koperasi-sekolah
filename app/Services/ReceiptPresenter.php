@@ -15,13 +15,14 @@ class ReceiptPresenter
 
     public function present(Transaction $transaction): array
     {
-        $transaction->loadMissing(['items', 'user:id,name', 'member:id,member_code,name,type,class']);
+        $transaction->loadMissing(['items', 'user:id,name', 'member:id,member_code,name,type,class', 'savingsEntry', 'credit']);
 
         return [
             'id' => $transaction->id,
             'invoice_number' => $transaction->invoice_number,
             'created_at' => $transaction->created_at->toDateTimeString(),
             'cashier' => $transaction->user?->name ?? 'Kasir',
+            'officer' => ['id' => $transaction->user_id, 'name' => $transaction->user?->name ?? 'Kasir'],
             'member' => $transaction->member?->display_name,
             'member_code' => $transaction->member?->member_code,
             'payment_method' => $transaction->payment_method,
@@ -53,17 +54,37 @@ class ReceiptPresenter
         ] + $this->savingsInfo($transaction);
     }
 
-    /** Saldo awal & akhir (tabungan) atau nomor & jatuh tempo bon (bon). */
+    /**
+     * Anggota + rincian pembayaran atas nama anggota:
+     * - tabungan: balance_before/balance_after (+ objek `savings`),
+     * - bon: credit_number/credit_due_at/credit_note (+ objek `credit` dengan status & sisa).
+     */
     private function savingsInfo(Transaction $transaction): array
     {
-        if ($transaction->payment_method === 'bon') {
-            $credit = $transaction->credit;
+        $member = $transaction->member;
+        $out = [
+            'member_info' => $member ? ['id' => $member->id, 'member_code' => $member->member_code, 'name' => $member->name, 'display_name' => $member->display_name] : null,
+            'savings' => null,
+            'credit' => null,
+        ];
 
-            return $credit ? ['credit_due_at' => $credit->due_at->toDateString(), 'credit_number' => $credit->number, 'credit_note' => $credit->note] : [];
+        if ($transaction->payment_method === 'bon' && ($credit = $transaction->credit)) {
+            return [
+                ...$out,
+                'credit_due_at' => $credit->due_at->toDateString(), 'credit_number' => $credit->number, 'credit_note' => $credit->note,
+                'credit' => ['id' => $credit->id, 'number' => $credit->number, 'due_at' => $credit->due_at->toDateString(), 'status' => $credit->status,
+                    'status_label' => \App\Models\MemberCredit::STATUSES[$credit->status] ?? $credit->status, 'paid' => $credit->paid, 'remaining' => $credit->remaining(), 'note' => $credit->note],
+            ];
         }
-        $entry = $transaction->payment_method === 'tabungan' ? app(SavingsPaymentService::class)->forTransaction($transaction->id) : null;
+        if ($transaction->payment_method === 'tabungan' && ($entry = $transaction->savingsEntry)) {
+            $before = (int) round((float) $entry->balance_before);
+            $after = (int) round((float) $entry->balance_after);
 
-        return $entry ? ['balance_before' => (int) round((float) $entry->balance_before), 'balance_after' => (int) round((float) $entry->balance_after)] : [];
+            return [...$out, 'balance_before' => $before, 'balance_after' => $after,
+                'savings' => ['entry_id' => $entry->id, 'balance_before' => $before, 'amount' => (int) round((float) $entry->amount), 'balance_after' => $after]];
+        }
+
+        return $out;
     }
 
     /**

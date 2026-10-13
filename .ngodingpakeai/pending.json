@@ -1,6 +1,6 @@
 {
   "repo": "Koperasi Sekolah",
-  "generatedForCommit": "ada6d9bb66df5c8dbb518d3cf8c13cb4b03c77f1",
+  "generatedForCommit": "78e00bdcfde4a297742d6f29d465644b5e710499",
   "files": [
     {
       "path": ".claude/skills/ngodingpakeai/SKILL.md",
@@ -70,7 +70,7 @@
     },
     {
       "path": "app/Http/Controllers/Anggota/CreditController.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 3598
     },
@@ -358,7 +358,7 @@
     },
     {
       "path": "app/Livewire/Anggota/Piutang.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 3278
     },
@@ -448,9 +448,9 @@
     },
     {
       "path": "app/Livewire/Forms/MemberForm.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 1843
+      "size": 1975
     },
     {
       "path": "app/Livewire/Forms/ProductForm.php",
@@ -484,9 +484,9 @@
     },
     {
       "path": "app/Livewire/Kasir/Cart.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 19548
+      "size": 20546
     },
     {
       "path": "app/Livewire/Kasir/Index.php",
@@ -571,6 +571,12 @@
       "reason": "needs_summary",
       "language": "php",
       "size": 5166
+    },
+    {
+      "path": "app/Livewire/Pengaturan/Credit.php",
+      "reason": "new",
+      "language": "php",
+      "size": 3734
     },
     {
       "path": "app/Livewire/Pengaturan/Index.php",
@@ -1014,13 +1020,13 @@
       "path": "app/Services/MemberCreditService.php",
       "reason": "changed",
       "language": "php",
-      "size": 19246
+      "size": 19911
     },
     {
       "path": "app/Services/MemberService.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 7289
+      "size": 7829
     },
     {
       "path": "app/Services/MinStockService.php",
@@ -1138,9 +1144,9 @@
     },
     {
       "path": "app/Services/SettingsService.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 18705
+      "size": 20470
     },
     {
       "path": "app/Services/ShiftService.php",
@@ -1210,7 +1216,7 @@
     },
     {
       "path": "app/Support/MockData.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 18775
     },
@@ -1318,9 +1324,9 @@
     },
     {
       "path": "config/koperasi.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 1631
+      "size": 1183
     },
     {
       "path": "config/livewire.php",
@@ -1906,9 +1912,9 @@
     },
     {
       "path": "resources/views/components/pengaturan/nav.blade.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 1139
+      "size": 1182
     },
     {
       "path": "resources/views/components/pengguna/nav.blade.php",
@@ -2050,9 +2056,9 @@
     },
     {
       "path": "resources/views/livewire/anggota/partials/member-form.blade.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 5561
+      "size": 6791
     },
     {
       "path": "resources/views/livewire/anggota/partials/repay-form.blade.php",
@@ -2074,7 +2080,7 @@
     },
     {
       "path": "resources/views/livewire/anggota/piutang.blade.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 11515
     },
@@ -2224,9 +2230,9 @@
     },
     {
       "path": "resources/views/livewire/kasir/partials/payment-panel.blade.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 24357
+      "size": 24312
     },
     {
       "path": "resources/views/livewire/kasir/partials/promo-panel.blade.php",
@@ -2341,6 +2347,12 @@
       "reason": "needs_summary",
       "language": "php",
       "size": 14678
+    },
+    {
+      "path": "resources/views/livewire/pengaturan/credit.blade.php",
+      "reason": "new",
+      "language": "php",
+      "size": 6323
     },
     {
       "path": "resources/views/livewire/pengaturan/index.blade.php",
@@ -2466,7 +2478,7 @@
       "path": "routes/web.php",
       "reason": "changed",
       "language": "php",
-      "size": 26515
+      "size": 26600
     },
     {
       "path": "tests/Concerns/MakesProductImports.php",
@@ -2500,9 +2512,9 @@
     },
     {
       "path": "tests/Feature/Anggota/MemberCreditServiceTest.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 7581
+      "size": 7617
     },
     {
       "path": "tests/Feature/Anggota/MemberEndpointTest.php",
@@ -2518,7 +2530,7 @@
     },
     {
       "path": "tests/Feature/Anggota/PiutangPageTest.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 6476
     },
@@ -3223,6 +3235,12 @@
       "reason": "needs_summary",
       "language": "php",
       "size": 3988
+    },
+    {
+      "path": "tests/Feature/Pengaturan/CreditSettingsTest.php",
+      "reason": "new",
+      "language": "php",
+      "size": 5730
     },
     {
       "path": "tests/Feature/Pengaturan/IndexTest.php",

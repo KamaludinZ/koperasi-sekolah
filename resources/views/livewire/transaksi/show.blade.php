@@ -123,8 +123,14 @@
             {{-- Info transaksi --}}
             <dl class="grid grid-cols-1 gap-x-6 gap-y-3 rounded-xl border border-stone-200 bg-white px-4 py-4 text-sm sm:grid-cols-2">
                 <div><dt class="text-xs text-stone-500">Waktu</dt><dd>{{ $at->translatedFormat('l, d F Y · H:i:s') }}</dd></div>
-                <div><dt class="text-xs text-stone-500">Kasir</dt><dd>{{ $tx['cashier'] }}</dd></div>
-                <div><dt class="text-xs text-stone-500">Anggota</dt><dd>{{ $tx['member'] ?? 'Umum (bukan anggota)' }}</dd></div>
+                <div><dt class="text-xs text-stone-500">Petugas</dt><dd>{{ $tx['cashier'] }}</dd></div>
+                <div><dt class="text-xs text-stone-500">Anggota</dt><dd>{{ $tx['member'] ?? 'Umum (bukan anggota)' }}@if ($tx['member_info']['member_code'] ?? null) <span class="font-mono text-xs text-stone-500">{{ $tx['member_info']['member_code'] }}</span>@endif</dd></div>
+                @if ($tx['savings'] ?? null)
+                    <div><dt class="text-xs text-stone-500">Saldo tabungan</dt><dd class="tabular-nums">{{ $rp($tx['savings']['balance_before']) }} → <strong>{{ $rp($tx['savings']['balance_after']) }}</strong></dd></div>
+                @endif
+                @if ($tx['credit'] ?? null)
+                    <div><dt class="text-xs text-stone-500">Bon</dt><dd><span class="font-mono text-xs">{{ $tx['credit']['number'] }}</span> · {{ $tx['credit']['status_label'] }} · jatuh tempo {{ \Illuminate\Support\Carbon::parse($tx['credit']['due_at'])->translatedFormat('d M Y') }}@if ($tx['credit']['remaining']) · sisa {{ $rp($tx['credit']['remaining']) }}@endif</dd></div>
+                @endif
                 <div><dt class="text-xs text-stone-500">No. invoice</dt><dd class="font-mono">{{ $tx['invoice_number'] }}</dd></div>
             </dl>
             <p class="text-xs text-stone-400">Gunakan ← → untuk berpindah transaksi, Esc untuk kembali.</p>

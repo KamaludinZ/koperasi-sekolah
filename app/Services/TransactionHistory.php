@@ -34,7 +34,7 @@ class TransactionHistory
         $term = strtoupper(trim($filters['search'] ?? ''));
 
         return Transaction::query()
-            ->with(['user:id,name', 'member:id,name,type,class'])
+            ->with(['user:id,name', 'member:id,member_code,name,type,class', 'savingsEntry', 'credit'])
             ->betweenDates($filters['from'] ?? null, $filters['to'] ?? null)
             ->paymentMethod($filters['method'] ?? null)
             ->when($term !== '', function (Builder $q) use ($term) {
@@ -65,8 +65,10 @@ class TransactionHistory
             'invoice_number' => $t->invoice_number,
             'created_at' => $t->created_at->toDateTimeString(),
             'cashier' => $t->user?->name ?? 'Kasir',
+            'cashier_id' => $t->user_id,
             'member' => $t->member?->display_name,
             'member_id' => $t->member_id,
+            'member_code' => $t->member?->member_code,
             'item_count' => $t->item_count,
             'subtotal' => (int) $t->subtotal,
             'tax' => (int) $t->tax,
@@ -80,6 +82,11 @@ class TransactionHistory
             'change' => (int) $t->change,
             'payment_method' => $t->payment_method,
             'payment_method_label' => CheckoutService::PAYMENT_LABELS[$t->payment_method] ?? $t->payment_method,
+            // Saldo tabungan setelah transaksi (metode tabungan) dan bon yang tercatat (metode bon).
+            'balance_after' => $t->payment_method === 'tabungan' && $t->relationLoaded('savingsEntry') && $t->savingsEntry ? (int) round((float) $t->savingsEntry->balance_after) : null,
+            'credit' => $t->payment_method === 'bon' && $t->relationLoaded('credit') && $t->credit
+                ? ['number' => $t->credit->number, 'due_at' => $t->credit->due_at->toDateString(), 'status' => $t->credit->status, 'remaining' => $t->credit->remaining()]
+                : null,
         ];
     }
 
@@ -89,7 +96,7 @@ class TransactionHistory
      */
     public function detail(Transaction $t): array
     {
-        $t->loadMissing(['items.product:id,code', 'user:id,name', 'member:id,name,type,class']);
+        $t->loadMissing(['items.product:id,code', 'user:id,name', 'member:id,member_code,name,type,class']);
         $receipt = $this->receipt->present($t);
         $codes = $t->items->mapWithKeys(fn ($item) => [$item->id => $item->product?->code]);
 

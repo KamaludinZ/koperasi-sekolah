@@ -34,6 +34,12 @@ class Transaction extends Model
         ];
     }
 
+    /** Mutasi pemotongan tabungan untuk transaksi bermetode tabungan. */
+    public function savingsEntry(): \Illuminate\Database\Eloquent\Relations\HasOne
+    {
+        return $this->hasOne(SavingsTransaction::class, 'source_id')->where('source_type', 'transaction')->where('type', SavingsTransaction::TYPE_WITHDRAWAL);
+    }
+
     /** Bon yang tercatat dari transaksi bermetode bon. */
     public function credit(): \Illuminate\Database\Eloquent\Relations\HasOne
     {
