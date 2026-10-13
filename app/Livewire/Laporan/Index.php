@@ -89,7 +89,7 @@ class Index extends Component
 
     private function resetComputed(): void
     {
-        unset($this->range, $this->previousRange, $this->periodReport, $this->summary, $this->comparison, $this->topProducts, $this->discountReport);
+        unset($this->range, $this->previousRange, $this->periodReport, $this->summary, $this->comparison, $this->topProducts, $this->discountReport, $this->soldProducts, $this->transactionsUrl);
     }
 
     /** Samakan rentang unduh dengan periode yang sedang dilihat. */
@@ -209,6 +209,37 @@ class Index extends Component
     public function today(): array
     {
         return app(SalesReport::class)->today();
+    }
+
+    public const SOLD_SORTS = ['quantity' => 'Jumlah', 'revenue' => 'Omzet', 'profit' => 'Laba', 'name' => 'Nama'];
+
+    /** Urutan tabel barang terjual. */
+    public string $soldSort = 'quantity';
+
+    public function sortSold(string $by): void
+    {
+        $this->soldSort = array_key_exists($by, self::SOLD_SORTS) ? $by : 'quantity';
+        unset($this->soldProducts);
+    }
+
+    /** Semua barang terjual pada periode (bersih setelah retur), dengan margin. */
+    #[Computed]
+    public function soldProducts(): array
+    {
+        [$start, $end] = $this->range;
+        $rows = collect(app(SalesReport::class)->topProducts($start, $end, null))
+            ->map(fn ($p) => $p + ['margin' => $p['revenue'] > 0 ? (int) round($p['profit'] / $p['revenue'] * 100) : 0]);
+
+        return ($this->soldSort === 'name' ? $rows->sortBy('name') : $rows->sortByDesc($this->soldSort))->values()->all();
+    }
+
+    /** Tautan Riwayat Transaksi untuk rentang yang sedang dilihat. */
+    #[Computed]
+    public function transactionsUrl(): string
+    {
+        [$start, $end] = $this->range;
+
+        return route('transaksi', ['periode' => 'kustom', 'dari' => $start->toDateString(), 'sampai' => $end->toDateString()]);
     }
 
     /** Barang terlaris pada periode (berdasarkan jumlah terjual). */

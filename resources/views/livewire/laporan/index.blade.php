@@ -100,6 +100,44 @@
             </section>
         </div>
 
+        {{-- Barang terjual (lengkap) --}}
+        @php $sold = $this->soldProducts; @endphp
+        <section class="overflow-hidden rounded-xl border border-stone-200 bg-white" aria-labelledby="sold-title" x-data="{ open: false }">
+            <div class="flex flex-wrap items-center justify-between gap-2 px-4 pt-4">
+                <h2 id="sold-title" class="text-sm font-semibold">Barang terjual <span class="font-normal text-stone-500">· {{ count($sold) }} jenis</span></h2>
+                <div class="flex flex-wrap items-center gap-2 text-xs">
+                    <span class="text-stone-500">Urutkan:</span>
+                    @foreach (\App\Livewire\Laporan\Index::SOLD_SORTS as $key => $label)
+                        <button type="button" wire:click="sortSold('{{ $key }}')" @class(['rounded-full px-2.5 py-1 font-medium', 'bg-emerald-900 text-white' => $soldSort === $key, 'border border-stone-300 text-stone-600' => $soldSort !== $key])>{{ $label }}</button>
+                    @endforeach
+                    <a href="{{ $this->transactionsUrl }}" wire:navigate class="ml-1 font-semibold text-emerald-800 hover:underline">Lihat transaksi periode ini →</a>
+                </div>
+            </div>
+            @if ($sold)
+                <div class="mt-3 overflow-x-auto">
+                    <table class="w-full min-w-[36rem] text-sm">
+                        <thead class="bg-stone-50 text-left text-xs text-stone-500"><tr><th class="px-4 py-2 font-medium">Barang</th><th class="px-3 py-2 text-right font-medium">Jumlah</th><th class="px-3 py-2 text-right font-medium">Omzet</th><th class="px-3 py-2 text-right font-medium">Laba</th><th class="px-4 py-2 text-right font-medium">Margin</th></tr></thead>
+                        <tbody class="divide-y divide-stone-100">
+                            @foreach ($sold as $i => $p)
+                                <tr wire:key="sold-{{ md5($p['name']) }}" @if ($i >= 10) x-show="open" x-cloak @endif>
+                                    <td class="px-4 py-2">{{ $p['name'] }}</td>
+                                    <td class="px-3 py-2 text-right tabular-nums">{{ $p['quantity'] }}</td>
+                                    <td class="px-3 py-2 text-right tabular-nums">{{ $rp($p['revenue']) }}</td>
+                                    <td @class(['px-3 py-2 text-right tabular-nums', 'text-red-700' => $p['profit'] < 0])>{{ $rp($p['profit']) }}</td>
+                                    <td class="px-4 py-2 text-right tabular-nums text-stone-600">{{ $p['margin'] }}%</td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+                @if (count($sold) > 10)
+                    <button type="button" x-on:click="open = !open" class="block w-full border-t border-stone-100 py-2 text-sm font-medium text-emerald-800 hover:bg-stone-50" x-text="open ? 'Tampilkan lebih sedikit' : 'Tampilkan semua ({{ count($sold) }})'"></button>
+                @endif
+            @else
+                <p class="px-4 py-8 text-center text-sm text-stone-400">Belum ada penjualan pada periode ini.</p>
+            @endif
+        </section>
+
         @include('livewire.laporan.partials.discount-report')
 
         @include('livewire.laporan.partials.export-panel')

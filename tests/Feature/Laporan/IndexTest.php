@@ -197,4 +197,21 @@ class IndexTest extends TestCase
         \Livewire\Livewire::withQueryParams(['periode' => 'kustom', 'dari' => $from, 'sampai' => $to])->test(\App\Livewire\Laporan\Index::class)->assertSet('period', 'kustom');
         \Livewire\Livewire::withQueryParams(['periode' => 'kustom', 'dari' => 'x'])->test(\App\Livewire\Laporan\Index::class)->assertSet('period', 'hari-ini');
     }
+
+    public function test_sold_products_table_and_transactions_link(): void
+    {
+        $c = Livewire::test(Index::class)->call('setPeriod', '30-hari');
+        $sold = $c->instance()->soldProducts;
+        $this->assertNotEmpty($sold);
+        $this->assertSame(array_sum(array_column($sold, 'quantity')), $c->instance()->summary['items']);
+        $this->assertSame(collect($sold)->sortByDesc('quantity')->pluck('quantity')->values()->all(), array_column($sold, 'quantity'));
+        $c->call('sortSold', 'name');
+        $names = array_column($c->instance()->soldProducts, 'name');
+        $sorted = $names;
+        sort($sorted);
+        $this->assertSame($sorted, $names);
+        $c->assertSee('Barang terjual')->assertSee('Lihat transaksi periode ini');
+        $this->assertStringContainsString('periode=kustom', $c->instance()->transactionsUrl);
+        $c->call('sortSold', 'aneh')->assertSet('soldSort', 'quantity');
+    }
 }

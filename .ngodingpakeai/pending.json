@@ -1,6 +1,6 @@
 {
   "repo": "Koperasi Sekolah",
-  "generatedForCommit": "e8cd6c476cf655a366a6e50b9000d317daa76d60",
+  "generatedForCommit": "3020fba5731021f189362ed25f3896a811cc7f7f",
   "files": [
     {
       "path": ".claude/skills/ngodingpakeai/SKILL.md",
@@ -520,9 +520,9 @@
     },
     {
       "path": "app/Livewire/Laporan/Index.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 5545
+      "size": 7661
     },
     {
       "path": "app/Livewire/Notifikasi/Announcements.php",
@@ -1204,9 +1204,9 @@
     },
     {
       "path": "app/Services/SalesReport.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 14562
+      "size": 15703
     },
     {
       "path": "app/Services/SavingsPaymentService.php",
@@ -2368,7 +2368,7 @@
     },
     {
       "path": "resources/views/livewire/kasir/cart.blade.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 8858
     },
@@ -2410,15 +2410,15 @@
     },
     {
       "path": "resources/views/livewire/kasir/product-picker.blade.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 6226
     },
     {
       "path": "resources/views/livewire/laporan/index.blade.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 5469
+      "size": 7211
     },
     {
       "path": "resources/views/livewire/laporan/partials/discount-report.blade.php",
@@ -3190,7 +3190,7 @@
     },
     {
       "path": "tests/Feature/Kasir/CartTest.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 3305
     },
@@ -3310,9 +3310,9 @@
     },
     {
       "path": "tests/Feature/Laporan/IndexTest.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 6609
+      "size": 8720
     },
     {
       "path": "tests/Feature/Laporan/NetSalesAfterReturnsTest.php",
