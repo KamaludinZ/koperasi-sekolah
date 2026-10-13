@@ -129,6 +129,7 @@
                                 <td class="px-4 py-3 text-right font-medium tabular-nums">{{ $rp($p['price']) }}</td>
                                 <td class="px-4 py-3 text-right"><x-stock-badge :stock="$p['stock']" :min="$p['min_stock']" :unit="$p['unit']" /></td>
                                 <td class="px-4 py-3 text-right">
+                                    <a href="{{ route('barang.riwayat-stok', ['barang' => $p['id'], 'periode' => 'semua']) }}" wire:navigate class="mr-3 text-sm font-medium text-stone-600 hover:underline">Riwayat</a>
                                     <button type="button" wire:click="edit({{ $p['id'] }})" class="text-sm font-medium text-emerald-700 hover:underline">Ubah</button>
                                 </td>
                             </tr>
