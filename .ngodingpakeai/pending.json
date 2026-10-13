@@ -1,6 +1,6 @@
 {
   "repo": "Koperasi Sekolah",
-  "generatedForCommit": "3b13c4c7b500036379700d762a18c7022efe1184",
+  "generatedForCommit": "1a8eb2b968e793a9d3864a8e8b3688d5163f4a73",
   "files": [
     {
       "path": ".claude/skills/ngodingpakeai/SKILL.md",
@@ -76,9 +76,9 @@
     },
     {
       "path": "app/Http/Controllers/Anggota/MemberController.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 4221
+      "size": 4931
     },
     {
       "path": "app/Http/Controllers/Anggota/SavingsController.php",
@@ -124,7 +124,7 @@
     },
     {
       "path": "app/Http/Controllers/Barang/ProductController.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 5891
     },
@@ -1162,9 +1162,9 @@
     },
     {
       "path": "app/Services/MemberService.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 7829
+      "size": 8194
     },
     {
       "path": "app/Services/MinStockService.php",
@@ -2826,7 +2826,7 @@
       "path": "routes/web.php",
       "reason": "changed",
       "language": "php",
-      "size": 32795
+      "size": 32981
     },
     {
       "path": "tests/Concerns/MakesProductImports.php",
@@ -2866,9 +2866,9 @@
     },
     {
       "path": "tests/Feature/Anggota/MemberEndpointTest.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 5435
+      "size": 6339
     },
     {
       "path": "tests/Feature/Anggota/MemberFormTest.php",
@@ -3142,7 +3142,7 @@
     },
     {
       "path": "tests/Feature/Barang/RestockPageTest.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 3241
     },

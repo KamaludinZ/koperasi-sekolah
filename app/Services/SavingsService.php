@@ -47,21 +47,40 @@ class SavingsService
         ];
     }
 
-    public function deposit(Member $member, int $amount, ?string $note = null, ?int $userId = null): SavingsTransaction
+    public function deposit(Member $member, int $amount, ?string $note = null, ?int $userId = null, ?string $clientRef = null): SavingsTransaction
     {
-        return $this->record($member, SavingsTransaction::TYPE_DEPOSIT, $amount, $note, $userId);
+        return $this->record($member, SavingsTransaction::TYPE_DEPOSIT, $amount, $note, $userId, $clientRef);
     }
 
-    public function withdraw(Member $member, int $amount, ?string $note = null, ?int $userId = null): SavingsTransaction
+    public function withdraw(Member $member, int $amount, ?string $note = null, ?int $userId = null, ?string $clientRef = null): SavingsTransaction
     {
-        return $this->record($member, SavingsTransaction::TYPE_WITHDRAWAL, $amount, $note, $userId);
+        return $this->record($member, SavingsTransaction::TYPE_WITHDRAWAL, $amount, $note, $userId, $clientRef);
+    }
+
+    /** Mutasi yang sudah tercatat dengan kunci idempoten ini (null bila belum ada). */
+    public function replay(Member $member, ?string $clientRef): ?SavingsTransaction
+    {
+        if ($clientRef === null) {
+            return null;
+        }
+        $entry = SavingsTransaction::where('client_ref', $clientRef)->first();
+        if ($entry && $entry->member_id !== $member->id) {
+            throw ValidationException::withMessages(['client_ref' => 'Kunci idempoten sudah dipakai untuk anggota lain.']);
+        }
+
+        return $entry;
     }
 
     /**
+     * @param  string|null  $clientRef  kunci idempoten: bila sudah dipakai, mutasi yang ada dikembalikan tanpa mencatat ulang
+     *
      * @throws ValidationException bila anggota nonaktif, nominal di luar batas, atau saldo kurang
      */
-    public function record(Member $member, string $type, int $amount, ?string $note = null, ?int $userId = null): SavingsTransaction
+    public function record(Member $member, string $type, int $amount, ?string $note = null, ?int $userId = null, ?string $clientRef = null): SavingsTransaction
     {
+        if ($existing = $this->replay($member, $clientRef)) {
+            return $existing;
+        }
         if (! array_key_exists($type, SavingsTransaction::TYPES)) {
             throw ValidationException::withMessages(['type' => 'Jenis mutasi tidak dikenal.']);
         }
@@ -71,9 +90,12 @@ class SavingsService
                 : self::messages()['amount.max']]);
         }
 
-        $entry = DB::transaction(function () use ($member, $type, $amount, $note, $userId) {
+        $entry = DB::transaction(function () use ($member, $type, $amount, $note, $userId, $clientRef) {
             // Kunci baris anggota agar dua penarikan bersamaan tidak membuat saldo minus.
             $locked = Member::whereKey($member->id)->lockForUpdate()->firstOrFail();
+            if ($existing = $this->replay($member, $clientRef)) {
+                return $existing; // permintaan kembar yang menunggu kunci
+            }
 
             if (! $locked->is_active) {
                 throw ValidationException::withMessages(['member' => 'Anggota nonaktif tidak bisa setor/tarik.']);
@@ -94,6 +116,7 @@ class SavingsService
                 'balance_after' => $after,
                 'note' => filled($note) ? trim($note) : ($type === SavingsTransaction::TYPE_DEPOSIT ? 'Setoran tabungan' : 'Penarikan tabungan'),
                 'user_id' => $userId,
+                'client_ref' => $clientRef,
             ]);
 
             $locked->forceFill(['balance' => $after])->save();

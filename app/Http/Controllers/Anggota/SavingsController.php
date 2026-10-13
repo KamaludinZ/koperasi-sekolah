@@ -19,6 +19,8 @@ use Illuminate\Validation\Rule;
  * POST /anggota/{member}/tabungan  {type: setor|tarik, amount, note?}
  * Catat setoran/penarikan tabungan (201) dan kembalikan mutasi + data anggota terbaru.
  * Ditolak (422) bila anggota nonaktif, nominal di luar batas, atau penarikan melebihi saldo.
+ * Header Idempotency-Key (atau client_ref) mencegah mutasi dobel: kunci yang sama mengembalikan
+ * mutasi yang sudah ada (200, replayed=true) tanpa mengubah saldo lagi.
  */
 class SavingsController extends Controller
 {
@@ -64,13 +66,24 @@ class SavingsController extends Controller
 
     public function store(Request $request, Member $member, SavingsService $savings): JsonResponse
     {
-        $data = $request->validate(SavingsService::rules(), SavingsService::messages());
+        $data = $request->validate([
+            ...SavingsService::rules(),
+            'client_ref' => ['nullable', 'string', 'max:64', 'regex:/^[A-Za-z0-9_\-:.]+$/'],
+        ], SavingsService::messages());
 
-        $entry = $savings->record($member, $data['type'], (int) $data['amount'], $data['note'] ?? null, $request->user()?->id);
+        $ref = $request->header('Idempotency-Key') ?: ($data['client_ref'] ?? null);
+        if ($ref !== null && (mb_strlen($ref) > 64 || ! preg_match('/^[A-Za-z0-9_\-:.]+$/', $ref))) {
+            return response()->json(['message' => 'Idempotency-Key tidak valid.', 'errors' => ['client_ref' => ['Kunci idempoten tidak valid.']]], 422);
+        }
+        $replayed = $savings->replay($member, $ref) !== null;
+
+        $entry = $savings->record($member, $data['type'], (int) $data['amount'], $data['note'] ?? null, $request->user()?->id, $ref);
+        $member->refresh();
 
         return response()->json([
             'data' => SavingsService::toArray($entry->load('user:id,name')),
             'member' => MemberService::toArray($member),
-        ], 201);
+            'replayed' => $replayed,
+        ], $replayed ? 200 : 201);
     }
 }

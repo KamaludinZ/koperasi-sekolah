@@ -46,6 +46,24 @@ class SavingsEndpointTest extends TestCase
         $this->assertSame([25000, 15000], $this->member->savings()->orderBy('id')->pluck('balance_after')->map(fn ($v) => (int) $v)->all());
     }
 
+    public function test_idempotency_key_prevents_double_entry(): void
+    {
+        $headers = ['Idempotency-Key' => 'setor-abc-1'];
+        $first = $this->postJson("/anggota/{$this->member->id}/tabungan", ['type' => 'setor', 'amount' => 20000], $headers)
+            ->assertCreated()->assertJsonPath('replayed', false);
+        $this->postJson("/anggota/{$this->member->id}/tabungan", ['type' => 'setor', 'amount' => 20000], $headers)
+            ->assertOk()->assertJsonPath('replayed', true)
+            ->assertJsonPath('data.id', $first->json('data.id'))
+            ->assertJsonPath('member.balance', 20000);
+        $this->assertSame(1, $this->member->savings()->count());
+
+        $other = Member::factory()->create();
+        $this->postJson("/anggota/{$other->id}/tabungan", ['type' => 'setor', 'amount' => 20000], $headers)->assertJsonValidationErrors('client_ref');
+        $this->postJson("/anggota/{$this->member->id}/tabungan", ['type' => 'setor', 'amount' => 20000], ['Idempotency-Key' => 'spasi tidak boleh'])
+            ->assertJsonValidationErrors('client_ref');
+        $this->assertSame(0, $other->savings()->count());
+    }
+
     public function test_withdrawal_cannot_exceed_balance(): void
     {
         $this->save(['type' => 'setor', 'amount' => 5000]);
