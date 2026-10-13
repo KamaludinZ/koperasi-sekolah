@@ -5,6 +5,7 @@ use App\Http\Controllers\Akun\SessionController;
 use App\Http\Controllers\Anggota\MemberController;
 use App\Http\Controllers\Anggota\SavingsController;
 use App\Http\Controllers\Audit\AuditLogController;
+use App\Http\Controllers\Audit\TrashController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\LogoutController;
 use App\Http\Controllers\Barang\ProductController;
@@ -245,6 +246,9 @@ Route::middleware(['menu:audit', 'peran:admin,pengurus'])->group(function () {
     Route::get('/audit/terhapus', Audit\Trash::class)->name('audit.terhapus');
     Route::get('/audit/data', [AuditLogController::class, 'index'])->name('audit.data');
     Route::get('/audit/perubahan/data', [AuditLogController::class, 'changes'])->name('audit.perubahan.data');
+    Route::get('/audit/terhapus/data', [TrashController::class, 'index'])->name('audit.terhapus.data');
+    Route::post('/audit/terhapus/pulihkan', [TrashController::class, 'restore'])
+        ->middleware(['can:pulihkan-data', 'throttle:30,1'])->name('audit.terhapus.restore');
 });
 
 Route::middleware('menu:pengaturan')->group(function () {

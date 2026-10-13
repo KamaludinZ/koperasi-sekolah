@@ -1,9 +1,8 @@
 @use('App\Livewire\Audit\Trash')
-@use('App\Support\MockData')
 @php
     $s = $this->summary;
     $items = $this->items;
-    $selectable = array_column(array_filter($items, fn ($r) => ! $r['conflict']), 'id');
+    $selectable = array_column(array_filter($items, fn ($r) => ! $r['conflict']), 'key');
     $allSelected = $selectable !== [] && array_diff($selectable, $selected) === [];
     $canRestore = $this->canRestore;
 @endphp
@@ -12,9 +11,8 @@
         <div class="flex flex-wrap items-center justify-between gap-3">
             <div>
                 <h1 class="text-lg font-semibold">Audit & Riwayat</h1>
-                <p class="text-xs text-stone-500">Data yang dihapus disimpan {{ MockData::TRASH_KEEP_DAYS }} hari sebelum dibersihkan permanen. Selama itu masih dapat dipulihkan.</p>
+                <p class="text-xs text-stone-500">Data yang dihapus disimpan {{ $s['keep_days'] }} hari sebelum dibersihkan permanen. Selama itu masih dapat dipulihkan.</p>
             </div>
-            <span class="rounded-full bg-amber-100 px-3 py-1 text-xs font-medium text-amber-900">Data contoh</span>
         </div>
         <x-audit.nav active="audit.terhapus" />
     </header>
@@ -39,7 +37,7 @@
             </div>
             <div class="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3">
                 <p class="text-xs text-emerald-900">Masa simpan</p>
-                <p class="text-xl font-bold text-emerald-950 tabular-nums">{{ MockData::TRASH_KEEP_DAYS }} hari</p>
+                <p class="text-xl font-bold text-emerald-950 tabular-nums">{{ $s['keep_days'] }} hari</p>
                 <p class="text-xs text-emerald-800">{{ $canRestore ? 'Anda dapat memulihkan' : 'Pemulihan oleh Admin' }}</p>
             </div>
         </div>
@@ -95,10 +93,10 @@
                     <tbody class="divide-y divide-stone-100">
                         @forelse ($items as $r)
                             @php $left = Trash::daysLeft($r); @endphp
-                            <tr wire:key="trash-{{ $r['id'] }}" @class(['align-top', 'bg-emerald-50/50' => in_array($r['id'], $selected)])>
+                            <tr wire:key="trash-{{ $r['key'] }}" @class(['align-top', 'bg-emerald-50/50' => in_array($r['key'], $selected, true)])>
                                 @if ($canRestore)
                                     <td class="px-4 py-3">
-                                        <input type="checkbox" wire:model.live="selected" value="{{ $r['id'] }}" @disabled($r['conflict']) aria-label="Pilih {{ $r['label'] }}" class="size-4 rounded border-stone-300 text-emerald-700 disabled:opacity-40">
+                                        <input type="checkbox" wire:model.live="selected" value="{{ $r['key'] }}" @disabled($r['conflict']) aria-label="Pilih {{ $r['label'] }}" class="size-4 rounded border-stone-300 text-emerald-700 disabled:opacity-40">
                                     </td>
                                 @endif
                                 <td @class(['py-3', 'px-4' => ! $canRestore, 'px-2' => $canRestore])>
@@ -113,7 +111,7 @@
                                 </td>
                                 <td class="px-3 py-3 whitespace-nowrap">
                                     <p class="tabular-nums">{{ \Illuminate\Support\Carbon::parse($r['deleted_at'])->translatedFormat('d M Y · H:i') }}</p>
-                                    <p class="text-xs text-stone-500">oleh {{ $r['deleted_by'] }}</p>
+                                    <p class="text-xs text-stone-500">oleh {{ $r['deleted_by'] ?? 'Sistem' }}</p>
                                 </td>
                                 <td class="max-w-56 px-3 py-3 text-xs text-stone-600">{{ $r['reason'] ?? '—' }}</td>
                                 <td class="px-3 py-3 whitespace-nowrap">
@@ -124,7 +122,7 @@
                                 </td>
                                 <td class="px-4 py-3 text-right">
                                     @if ($canRestore)
-                                        <button type="button" wire:click="confirmRestore({{ $r['id'] }})" @disabled($r['conflict'])
+                                        <button type="button" wire:click="confirmRestore('{{ $r['key'] }}')" @disabled($r['conflict'])
                                                 class="rounded-lg border border-emerald-700 px-3 py-1.5 text-xs font-semibold text-emerald-800 hover:bg-emerald-50 disabled:cursor-not-allowed disabled:border-stone-200 disabled:text-stone-400 disabled:hover:bg-transparent">Pulihkan</button>
                                     @endif
                                 </td>

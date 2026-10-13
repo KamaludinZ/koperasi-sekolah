@@ -43,5 +43,8 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(CashShift::class, CashShiftPolicy::class);
 
         Gate::define('ubah-pengaturan', fn (User $user) => $user->hasRole(Role::ADMIN) && $user->canOpen('pengaturan'));
+
+        // Data terhapus lunak bisa dilihat siapa pun yang punya menu Audit; memulihkannya khusus Admin.
+        Gate::define('pulihkan-data', fn (User $user) => $user->hasRole(Role::ADMIN) && $user->canOpen('audit'));
     }
 }

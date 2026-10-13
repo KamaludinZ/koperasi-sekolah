@@ -1,6 +1,6 @@
 {
   "repo": "Koperasi Sekolah",
-  "generatedForCommit": "2dd958b003191b2562059ffdb44f686f2ad508d7",
+  "generatedForCommit": "a51a6b7a903d43852dc7abb8e7a36e674555db6b",
   "files": [
     {
       "path": ".claude/skills/ngodingpakeai/SKILL.md",
@@ -52,7 +52,7 @@
     },
     {
       "path": "app/Console/Commands/VerifyAuditLog.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 1820
     },
@@ -70,9 +70,9 @@
     },
     {
       "path": "app/Http/Controllers/Anggota/MemberController.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 3935
+      "size": 4221
     },
     {
       "path": "app/Http/Controllers/Anggota/SavingsController.php",
@@ -112,9 +112,9 @@
     },
     {
       "path": "app/Http/Controllers/Barang/StockAlertController.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 3007
+      "size": 3043
     },
     {
       "path": "app/Http/Controllers/BerandaController.php",
@@ -166,9 +166,9 @@
     },
     {
       "path": "app/Http/Controllers/Kasir/CouponCheckController.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 1336
+      "size": 1396
     },
     {
       "path": "app/Http/Controllers/Kasir/ProductSearchController.php",
@@ -436,9 +436,9 @@
     },
     {
       "path": "app/Livewire/Pengaturan/Security.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 6365
+      "size": 6208
     },
     {
       "path": "app/Livewire/Pengaturan/Tax.php",
@@ -484,7 +484,7 @@
     },
     {
       "path": "app/Models/ActivityLog.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 3546
     },
@@ -502,15 +502,21 @@
     },
     {
       "path": "app/Models/Category.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 540
+      "size": 618
     },
     {
       "path": "app/Models/Concerns/Auditable.php",
       "reason": "needs_summary",
       "language": "php",
       "size": 1376
+    },
+    {
+      "path": "app/Models/Concerns/SoftDeletesWithReason.php",
+      "reason": "new",
+      "language": "php",
+      "size": 1927
     },
     {
       "path": "app/Models/Coupon.php",
@@ -520,9 +526,9 @@
     },
     {
       "path": "app/Models/Member.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 3062
+      "size": 3140
     },
     {
       "path": "app/Models/Notification.php",
@@ -532,9 +538,9 @@
     },
     {
       "path": "app/Models/Product.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 2401
+      "size": 2555
     },
     {
       "path": "app/Models/Promo.php",
@@ -562,9 +568,9 @@
     },
     {
       "path": "app/Models/SavingsTransaction.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 2225
+      "size": 2293
     },
     {
       "path": "app/Models/Setting.php",
@@ -574,15 +580,15 @@
     },
     {
       "path": "app/Models/StockMovement.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 1865
+      "size": 1933
     },
     {
       "path": "app/Models/Transaction.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 2576
+      "size": 2644
     },
     {
       "path": "app/Models/TransactionDiscount.php",
@@ -592,9 +598,9 @@
     },
     {
       "path": "app/Models/TransactionItem.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 767
+      "size": 835
     },
     {
       "path": "app/Models/User.php",
@@ -640,7 +646,7 @@
     },
     {
       "path": "app/Services/AuditIntegrity.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 3121
     },
@@ -718,9 +724,9 @@
     },
     {
       "path": "app/Services/MemberService.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 7140
+      "size": 7289
     },
     {
       "path": "app/Services/MinStockService.php",
@@ -754,9 +760,9 @@
     },
     {
       "path": "app/Services/ProductService.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 4426
+      "size": 4444
     },
     {
       "path": "app/Services/PromoEngine.php",
@@ -814,9 +820,9 @@
     },
     {
       "path": "app/Services/SettingsService.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 16478
+      "size": 18705
     },
     {
       "path": "app/Services/ShiftService.php",
@@ -844,7 +850,7 @@
     },
     {
       "path": "app/Support/AuditGuard.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 3471
     },
@@ -862,9 +868,9 @@
     },
     {
       "path": "app/Support/MockData.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 23070
+      "size": 22137
     },
     {
       "path": "app/Support/OpeningHours.php",
@@ -1204,25 +1210,31 @@
     },
     {
       "path": "database/migrations/2026_10_13_000009_add_change_columns_to_activity_logs_table.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 3524
     },
     {
       "path": "database/migrations/2026_10_13_000010_backfill_setting_subjects_in_activity_logs.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 1856
     },
     {
       "path": "database/migrations/2026_10_13_000011_lock_activity_logs.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 1241
     },
     {
+      "path": "database/migrations/2026_10_13_000012_add_soft_deletes_to_master_tables.php",
+      "reason": "new",
+      "language": "php",
+      "size": 2094
+    },
+    {
       "path": "database/seeders/ActivityLogSeeder.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 4165
     },
@@ -1750,9 +1762,9 @@
     },
     {
       "path": "resources/views/livewire/pengaturan/security.blade.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 11435
+      "size": 11319
     },
     {
       "path": "resources/views/livewire/pengaturan/tax.blade.php",
@@ -1816,7 +1828,7 @@
     },
     {
       "path": "routes/console.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 1619
     },
@@ -1840,9 +1852,9 @@
     },
     {
       "path": "tests/Feature/Anggota/MemberEndpointTest.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 4991
+      "size": 5435
     },
     {
       "path": "tests/Feature/Anggota/MemberFormTest.php",
@@ -1894,7 +1906,7 @@
     },
     {
       "path": "tests/Feature/Audit/AuditLockTest.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 3818
     },
@@ -1918,9 +1930,9 @@
     },
     {
       "path": "tests/Feature/Audit/MasterDataObserverTest.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 6248
+      "size": 6616
     },
     {
       "path": "tests/Feature/Audit/TrashPageTest.php",
@@ -2026,9 +2038,9 @@
     },
     {
       "path": "tests/Feature/Database/MemberModelTest.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 3159
+      "size": 3360
     },
     {
       "path": "tests/Feature/Database/NotificationSchemaTest.php",
@@ -2044,9 +2056,9 @@
     },
     {
       "path": "tests/Feature/Database/ProductTransactionSchemaTest.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 3377
+      "size": 3545
     },
     {
       "path": "tests/Feature/Database/PromoSchemaTest.php",
@@ -2056,15 +2068,21 @@
     },
     {
       "path": "tests/Feature/Database/SavingsTransactionModelTest.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 3228
+      "size": 3233
     },
     {
       "path": "tests/Feature/Database/SettingsSchemaTest.php",
       "reason": "needs_summary",
       "language": "php",
       "size": 2682
+    },
+    {
+      "path": "tests/Feature/Database/SoftDeleteRetentionTest.php",
+      "reason": "new",
+      "language": "php",
+      "size": 4252
     },
     {
       "path": "tests/Feature/Database/StockServiceTest.php",
@@ -2356,9 +2374,9 @@
     },
     {
       "path": "tests/Feature/Pengaturan/SecuritySettingsTest.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 3738
+      "size": 4092
     },
     {
       "path": "tests/Feature/Pengaturan/SettingsAuthorizationTest.php",
@@ -2434,9 +2452,9 @@
     },
     {
       "path": "tests/Feature/Transaksi/TransactionDetailEndpointTest.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 3600
+      "size": 3842
     },
     {
       "path": "tests/Feature/Transaksi/TransactionListEndpointTest.php",
