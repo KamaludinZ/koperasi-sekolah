@@ -635,11 +635,18 @@ class MockData
         $suppliers = collect(self::suppliers())->keyBy('id');
         $pos = collect(self::purchaseOrders())->keyBy('id');
 
-        return array_map(fn ($r) => [
-            'id' => $r[0], 'po_number' => $pos[$r[1]]['number'] ?? '—', 'supplier_id' => $r[2], 'supplier' => $suppliers[$r[2]]['name'] ?? '—',
-            'amount' => $r[3], 'paid' => $r[4], 'due_at' => now()->addDays($r[5])->toDateString(),
-            'status' => $r[4] >= $r[3] ? 'lunas' : ($r[4] > 0 ? 'sebagian' : 'belum'),
-        ], $rows);
+        $paidExtra = collect(session('mock.payments', []))->groupBy('payable_id')->map->sum('amount');
+
+        return array_map(function ($r) use ($pos, $suppliers, $paidExtra) {
+            $paid = $r[4] + (int) ($paidExtra[$r[0]] ?? 0);
+
+            return [
+                'id' => $r[0], 'po_number' => $pos[$r[1]]['number'] ?? '—', 'supplier_id' => $r[2], 'supplier' => $suppliers[$r[2]]['name'] ?? '—',
+                'amount' => $r[3], 'paid' => $paid, 'due_at' => now()->addDays($r[5])->toDateString(),
+                'received_at' => now()->addDays($r[5] - ($suppliers[$r[2]]['terms_days'] ?? 0))->toDateString(),
+                'status' => $paid >= $r[3] ? 'lunas' : ($paid > 0 ? 'sebagian' : 'belum'),
+            ];
+        }, $rows);
     }
 
     /** Simpan supplier baru (tanpa id) atau ubah yang ada (session). Mengembalikan barisnya. */
@@ -755,5 +762,28 @@ class MockData
             [2, 4, 6, 'BP-2210', null, 96, 640_000, 'Pak Dedi'],
             [1, 3, 12, 'SJ-0871', null, 300, 1_330_000, 'Bu Rina'],
         ])];
+    }
+
+    /**
+     * Pembayaran hutang supplier (tiruan). Kontrak: GET /pengadaan/hutang/{id}/pembayaran,
+     * POST /pengadaan/hutang/{id}/bayar {amount, paid_at, method (tunai|transfer), reference, note}.
+     */
+    public static function payablePayments(?int $payableId = null): array
+    {
+        $seed = [
+            ['id' => 1, 'payable_id' => 1, 'amount' => 260_000, 'paid_at' => now()->subDays(1)->toDateString(), 'method' => 'transfer', 'reference' => 'TRF-55120', 'note' => 'Cicilan pertama', 'user' => 'Pak Dedi'],
+            ['id' => 2, 'payable_id' => 4, 'amount' => 1_330_000, 'paid_at' => now()->subDays(5)->toDateString(), 'method' => 'tunai', 'reference' => null, 'note' => null, 'user' => 'Admin Koperasi'],
+        ];
+        $all = collect([...session('mock.payments', []), ...$seed])->sortByDesc('paid_at')->values();
+
+        return ($payableId ? $all->where('payable_id', $payableId)->values() : $all)->all();
+    }
+
+    public static function payPayable(int $payableId, array $data, string $user): array
+    {
+        $payment = ['id' => 100 + count(session('mock.payments', [])), 'payable_id' => $payableId, ...$data, 'user' => $user];
+        session(['mock.payments' => [$payment, ...session('mock.payments', [])]]);
+
+        return $payment;
     }
 }
