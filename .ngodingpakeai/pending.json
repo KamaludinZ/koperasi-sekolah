@@ -1,6 +1,6 @@
 {
   "repo": "Koperasi Sekolah",
-  "generatedForCommit": "f4b89cd83d07e88a220365a7966ff763756d5115",
+  "generatedForCommit": "e4ba5d480ad9d3648ca948cf8381335ad08db5c3",
   "files": [
     {
       "path": ".claude/skills/ngodingpakeai/SKILL.md",
@@ -306,7 +306,7 @@
       "path": "app/Livewire/Kasir/Cart.php",
       "reason": "changed",
       "language": "php",
-      "size": 11410
+      "size": 11750
     },
     {
       "path": "app/Livewire/Kasir/Index.php",
@@ -502,7 +502,7 @@
     },
     {
       "path": "app/Services/CheckoutService.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 7287
     },
@@ -649,6 +649,12 @@
       "reason": "needs_summary",
       "language": "php",
       "size": 2149
+    },
+    {
+      "path": "app/Support/PromoMatcher.php",
+      "reason": "new",
+      "language": "php",
+      "size": 5361
     },
     {
       "path": "artisan",
@@ -1278,7 +1284,7 @@
       "path": "resources/views/livewire/kasir/cart.blade.php",
       "reason": "changed",
       "language": "php",
-      "size": 7607
+      "size": 7660
     },
     {
       "path": "resources/views/livewire/kasir/index.blade.php",
@@ -1288,7 +1294,7 @@
     },
     {
       "path": "resources/views/livewire/kasir/partials/discount.blade.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 6357
     },
@@ -1297,6 +1303,12 @@
       "reason": "needs_summary",
       "language": "php",
       "size": 9989
+    },
+    {
+      "path": "resources/views/livewire/kasir/partials/promo-panel.blade.php",
+      "reason": "new",
+      "language": "php",
+      "size": 2913
     },
     {
       "path": "resources/views/livewire/kasir/partials/receipt.blade.php",
@@ -1690,7 +1702,7 @@
     },
     {
       "path": "tests/Feature/Kasir/ManualDiscountTest.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 4201
     },
@@ -1711,6 +1723,12 @@
       "reason": "needs_summary",
       "language": "php",
       "size": 2405
+    },
+    {
+      "path": "tests/Feature/Kasir/PromoPanelTest.php",
+      "reason": "new",
+      "language": "php",
+      "size": 3811
     },
     {
       "path": "tests/Feature/Kasir/ReceiptPdfTest.php",

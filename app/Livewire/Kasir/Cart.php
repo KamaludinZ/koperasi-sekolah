@@ -7,6 +7,7 @@ use App\Services\ProductCatalog;
 use App\Services\ReceiptPdfService;
 use App\Services\ReceiptPresenter;
 use App\Services\SettingsService;
+use App\Support\CouponValidator;
 use App\Support\MockData;
 use App\Support\PriceCalculator;
 use App\Support\PromoMatcher;
@@ -54,6 +55,13 @@ class Cart extends Component
     public ?int $discountValue = null;
 
     public string $discountReason = '';
+
+    /** Kode kupon yang sudah diterima (divalidasi ulang tiap keranjang berubah). */
+    public ?string $appliedCoupon = null;
+
+    public bool $editingCoupon = false;
+
+    public string $couponInput = '';
 
     public const DISCOUNT_REASONS = ['Barang cacat/kemasan rusak', 'Pelanggan tetap', 'Kegiatan sekolah', 'Penyesuaian harga'];
 
@@ -121,6 +129,54 @@ class Cart extends Component
         $this->notice = null;
         $this->lastRemoved = null;
         $this->removeDiscount();
+        $this->removeCoupon();
+    }
+
+    public function editCoupon(): void
+    {
+        $this->resetValidation('couponInput');
+        $this->couponInput = $this->appliedCoupon ?? '';
+        $this->editingCoupon = true;
+    }
+
+    public function cancelCoupon(): void
+    {
+        $this->editingCoupon = false;
+        $this->resetValidation('couponInput');
+    }
+
+    /** Periksa kode kupon dan beri umpan balik; kode yang valid disimpan di keranjang. */
+    public function applyCoupon(): void
+    {
+        $this->resetValidation('couponInput');
+        $result = CouponValidator::check($this->couponInput, $this->summary['subtotal'], MockData::coupons());
+        if (! $result['ok']) {
+            $this->addError('couponInput', $result['message']);
+
+            return;
+        }
+        $this->appliedCoupon = $result['coupon']['code'];
+        $this->couponInput = '';
+        $this->editingCoupon = false;
+        unset($this->coupon);
+    }
+
+    public function removeCoupon(): void
+    {
+        $this->appliedCoupon = null;
+        $this->couponInput = '';
+        $this->editingCoupon = false;
+        unset($this->coupon);
+    }
+
+    /**
+     * Hasil pemeriksaan kupon yang diterapkan terhadap isi keranjang saat ini (bisa jadi tidak
+     * memenuhi lagi, mis. minimal belanja). Tahap frontend: pratinjau, belum memotong total.
+     */
+    #[Computed]
+    public function coupon(): ?array
+    {
+        return $this->appliedCoupon ? CouponValidator::check($this->appliedCoupon, $this->summary['subtotal'], MockData::coupons()) : null;
     }
 
     public function editDiscount(): void
