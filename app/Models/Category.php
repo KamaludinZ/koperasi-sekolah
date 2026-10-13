@@ -8,10 +8,12 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Validation\ValidationException;
 
 /**
  * Kategori barang: nama unik (di antara yang aktif), warna penanda, urutan tampil, keterangan.
- * Dihapus lunak; perubahan nama/warna/urutan tercatat di audit.
+ * Dihapus lunak; kategori yang masih dipakai barang tidak bisa dihapus (model & kunci tamu "restrict").
+ * Perubahan nama/warna/urutan tercatat di audit.
  */
 class Category extends Model
 {
@@ -39,6 +41,19 @@ class Category extends Model
         static::creating(function (Category $c) {
             if (! $c->position) {
                 $c->position = (int) static::withTrashed()->max('position') + 1;
+            }
+        });
+
+        // Kategori yang masih dipakai barang aktif tidak boleh dihapus; pindahkan barangnya dulu lewat
+        // CategoryService::delete(). Hapus permanen juga ditolak selama barang terhapus lunak masih ada.
+        static::deleting(function (Category $c) {
+            $used = $c->isForceDeleting()
+                ? Product::withTrashed()->where('category_id', $c->id)->count()
+                : Product::where('category_id', $c->id)->count();
+            if ($used > 0) {
+                throw ValidationException::withMessages([
+                    'pindah_ke' => "Kategori {$c->name} masih dipakai {$used} barang. Pindahkan barangnya ke kategori lain dulu.",
+                ]);
             }
         });
     }

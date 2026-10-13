@@ -13,7 +13,8 @@ use Illuminate\Support\Facades\DB;
 /**
  * Pembersihan data yang melewati masa retensi (pengaturan Keamanan & retensi):
  * - barang, kategori, anggota yang dihapus lunak lebih dari `trash_days` → dihapus permanen
- *   (tercatat `*.purged` di audit; anggota yang masih punya riwayat tabungan dilewati);
+ *   (tercatat `*.purged` di audit; anggota yang masih punya riwayat tabungan dan kategori yang
+ *   masih dipakai barang dilewati);
  * - berkas ekspor laporan lebih dari `export_days` (baris + berkas di disk privat);
  * - notifikasi lebih dari `notification_days` yang sudah dibaca/ditutup petugas
  *   (pengumuman yang masih berlaku tidak dihapus).
@@ -27,6 +28,7 @@ class RetentionService
         'barang' => 'Barang terhapus',
         'kategori' => 'Kategori terhapus',
         'anggota' => 'Anggota terhapus',
+        'kategori_dilewati' => 'Kategori dilewati (masih dipakai barang)',
         'anggota_dilewati' => 'Anggota dilewati (punya riwayat tabungan)',
         'ekspor' => 'Berkas ekspor',
         'notifikasi' => 'Notifikasi lama',
@@ -38,17 +40,22 @@ class RetentionService
     public function run(bool $dryRun = false): array
     {
         $members = Member::expiredTrash()->withExists('savings')->get();
+        $products = Product::expiredTrash()->get();
+        // Barang yang ikut dibersihkan pada putaran ini tidak dihitung sebagai pemakai kategori.
+        $categories = Category::expiredTrash()
+            ->withExists(['products' => fn ($q) => $q->withTrashed()->whereNotIn('id', $products->modelKeys())])->get();
         $counts = [
             // Barang lebih dulu: kategori yang dibersihkan melepas kategori barangnya.
-            'barang' => $this->purge(Product::expiredTrash()->get(), $dryRun),
-            'kategori' => $this->purge(Category::expiredTrash()->get(), $dryRun),
+            'barang' => $this->purge($products, $dryRun),
+            'kategori' => $this->purge($categories->where('products_exists', false), $dryRun),
+            'kategori_dilewati' => $categories->where('products_exists', true)->count(),
             'anggota' => $this->purge($members->where('savings_exists', false), $dryRun),
             'anggota_dilewati' => $members->where('savings_exists', true)->count(),
             'ekspor' => $this->purgeExports($dryRun),
             'notifikasi' => $this->purgeNotifications($dryRun),
         ];
 
-        $purged = array_sum(array_diff_key($counts, ['anggota_dilewati' => 0]));
+        $purged = array_sum(array_diff_key($counts, ['anggota_dilewati' => 0, 'kategori_dilewati' => 0]));
         if (! $dryRun && $purged > 0) {
             AuditLog::record('retention.purged', 'pengaturan',
                 'Pembersihan masa retensi: '.collect($counts)->filter()->map(fn ($n, $k) => mb_strtolower(self::LABELS[$k]).' '.$n)->implode(', '),

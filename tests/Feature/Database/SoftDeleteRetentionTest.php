@@ -68,7 +68,8 @@ class SoftDeleteRetentionTest extends TestCase
     {
         $cat = Category::create(['name' => 'Aksesoris']);
         $p = Product::create(['code' => 'AKS1', 'name' => 'Gantungan', 'price' => 1000, 'category_id' => $cat->id]);
-        $cat->trash('Digabung');
+        // Kategori terhapus yang masih dipakai (data lama) tetap terbaca dari barang.
+        \Illuminate\Support\Facades\DB::table('categories')->where('id', $cat->id)->update(['deleted_at' => now()]);
 
         $this->assertSame('Aksesoris', $p->fresh()->category->name);
         $v = Validator::make(['category' => 'Aksesoris'], ['category' => ProductService::rules()['category']]);
