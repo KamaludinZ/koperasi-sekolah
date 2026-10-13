@@ -27,7 +27,7 @@ class RestoreTest extends Model
         return $this->belongsTo(User::class, 'run_by');
     }
 
-    /** Bentuk data riwayat untuk halaman (sama dengan MockData::restoreTests()). */
+    /** Bentuk data riwayat untuk halaman (riwayat uji). */
     public function toRow(): array
     {
         return [

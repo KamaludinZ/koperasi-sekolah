@@ -23,6 +23,11 @@ class RestoreTestService
 {
     public const CONNECTION = 'restore_test';
 
+    /** Label tabel yang ditampilkan di hasil uji. */
+    public const LABELS = ['transactions' => 'Transaksi', 'transaction_items' => 'Baris transaksi', 'products' => 'Barang', 'members' => 'Anggota',
+        'savings_transactions' => 'Mutasi tabungan', 'users' => 'Pengguna', 'activity_logs' => 'Catatan audit', 'stock_movements' => 'Mutasi stok',
+        'categories' => 'Kategori', 'settings' => 'Pengaturan', 'notifications' => 'Notifikasi', 'suppliers' => 'Supplier'];
+
     public const STEPS = ['verify' => 'Periksa checksum arsip', 'extract' => 'Buka arsip cadangan', 'restore' => 'Pulihkan ke basis data uji', 'count' => 'Hitung & bandingkan data', 'cleanup' => 'Hapus basis data uji'];
 
     public function run(Backup $backup, ?User $by = null): RestoreTest

@@ -5,7 +5,7 @@
     $sch = $this->schedule;
     $dt = fn ($d) => \Illuminate\Support\Carbon::parse($d)->translatedFormat('d M Y, H:i');
 @endphp
-<div class="flex min-h-0 flex-1 flex-col overflow-y-auto">
+<div class="flex min-h-0 flex-1 flex-col overflow-y-auto" @if (collect($this->all)->contains('status', 'berjalan')) wire:poll.5s @endif>
     <header class="border-b border-stone-200 bg-white px-4 pt-4 sm:px-6">
         <div class="flex flex-wrap items-center justify-between gap-3">
             <div>
@@ -13,7 +13,6 @@
                 <p class="text-xs text-stone-500">Cadangan basis data dan berkas koperasi, dibuat otomatis tiap malam.</p>
             </div>
             <div class="flex items-center gap-2">
-                <span class="rounded bg-stone-100 px-2 py-1 text-xs font-medium text-stone-500" title="Menunggu backend cadangan">Data contoh</span>
                 <button type="button" wire:click="openCreate" class="rounded-xl bg-emerald-700 px-4 py-2.5 text-sm font-semibold text-white hover:bg-emerald-800">Cadangkan sekarang</button>
             </div>
         </div>
@@ -64,9 +63,9 @@
                                 <td class="px-4 py-2.5"><span class="font-medium">{{ $dt($b['created_at']) }}</span><span class="block font-mono text-[11px] text-stone-500">{{ $b['name'] }}</span></td>
                                 <td class="px-3 py-2.5 text-stone-700">{{ Backups::TYPES[$b['type']] ?? $b['type'] }}</td>
                                 <td class="px-3 py-2.5 text-stone-600">{{ $b['trigger'] === 'manual' ? 'Manual'.($b['by'] ? ' · '.$b['by'] : '') : 'Terjadwal' }}</td>
-                                <td class="px-3 py-2.5"><span @class(['rounded-md px-2 py-0.5 text-[11px] font-semibold', 'bg-emerald-100 text-emerald-800' => $b['status'] === 'berhasil', 'bg-red-100 text-red-800' => $b['status'] === 'gagal'])>{{ ucfirst($b['status']) }}</span></td>
+                                <td class="px-3 py-2.5"><span @class(['rounded-md px-2 py-0.5 text-[11px] font-semibold', 'bg-emerald-100 text-emerald-800' => $b['status'] === 'berhasil', 'bg-red-100 text-red-800' => $b['status'] === 'gagal', 'bg-amber-100 text-amber-900' => $b['status'] === 'berjalan'])>{{ ucfirst($b['status']) }}</span></td>
                                 <td class="px-3 py-2.5 text-right tabular-nums">{{ $b['size'] ? SystemHealth::bytes($b['size']) : '—' }}</td>
-                                <td class="px-4 py-2.5 text-right tabular-nums text-stone-600">{{ $b['duration_s'] }} dtk</td>
+                                <td class="px-4 py-2.5 text-right tabular-nums text-stone-600">{{ $b['status'] === 'berjalan' ? '…' : $b['duration_s'].' dtk' }}</td>
                             </tr>
                         @empty
                             <tr><td colspan="6" class="px-4 py-10 text-center text-stone-400">Tidak ada cadangan.</td></tr>
@@ -123,7 +122,7 @@
                 </dl>
                 @if ($b['status'] === 'berhasil')
                     <div class="mt-auto space-y-2 border-t border-stone-200 px-5 py-4">
-                        <span title="Segera hadir" class="block cursor-not-allowed rounded-xl border border-stone-200 px-4 py-2 text-center text-sm font-semibold text-stone-400">Unduh cadangan</span>
+                        <a href="{{ route('sistem.cadangan.unduh', $b['id']) }}" class="block rounded-xl border border-stone-300 px-4 py-2 text-center text-sm font-semibold text-stone-700 hover:bg-stone-50">Unduh cadangan</a>
                         @if (\Illuminate\Support\Facades\Route::has('sistem.restore'))
                             <a href="{{ route('sistem.restore', ['cadangan' => $b['id']]) }}" wire:navigate class="block rounded-xl border border-amber-300 bg-amber-50 px-4 py-2 text-center text-sm font-semibold text-amber-900 hover:bg-amber-100">Uji pemulihan dari cadangan ini</a>
                         @endif

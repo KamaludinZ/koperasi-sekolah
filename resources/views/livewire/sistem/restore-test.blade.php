@@ -11,7 +11,6 @@
                 <h1 class="text-lg font-semibold">Sistem</h1>
                 <p class="text-xs text-stone-500">Pastikan cadangan benar-benar bisa dipulihkan, tanpa menyentuh data asli.</p>
             </div>
-            <span class="rounded bg-stone-100 px-2 py-1 text-xs font-medium text-stone-500" title="Menunggu backend uji pemulihan">Data contoh</span>
         </div>
         <x-sistem.nav active="sistem.restore" />
     </header>
@@ -49,21 +48,33 @@
 
                 @if ($result)
                     <div class="space-y-3 border-t border-stone-100 pt-4" data-restore-result>
-                        <p class="font-semibold text-emerald-800">Berhasil dipulihkan dalam {{ $result['duration_s'] }} detik.</p>
-                        <ol class="space-y-1 text-sm">
-                            @foreach ($result['steps'] as $i => $step)
-                                <li class="flex items-center gap-2"><span class="grid size-5 place-items-center rounded-full bg-emerald-100 text-[11px] font-bold text-emerald-800">✓</span>{{ $step['label'] }}</li>
-                            @endforeach
-                        </ol>
-                        <table class="w-full text-sm">
-                            <thead class="text-left text-xs text-stone-500"><tr><th class="py-1 font-medium">Data</th><th class="py-1 text-right font-medium">Di cadangan</th><th class="py-1 text-right font-medium">Sekarang</th><th class="py-1 text-right font-medium">Dibuat setelahnya</th></tr></thead>
-                            <tbody class="divide-y divide-stone-100">
-                                @foreach ($result['tables'] as $t)
-                                    <tr><td class="py-1.5">{{ $t['label'] }}</td><td class="py-1.5 text-right tabular-nums">{{ number_format($t['backup'], 0, ',', '.') }}</td><td class="py-1.5 text-right tabular-nums">{{ number_format($t['live'], 0, ',', '.') }}</td><td class="py-1.5 text-right tabular-nums text-stone-500">+{{ number_format($t['newer'], 0, ',', '.') }}</td></tr>
+                        @if ($result['status'] === 'berhasil')
+                            <p class="font-semibold text-emerald-800">Berhasil dipulihkan dalam {{ $result['duration_s'] }} detik.</p>
+                        @elseif ($result['status'] === 'gagal')
+                            <p class="font-semibold text-red-700">Uji gagal: {{ $result['error'] }}</p>
+                        @else
+                            <p class="font-semibold text-amber-800">Uji sedang berjalan di latar — lihat riwayat sebentar lagi.</p>
+                        @endif
+                        @if ($result['steps'])
+                            <ol class="space-y-1 text-sm">
+                                @foreach ($result['steps'] as $step)
+                                    <li class="flex items-center gap-2"><span @class(['grid size-5 place-items-center rounded-full text-[11px] font-bold', 'bg-emerald-100 text-emerald-800' => $step['ok'], 'bg-red-100 text-red-800' => ! $step['ok']])>{{ $step['ok'] ? '✓' : '!' }}</span>{{ $step['label'] }}</li>
                                 @endforeach
-                            </tbody>
-                        </table>
-                        <p class="text-xs text-stone-500">Selisih wajar = data yang dibuat setelah cadangan. Bila dipulihkan, data sejak {{ $dt($result['backup_at']) }} hilang.</p>
+                            </ol>
+                        @endif
+                        @if ($result['tables'])
+                            <div class="max-h-80 overflow-y-auto">
+                            <table class="w-full text-sm">
+                                <thead class="text-left text-xs text-stone-500"><tr><th class="py-1 font-medium">Data</th><th class="py-1 text-right font-medium">Di cadangan</th><th class="py-1 text-right font-medium">Dipulihkan</th><th class="py-1 text-right font-medium">Sekarang</th></tr></thead>
+                                <tbody class="divide-y divide-stone-100">
+                                    @foreach ($result['tables'] as $t)
+                                        <tr @class(['text-red-700' => ! ($t['ok'] ?? true)])><td class="py-1.5">{{ $t['label'] }}</td><td class="py-1.5 text-right tabular-nums">{{ number_format($t['backup'], 0, ',', '.') }}</td><td class="py-1.5 text-right tabular-nums">{{ number_format($t['restored'] ?? $t['backup'], 0, ',', '.') }}</td><td class="py-1.5 text-right tabular-nums">{{ number_format($t['live'], 0, ',', '.') }}@if ($t['newer'] > 0)<span class="text-xs text-stone-500"> (+{{ number_format($t['newer'], 0, ',', '.') }})</span>@endif</td></tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                            </div>
+                            <p class="text-xs text-stone-500">Selisih wajar = data yang dibuat setelah cadangan. Bila dipulihkan, data sejak {{ $dt($result['backup_at']) }} hilang.</p>
+                        @endif
                     </div>
                 @endif
             </section>
@@ -71,7 +82,7 @@
             <aside class="h-fit rounded-2xl border border-stone-200 bg-white p-5" aria-labelledby="rt-hist">
                 <h2 id="rt-hist" class="font-semibold">Riwayat uji</h2>
                 <ul class="mt-3 divide-y divide-stone-100 text-sm">
-                    @foreach ($this->history as $h)
+                    @forelse ($this->history as $h)
                         <li wire:key="rh-{{ $h['id'] }}" class="py-2.5">
                             <p class="flex items-center justify-between gap-2">
                                 <span>{{ $dt($h['started_at']) }}</span>
@@ -80,7 +91,9 @@
                             <p class="text-xs text-stone-500">Cadangan {{ $dt($h['backup_at']) }} · {{ $h['duration_s'] }} dtk · {{ $h['by'] }}</p>
                             @if ($h['note'])<p class="text-xs text-red-700">{{ $h['note'] }}</p>@endif
                         </li>
-                    @endforeach
+                    @empty
+                        <li class="py-6 text-center text-sm text-stone-400">Belum pernah diuji.</li>
+                    @endforelse
                 </ul>
             </aside>
         </div>

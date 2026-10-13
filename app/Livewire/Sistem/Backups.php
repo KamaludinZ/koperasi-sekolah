@@ -4,7 +4,6 @@ namespace App\Livewire\Sistem;
 
 use App\Livewire\Concerns\NotifiesSave;
 use App\Support\BackupStatus;
-use App\Support\MockData;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
@@ -14,8 +13,8 @@ use Livewire\Component;
 /**
  * Sistem → Cadangan data (Admin): jadwal cadangan otomatis, ringkasan (cadangan terakhir berhasil,
  * total ukuran, gagal 30 hari), dan daftar cadangan terbaru dengan status, isi, ukuran, durasi, dan
- * pemicu (terjadwal/manual), plus tombol "Cadangkan sekarang". Tahap tampilan: data dari
- * MockData::backups() & BACKUP_SCHEDULE; pembuatan cadangan disimulasikan.
+ * pemicu (terjadwal/manual), plus tombol "Cadangkan sekarang" (dikerjakan di antrean cadangan) dan
+ * unduh arsip. Data dari tabel backups (sama dengan GET /sistem/cadangan/data).
  */
 #[Layout('components.layouts.app')]
 #[Title('Cadangan Data')]
@@ -25,7 +24,7 @@ class Backups extends Component
 
     public const FILTERS = ['semua' => 'Semua', 'berhasil' => 'Berhasil', 'gagal' => 'Gagal', 'manual' => 'Manual'];
 
-    public const TYPES = ['lengkap' => 'Basis data + berkas', 'basis data' => 'Basis data saja'];
+    public const TYPES = \App\Models\Backup::TYPES;
 
     #[Url(as: 'tampil', except: 'semua')]
     public string $filter = 'semua';
@@ -35,9 +34,6 @@ class Backups extends Component
     public string $newType = 'lengkap';
 
     public string $newNote = '';
-
-    /** @var list<array> cadangan yang dibuat di layar (simulasi) */
-    public array $created = [];
 
     public ?int $selectedId = null;
 
@@ -49,7 +45,7 @@ class Backups extends Component
     #[Computed]
     public function all(): array
     {
-        return [...$this->created, ...MockData::backups()];
+        return \App\Services\HealthCheckService::backupRows();
     }
 
     #[Computed]
@@ -65,7 +61,7 @@ class Backups extends Component
     #[Computed]
     public function schedule(): array
     {
-        return MockData::BACKUP_SCHEDULE;
+        return \App\Http\Controllers\Sistem\BackupController::schedule();
     }
 
     #[Computed]
@@ -128,17 +124,21 @@ class Backups extends Component
             'newNote' => ['nullable', 'string', 'max:120'],
         ], ['newNote.max' => 'Catatan maksimal 120 karakter.']);
 
-        // Simulasi: backend menjalankan cadangan di antrean dan memperbarui statusnya.
-        $at = now();
-        array_unshift($this->created, [
-            'id' => 1000 + count($this->created), 'name' => 'koperasi-'.$at->format('Y-m-d-His').'.zip', 'created_at' => $at->toDateTimeString(),
-            'type' => $this->newType, 'trigger' => 'manual', 'status' => 'berhasil', 'size' => $this->newType === 'lengkap' ? 2_610_000 : 1_840_000,
-            'duration_s' => $this->newType === 'lengkap' ? 21 : 9, 'includes' => $this->newType === 'lengkap' ? ['basis data', 'logo & berkas unggahan'] : ['basis data'],
-            'note' => trim($this->newNote) ?: null, 'by' => auth()->user()->name, 'checksum' => substr(md5((string) $at->timestamp), 0, 16),
-        ]);
+        if (\App\Models\Backup::where('status', 'berjalan')->where('started_at', '>=', now()->subHour())->exists()) {
+            $this->addError('newType', 'Masih ada cadangan yang sedang dibuat.');
+
+            return;
+        }
+        $b = app(\App\Services\BackupService::class)->start($this->newType, 'manual', trim($this->newNote) ?: null, auth()->id());
+        \App\Jobs\RunBackup::dispatch($b->id);
         $this->creating = false;
         unset($this->all, $this->rows, $this->stats, $this->status);
-        $this->toast('success', 'Cadangan dibuat. (simulasi)');
+        $done = $b->fresh();
+        $this->toast($done->status === 'gagal' ? 'error' : 'success', match ($done->status) {
+            'berhasil' => 'Cadangan dibuat.',
+            'gagal' => 'Cadangan gagal: '.mb_strimwidth((string) $done->error, 0, 120, '…'),
+            default => 'Cadangan sedang dibuat di latar.',
+        });
     }
 
     public function render()

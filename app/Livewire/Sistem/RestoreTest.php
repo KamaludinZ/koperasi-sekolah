@@ -3,7 +3,6 @@
 namespace App\Livewire\Sistem;
 
 use App\Livewire\Concerns\NotifiesSave;
-use App\Support\MockData;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Livewire\Attributes\Computed;
@@ -15,8 +14,8 @@ use Livewire\Component;
 /**
  * Sistem → Uji pemulihan (Admin): pilih cadangan yang berhasil, jalankan uji pemulihan ke basis data uji
  * terpisah (data asli tidak disentuh), lihat langkah-langkahnya, perbandingan jumlah baris per tabel
- * terhadap data asli, dan riwayat uji. Disarankan sebulan sekali. Tahap tampilan: hasil uji disimulasikan
- * (jumlah baris cadangan ≈ data asli saat cadangan dibuat); riwayat dari MockData::restoreTests().
+ * terhadap data asli, dan riwayat uji. Disarankan sebulan sekali. Uji dijalankan RestoreTestService lewat
+ * antrean cadangan; riwayat dari tabel restore_tests.
  */
 #[Layout('components.layouts.app')]
 #[Title('Uji Pemulihan')]
@@ -35,9 +34,6 @@ class RestoreTest extends Component
     /** Hasil uji terakhir di layar (simulasi). */
     public ?array $result = null;
 
-    /** @var list<array> uji yang dijalankan di layar (simulasi) */
-    public array $ran = [];
-
     public function mount(): void
     {
         if ($this->backupId && ! collect($this->backups)->contains('id', $this->backupId)) {
@@ -50,7 +46,7 @@ class RestoreTest extends Component
     #[Computed]
     public function backups(): array
     {
-        return array_values(array_filter(MockData::backups(), fn ($b) => $b['status'] === 'berhasil'));
+        return array_values(array_filter(\App\Services\HealthCheckService::backupRows(), fn ($b) => $b['status'] === 'berhasil'));
     }
 
     #[Computed]
@@ -62,7 +58,7 @@ class RestoreTest extends Component
     #[Computed]
     public function history(): array
     {
-        return [...$this->ran, ...MockData::restoreTests()];
+        return \App\Models\RestoreTest::with('runner:id,name')->latest('started_at')->latest('id')->limit(30)->get()->map->toRow()->all();
     }
 
     #[Computed]
@@ -94,28 +90,25 @@ class RestoreTest extends Component
             return;
         }
 
-        // Simulasi: jumlah baris di cadangan = jumlah sekarang dikurangi data yang dibuat setelah cadangan.
-        $tables = [];
-        foreach (MockData::RESTORE_TABLES as $table => $label) {
-            if (! Schema::hasTable($table)) {
-                continue;
-            }
-            $live = DB::table($table)->count();
-            $after = Schema::hasColumn($table, 'created_at') ? DB::table($table)->where('created_at', '>', $b['created_at'])->count() : 0;
-            $tables[] = ['table' => $table, 'label' => $label, 'backup' => $live - $after, 'live' => $live, 'newer' => $after];
-        }
-        $this->result = [
-            'backup' => $b['name'], 'backup_at' => $b['created_at'], 'status' => 'berhasil', 'duration_s' => 30 + count($tables) * 2,
-            'steps' => array_map(fn ($label) => ['label' => $label, 'ok' => true], array_values(MockData::RESTORE_STEPS)),
-            'tables' => $tables,
-        ];
-        array_unshift($this->ran, [
-            'id' => 100 + count($this->ran), 'backup' => $b['name'], 'backup_at' => $b['created_at'], 'started_at' => now()->toDateTimeString(),
-            'duration_s' => $this->result['duration_s'], 'status' => 'berhasil', 'by' => auth()->user()->name, 'tables' => count($tables), 'mismatches' => 0, 'note' => null,
-        ]);
+        \App\Jobs\RunRestoreTest::dispatch($b['id'], auth()->id());
+        $test = \App\Models\RestoreTest::where('backup_id', $b['id'])->latest('id')->first();
+        $this->result = $test ? [
+            'backup' => $test->backup_name, 'backup_at' => $test->backup_at?->toDateTimeString(), 'status' => $test->status, 'duration_s' => $test->duration_s,
+            'error' => $test->error, 'steps' => $test->steps ?? [], 'tables' => array_map(fn ($t) => [...$t, 'label' => self::label($t['table']), 'newer' => $t['live'] - $t['backup']], $test->tables ?? []),
+        ] : ['status' => 'berjalan', 'backup' => $b['name'], 'backup_at' => $b['created_at'], 'duration_s' => 0, 'error' => null, 'steps' => [], 'tables' => []];
         $this->confirm = false;
         unset($this->history, $this->due);
-        $this->toast('success', 'Uji pemulihan selesai: cadangan bisa dipulihkan. (simulasi)');
+        $this->toast($this->result['status'] === 'gagal' ? 'error' : 'success', match ($this->result['status']) {
+            'berhasil' => 'Uji pemulihan selesai: cadangan bisa dipulihkan.',
+            'gagal' => 'Uji pemulihan gagal: '.mb_strimwidth((string) $this->result['error'], 0, 120, '…'),
+            default => 'Uji pemulihan berjalan di latar.',
+        });
+    }
+
+    /** Label tabel yang mudah dibaca. */
+    public static function label(string $table): string
+    {
+        return \App\Services\RestoreTestService::LABELS[$table] ?? str_replace('_', ' ', ucfirst($table));
     }
 
     public function render()

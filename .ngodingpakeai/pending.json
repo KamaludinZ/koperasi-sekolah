@@ -1,6 +1,6 @@
 {
   "repo": "Koperasi Sekolah",
-  "generatedForCommit": "1351e6f7848c7b99e8c7e83a3c9f2fdeaf051491",
+  "generatedForCommit": "c296d4943f1b40102da27a680d3471019869ba51",
   "files": [
     {
       "path": ".claude/skills/ngodingpakeai/SKILL.md",
@@ -682,7 +682,7 @@
     },
     {
       "path": "app/Livewire/Sistem/Health.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 1409
     },
@@ -808,7 +808,7 @@
     },
     {
       "path": "app/Models/HealthCheck.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 425
     },
@@ -1104,7 +1104,7 @@
       "path": "app/Services/HealthCheckService.php",
       "reason": "changed",
       "language": "php",
-      "size": 14221
+      "size": 16009
     },
     {
       "path": "app/Services/LoginLockoutService.php",
@@ -1438,7 +1438,7 @@
     },
     {
       "path": "app/Support/SystemHealth.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 890
     },
@@ -1918,7 +1918,7 @@
     },
     {
       "path": "database/migrations/2026_10_14_000004_create_health_checks_table.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 1024
     },
@@ -2692,7 +2692,7 @@
     },
     {
       "path": "resources/views/livewire/sistem/health.blade.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 9278
     },
@@ -2776,7 +2776,7 @@
     },
     {
       "path": "routes/console.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 5009
     },
@@ -3747,8 +3747,14 @@
       "size": 2478
     },
     {
-      "path": "tests/Feature/Sistem/HealthHistoryTest.php",
+      "path": "tests/Feature/Sistem/HealthAlertTest.php",
       "reason": "new",
+      "language": "php",
+      "size": 2399
+    },
+    {
+      "path": "tests/Feature/Sistem/HealthHistoryTest.php",
+      "reason": "needs_summary",
       "language": "php",
       "size": 2499
     },

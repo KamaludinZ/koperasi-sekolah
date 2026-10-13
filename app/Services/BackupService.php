@@ -29,17 +29,36 @@ class BackupService
     /** Tabel sementara/teknis yang tidak perlu dicadangkan. */
     public const SKIP_TABLES = ['cache', 'cache_locks', 'sessions', 'jobs', 'job_batches', 'failed_jobs', 'migrations'];
 
+    /** Buat & jalankan cadangan sekarang (dipakai command & job). */
     public function run(string $type = 'lengkap', string $trigger = 'terjadwal', ?string $note = null, ?int $userId = null): Backup
+    {
+        return $this->execute($this->start($type, $trigger, $note, $userId));
+    }
+
+    /** Catat cadangan baru berstatus berjalan (sebelum dikerjakan di antrean). */
+    public function start(string $type = 'lengkap', string $trigger = 'manual', ?string $note = null, ?int $userId = null): Backup
     {
         if (! array_key_exists($type, Backup::TYPES)) {
             throw new \InvalidArgumentException("Jenis cadangan tidak dikenal: {$type}");
         }
         $started = now();
-        $backup = Backup::create([
+
+        return Backup::create([
             'name' => 'koperasi-'.$started->format('Y-m-d-His').'-'.Str::lower(Str::random(4)).'.zip',
             'type' => $type, 'trigger' => $trigger, 'note' => $note ? mb_substr(trim($note), 0, 200) : null,
             'created_by' => $userId, 'started_at' => $started,
         ]);
+    }
+
+    /** Kerjakan cadangan yang berstatus berjalan: buat arsip, catat hasil (berhasil/gagal). */
+    public function execute(Backup $backup): Backup
+    {
+        if ($backup->status !== 'berjalan') {
+            return $backup;
+        }
+        $type = $backup->type;
+        $trigger = $backup->trigger;
+        $started = $backup->started_at;
 
         $tmp = storage_path('app/tmp-backup-'.$backup->id);
         try {

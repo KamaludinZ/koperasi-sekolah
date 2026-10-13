@@ -423,6 +423,11 @@ Route::middleware('menu:sistem')->group(function () {
     Route::get('/sistem/kesehatan/data', fn () => response()->json(\App\Services\HealthCheckService::report()))
         ->middleware('throttle:60,1')->name('sistem.kesehatan.data');
     Route::get('/sistem/cadangan', Sistem\Backups::class)->name('sistem.cadangan');
+    Route::get('/sistem/cadangan/data', [\App\Http\Controllers\Sistem\BackupController::class, 'index'])->name('sistem.cadangan.data');
+    Route::post('/sistem/cadangan', [\App\Http\Controllers\Sistem\BackupController::class, 'store'])->middleware('throttle:6,1')->name('sistem.cadangan.store');
+    Route::get('/sistem/cadangan/{backup}/unduh', [\App\Http\Controllers\Sistem\BackupController::class, 'download'])->whereNumber('backup')->middleware('throttle:10,1')->name('sistem.cadangan.unduh');
+    Route::get('/sistem/uji-pemulihan/data', [\App\Http\Controllers\Sistem\BackupController::class, 'tests'])->name('sistem.restore.data');
+    Route::post('/sistem/uji-pemulihan', [\App\Http\Controllers\Sistem\BackupController::class, 'runTest'])->middleware('throttle:6,1')->name('sistem.restore.run');
     Route::get('/sistem/uji-pemulihan', Sistem\RestoreTest::class)->name('sistem.restore');
     Route::get('/sistem/antrean', Sistem\Queue::class)->name('sistem.antrean');
     Route::get('/sistem/performa', Sistem\Performance::class)->name('sistem.performa');

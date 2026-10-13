@@ -4,7 +4,6 @@ namespace Tests\Feature\Sistem;
 
 use App\Livewire\Sistem\Backups;
 use App\Support\BackupStatus;
-use App\Support\MockData;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
 use Tests\TestCase;
@@ -40,7 +39,9 @@ class BackupStatusTest extends TestCase
 
     public function test_panel_on_backups_and_health_pages(): void
     {
-        $expected = BackupStatus::summarize(MockData::backups());
+        \App\Models\Backup::factory()->create(['started_at' => now()->subDays(1)->setTime(23, 0)]);
+        \App\Models\Backup::factory()->failed('Ruang penyimpanan penuh')->create(['started_at' => now()->subDays(2)->setTime(23, 0)]);
+        $expected = BackupStatus::summarize(\App\Services\HealthCheckService::backupRows());
         $this->get('/sistem/cadangan')->assertOk()->assertSee('malam berturut-turut berhasil')->assertSee('Kegagalan terakhir')
             ->assertSee('data-backup-status="'.$expected['status'].'"', false);
         $this->get('/sistem')->assertOk()->assertSee('malam berturut-turut berhasil')->assertSee(route('sistem.cadangan'));
@@ -48,6 +49,7 @@ class BackupStatusTest extends TestCase
 
     public function test_retry_creates_backup(): void
     {
+        \Illuminate\Support\Facades\Storage::fake('local');
         $c = Livewire::test(Backups::class)->call('retry')->assertDispatched('toast');
         $this->assertSame('Ulang setelah cadangan gagal', $c->instance()->rows[0]['note']);
     }

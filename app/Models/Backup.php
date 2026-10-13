@@ -42,7 +42,7 @@ class Backup extends Model
         $query->orderByDesc('started_at')->orderByDesc('id');
     }
 
-    /** Bentuk data untuk halaman (sama dengan MockData::backups()). */
+    /** Bentuk data untuk halaman (daftar cadangan). */
     public function toRow(): array
     {
         return [
