@@ -65,6 +65,22 @@ class MemberEndpointTest extends TestCase
         $this->putJson('/anggota/9999', [])->assertNotFound();
     }
 
+    public function test_status_toggles_active_without_touching_balance(): void
+    {
+        $m = Member::factory()->withBalance(5000)->create(['name' => 'Budi']);
+
+        $this->patchJson("/anggota/{$m->id}/status", ['aktif' => false])->assertOk()
+            ->assertJsonPath('data.is_active', false)
+            ->assertJsonPath('message', fn ($msg) => str_contains($msg, 'dinonaktifkan'));
+        $this->assertFalse($m->fresh()->is_active);
+        $this->assertEquals(5000, (float) $m->fresh()->balance);
+        $this->getJson('/anggota/cari?q=Budi')->assertJsonCount(0, 'data');
+
+        $this->patchJson("/anggota/{$m->id}/status", ['aktif' => true])->assertOk()->assertJsonPath('data.is_active', true);
+        $this->patchJson("/anggota/{$m->id}/status", [])->assertJsonValidationErrors('aktif');
+        $this->patchJson('/anggota/9999/status', ['aktif' => true])->assertNotFound();
+    }
+
     public function test_show_and_destroy(): void
     {
         $m = Member::factory()->create(['name' => 'Siti']);

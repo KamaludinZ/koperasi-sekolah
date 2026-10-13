@@ -18,6 +18,7 @@ use Illuminate\Validation\Rule;
  * - POST   /anggota                   → anggota baru (201); kode kosong = dibuat otomatis
  * - GET    /anggota/{member}/data     → satu anggota
  * - PUT    /anggota/{member}          → perbarui data (saldo tidak berubah)
+ * - PATCH  /anggota/{member}/status  → aktifkan/nonaktifkan anggota (aktif=true|false); saldo & riwayat tetap
  * - DELETE /anggota/{member}          → hapus lunak anggota tanpa saldo (alasan= opsional)
  */
 class MemberController extends Controller
@@ -89,6 +90,17 @@ class MemberController extends Controller
         $data = $request->validate(MemberService::rules($member->id), MemberService::messages());
 
         return response()->json(['data' => MemberService::toArray($members->update($member, $data))]);
+    }
+
+    public function status(Request $request, Member $member, MemberService $members): JsonResponse
+    {
+        $data = $request->validate(['aktif' => ['required', 'boolean']], ['aktif.required' => 'Wajib diisi.', 'aktif.boolean' => 'Status tidak valid.']);
+        $member = $members->setActive($member, (bool) $data['aktif']);
+
+        return response()->json([
+            'data' => MemberService::toArray($member),
+            'message' => $member->is_active ? "{$member->name} diaktifkan kembali." : "{$member->name} dinonaktifkan. Saldo dan riwayatnya tetap tersimpan.",
+        ]);
     }
 
     public function destroy(Request $request, Member $member, MemberService $members): JsonResponse

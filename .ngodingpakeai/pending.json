@@ -1,6 +1,6 @@
 {
   "repo": "Koperasi Sekolah",
-  "generatedForCommit": "eb57132f80aa673f6ac1556b029443db6a0b18c5",
+  "generatedForCommit": "3b13c4c7b500036379700d762a18c7022efe1184",
   "files": [
     {
       "path": ".claude/skills/ngodingpakeai/SKILL.md",
@@ -126,7 +126,7 @@
       "path": "app/Http/Controllers/Barang/ProductController.php",
       "reason": "changed",
       "language": "php",
-      "size": 4795
+      "size": 5891
     },
     {
       "path": "app/Http/Controllers/Barang/ProductImportController.php",
@@ -484,7 +484,7 @@
     },
     {
       "path": "app/Livewire/Barang/StockHistory.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 3386
     },
@@ -1324,7 +1324,7 @@
     },
     {
       "path": "app/Services/StockMovementQuery.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 1944
     },
@@ -2826,7 +2826,7 @@
       "path": "routes/web.php",
       "reason": "changed",
       "language": "php",
-      "size": 32647
+      "size": 32795
     },
     {
       "path": "tests/Concerns/MakesProductImports.php",
@@ -3142,9 +3142,9 @@
     },
     {
       "path": "tests/Feature/Barang/RestockPageTest.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 2604
+      "size": 3241
     },
     {
       "path": "tests/Feature/Barang/StockAlertEndpointTest.php",
@@ -3154,7 +3154,7 @@
     },
     {
       "path": "tests/Feature/Barang/StockHistoryPageTest.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 3406
     },

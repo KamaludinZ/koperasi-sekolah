@@ -351,6 +351,10 @@ Route::middleware('menu:anggota')->group(function () {
         ->whereNumber('member')
         ->middleware('throttle:60,1')
         ->name('anggota.update');
+    Route::patch('/anggota/{member}/status', [MemberController::class, 'status'])
+        ->whereNumber('member')
+        ->middleware('throttle:60,1')
+        ->name('anggota.status');
     Route::delete('/anggota/{member}', [MemberController::class, 'destroy'])
         ->whereNumber('member')
         ->middleware('throttle:30,1')

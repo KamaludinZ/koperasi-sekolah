@@ -68,6 +68,16 @@ class MemberService
         return $member->refresh();
     }
 
+    /** Aktifkan/nonaktifkan anggota tanpa menyentuh data lain; anggota nonaktif tidak muncul di kasir. */
+    public function setActive(Member $member, bool $active): Member
+    {
+        if ($member->is_active !== $active) {
+            $member->update(['is_active' => $active]); // dicatat MasterDataObserver
+        }
+
+        return $member->refresh();
+    }
+
     /**
      * Hapus lunak anggota yang belum pernah menabung (dengan alasan opsional); transaksi belanjanya tetap
      * terhubung dan data bisa dipulihkan selama masa retensi.
