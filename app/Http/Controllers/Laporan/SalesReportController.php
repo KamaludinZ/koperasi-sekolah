@@ -22,6 +22,8 @@ use Illuminate\Validation\Rule;
  * - GET /laporan/grafik?dari=&sampai=&satuan= → titik grafik rentang kustom; satuan
  *                                      hari|minggu|bulan (kosong = otomatis menurut panjang rentang)
  *   Keduanya menyertakan total, jumlah transaksi, dan titik tertinggi.
+ * - GET /laporan/barang-terjual?periode= (atau dari=&sampai=)&urut=quantity|revenue|profit|name
+ *                                    → semua barang terjual pada rentang (bersih setelah retur) + margin & total
  */
 class SalesReportController extends Controller
 {
@@ -64,6 +66,45 @@ class SalesReportController extends Controller
         return response()->json([
             'data' => $report->report($start, $end),
             'meta' => ['from' => $start->toDateString(), 'to' => $end->toDateString()],
+        ]);
+    }
+
+    public function soldProducts(Request $request, SalesReport $report): JsonResponse
+    {
+        $data = $request->validate([
+            'periode' => ['nullable', Rule::in(array_keys(SalesReport::PERIODS))],
+            'dari' => ['nullable', 'required_with:sampai', 'date_format:Y-m-d', 'before_or_equal:today'],
+            'sampai' => ['nullable', 'required_with:dari', 'date_format:Y-m-d', 'after_or_equal:dari', 'before_or_equal:today'],
+            'urut' => ['nullable', Rule::in(array_keys(\App\Livewire\Laporan\Index::SOLD_SORTS))],
+        ], [
+            'sampai.after_or_equal' => 'Tanggal akhir tidak boleh sebelum tanggal awal.',
+            'required_with' => 'Isi tanggal awal dan akhir.',
+            'before_or_equal' => 'Tanggal tidak boleh melewati hari ini.',
+        ]);
+
+        [$start, $end] = isset($data['dari'])
+            ? SalesReport::customRanges($data['dari'], $data['sampai'])[0]
+            : SalesReport::range($data['periode'] ?? 'hari-ini');
+        if ($start->diffInDays($end) > 366) {
+            return response()->json(['message' => 'Rentang maksimal 1 tahun.', 'errors' => ['sampai' => ['Rentang maksimal 1 tahun.']]], 422);
+        }
+
+        $sort = $data['urut'] ?? 'quantity';
+        $rows = collect($report->topProducts($start, $end, null))
+            ->map(fn ($p) => $p + ['margin' => $p['revenue'] > 0 ? (int) round($p['profit'] / $p['revenue'] * 100) : 0]);
+        $rows = ($sort === 'name' ? $rows->sortBy('name') : $rows->sortByDesc($sort))->values();
+
+        return response()->json([
+            'data' => $rows->all(),
+            'meta' => [
+                'from' => $start->toDateString(),
+                'to' => $end->toDateString(),
+                'sort' => $sort,
+                'products' => $rows->count(),
+                'quantity' => $rows->sum('quantity'),
+                'revenue' => $rows->sum('revenue'),
+                'profit' => $rows->sum('profit'),
+            ],
         ]);
     }
 

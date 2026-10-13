@@ -38,6 +38,26 @@ class SalesReportEndpointTest extends TestCase
             ->assertJsonPath('meta.date', '2026-10-14');
     }
 
+    public function test_sold_products_lists_all_items_with_totals(): void
+    {
+        $this->getJson('/laporan/barang-terjual?periode=7-hari')
+            ->assertOk()
+            ->assertJsonCount(2, 'data')
+            ->assertJsonPath('data.0.name', 'Buku Tulis 38 Lembar')
+            ->assertJsonPath('data.0.quantity', 8)
+            ->assertJsonPath('meta.products', 2)
+            ->assertJsonPath('meta.quantity', 9)
+            ->assertJsonPath('meta.revenue', 35000)
+            ->assertJsonPath('meta.from', '2026-10-08');
+
+        $this->getJson('/laporan/barang-terjual?periode=7-hari&urut=name')->assertJsonPath('data.0.name', 'Buku Tulis 38 Lembar')->assertJsonPath('data.1.name', 'Pulpen Hitam');
+        $this->getJson('/laporan/barang-terjual?dari=2026-10-14&sampai=2026-10-14')
+            ->assertJsonPath('meta.quantity', 3)
+            ->assertJsonPath('data.0.margin', fn ($m) => is_int($m));
+        $this->getJson('/laporan/barang-terjual?urut=harga')->assertJsonValidationErrors('urut');
+        $this->getJson('/laporan/barang-terjual?dari=2026-10-14')->assertJsonValidationErrors('sampai');
+    }
+
     public function test_today_without_sales(): void
     {
         $this->travelTo('2026-10-20 07:00:00');
