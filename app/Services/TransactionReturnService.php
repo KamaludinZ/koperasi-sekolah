@@ -16,20 +16,29 @@ use Illuminate\Validation\ValidationException;
 /**
  * Retur barang dari transaksi kasir.
  * - requestReturn(): pengajuan RTR- (status menunggu). Syarat: transaksi belum dibatalkan, paling lambat
- *   LIMIT_DAYS hari, tidak ada pengajuan lain yang menunggu, jumlah ≤ dibeli − sudah diretur, cara
+ *   limitDays() hari (pengaturan), tidak ada pengajuan lain yang menunggu, jumlah ≤ dibeli − sudah diretur, cara
  *   pengembalian sesuai metode bayar. Nilai per unit = harga × (total ÷ subtotal), yaitu setelah diskon,
  *   pajak & pembulatan, dan tidak melebihi sisa nilai transaksi yang belum diretur.
  * - approve(): (Admin/Pengurus, bukan pengaju) kembalikan stok bila barang layak jual, kembalikan dana
  *   (tunai keluar dari laci shift terbuka; tabungan disetor kembali; bon mengurangi bon; QRIS dicatat),
  *   tambah transactions.returned_amount.
+ * - requestVoid(): pengajuan BTL- untuk membatalkan seluruh sisa transaksi (barang kembali ke stok, dana
+ *   dikembalikan dengan metode bayar semula). Aturan nilai batas (pengaturan `returns`): pembatalan oleh
+ *   kasir transaksi itu sendiri, bernilai ≤ void_auto_max dan diajukan ≤ void_auto_minutes menit setelah
+ *   transaksi, langsung disetujui otomatis; selain itu menunggu Admin/Pengurus.
+ * - Pembatalan yang disetujui menandai transaksi voided_at/voided_by/void_reason dan melepas kuota kupon.
  * - reject(): tolak dengan alasan.
- * Semua langkah tercatat di audit (return.*).
+ * Semua langkah tercatat di audit (return.* / void.*).
  */
 class TransactionReturnService
 {
-    public const LIMIT_DAYS = 3;
+    /** Batas hari pengajuan retur/pembatalan (pengaturan `returns.limit_days`). */
+    public static function limitDays(): int
+    {
+        return (int) app(SettingsService::class)->returns()['limit_days'];
+    }
 
-    public function __construct(private StockService $stock, private SavingsPaymentService $savings) {}
+    public function __construct(private StockService $stock, private SavingsPaymentService $savings, private CouponService $coupons) {}
 
     /** Cara pengembalian dana yang boleh dipilih untuk transaksi ini. */
     public static function refundOptions(Transaction $t): array
@@ -50,7 +59,7 @@ class TransactionReturnService
     /** Batas waktu pengajuan sudah lewat? */
     public static function expired(Transaction $t): bool
     {
-        return $t->created_at->lt(now()->subDays(self::LIMIT_DAYS)->startOfDay());
+        return $t->created_at->lt(now()->subDays(self::limitDays())->startOfDay());
     }
 
     /** Rasio nilai bersih per rupiah harga (total ÷ subtotal). */
@@ -143,31 +152,124 @@ class TransactionReturnService
     public function approve(TransactionReturn $return, User $by, ?string $note = null): TransactionReturn
     {
         return DB::transaction(function () use ($return, $by, $note) {
-            $r = $this->lockPending($return, $by);
-            $t = Transaction::whereKey($r->transaction_id)->lockForUpdate()->firstOrFail();
+            return $this->apply($this->lockPending($return, $by), $by->id, $note);
+        });
+    }
 
-            if ($r->restock) {
-                foreach ($r->items as $line) {
-                    $product = $line->product_id ? Product::withTrashed()->find($line->product_id) : null;
-                    if ($product) {
-                        $this->stock->increase($product, $line->quantity, "Retur {$r->number} ({$t->invoice_number})", $by->id);
-                    }
+    /**
+     * Ajukan pembatalan seluruh sisa transaksi.
+     *
+     * @throws ValidationException
+     */
+    public function requestVoid(Transaction $transaction, string $reasonKey, ?string $note, ?User $by): TransactionReturn
+    {
+        if (! array_key_exists($reasonKey, TransactionReturn::VOID_REASONS)) {
+            throw ValidationException::withMessages(['reason' => 'Pilih alasan pembatalan.']);
+        }
+        if ($reasonKey === 'lainnya' && mb_strlen(trim((string) $note)) < 5) {
+            throw ValidationException::withMessages(['note' => 'Jelaskan alasan pembatalan (min. 5 karakter).']);
+        }
+
+        return DB::transaction(function () use ($transaction, $reasonKey, $note, $by) {
+            $t = Transaction::with('items')->whereKey($transaction->id)->lockForUpdate()->firstOrFail();
+            $this->assertOpen($t);
+
+            $returned = $t->returnedQuantities();
+            $ratio = self::ratio($t);
+            $lines = [];
+            foreach ($t->items as $item) {
+                $left = $item->quantity - ($returned[$item->id] ?? 0);
+                if ($left > 0) {
+                    $unit = (int) round((float) $item->price * $ratio);
+                    $lines[] = ['item' => $item, 'qty' => $left, 'unit' => $unit, 'amount' => $unit * $left];
                 }
             }
-            $this->refund($r, $t, $by);
+            if ($lines === []) {
+                throw ValidationException::withMessages(['transaction' => 'Semua barang transaksi ini sudah diretur.']);
+            }
+            $amount = max(0, (int) $t->total - $t->returned_amount);
 
-            $t->forceFill(['returned_amount' => min((int) $t->total, $t->returned_amount + $r->amount)])->save();
-            $r->forceFill(['status' => 'disetujui', 'decided_by' => $by->id, 'decided_at' => now(), 'decision_note' => filled($note) ? mb_substr(trim($note), 0, 200) : null])->save();
+            $r = $this->createWithNumber('batal', [
+                'transaction_id' => $t->id,
+                'reason_key' => $reasonKey,
+                'reason' => TransactionReturn::VOID_REASONS[$reasonKey],
+                'note' => filled($note) ? mb_substr(trim($note), 0, 200) : null,
+                'restock' => true,
+                'refund_method' => $t->payment_method === 'qris' ? 'qris' : $t->payment_method,
+                'amount' => $amount,
+                'quantity' => array_sum(array_column($lines, 'qty')),
+                'requested_by' => $by?->id,
+                'requested_at' => now(),
+            ]);
+            foreach ($lines as $l) {
+                $r->items()->create([
+                    'transaction_item_id' => $l['item']->id, 'product_id' => $l['item']->product_id, 'product_name' => $l['item']->product_name,
+                    'quantity' => $l['qty'], 'unit_price' => $l['unit'], 'amount' => $l['amount'],
+                ]);
+            }
 
-            AuditLog::record('return.approved', 'transaksi',
-                "Retur {$r->number} disetujui: Rp".number_format($r->amount, 0, ',', '.').' dikembalikan ('.mb_strtolower($r->refundLabel()).')'
-                    .($r->restock ? ", {$r->quantity} barang kembali ke stok" : ', barang tidak kembali ke stok'),
+            AuditLog::record('void.requested', 'transaksi',
+                "Pengajuan pembatalan {$r->number} untuk {$t->invoice_number}: Rp".number_format($amount, 0, ',', '.')." ({$r->reason})",
                 ['type' => 'transaction', 'id' => $t->id, 'label' => $t->invoice_number],
-                ['return_id' => $r->id, 'refund_method' => $r->refund_method, 'restock' => $r->restock, 'note' => $r->decision_note],
-                $r->amount);
+                ['return_id' => $r->id, 'note' => $r->note], $amount);
 
-            return $r->fresh(['items', 'transaction']);
+            if ($auto = self::autoApproval($t, $amount, $by)) {
+                return $this->apply($r->load(['items', 'transaction']), null, $auto);
+            }
+
+            return $r->load('items');
         });
+    }
+
+    /**
+     * Aturan nilai batas: alasan persetujuan otomatis, atau null bila perlu persetujuan Admin/Pengurus.
+     */
+    public static function autoApproval(Transaction $t, int $amount, ?User $by): ?string
+    {
+        $s = app(SettingsService::class)->returns();
+        $max = (int) $s['void_auto_max'];
+        $minutes = (int) $s['void_auto_minutes'];
+        if ($max <= 0 || ! $by || $t->user_id !== $by->id || $amount > $max || $t->created_at->lt(now()->subMinutes($minutes))) {
+            return null;
+        }
+
+        return 'Disetujui otomatis: ≤ Rp'.number_format($max, 0, ',', '.')." dan ≤ {$minutes} menit oleh kasir yang sama.";
+    }
+
+    /** Terapkan persetujuan: stok, pengembalian dana, penanda transaksi, status, audit. */
+    private function apply(TransactionReturn $r, ?int $userId, ?string $note): TransactionReturn
+    {
+        $t = Transaction::whereKey($r->transaction_id)->lockForUpdate()->firstOrFail();
+        $what = $r->isVoid() ? 'Pembatalan' : 'Retur';
+
+        if ($r->restock) {
+            foreach ($r->items as $line) {
+                $product = $line->product_id ? Product::withTrashed()->find($line->product_id) : null;
+                if ($product) {
+                    $this->stock->increase($product, $line->quantity, "{$what} {$r->number} ({$t->invoice_number})", $userId);
+                }
+            }
+        }
+        $this->refund($r, $t, $userId);
+
+        $update = ['returned_amount' => min((int) $t->total, $t->returned_amount + $r->amount)];
+        if ($r->isVoid()) {
+            $update += ['voided_at' => now(), 'voided_by' => $userId ?? $r->requested_by, 'void_reason' => mb_substr($r->reason.($r->note ? ': '.$r->note : ''), 0, 200)];
+            foreach ($t->discounts()->whereNotNull('coupon_id')->pluck('coupon_id') as $couponId) {
+                $this->coupons->release($couponId); // kuota kupon kembali
+            }
+        }
+        $t->forceFill($update)->save();
+        $r->forceFill(['status' => 'disetujui', 'decided_by' => $userId, 'decided_at' => now(), 'decision_note' => filled($note) ? mb_substr(trim($note), 0, 200) : null])->save();
+
+        AuditLog::record($r->isVoid() ? 'void.approved' : 'return.approved', 'transaksi',
+            "{$what} {$r->number} disetujui".($userId ? '' : ' otomatis').': Rp'.number_format($r->amount, 0, ',', '.').' dikembalikan ('.mb_strtolower($r->refundLabel()).')'
+                .($r->restock ? ", {$r->quantity} barang kembali ke stok" : ', barang tidak kembali ke stok'),
+            ['type' => 'transaction', 'id' => $t->id, 'label' => $t->invoice_number],
+            ['return_id' => $r->id, 'refund_method' => $r->refund_method, 'restock' => $r->restock, 'note' => $r->decision_note, 'auto' => $userId === null],
+            $r->amount);
+
+        return $r->fresh(['items', 'transaction']);
     }
 
     /** @throws ValidationException */
@@ -231,7 +333,7 @@ class TransactionReturnService
             throw ValidationException::withMessages(['transaction' => 'Transaksi ini sudah dibatalkan.']);
         }
         if (self::expired($t)) {
-            throw ValidationException::withMessages(['transaction' => 'Transaksi ini sudah lewat batas '.self::LIMIT_DAYS.' hari.']);
+            throw ValidationException::withMessages(['transaction' => 'Transaksi ini sudah lewat batas '.self::limitDays().' hari.']);
         }
         if ($open = $t->pendingReturn()->first()) {
             throw ValidationException::withMessages(['transaction' => "Transaksi ini masih punya pengajuan {$open->number} yang menunggu."]);
@@ -258,7 +360,7 @@ class TransactionReturnService
     }
 
     /** Kembalikan dana sesuai cara pengembalian. */
-    private function refund(TransactionReturn $r, Transaction $t, User $by): void
+    private function refund(TransactionReturn $r, Transaction $t, ?int $userId): void
     {
         $amount = $r->amount;
         if ($amount <= 0) {
@@ -267,7 +369,7 @@ class TransactionReturnService
         $label = ($r->isVoid() ? 'Pembatalan' : 'Retur')." {$r->number} ({$t->invoice_number})";
 
         if ($r->refund_method === 'tabungan') {
-            $this->savings->refund($t->member_id, $amount, 'return', $r->id, $label, $by->id);
+            $this->savings->refund($t->member_id, $amount, 'return', $r->id, $label, $userId);
 
             return;
         }
@@ -295,7 +397,7 @@ class TransactionReturnService
             if ($amount > $shift->expectedCash()) {
                 throw ValidationException::withMessages(['amount' => 'Uang di laci tidak cukup untuk pengembalian (seharusnya Rp'.number_format($shift->expectedCash(), 0, ',', '.').').']);
             }
-            $shift->movements()->create(['type' => CashMovement::TYPE_OUT, 'category' => 'lainnya', 'amount' => $amount, 'reason' => "Pengembalian {$label}", 'user_id' => $by->id]);
+            $shift->movements()->create(['type' => CashMovement::TYPE_OUT, 'category' => 'lainnya', 'amount' => $amount, 'reason' => "Pengembalian {$label}", 'user_id' => $userId]);
         }
     }
 

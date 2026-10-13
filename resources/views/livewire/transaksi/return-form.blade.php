@@ -15,7 +15,7 @@
 
     @if ($this->expired)
         <div class="px-4 py-5 sm:px-6">
-            <p class="rounded-xl bg-red-50 px-4 py-3 text-sm text-red-800" role="alert">{{ $t->isVoided() ? 'Transaksi ini sudah dibatalkan, jadi tidak bisa diretur.' : 'Transaksi ini sudah lewat batas retur '.Returns::LIMIT_DAYS.' hari, jadi tidak bisa diretur.' }}
+            <p class="rounded-xl bg-red-50 px-4 py-3 text-sm text-red-800" role="alert">{{ $t->isVoided() ? 'Transaksi ini sudah dibatalkan, jadi tidak bisa diretur.' : 'Transaksi ini sudah lewat batas retur '.\App\Services\TransactionReturnService::limitDays().' hari, jadi tidak bisa diretur.' }}
                 <a href="{{ route('transaksi.show', $t->id) }}" wire:navigate class="font-semibold underline">Kembali ke transaksi</a></p>
         </div>
     @else

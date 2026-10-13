@@ -36,7 +36,6 @@ class Returns extends Component
     public const REFUND_METHODS = ['tunai' => 'Uang tunai', 'qris' => 'Transfer balik', 'tabungan' => 'Masuk saldo tabungan', 'bon' => 'Mengurangi bon'];
 
     /** Batas hari sejak pembelian untuk retur/pembatalan. */
-    public const LIMIT_DAYS = \App\Services\TransactionReturnService::LIMIT_DAYS;
 
     #[Url(as: 'status', except: 'semua')]
     public string $status = 'semua';
@@ -221,7 +220,7 @@ class Returns extends Component
                 'items' => $t->item_count,
                 'method' => $t->payment_method,
                 'created_at' => $t->created_at->toDateTimeString(),
-                'expired' => $t->created_at->lt(now()->subDays(self::LIMIT_DAYS)->startOfDay()),
+                'expired' => $t->created_at->lt(now()->subDays(\App\Services\TransactionReturnService::limitDays())->startOfDay()),
             ])->all();
     }
 

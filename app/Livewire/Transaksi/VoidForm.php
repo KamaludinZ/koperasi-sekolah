@@ -50,8 +50,8 @@ class VoidForm extends Component
     #[Computed]
     public function blocked(): ?string
     {
-        if ($this->tx->created_at->lt(now()->subDays(Returns::LIMIT_DAYS)->startOfDay())) {
-            return 'Transaksi ini sudah lewat batas '.Returns::LIMIT_DAYS.' hari, jadi tidak bisa dibatalkan.';
+        if ($this->tx->created_at->lt(now()->subDays(\App\Services\TransactionReturnService::limitDays())->startOfDay())) {
+            return 'Transaksi ini sudah lewat batas '.\App\Services\TransactionReturnService::limitDays().' hari, jadi tidak bisa dibatalkan.';
         }
         $open = collect(MockData::transactionReturns())->first(fn ($r) => $r['transaction']['id'] === $this->transactionId && $r['status'] !== 'ditolak');
 

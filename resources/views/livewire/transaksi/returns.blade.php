@@ -111,7 +111,7 @@
         {{-- Mulai pengajuan --}}
         <aside class="h-fit space-y-3 rounded-2xl border border-stone-200 bg-white p-5" aria-labelledby="rt-new">
             <h2 id="rt-new" class="font-semibold">Ajukan retur / pembatalan</h2>
-            <p class="text-xs text-stone-500">Cari nomor transaksi di struk pembeli. Retur & pembatalan paling lambat {{ Returns::LIMIT_DAYS }} hari setelah pembelian dan perlu persetujuan Admin/Pengurus.</p>
+            <p class="text-xs text-stone-500">Cari nomor transaksi di struk pembeli. Retur & pembatalan paling lambat {{ \App\Services\TransactionReturnService::limitDays() }} hari setelah pembelian dan perlu persetujuan Admin/Pengurus.</p>
             <label class="block">
                 <span class="sr-only">Nomor transaksi</span>
                 <input type="search" wire:model.live.debounce.300ms="lookup" placeholder="mis. INV-20261013-0007" autocomplete="off"
@@ -127,7 +127,7 @@
                             </div>
                             <p class="text-xs text-stone-500">{{ $dt($t['created_at']) }} · {{ $t['items'] }} barang · <x-transaksi.method-badge :method="$t['method']" /></p>
                             @if ($t['expired'])
-                                <p class="text-xs font-medium text-red-700">Lewat batas {{ Returns::LIMIT_DAYS }} hari — tidak bisa diretur.</p>
+                                <p class="text-xs font-medium text-red-700">Lewat batas {{ \App\Services\TransactionReturnService::limitDays() }} hari — tidak bisa diretur.</p>
                             @else
                                 <div class="grid grid-cols-2 gap-2">
                                     @foreach (['retur' => 'Retur barang', 'batal' => 'Batalkan'] as $k => $label)

@@ -19,9 +19,9 @@ use Throwable;
  */
 class SettingsService
 {
-    public const SECTIONS = ['profile', 'receipt', 'tax', 'discount', 'security', 'credit'];
+    public const SECTIONS = ['profile', 'receipt', 'tax', 'discount', 'security', 'credit', 'returns'];
 
-    public const SECTION_LABELS = ['profile' => 'Profil koperasi', 'receipt' => 'Pengaturan struk', 'tax' => 'Pajak & pembulatan', 'discount' => 'Diskon manual kasir', 'security' => 'Keamanan & retensi', 'credit' => 'Bon anggota'];
+    public const SECTION_LABELS = ['profile' => 'Profil koperasi', 'receipt' => 'Pengaturan struk', 'tax' => 'Pajak & pembulatan', 'discount' => 'Diskon manual kasir', 'security' => 'Keamanan & retensi', 'credit' => 'Bon anggota', 'returns' => 'Retur & pembatalan'];
 
     public const CACHE_KEY = 'settings:all';
 
@@ -84,6 +84,18 @@ class SettingsService
             'max_days' => 60,            // jatuh tempo terlama
             'block_overdue' => true,     // tolak bon baru bila masih ada bon lewat jatuh tempo
         ],
+        'returns' => [
+            'limit_days' => 3,           // retur/pembatalan paling lambat sekian hari setelah pembelian
+            'void_auto_max' => 20000,    // pembatalan ≤ nilai ini oleh kasir yang sama disetujui otomatis (0 = selalu perlu persetujuan)
+            'void_auto_minutes' => 30,   // ... dan diajukan paling lama sekian menit setelah transaksi
+        ],
+    ];
+
+    /** Batas aman angka pengaturan retur & pembatalan: [min, max]. */
+    public const RETURN_LIMITS = [
+        'limit_days' => [1, 30],
+        'void_auto_max' => [0, 1_000_000],
+        'void_auto_minutes' => [0, 240],
     ];
 
     /** Batas aman angka pengaturan bon: [min, max]. */
@@ -117,7 +129,7 @@ class SettingsService
     /**
      * Semua pengaturan + kapan & oleh siapa terakhir diubah.
      *
-     * @return array{profile: array, receipt: array, tax: array, discount: array, security: array, credit: array, updated_at: ?string, updated_by: ?string}
+     * @return array{profile: array, receipt: array, tax: array, discount: array, security: array, credit: array, returns: array, updated_at: ?string, updated_by: ?string}
      */
     public function all(): array
     {
@@ -175,6 +187,12 @@ class SettingsService
     public function credit(): array
     {
         return $this->section('credit');
+    }
+
+    /** Retur & pembatalan: limit_days, void_auto_max, void_auto_minutes. */
+    public function returns(): array
+    {
+        return $this->section('returns');
     }
 
     /** Tarif pajak efektif dalam persen (0 bila pajak dimatikan). */
@@ -284,6 +302,8 @@ class SettingsService
                     'import_types' => ['sometimes', 'required', 'array', 'min:1'],
                     'import_types.*' => ['in:'.implode(',', array_keys(self::UPLOAD_TYPES['import']))],
                 ],
+            'returns' => collect(self::RETURN_LIMITS)
+                ->map(fn ($l) => ['sometimes', 'required', 'integer', 'min:'.$l[0], 'max:'.$l[1]])->all(),
             'credit' => collect(self::CREDIT_LIMITS)
                 ->map(fn ($l) => ['sometimes', 'required', 'integer', 'min:'.$l[0], 'max:'.$l[1]])->all() + [
                     'enabled' => ['sometimes', 'boolean'],

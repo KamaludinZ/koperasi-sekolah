@@ -29,7 +29,7 @@ class CouponService
 
         if ($result['ok'] && $memberId && $model->per_member) {
             $used = TransactionDiscount::where('coupon_id', $model->id)
-                ->whereHas('transaction', fn ($q) => $q->where('member_id', $memberId))->count();
+                ->whereHas('transaction', fn ($q) => $q->where('member_id', $memberId)->whereNull('voided_at'))->count();
             if ($used >= $model->per_member) {
                 return ['ok' => false, 'reason' => 'per_member', 'message' => "Anggota ini sudah memakai kupon {$model->code} ({$used}×, batas {$model->per_member}×).",
                     'coupon' => $result['coupon'], 'amount' => 0];
@@ -84,7 +84,7 @@ class CouponService
     public function recount(): array
     {
         $changed = [];
-        foreach (Coupon::withCount('redemptions')->get() as $coupon) {
+        foreach (Coupon::withCount(['redemptions' => fn ($q) => $q->whereHas('transaction', fn ($t) => $t->whereNull('voided_at'))])->get() as $coupon) {
             if ($coupon->used_count !== $coupon->redemptions_count) {
                 $changed[$coupon->code] = ['from' => $coupon->used_count, 'to' => $coupon->redemptions_count];
                 $coupon->forceFill(['used_count' => $coupon->redemptions_count])->saveQuietly();

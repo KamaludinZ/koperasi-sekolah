@@ -22,7 +22,7 @@
         </div>
 
         <div class="flex flex-wrap items-center gap-2">
-        @unless ($at->lt(now()->subDays(\App\Livewire\Transaksi\Returns::LIMIT_DAYS)->startOfDay()))
+        @unless ($at->lt(now()->subDays(\App\Services\TransactionReturnService::limitDays())->startOfDay()))
             <a href="{{ route('transaksi.retur.buat', $tx['id']) }}" wire:navigate
                class="rounded-lg border border-amber-300 bg-amber-50 px-3 py-1.5 text-sm font-medium text-amber-900 hover:bg-amber-100">Retur barang</a>
             <a href="{{ route('transaksi.retur.batal', $tx['id']) }}" wire:navigate

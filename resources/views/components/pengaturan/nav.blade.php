@@ -7,6 +7,7 @@
         'pengaturan.pajak' => 'Pajak & pembulatan',
         'pengaturan.keamanan' => 'Keamanan & retensi',
         'pengaturan.bon' => 'Bon anggota',
+        'pengaturan.retur' => 'Retur & pembatalan',
     ];
 @endphp
 <nav class="mt-3 -mb-4 flex gap-1 overflow-x-auto" aria-label="Bagian pengaturan">
