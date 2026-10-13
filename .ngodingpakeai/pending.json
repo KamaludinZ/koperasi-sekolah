@@ -1,6 +1,6 @@
 {
   "repo": "Koperasi Sekolah",
-  "generatedForCommit": "cf94832da64e82240216542d65b5ca87a5b82024",
+  "generatedForCommit": "c08267cdecf1ce5c5fbc56df94bd7041dd9a30f3",
   "files": [
     {
       "path": ".claude/skills/ngodingpakeai/SKILL.md",
@@ -88,7 +88,7 @@
     },
     {
       "path": "app/Http/Controllers/Audit/TrashController.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 2242
     },
@@ -310,7 +310,7 @@
     },
     {
       "path": "app/Livewire/Audit/Trash.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 3792
     },
@@ -562,9 +562,9 @@
     },
     {
       "path": "app/Models/ReportExport.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 1518
+      "size": 1777
     },
     {
       "path": "app/Models/Role.php",
@@ -634,7 +634,7 @@
     },
     {
       "path": "app/Providers/AppServiceProvider.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 2000
     },
@@ -801,6 +801,12 @@
       "size": 1492
     },
     {
+      "path": "app/Services/RetentionService.php",
+      "reason": "new",
+      "language": "php",
+      "size": 3852
+    },
+    {
       "path": "app/Services/SalesExport.php",
       "reason": "needs_summary",
       "language": "php",
@@ -850,7 +856,7 @@
     },
     {
       "path": "app/Services/TrashService.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 6563
     },
@@ -880,7 +886,7 @@
     },
     {
       "path": "app/Support/MockData.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 18317
     },
@@ -1594,7 +1600,7 @@
     },
     {
       "path": "resources/views/livewire/audit/trash.blade.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 12398
     },
@@ -1840,13 +1846,13 @@
     },
     {
       "path": "routes/console.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 1619
+      "size": 2221
     },
     {
       "path": "routes/web.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 16084
     },
@@ -1948,7 +1954,7 @@
     },
     {
       "path": "tests/Feature/Audit/TrashPageTest.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 6638
     },
@@ -2077,6 +2083,12 @@
       "reason": "needs_summary",
       "language": "php",
       "size": 4756
+    },
+    {
+      "path": "tests/Feature/Database/RetentionCleanupTest.php",
+      "reason": "new",
+      "language": "php",
+      "size": 5176
     },
     {
       "path": "tests/Feature/Database/SavingsTransactionModelTest.php",

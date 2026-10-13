@@ -6,45 +6,47 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Validation\ValidationException;
 
 /**
  * Masuk & keluar petugas: cocokkan email + kata sandi (hash), tolak akun nonaktif
- * atau tanpa peran, batasi 5 percobaan gagal per email+IP selama 60 detik,
+ * atau tanpa peran, kunci bertingkat setelah gagal berulang (LoginLockoutService),
  * catat waktu login terakhir, dan tulis jejak audit untuk setiap hasil.
  */
 class AuthService
 {
+    /** Bawaan gagal beruntun sebelum kunci tingkat 1 (diatur di Keamanan & retensi). */
     public const MAX_ATTEMPTS = 5;
 
+    /** Lama kunci tingkat 1 dalam detik. */
     public const LOCK_SECONDS = 60;
+
+    public function __construct(private LoginLockoutService $lockouts) {}
 
     /**
      * @throws ValidationException (kunci `email`) bila gagal
      */
     public function login(string $email, string $password, bool $remember, Request $request): User
     {
-        $email = mb_strtolower(trim($email));
-        $key = self::throttleKey($email, $request);
+        $email = LoginLockoutService::normalize($email);
 
-        if (RateLimiter::tooManyAttempts($key, self::MAX_ATTEMPTS)) {
-            $wait = RateLimiter::availableIn($key);
-            AuditLog::record('auth.locked', 'auth', "Percobaan masuk saat terkunci untuk {$email}", null, ['email' => $email], null, ['name' => $email]);
+        $lock = $this->lockouts->find($email);
+        if ($lock?->isLocked()) {
+            AuditLog::record('auth.locked', 'auth', "Percobaan masuk saat terkunci untuk {$email}", null,
+                ['email' => $email, 'level' => $lock->level], null, ['name' => $email]);
 
-            throw ValidationException::withMessages(['email' => "Terlalu banyak percobaan. Coba lagi dalam {$wait} detik."]);
+            throw self::lockedException($lock->secondsLeft());
         }
 
         $user = User::with('role')->whereRaw('LOWER(email) = ?', [$email])->first();
 
         if (! $user || ! Hash::check($password, $user->password)) {
-            RateLimiter::hit($key, self::LOCK_SECONDS);
-            $attempts = RateLimiter::attempts($key);
+            $lock = $this->lockouts->fail($email, $request->ip(), $user);
             AuditLog::record('auth.failed', 'auth', "Gagal masuk: kata sandi salah atau akun tidak dikenal ({$email})", null,
-                ['email' => $email, 'attempt' => $attempts, 'locked' => $attempts >= self::MAX_ATTEMPTS],
+                ['email' => $email, 'attempt' => $lock->failed_count, 'locked' => $lock->isLocked(), 'level' => $lock->level],
                 null, $user ? self::actor($user) : ['name' => $email]);
 
-            throw ValidationException::withMessages(['email' => 'Email atau kata sandi salah.']);
+            throw $lock->isLocked() ? self::lockedException($lock->secondsLeft()) : ValidationException::withMessages(['email' => 'Email atau kata sandi salah.']);
         }
 
         if (! $user->is_active || ! $user->role) {
@@ -53,7 +55,7 @@ class AuthService
             throw ValidationException::withMessages(['email' => 'Akun ini dinonaktifkan. Hubungi admin koperasi.']);
         }
 
-        RateLimiter::clear($key);
+        $this->lockouts->clear($email);
         Auth::login($user, $remember);
         if ($request->hasSession()) {
             $request->session()->regenerate();
@@ -93,9 +95,12 @@ class AuthService
         ];
     }
 
-    public static function throttleKey(string $email, Request $request): string
+    /** Penolakan masuk karena terkunci: sementara (sisa detik) atau sampai dibuka Admin (null). HTTP 429. */
+    public static function lockedException(?int $seconds): ValidationException
     {
-        return 'login:'.mb_strtolower(trim($email)).'|'.$request->ip();
+        return ValidationException::withMessages(['email' => $seconds === null
+            ? 'Akun dikunci karena terlalu banyak percobaan masuk. Hubungi admin koperasi.'
+            : "Terlalu banyak percobaan. Coba lagi dalam {$seconds} detik."])->status(429);
     }
 
     private static function actor(User $user): array

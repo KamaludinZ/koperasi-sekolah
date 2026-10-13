@@ -4,9 +4,9 @@ namespace App\Livewire\Auth;
 
 use App\Support\Petugas;
 use App\Services\AuthService;
+use App\Services\LoginLockoutService;
 use App\Support\Menu;
 use Database\Seeders\UserSeeder;
-use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
@@ -14,9 +14,9 @@ use Livewire\Component;
 
 /**
  * Halaman masuk petugas (admin, kasir, pengurus). Validasi akun lewat AuthService:
- * kata sandi terenkripsi, akun nonaktif ditolak, 5 percobaan gagal → dikunci 60 detik.
- * Menampilkan sisa percobaan sebelum dikunci dan panel kunci dengan hitung mundur
- * (`lock.manual` = dikunci sampai dibuka Admin, disiapkan untuk kunci bertingkat).
+ * kata sandi terenkripsi, akun nonaktif ditolak, kunci bertingkat setelah gagal berulang
+ * (LoginLockoutService: 1 menit → 15 menit → sampai dibuka Admin). Menampilkan sisa percobaan
+ * sebelum dikunci dan panel kunci dengan hitung mundur (`lock.manual` = hubungi Admin).
  * Setelah masuk diarahkan ke halaman tujuan atau halaman awal sesuai peran.
  */
 #[Layout('components.layouts.guest')]
@@ -75,20 +75,12 @@ class Login extends Component
         $this->redirectIntended(route(Menu::homeRoute($user->roleName(), $user->role?->permissions)));
     }
 
-    /** Baca status kunci & sisa percobaan untuk email + IP saat ini. */
+    /** Baca status kunci & sisa percobaan untuk email ini. */
     public function refreshLock(): void
     {
-        $key = AuthService::throttleKey($this->email, request());
-        if (RateLimiter::tooManyAttempts($key, self::MAX_ATTEMPTS)) {
-            $this->lock = ['seconds' => max(1, RateLimiter::availableIn($key)), 'manual' => false];
-            $this->attemptsLeft = 0;
-
-            return;
-        }
-
-        $this->lock = null;
-        $attempts = RateLimiter::attempts($key);
-        $this->attemptsLeft = $attempts > 0 ? self::MAX_ATTEMPTS - $attempts : null;
+        $status = app(LoginLockoutService::class)->status($this->email);
+        $this->lock = $status['locked'] ? ['seconds' => $status['seconds'], 'manual' => $status['manual']] : null;
+        $this->attemptsLeft = $status['locked'] ? 0 : $status['attempts_left'];
     }
 
     /** Dipanggil hitung mundur saat kunci sementara habis. */

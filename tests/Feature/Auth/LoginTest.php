@@ -152,7 +152,8 @@ class LoginTest extends TestCase
         $c->set('email', 'admin@koperasi.test')->call('refreshLock')->assertNotSet('lock', null);
 
         $this->travel(Login::LOCK_SECONDS + 1)->seconds();
-        $c->call('lockExpired')->assertSet('lock', null)->assertSet('attemptsLeft', null)->assertDontSee('Terlalu banyak percobaan');
+        // Kunci sementara habis; hitungan tetap berjalan menuju tingkat 2 (2× ambang).
+        $c->call('lockExpired')->assertSet('lock', null)->assertSet('attemptsLeft', Login::MAX_ATTEMPTS)->assertDontSee('Terlalu banyak percobaan');
         $c->set('password', 'password')->call('login')->assertRedirect(route('kasir'));
     }
 
