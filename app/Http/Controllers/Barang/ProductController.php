@@ -15,6 +15,7 @@ use Illuminate\Http\Request;
  * - PUT  /barang/{product} → perbarui barang
  * - GET  /barang/{product} → detail: data barang, penjualan 30 hari, saran restok, 10 pergerakan stok terakhir
  * - GET  /barang/{product}/riwayat-stok?halaman= → pergerakan stok berhalaman (30 per halaman)
+ * - GET  /barang/riwayat-stok/data?barang=&jenis=&dari=&sampai=&halaman= → semua barang + ringkasan
  * Kategori dikirim sebagai nama (`category`). Perubahan stok tercatat di riwayat stok.
  */
 class ProductController extends Controller
@@ -41,6 +42,26 @@ class ProductController extends Controller
 
         return response()->json(['data' => collect($page->items())->map(fn ($m) => self::movement($m))->all(),
             'meta' => ['page' => $page->currentPage(), 'last_page' => $page->lastPage(), 'total' => $page->total()]]);
+    }
+
+    /** GET /barang/riwayat-stok/data?barang=&jenis=&dari=&sampai=&halaman= → semua barang, terbaru dulu, + ringkasan */
+    public function allMovements(Request $request, \App\Services\StockMovementQuery $movements): JsonResponse
+    {
+        $data = $request->validate([
+            'barang' => ['nullable', 'integer'],
+            'jenis' => ['nullable', \Illuminate\Validation\Rule::in(array_keys(\App\Models\StockMovement::TYPES))],
+            'dari' => ['nullable', 'date_format:Y-m-d'],
+            'sampai' => ['nullable', 'date_format:Y-m-d', 'after_or_equal:dari'],
+        ], ['sampai.after_or_equal' => 'Tanggal akhir tidak boleh sebelum tanggal awal.']);
+        [$from, $to] = \App\Services\TransactionHistory::range('semua', $data['dari'] ?? null, $data['sampai'] ?? null);
+        $f = ['product_id' => $data['barang'] ?? null, 'type' => $data['jenis'] ?? null, 'from' => $from, 'to' => $to];
+        $page = $movements->query($f)->with(['product:id,code,name,deleted_at', 'user:id,name'])->latestFirst()->paginate(50, ['*'], 'halaman');
+
+        return response()->json([
+            'data' => collect($page->items())->map(fn ($m) => \App\Services\StockMovementQuery::toArray($m))->all(),
+            'summary' => $movements->summary($f),
+            'meta' => ['page' => $page->currentPage(), 'last_page' => $page->lastPage(), 'total' => $page->total()],
+        ]);
     }
 
     private static function movement(\App\Models\StockMovement $m): array

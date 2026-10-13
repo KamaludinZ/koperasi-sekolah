@@ -79,15 +79,16 @@ class StockHistory extends Component
             ->orderBy('name')->limit(8)->get(['id', 'code', 'name'])->map(fn ($p) => ['id' => $p->id, 'code' => $p->code, 'name' => $p->name])->all();
     }
 
-    private function query()
+    private function filters(): array
     {
         [$start, $end] = TransactionHistory::range($this->preset);
 
-        return StockMovement::query()
-            ->when($this->productId, fn ($q) => $q->where('product_id', $this->productId))
-            ->when(array_key_exists($this->type, StockMovement::TYPES), fn ($q) => $q->where('type', $this->type))
-            ->when($start, fn ($q) => $q->where('created_at', '>=', $start))
-            ->when($end, fn ($q) => $q->where('created_at', '<=', $end));
+        return ['product_id' => $this->productId, 'type' => $this->type, 'from' => $start, 'to' => $end];
+    }
+
+    private function query()
+    {
+        return app(\App\Services\StockMovementQuery::class)->query($this->filters());
     }
 
     #[Computed]
@@ -100,14 +101,7 @@ class StockHistory extends Component
     #[Computed]
     public function summary(): array
     {
-        $rows = $this->query()->get(['type', 'quantity', 'stock_before', 'stock_after']);
-        $in = $out = 0;
-        foreach ($rows as $m) {
-            $d = $m->signed_quantity;
-            $d >= 0 ? $in += $d : $out += -$d;
-        }
-
-        return ['count' => $rows->count(), 'in' => $in, 'out' => $out];
+        return app(\App\Services\StockMovementQuery::class)->summary($this->filters());
     }
 
     public function render()

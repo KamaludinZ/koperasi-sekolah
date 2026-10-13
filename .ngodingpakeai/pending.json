@@ -1,6 +1,6 @@
 {
   "repo": "Koperasi Sekolah",
-  "generatedForCommit": "bf941c00bf90216482f845b6d86380d4d1a9d4e4",
+  "generatedForCommit": "497c926e494c59d4c9d1db3457c97597e84bf6af",
   "files": [
     {
       "path": ".claude/skills/ngodingpakeai/SKILL.md",
@@ -124,9 +124,9 @@
     },
     {
       "path": "app/Http/Controllers/Barang/ProductController.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 1227
+      "size": 3296
     },
     {
       "path": "app/Http/Controllers/Barang/ProductImportController.php",
@@ -874,7 +874,7 @@
     },
     {
       "path": "app/Models/Product.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 3270
     },
@@ -1240,7 +1240,7 @@
     },
     {
       "path": "app/Services/ReceiptPdfService.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 3760
     },
@@ -2818,9 +2818,9 @@
     },
     {
       "path": "routes/web.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 32175
+      "size": 32494
     },
     {
       "path": "tests/Concerns/MakesProductImports.php",
@@ -3118,9 +3118,9 @@
     },
     {
       "path": "tests/Feature/Barang/ProductEndpointTest.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 2144
+      "size": 3041
     },
     {
       "path": "tests/Feature/Barang/ProductFormTest.php",
@@ -3202,7 +3202,7 @@
     },
     {
       "path": "tests/Feature/Database/ProductRelationsTest.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 1374
     },
@@ -3448,7 +3448,7 @@
     },
     {
       "path": "tests/Feature/Kasir/ReceiptPdfTest.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 3115
     },

@@ -58,4 +58,14 @@ class StockHistoryPageTest extends TestCase
         Livewire::withQueryParams(['barang' => $this->pid('ATK002'), 'periode' => 'semua'])->test(StockHistory::class)
             ->assertSet('productId', $this->pid('ATK002'))->assertSee('Opname: rusak')->assertDontSee('Penerimaan PO-1');
     }
+
+    public function test_endpoint_lists_all_movements_with_filters(): void
+    {
+        $this->getJson(route('barang.riwayat-stok.data'))->assertOk()->assertJsonPath('meta.total', 3)->assertJsonPath('summary.in', 10)
+            ->assertJsonStructure(['data' => [['product_code', 'product_name', 'type', 'change', 'stock_before', 'stock_after', 'note', 'user']]]);
+        $this->getJson(route('barang.riwayat-stok.data', ['jenis' => 'keluar']))->assertJsonPath('meta.total', 1)->assertJsonPath('data.0.change', -3);
+        $this->getJson(route('barang.riwayat-stok.data', ['barang' => $this->pid('ATK002')]))->assertJsonPath('data.0.note', 'Opname: rusak');
+        $this->getJson(route('barang.riwayat-stok.data', ['dari' => now()->addDay()->toDateString()]))->assertJsonPath('meta.total', 0);
+        $this->getJson(route('barang.riwayat-stok.data', ['jenis' => 'aneh']))->assertStatus(422);
+    }
 }
