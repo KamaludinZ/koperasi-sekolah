@@ -17,6 +17,7 @@
 
         return '<span class="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-semibold '.$cls.'"><svg class="size-3.5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24" aria-hidden="true"><path d="'.$icon.'"/></svg>'.e($label).'</span>';
     };
+    $primary = 'inline-flex items-center gap-1.5 rounded-xl px-3.5 py-2 text-sm font-semibold bg-emerald-800 text-white hover:bg-emerald-900';
     $soon = 'inline-flex cursor-not-allowed items-center gap-1.5 rounded-xl border border-stone-200 bg-white px-3 py-2 text-sm font-medium text-stone-400';
 @endphp
 <div class="flex min-h-0 flex-1 flex-col overflow-y-auto">
@@ -56,7 +57,9 @@
             <section class="rounded-2xl border border-stone-200 bg-white px-5 py-8 text-center">
                 <p class="font-semibold">Belum ada shift dibuka</p>
                 <p class="mt-1 text-sm text-stone-500">Kas laci mulai tercatat setelah kasir membuka shift dengan modal awal.</p>
-                <div class="mt-4 flex justify-center"><span class="{{ $soon }}" title="Segera hadir">Buka shift · segera</span></div>
+                @if ($c['is_today'] && $this->canOperate)
+                    <div class="mt-4 flex justify-center"><button type="button" wire:click="openDialog('buka')" class="{{ $primary }}">Buka shift</button></div>
+                @endif
             </section>
         @else
             <section @class(['relative isolate overflow-hidden rounded-2xl p-5',
@@ -78,13 +81,13 @@
                             <p class="text-sm text-stone-600">Uang laci terhitung {{ $rp($s['counted']) }} dari seharusnya {{ $rp($s['expected']) }}.</p>
                         @endif
                     </div>
-                    @if ($c['is_today'])
+                    @if ($c['is_today'] && $this->canOperate)
                         <div class="flex flex-wrap gap-2">
                             @if ($open)
                                 <span class="{{ $soon }}" title="Segera hadir">Setor / tarik kas · segera</span>
-                                <span class="{{ $soon }}" title="Segera hadir">Tutup shift · segera</span>
+                                <button type="button" wire:click="openDialog('tutup')" class="inline-flex items-center gap-1.5 rounded-xl px-3.5 py-2 text-sm font-semibold bg-amber-400 text-emerald-950 hover:bg-amber-300">Tutup shift</button>
                             @else
-                                <span class="{{ $soon }}" title="Segera hadir">Buka shift · segera</span>
+                                <button type="button" wire:click="openDialog('buka')" class="{{ $primary }}">Buka shift baru</button>
                             @endif
                         </div>
                     @endif
@@ -233,4 +236,6 @@
             </div>
         </section>
     </div>
+
+    @include('livewire.kas.partials.shift-form')
 </div>

@@ -194,6 +194,59 @@ class MockData
      */
     public static function cashDay(string $date): array
     {
+        $date = \Illuminate\Support\Carbon::parse($date)->toDateString();
+        if ($stored = session("mock.cash.{$date}")) {
+            return $stored + ['summary' => self::cashSummary($stored['shifts'], $stored['sales'])];
+        }
+
+        return self::seedCashDay($date);
+    }
+
+    /**
+     * Buka shift tiruan hari ini (disimpan ke session). Penjualan shift baru mulai dari nol.
+     *
+     * @param  array{name: string, cashier: string, opening_cash: int}  $data
+     */
+    public static function openShift(array $data): array
+    {
+        $day = self::cashDay(today()->toDateString());
+        $shift = [
+            'id' => (collect($day['shifts'])->max('id') ?? 0) + 1, 'name' => $data['name'], 'cashier' => $data['cashier'], 'status' => 'open',
+            'opened_at' => now()->toDateTimeString(), 'closed_at' => null, 'opening_cash' => $data['opening_cash'], 'transactions' => 0,
+            'cash_sales' => 0, 'qris_sales' => 0, 'transfer_sales' => 0, 'cash_in' => 0, 'cash_out' => 0,
+            'expected' => $data['opening_cash'], 'counted' => null, 'difference' => null, 'note' => null,
+        ];
+        $day['shifts'][] = $shift;
+        self::storeCashDay($day);
+
+        return $shift;
+    }
+
+    /** Tutup shift tiruan hari ini dengan hitungan uang akhir; selisih = dihitung − seharusnya. */
+    public static function closeShift(int $id, int $counted, ?string $note): ?array
+    {
+        $day = self::cashDay(today()->toDateString());
+        foreach ($day['shifts'] as &$shift) {
+            if ($shift['id'] === $id && $shift['status'] === 'open') {
+                $shift = [...$shift, 'status' => 'closed', 'closed_at' => now()->toDateTimeString(), 'counted' => $counted,
+                    'difference' => $counted - $shift['expected'], 'note' => $note];
+                self::storeCashDay($day);
+
+                return $shift;
+            }
+        }
+
+        return null;
+    }
+
+    private static function storeCashDay(array $day): void
+    {
+        unset($day['summary']);
+        session(["mock.cash.{$day['date']}" => $day]);
+    }
+
+    private static function seedCashDay(string $date): array
+    {
         $day = \Illuminate\Support\Carbon::parse($date)->startOfDay();
         $isToday = $day->isToday();
         $empty = ['tunai' => 0, 'qris' => 0, 'transfer' => 0, 'count' => 0];

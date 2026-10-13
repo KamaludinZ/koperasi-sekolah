@@ -85,4 +85,72 @@ class IndexTest extends TestCase
         $this->get('/kas')->assertOk();
         $this->get('/kasir')->assertForbidden();
     }
+
+    public function test_close_running_shift_requires_note_when_cash_differs(): void
+    {
+        $this->loginAs('kasir');
+        $shift = collect(MockData::cashDay('2026-10-14')['shifts'])->firstWhere('status', 'open');
+
+        $c = Livewire::test(Index::class)
+            ->call('openDialog', 'tutup')->assertSet('dialog', 'tutup')
+            ->assertSee('Kas seharusnya')
+            ->call('closeShift')->assertHasErrors(['countedCash' => 'required'])
+            ->set('countedCash', $shift['expected'] - 2000)
+            ->call('closeShift')->assertHasErrors('closeNote')
+            ->set('closeNote', 'Salah kembalian')
+            ->call('closeShift')->assertHasNoErrors()
+            ->assertSet('dialog', null)
+            ->assertDispatched('toast', type: 'success');
+
+        $closed = collect(MockData::cashDay('2026-10-14')['shifts'])->firstWhere('id', $shift['id']);
+        $this->assertSame('closed', $closed['status']);
+        $this->assertSame(-2000, $closed['difference']);
+        $this->assertSame('Salah kembalian', $closed['note']);
+        $c->assertSee('Semua shift sudah ditutup')->assertSee('Buka shift baru');
+    }
+
+    public function test_exact_count_needs_no_note_then_open_new_shift(): void
+    {
+        $shift = collect(MockData::cashDay('2026-10-14')['shifts'])->firstWhere('status', 'open');
+
+        Livewire::test(Index::class)
+            ->call('openDialog', 'tutup')
+            ->set('countedCash', $shift['expected'])
+            ->call('closeShift')->assertHasNoErrors()
+            ->call('openDialog', 'buka')->assertSet('shiftName', 'Shift siang')
+            ->set('openingCash', '')->call('openShift')->assertHasErrors('openingCash')
+            ->set('shiftName', 'Shift sore')->set('openingCash', 150000)
+            ->call('openShift')->assertHasNoErrors()
+            ->assertSee('Shift sore')
+            ->assertSee('Shift sedang berjalan');
+
+        $new = collect(MockData::cashDay('2026-10-14')['shifts'])->last();
+        $this->assertSame(['Shift sore', 'open', 150000, 150000], [$new['name'], $new['status'], $new['opening_cash'], $new['expected']]);
+        $this->assertSame(auth()->user()->name, $new['cashier']);
+    }
+
+    public function test_cannot_open_second_shift_while_one_is_running(): void
+    {
+        Livewire::test(Index::class)
+            ->set('dialog', 'buka')->set('openingCash', 100000)
+            ->call('openShift')->assertHasErrors('shiftName');
+    }
+
+    public function test_pengurus_only_monitors(): void
+    {
+        $this->loginAs('pengurus');
+
+        Livewire::test(Index::class)
+            ->assertDontSee('Tutup shift')
+            ->call('openDialog', 'tutup')->assertSet('dialog', null)
+            ->call('closeShift')->assertForbidden();
+    }
+
+    public function test_past_days_have_no_shift_actions(): void
+    {
+        Livewire::test(Index::class)
+            ->set('date', '2026-10-13')
+            ->call('openDialog', 'buka')->assertSet('dialog', null)
+            ->assertDontSee('Buka shift baru');
+    }
 }
