@@ -50,4 +50,24 @@
             <span wire:loading wire:target="export">Menyiapkan…</span>
         </button>
     </form>
+    @if ($exports = $this->recentExports)
+        @php $pending = collect($exports)->whereIn('status', ['pending', 'processing'])->isNotEmpty(); @endphp
+        <div class="border-t border-stone-100 px-4 py-3" @if ($pending) wire:poll.4s="refreshExports" @endif aria-live="polite">
+            <p class="text-xs font-semibold text-stone-500">Unduhan terakhir</p>
+            <ul class="mt-1 divide-y divide-stone-100 text-sm">
+                @foreach ($exports as $e)
+                    <li wire:key="ex-{{ $e['id'] }}" class="flex flex-wrap items-center justify-between gap-2 py-1.5">
+                        <span class="text-stone-700">{{ strtoupper($e['format']) }} · {{ \Illuminate\Support\Carbon::parse($e['from'])->translatedFormat('d M') }} – {{ \Illuminate\Support\Carbon::parse($e['to'])->translatedFormat('d M Y') }}</span>
+                        @if ($e['status'] === 'done')
+                            <a href="{{ route('laporan.unduhan', $e['id']) }}" class="text-xs font-semibold text-emerald-800 hover:underline">Unduh {{ $e['file_name'] }}</a>
+                        @elseif ($e['status'] === 'failed')
+                            <span class="text-xs text-red-700">Gagal: {{ $e['error'] }}</span>
+                        @else
+                            <span class="text-xs text-amber-800">{{ \App\Models\ReportExport::STATUSES[$e['status']] }}…</span>
+                        @endif
+                    </li>
+                @endforeach
+            </ul>
+        </div>
+    @endif
 </section>

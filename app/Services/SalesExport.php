@@ -180,6 +180,40 @@ class SalesExport
             ->all();
     }
 
+    /**
+     * Isi berkas siap simpan (untuk antrean latar): CSV (BOM + `;`) atau PDF.
+     *
+     * @return array{content: string, name: string, mime: string, rows: int}
+     */
+    public function build(Carbon $start, Carbon $end, array $sections, string $format = 'csv'): array
+    {
+        $start = $start->copy()->startOfDay();
+        $end = $end->copy()->endOfDay();
+        $this->guard($start, $end, $sections, $format);
+        $name = 'rekap-penjualan-'.$start->format('Ymd').'-'.$end->format('Ymd').'.'.$format;
+
+        if ($format === 'pdf') {
+            return ['content' => $this->pdf($start, $end, $sections), 'name' => $name, 'mime' => 'application/pdf', 'rows' => 0];
+        }
+        $rows = $this->rows($start, $end, $sections);
+        $h = fopen('php://temp', 'w+');
+        fwrite($h, "\xEF\xBB\xBF");
+        foreach ($rows as $row) {
+            fputcsv($h, $row, ';');
+        }
+        rewind($h);
+        $content = stream_get_contents($h);
+        fclose($h);
+
+        return ['content' => $content, 'name' => $name, 'mime' => 'text/csv; charset=UTF-8', 'rows' => count($rows)];
+    }
+
+    /** Periksa rentang & batas PDF tanpa membuat berkas (dipakai sebelum mengirim ke antrean). */
+    public function validateRequest(Carbon $start, Carbon $end, array $sections, string $format): void
+    {
+        $this->guard($start->copy()->startOfDay(), $end->copy()->endOfDay(), $sections, $format);
+    }
+
     private function guard(Carbon $start, Carbon $end, array $sections, string $format): void
     {
         if ($start->diffInDays($end) > self::MAX_DAYS) {

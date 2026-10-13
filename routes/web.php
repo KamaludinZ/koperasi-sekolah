@@ -383,6 +383,12 @@ Route::middleware('menu:laporan')->group(function () {
     Route::get('/laporan/unduh', SalesExportController::class)
         ->middleware('throttle:20,1')
         ->name('laporan.export');
+    Route::get('/laporan/unduhan/{export}', function (\Illuminate\Http\Request $request, \App\Models\ReportExport $export) {
+        abort_unless($export->user_id === $request->user()->id && $export->type === 'penjualan', 404);
+        abort_unless($export->status === 'done' && $export->file_path && \Illuminate\Support\Facades\Storage::disk('local')->exists($export->file_path), 409, 'Berkas belum siap atau sudah dibersihkan.');
+
+        return \Illuminate\Support\Facades\Storage::disk('local')->download($export->file_path, $export->file_name);
+    })->whereNumber('export')->middleware('throttle:30,1')->name('laporan.unduhan');
 });
 
 Route::middleware(['menu:pengguna', 'peran:admin'])->group(function () {

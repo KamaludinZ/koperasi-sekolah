@@ -119,20 +119,39 @@ class Index extends Component
         ]);
 
         try {
-            return app(SalesExport::class)->download(
-                Carbon::parse($this->exportFrom),
-                Carbon::parse($this->exportTo),
-                array_values($this->exportSections),
-                $this->exportFormat,
-            );
+            // Dibuat di antrean latar; bila sudah selesai (antrean cepat/sinkron) langsung diunduh.
+            $export = app(\App\Services\ReportExportService::class)->requestSalesReport(
+                auth()->user(), Carbon::parse($this->exportFrom), Carbon::parse($this->exportTo), array_values($this->exportSections), $this->exportFormat,
+            )->fresh();
+            unset($this->recentExports);
+            if ($export->status === 'done' && \Illuminate\Support\Facades\Storage::disk('local')->exists($export->file_path)) {
+                return \Illuminate\Support\Facades\Storage::disk('local')->download($export->file_path, $export->file_name);
+            }
+            $this->dispatch('toast', type: 'success', message: 'Berkas sedang disiapkan di latar. Unduh dari daftar di bawah begitu siap.');
+
+            return null;
         } catch (ValidationException $e) {
-            $map = ['sampai' => 'exportTo', 'isi' => 'exportSections'];
+            $map = ['sampai' => 'exportTo', 'isi' => 'exportSections', 'dari' => 'exportFrom'];
             foreach ($e->errors() as $key => $messages) {
                 $this->addError($map[$key] ?? $key, $messages[0]);
             }
 
             return null;
         }
+    }
+
+    /** Ekspor rekap penjualan terbaru milik petugas ini (antrean latar). */
+    #[Computed]
+    public function recentExports(): array
+    {
+        return app(\App\Services\ReportExportService::class)->recent(auth()->user(), 'penjualan')
+            ->map(fn ($e) => ['id' => $e->id, 'status' => $e->status, 'format' => $e->format, 'from' => $e->params['from'], 'to' => $e->params['to'],
+                'file_name' => $e->file_name, 'error' => $e->error, 'created_at' => $e->created_at->toDateTimeString()])->all();
+    }
+
+    public function refreshExports(): void
+    {
+        unset($this->recentExports);
     }
 
     public function setPeriod(string $period): void

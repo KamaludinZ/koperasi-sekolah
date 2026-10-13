@@ -1,6 +1,6 @@
 {
   "repo": "Koperasi Sekolah",
-  "generatedForCommit": "8851fdaa0bd2ee51bb60b316e40c2fd85c6967a6",
+  "generatedForCommit": "61a2b467210f1dd5b85ffcfd380311ecbc32cc22",
   "files": [
     {
       "path": ".claude/skills/ngodingpakeai/SKILL.md",
@@ -340,9 +340,9 @@
     },
     {
       "path": "app/Jobs/ExportCashRecap.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 2178
+      "size": 2339
     },
     {
       "path": "app/Livewire/Akun/Password.php",
@@ -880,7 +880,7 @@
     },
     {
       "path": "app/Models/RestoreTest.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 1590
     },
@@ -1210,7 +1210,7 @@
     },
     {
       "path": "app/Services/RestoreTestService.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 6348
     },
@@ -1474,9 +1474,9 @@
     },
     {
       "path": "config/koperasi.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 1560
+      "size": 2141
     },
     {
       "path": "config/livewire.php",
@@ -1498,9 +1498,9 @@
     },
     {
       "path": "config/queue.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 4199
+      "size": 4393
     },
     {
       "path": "config/services.php",
@@ -1876,7 +1876,7 @@
     },
     {
       "path": "database/migrations/2026_10_14_000002_create_restore_tests_table.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 1751
     },
@@ -2734,9 +2734,9 @@
     },
     {
       "path": "routes/console.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 4324
+      "size": 4590
     },
     {
       "path": "routes/web.php",
@@ -3693,6 +3693,12 @@
       "size": 1908
     },
     {
+      "path": "tests/Feature/Sistem/QueueConfigTest.php",
+      "reason": "new",
+      "language": "php",
+      "size": 1534
+    },
+    {
       "path": "tests/Feature/Sistem/QueuePageTest.php",
       "reason": "needs_summary",
       "language": "php",
@@ -3706,7 +3712,7 @@
     },
     {
       "path": "tests/Feature/Sistem/RestoreTestServiceTest.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 2942
     },
