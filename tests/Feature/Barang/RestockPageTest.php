@@ -50,4 +50,14 @@ class RestockPageTest extends TestCase
         $this->assertGreaterThan(0, $c->instance()->totals['cost']);
         $c->call('setHorizon', 99)->assertSet('horizon', 14);
     }
+
+    public function test_endpoints_restock_and_min_stock(): void
+    {
+        $this->getJson(route('barang.saran-restok.data', ['untuk' => 7]))->assertOk()
+            ->assertJsonPath('window_days', 30)->assertJsonPath('totals.urgent', 2)
+            ->assertJsonPath('data.0.code', 'ATK001')->assertJsonPath('data.0.suggested', 2 * 7 + 5 - 10);
+        $this->getJson(route('barang.saran-restok.data', ['untuk' => 9]))->assertStatus(422);
+        $this->assertGreaterThan(2, count($this->getJson(route('barang.saran-restok.data', ['semua' => 1]))->json('data')));
+        $this->getJson(route('barang.min-stock'))->assertOk();
+    }
 }

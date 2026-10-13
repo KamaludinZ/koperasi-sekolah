@@ -16,6 +16,7 @@ use Illuminate\Http\Request;
  * - GET  /barang/{product} → detail: data barang, penjualan 30 hari, saran restok, 10 pergerakan stok terakhir
  * - GET  /barang/{product}/riwayat-stok?halaman= → pergerakan stok berhalaman (30 per halaman)
  * - GET  /barang/riwayat-stok/data?barang=&jenis=&dari=&sampai=&halaman= → semua barang + ringkasan
+ * - GET  /barang/saran-restok/data?untuk=14&semua=0 → saran restok (batas minimum: /barang/batas-minimum)
  * Kategori dikirim sebagai nama (`category`). Perubahan stok tercatat di riwayat stok.
  */
 class ProductController extends Controller
@@ -42,6 +43,23 @@ class ProductController extends Controller
 
         return response()->json(['data' => collect($page->items())->map(fn ($m) => self::movement($m))->all(),
             'meta' => ['page' => $page->currentPage(), 'last_page' => $page->lastPage(), 'total' => $page->total()]]);
+    }
+
+    /** GET /barang/saran-restok/data?untuk=7|14|30&semua=0|1 → saran pesan berbasis penjualan 30 hari + total */
+    public function restock(Request $request, \App\Services\RestockAdvisor $advisor): JsonResponse
+    {
+        $data = $request->validate([
+            'untuk' => ['nullable', \Illuminate\Validation\Rule::in(array_keys(\App\Services\RestockAdvisor::HORIZONS))],
+            'semua' => ['nullable', 'boolean'],
+        ]);
+        $rows = $advisor->suggestions((int) ($data['untuk'] ?? 14), (bool) ($data['semua'] ?? false));
+
+        return response()->json(['data' => $rows, 'totals' => [
+            'out' => collect($rows)->where('level', 'habis')->count(),
+            'urgent' => collect($rows)->where('level', 'segera')->count(),
+            'units' => (int) collect($rows)->sum('suggested'),
+            'cost' => (int) collect($rows)->sum(fn ($r) => $r['suggested'] * $r['cost']),
+        ], 'window_days' => \App\Services\RestockAdvisor::WINDOW_DAYS]);
     }
 
     /** GET /barang/riwayat-stok/data?barang=&jenis=&dari=&sampai=&halaman= → semua barang, terbaru dulu, + ringkasan */
