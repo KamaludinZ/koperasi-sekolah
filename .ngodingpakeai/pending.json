@@ -1,6 +1,6 @@
 {
   "repo": "Koperasi Sekolah",
-  "generatedForCommit": "4ca5873ca7938c71c83793d96d47d972f587ee3b",
+  "generatedForCommit": "d4a2a46e113e1c27bcf79ecc0983e065bdb8e3b0",
   "files": [
     {
       "path": ".claude/skills/ngodingpakeai/SKILL.md",
@@ -225,6 +225,12 @@
       "size": 2632
     },
     {
+      "path": "app/Http/Controllers/Pengguna/LockoutController.php",
+      "reason": "new",
+      "language": "php",
+      "size": 1786
+    },
+    {
       "path": "app/Http/Controllers/Pengguna/UserController.php",
       "reason": "needs_summary",
       "language": "php",
@@ -316,7 +322,7 @@
     },
     {
       "path": "app/Livewire/Auth/Login.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 3475
     },
@@ -460,9 +466,9 @@
     },
     {
       "path": "app/Livewire/Pengguna/Locked.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 3285
+      "size": 3153
     },
     {
       "path": "app/Livewire/Promo/Index.php",
@@ -532,7 +538,7 @@
     },
     {
       "path": "app/Models/LoginLockout.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 1789
     },
@@ -676,7 +682,7 @@
     },
     {
       "path": "app/Services/AuthService.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 4351
     },
@@ -718,9 +724,9 @@
     },
     {
       "path": "app/Services/LoginLockoutService.php",
-      "reason": "new",
+      "reason": "changed",
       "language": "php",
-      "size": 6018
+      "size": 7328
     },
     {
       "path": "app/Services/LogoService.php",
@@ -898,9 +904,9 @@
     },
     {
       "path": "app/Support/MockData.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 18317
+      "size": 15359
     },
     {
       "path": "app/Support/OpeningHours.php",
@@ -1264,7 +1270,7 @@
     },
     {
       "path": "database/migrations/2026_10_13_000013_create_login_lockouts_table.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 1685
     },
@@ -1816,9 +1822,9 @@
     },
     {
       "path": "resources/views/livewire/pengguna/locked.blade.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 10419
+      "size": 10303
     },
     {
       "path": "resources/views/livewire/pengguna/partials/user-form.blade.php",
@@ -1870,9 +1876,9 @@
     },
     {
       "path": "routes/web.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 16084
+      "size": 16437
     },
     {
       "path": "tests/Feature/Anggota/IndexTest.php",
@@ -1984,13 +1990,13 @@
     },
     {
       "path": "tests/Feature/Auth/LoginLockoutTest.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 5034
     },
     {
       "path": "tests/Feature/Auth/LoginTest.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 6608
     },
@@ -2458,9 +2464,9 @@
     },
     {
       "path": "tests/Feature/Pengguna/LockedPageTest.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 3209
+      "size": 5738
     },
     {
       "path": "tests/Feature/Promo/IndexTest.php",

@@ -3,6 +3,7 @@
 namespace App\Http\Middleware;
 
 use App\Services\AuditLog;
+use App\Support\SessionPolicy;
 use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -11,7 +12,8 @@ use Symfony\Component\HttpFoundation\Response;
 /**
  * Jaga sesi petugas yang sedang masuk:
  * - akun dinonaktifkan / tanpa peran → langsung dikeluarkan;
- * - tidak ada aktivitas melebihi `koperasi.idle_minutes` → sesi diakhiri.
+ * - tidak ada aktivitas melebihi batas menganggur (SessionPolicy::idleMinutes) → sesi diakhiri.
+ *   Polling latar (wire:poll) tidak dihitung sebagai aktivitas.
  * Keduanya dicatat di audit dan diarahkan ke /masuk dengan pesan (JSON: 401).
  */
 class EnsureActiveSession
@@ -28,7 +30,7 @@ class EnsureActiveSession
         if (! $user->is_active || ! $user->role) {
             $reason = 'Akun Anda dinonaktifkan oleh admin.';
             AuditLog::record('auth.forced_logout', 'auth', "{$user->name} dikeluarkan karena akun dinonaktifkan");
-        } elseif (($idle = (int) config('koperasi.idle_minutes')) > 0
+        } elseif (($idle = SessionPolicy::idleMinutes()) > 0
             && ($last = $request->session()->get('last_activity_at'))
             && now()->timestamp - $last > $idle * 60) {
             $reason = "Sesi berakhir karena tidak ada aktivitas selama {$idle} menit. Silakan masuk lagi.";
@@ -47,7 +49,9 @@ class EnsureActiveSession
             return redirect()->guest(route('login'))->with('status', $reason);
         }
 
-        $request->session()->put('last_activity_at', now()->timestamp);
+        if (! SessionPolicy::isPassive($request) || ! $request->session()->has('last_activity_at')) {
+            $request->session()->put('last_activity_at', now()->timestamp);
+        }
 
         return $next($request);
     }

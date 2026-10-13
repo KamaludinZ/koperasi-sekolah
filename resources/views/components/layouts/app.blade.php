@@ -106,6 +106,9 @@
     </div>
 </div>
 <x-toasts />
+@auth
+    <x-idle-warning :minutes="\App\Support\SessionPolicy::idleMinutes()" />
+@endauth
 @livewireScripts
 </body>
 </html>

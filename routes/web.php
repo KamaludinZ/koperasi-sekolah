@@ -88,6 +88,8 @@ Route::middleware('auth')->group(function () {
     Route::post('/akun/sesi/keluarkan-lain', [SessionController::class, 'destroyOthers'])
         ->middleware('throttle:10,1')
         ->name('akun.sessions.others');
+    // Penanda petugas masih di depan layar (gerak/ketik tanpa permintaan lain); EnsureActiveSession mencatat aktivitasnya.
+    Route::post('/akun/sesi/aktif', fn () => response()->noContent())->middleware('throttle:60,1')->name('akun.sessions.ping');
 });
 
 Route::middleware('menu:kasir')->group(function () {

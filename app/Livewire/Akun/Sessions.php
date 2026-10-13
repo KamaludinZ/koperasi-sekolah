@@ -57,6 +57,6 @@ class Sessions extends Component
 
     public function render()
     {
-        return view('livewire.akun.sessions', ['idle' => (int) config('koperasi.idle_minutes')]);
+        return view('livewire.akun.sessions', ['idle' => \App\Support\SessionPolicy::idleMinutes()]);
     }
 }
