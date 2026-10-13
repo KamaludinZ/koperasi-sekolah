@@ -161,6 +161,7 @@ Route::middleware('menu:promo')->group(function () {
 
 Route::middleware('menu:pengadaan')->group(function () {
     Route::get('/pengadaan', Pengadaan\Index::class)->name('pengadaan');
+    Route::get('/pengadaan/supplier', Pengadaan\Suppliers::class)->name('pengadaan.supplier');
 });
 
 Route::middleware('menu:barang')->group(function () {
