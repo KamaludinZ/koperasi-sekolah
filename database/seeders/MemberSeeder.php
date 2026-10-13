@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use App\Models\Member;
+use App\Services\AuditLog;
 use App\Support\MockData;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
@@ -14,7 +15,13 @@ use Illuminate\Support\Facades\DB;
  */
 class MemberSeeder extends Seeder
 {
+    /** Data contoh dibuat tanpa jejak audit perubahan data master. */
     public function run(): void
+    {
+        AuditLog::quietly(fn () => $this->seedRows());
+    }
+
+    private function seedRows(): void
     {
         if (Member::exists()) {
             return;

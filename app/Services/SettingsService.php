@@ -154,7 +154,11 @@ class SettingsService
 
                 AuditLog::record('setting.updated', 'pengaturan',
                     self::SECTION_LABELS[$section].' diubah: '.implode(', ', array_keys($changed)),
-                    null, ['section' => $section, 'changes' => $changes], null, $this->actor($by));
+                    self::subject($section), ['section' => $section, 'changes' => $changes], null, $this->actor($by),
+                    action: 'diubah',
+                    old: collect($changes)->mapWithKeys(fn ($c, $k) => ["{$section}.{$k}" => $c['from']])->all(),
+                    new: collect($changes)->mapWithKeys(fn ($c, $k) => ["{$section}.{$k}" => $c['to']])->all(),
+                    reason: AuditLog::reason());
             });
             $this->flush();
         }
@@ -282,6 +286,12 @@ class SettingsService
     }
 
     /** Kembalikan satu bagian ke nilai bawaan (hapus baris yang tersimpan). */
+    /** Subjek audit satu bagian pengaturan (id = urutan bagian, stabil untuk riwayat objek). */
+    private static function subject(string $section): array
+    {
+        return ['type' => 'setting', 'id' => array_search($section, self::SECTIONS, true) + 1, 'label' => self::SECTION_LABELS[$section]];
+    }
+
     public function reset(string $section, ?User $by = null): array
     {
         abort_unless(in_array($section, self::SECTIONS, true), 404);
@@ -289,10 +299,17 @@ class SettingsService
         $deleted = Setting::where('group', $section)->pluck('key');
         if ($deleted->isNotEmpty()) {
             $logo = $section === 'profile' ? $this->section('profile')['logo'] : null;
+            $before = $this->section($section);
+            $reverted = collect(self::DEFAULTS[$section])
+                ->filter(fn ($v, $k) => ($before[$k] ?? null) !== $v && ! in_array($k, self::AUDIT_SKIP_VALUE, true));
             Setting::whereIn('key', $deleted)->delete();
             $deleted->each(fn ($k) => Cache::forget("setting:{$k}"));
             AuditLog::record('setting.reset', 'pengaturan', self::SECTION_LABELS[$section].' dikembalikan ke bawaan',
-                null, ['section' => $section], null, $this->actor($by));
+                self::subject($section), ['section' => $section], null, $this->actor($by),
+                action: 'diubah',
+                old: $reverted->mapWithKeys(fn ($v, $k) => ["{$section}.{$k}" => $before[$k] ?? null])->all() ?: null,
+                new: $reverted->mapWithKeys(fn ($v, $k) => ["{$section}.{$k}" => $v])->all() ?: null,
+                reason: AuditLog::reason());
             $this->flush();
             if ($logo && preg_match('/^'.LogoService::FILE_PATTERN.'$/', $logo)) {
                 Storage::disk(LogoService::DISK)->delete(LogoService::path($logo));

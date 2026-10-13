@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use App\Models\Category;
 use App\Models\Product;
+use App\Services\AuditLog;
 use App\Services\NotificationService;
 use App\Support\MockData;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
@@ -15,7 +16,13 @@ class ProductSeeder extends Seeder
     // Data contoh adalah kondisi awal, bukan mutasi stok — jangan catat riwayat.
     use WithoutModelEvents;
 
+    /** Data contoh dibuat tanpa jejak audit perubahan data master. */
     public function run(): void
+    {
+        AuditLog::quietly(fn () => $this->seedRows());
+    }
+
+    private function seedRows(): void
     {
         $categories = collect(MockData::categories())
             ->mapWithKeys(fn ($name) => [$name => Category::firstOrCreate(['name' => $name])->id]);

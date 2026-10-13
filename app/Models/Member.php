@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\Auditable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -13,7 +14,14 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  */
 class Member extends Model
 {
+    use Auditable;
     use HasFactory;
+
+    /** Audit data master; saldo dicatat lewat mutasi tabungan. */
+    public const AUDIT = [
+        'type' => 'member', 'category' => 'anggota', 'noun' => 'anggota',
+        'fields' => ['member_code', 'name', 'type', 'class', 'phone', 'is_active'],
+    ];
 
     public const TYPES = ['siswa' => 'Siswa', 'guru' => 'Guru'];
 
@@ -73,6 +81,16 @@ class Member extends Model
     }
 
     /** Label tampilan, mis. "Andi Pratama (7A)" atau "Pak Budi (Guru)". */
+    public function auditLabel(): string
+    {
+        return "{$this->member_code} · {$this->name}";
+    }
+
+    public function auditTitle(): string
+    {
+        return "{$this->display_name} ({$this->member_code})";
+    }
+
     public function getDisplayNameAttribute(): string
     {
         return $this->name.' ('.($this->type === 'guru' ? 'Guru' : $this->class).')';

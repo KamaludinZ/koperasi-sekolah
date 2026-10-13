@@ -9,7 +9,7 @@ use Illuminate\Validation\Rule;
 
 /**
  * Tambah & ubah barang. Perubahan stok selalu lewat StockService
- * sehingga tercatat di riwayat stok.
+ * sehingga tercatat di riwayat stok; perubahan data barang dicatat MasterDataObserver.
  */
 class ProductService
 {
@@ -64,11 +64,7 @@ class ProductService
                 $this->stock->increase($product, (int) $data['stock'], 'Stok awal', $userId);
             }
 
-            $product->refresh()->load('category');
-            AuditLog::record('product.created', 'barang', "Barang baru {$product->name} ({$product->code}), stok awal {$product->stock} {$product->unit}",
-                self::subject($product), ['price' => (int) $product->price, 'cost_price' => (int) $product->cost_price, 'stock' => $product->stock, 'category' => $product->category?->name]);
-
-            return $product;
+            return $product->refresh()->load('category');
         });
     }
 
@@ -76,20 +72,13 @@ class ProductService
     public function update(Product $product, array $data, ?int $userId = null): Product
     {
         return DB::transaction(function () use ($product, $data, $userId) {
-            $fields = ['code', 'name', 'category_id', 'price', 'cost_price', 'min_stock', 'unit', 'is_active'];
-            $before = $product->only($fields);
-            $product->update($this->attributes($data));
-            $changes = AuditLog::diff($before, $product->only($fields), $fields);
+            $product->update($this->attributes($data)); // dicatat MasterDataObserver
 
             $movement = array_key_exists('stock', $data)
                 ? $this->stock->adjustTo($product, (int) $data['stock'], 'Diubah lewat form barang', $userId)
                 : null;
 
             $product->refresh()->load('category');
-            if ($changes) {
-                AuditLog::record('product.updated', 'barang', "Data barang {$product->name} diubah: ".implode(', ', array_keys($changes)),
-                    self::subject($product), ['changes' => $changes]);
-            }
             if ($movement) {
                 AuditLog::record('stock.adjusted', 'stok',
                     "Stok {$product->name} disesuaikan {$movement->stock_before} → {$movement->stock_after} {$product->unit}",

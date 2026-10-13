@@ -14,9 +14,63 @@ use Illuminate\Support\Str;
  */
 class AuditLog
 {
+    private static ?string $reason = null;
+
+    private static int $quiet = 0;
+
+    /**
+     * Jalankan $callback dengan alasan perubahan yang ikut tercatat pada audit data master.
+     *
+     * @template T
+     *
+     * @param  callable(): T  $callback
+     * @return T
+     */
+    public static function withReason(?string $reason, callable $callback): mixed
+    {
+        $previous = self::$reason;
+        self::$reason = filled($reason) ? Str::limit(trim($reason), 200, '') : null;
+        try {
+            return $callback();
+        } finally {
+            self::$reason = $previous;
+        }
+    }
+
+    public static function reason(): ?string
+    {
+        return self::$reason;
+    }
+
+    /**
+     * Jalankan $callback tanpa mencatat audit data master (mis. seeder data contoh).
+     *
+     * @template T
+     *
+     * @param  callable(): T  $callback
+     * @return T
+     */
+    public static function quietly(callable $callback): mixed
+    {
+        self::$quiet++;
+        try {
+            return $callback();
+        } finally {
+            self::$quiet--;
+        }
+    }
+
+    public static function isQuiet(): bool
+    {
+        return self::$quiet > 0;
+    }
+
     /**
      * @param  array{type?: string, id?: int|null, label?: string|null}|null  $subject
      * @param  array{id?: int|null, name?: string|null, role?: string|null}|null  $actor  timpa pelaku (mis. percobaan login)
+     * @param  ?string  $action  aksi data master: dibuat/diubah/dihapus/dipulihkan
+     * @param  ?array<string, mixed>  $old  nilai sebelum per kolom
+     * @param  ?array<string, mixed>  $new  nilai sesudah per kolom
      */
     public static function record(
         string $event,
@@ -26,6 +80,10 @@ class AuditLog
         array $properties = [],
         ?int $amount = null,
         ?array $actor = null,
+        ?string $action = null,
+        ?array $old = null,
+        ?array $new = null,
+        ?string $reason = null,
     ): ?ActivityLog {
         try {
             $user = $actor ?? (app()->runningInConsole() && ! app()->runningUnitTests() ? null : Petugas::current());
@@ -45,6 +103,10 @@ class AuditLog
                 'properties' => $properties ?: null,
                 'ip_address' => $request?->ip(),
                 'user_agent' => $request ? Str::limit((string) $request->userAgent(), 250, '') : null,
+                'action' => $action,
+                'old_values' => $old,
+                'new_values' => $new,
+                'reason' => $reason !== null ? Str::limit($reason, 200, '') : null,
             ]);
         } catch (\Throwable $e) {
             report($e);
