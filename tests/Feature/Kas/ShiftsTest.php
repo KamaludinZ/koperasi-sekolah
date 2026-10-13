@@ -26,7 +26,7 @@ class ShiftsTest extends TestCase
 
     public function test_page_lists_shifts_of_last_seven_days(): void
     {
-        $this->get('/kas/shift')->assertOk()->assertSeeText('Riwayat & Selisih Shift')->assertSee('Selisih per petugas');
+        $this->get('/kas/shift')->assertOk()->assertSee('Riwayat & Selisih Shift', false)->assertSee('Selisih per petugas');
 
         $c = Livewire::test(Shifts::class);
         $all = $c->get('all');
