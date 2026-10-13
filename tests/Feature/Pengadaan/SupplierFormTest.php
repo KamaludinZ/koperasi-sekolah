@@ -3,8 +3,10 @@
 namespace Tests\Feature\Pengadaan;
 
 use App\Livewire\Pengadaan\SupplierForm;
-use App\Support\MockData;
+use App\Models\ActivityLog;
+use App\Models\Supplier;
 use Database\Seeders\ProductSeeder;
+use Database\Seeders\SupplierSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
 use Tests\TestCase;
@@ -16,15 +18,15 @@ class SupplierFormTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->seed(ProductSeeder::class);
+        $this->seed([ProductSeeder::class, SupplierSeeder::class]);
     }
 
     public function test_pages_and_links(): void
     {
+        $id = Supplier::where('name', 'UD Berkah Pangan')->value('id');
         $this->get('/pengadaan/supplier/baru')->assertOk()->assertSee('Supplier baru')->assertSee('Alat Tulis');
-        $this->get('/pengadaan/supplier/2/ubah')->assertOk()->assertSee('Ubah supplier');
-        $this->get('/pengadaan/supplier/99/ubah')->assertNotFound();
-        $this->get('/pengadaan/supplier')->assertSee(route('pengadaan.supplier.buat'));
+        $this->get("/pengadaan/supplier/{$id}/ubah")->assertOk()->assertSee('Ubah supplier');
+        $this->get('/pengadaan/supplier/999/ubah')->assertNotFound();
         $this->loginAs('kasir@koperasi.test');
         $this->get('/pengadaan/supplier/baru')->assertForbidden();
     }
@@ -38,19 +40,23 @@ class SupplierFormTest extends TestCase
             ->set('customDays', 21)->set('categories', ['Alat Tulis', 'Seragam'])->call('save')
             ->assertHasNoErrors()->assertRedirect(route('pengadaan.supplier'));
 
-        $s = collect(MockData::suppliers())->firstWhere('name', 'Toko Buku Cahaya');
-        $this->assertSame([21, ['Alat Tulis', 'Seragam'], true, 0], [$s['terms_days'], $s['categories'], $s['is_active'], $s['purchases_90d']]);
+        $s = Supplier::with('categories')->where('name', 'Toko Buku Cahaya')->firstOrFail();
+        $this->assertSame([21, ['Alat Tulis', 'Seragam'], true], [$s->terms_days, $s->categories->pluck('name')->all(), $s->is_active]);
         $this->assertSame('Supplier Toko Buku Cahaya ditambahkan.', session('toast')['message']);
+        $this->assertTrue(ActivityLog::where('event', 'supplier.created')->exists());
     }
 
-    public function test_edit_keeps_history_fields(): void
+    public function test_edit_updates_and_audits(): void
     {
-        $c = Livewire::test(SupplierForm::class, ['supplier' => 1])
+        $sinar = Supplier::where('name', 'CV Sinar Ilmu')->first();
+        $c = Livewire::test(SupplierForm::class, ['supplier' => $sinar->id])
             ->assertSet('name', 'CV Sinar Ilmu')->assertSet('termsChoice', '30')->assertSet('categories', ['Alat Tulis']);
-        $c->set('termsChoice', '14')->set('is_active', false)->call('save')->assertHasNoErrors();
+        $c->set('termsChoice', '14')->set('is_active', false)->set('categories', ['Alat Tulis', 'Seragam'])->call('save')->assertHasNoErrors();
 
-        $s = collect(MockData::suppliers())->firstWhere('id', 1);
-        $this->assertSame([14, false, 860_000], [$s['terms_days'], $s['is_active'], $s['open_payable']]);
-        Livewire::test(SupplierForm::class, ['supplier' => 1])->set('name', 'CV Sinar Ilmu')->call('save')->assertHasNoErrors();
+        $sinar->refresh();
+        $this->assertSame([14, false], [$sinar->terms_days, $sinar->is_active]);
+        $logs = ActivityLog::where('event', 'supplier.updated')->orderBy('id')->get();
+        $this->assertSame(['terms_days' => 30, 'is_active' => true], $logs[0]->old_values);
+        $this->assertSame(['kategori' => 'Alat Tulis, Seragam'], $logs[1]->new_values);
     }
 }

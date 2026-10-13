@@ -13,7 +13,6 @@
                 <p class="text-xs text-stone-500">Pemasok barang koperasi, kontak, dan syarat pembayarannya.</p>
             </div>
             <div class="flex items-center gap-2">
-                <span class="rounded-full bg-amber-100 px-3 py-1 text-xs font-medium text-amber-900">Data contoh</span>
                 @if ($url = Index::link('pengadaan.supplier.buat'))
                     <a href="{{ $url }}" wire:navigate class="rounded-xl bg-emerald-700 px-4 py-2.5 text-sm font-semibold text-white hover:bg-emerald-800">Tambah supplier</a>
                 @else
@@ -171,6 +170,23 @@
                             <p class="text-xs text-stone-500">Belum ada pesanan.</p>
                         @endforelse
                     </section>
+
+                    @can('kelola-pengadaan')
+                        <section class="rounded-lg border border-red-200 p-3">
+                            @if ($confirmingDelete)
+                                <label class="block text-xs"><span class="font-medium text-stone-700">Alasan menghapus (opsional)</span>
+                                    <input type="text" wire:model="deleteReason" maxlength="200" class="mt-1 w-full rounded-lg border border-stone-300 px-2.5 py-1.5 text-sm"></label>
+                                @error('deleteReason') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
+                                <div class="mt-2 flex justify-end gap-2">
+                                    <button type="button" wire:click="$set('confirmingDelete', false)" class="rounded-lg px-3 py-1.5 text-xs font-medium text-stone-600 hover:bg-stone-100">Batal</button>
+                                    <button type="button" wire:click="delete" class="rounded-lg bg-red-700 px-3 py-1.5 text-xs font-semibold text-white hover:bg-red-800">Hapus supplier</button>
+                                </div>
+                            @else
+                                <button type="button" wire:click="$set('confirmingDelete', true)" class="text-xs font-semibold text-red-700 hover:underline">Hapus supplier…</button>
+                                <p class="text-xs text-stone-500">Supplier yang masih punya pesanan berjalan atau hutang tidak bisa dihapus; nonaktifkan saja.</p>
+                            @endif
+                        </section>
+                    @endcan
                 </div>
             </div>
         </div>

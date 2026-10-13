@@ -1,6 +1,6 @@
 {
   "repo": "Koperasi Sekolah",
-  "generatedForCommit": "9fae38cdb717a0144733c7e7cb04d367284a445e",
+  "generatedForCommit": "eed30ea8fdf1e7dc74512c0b27f3758f978f0f0a",
   "files": [
     {
       "path": ".claude/skills/ngodingpakeai/SKILL.md",
@@ -640,13 +640,13 @@
     },
     {
       "path": "app/Models/GoodsReceipt.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 1530
     },
     {
       "path": "app/Models/GoodsReceiptItem.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 1013
     },
@@ -700,7 +700,7 @@
     },
     {
       "path": "app/Models/PurchaseOrder.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 2792
     },
@@ -745,6 +745,18 @@
       "reason": "needs_summary",
       "language": "php",
       "size": 1808
+    },
+    {
+      "path": "app/Models/SupplierBill.php",
+      "reason": "new",
+      "language": "php",
+      "size": 2158
+    },
+    {
+      "path": "app/Models/SupplierPayment.php",
+      "reason": "new",
+      "language": "php",
+      "size": 755
     },
     {
       "path": "app/Models/Transaction.php",
@@ -1522,9 +1534,15 @@
     },
     {
       "path": "database/migrations/2026_10_13_000021_create_goods_receipts_tables.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 2608
+    },
+    {
+      "path": "database/migrations/2026_10_13_000022_create_supplier_bills_tables.php",
+      "reason": "new",
+      "language": "php",
+      "size": 2693
     },
     {
       "path": "database/seeders/ActivityLogSeeder.php",
@@ -1572,7 +1590,7 @@
       "path": "database/seeders/PurchaseOrderSeeder.php",
       "reason": "changed",
       "language": "php",
-      "size": 3836
+      "size": 5080
     },
     {
       "path": "database/seeders/SupplierSeeder.php",
@@ -2584,7 +2602,7 @@
     },
     {
       "path": "tests/Feature/Database/PurchaseOrderSchemaTest.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 3632
     },
@@ -2617,6 +2635,12 @@
       "reason": "needs_summary",
       "language": "php",
       "size": 2820
+    },
+    {
+      "path": "tests/Feature/Database/SupplierBillSchemaTest.php",
+      "reason": "new",
+      "language": "php",
+      "size": 3328
     },
     {
       "path": "tests/Feature/Database/SupplierSchemaTest.php",

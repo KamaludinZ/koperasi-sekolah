@@ -4,7 +4,8 @@ namespace App\Livewire\Pengadaan;
 
 use App\Livewire\Concerns\NotifiesSave;
 use App\Models\Category;
-use App\Support\MockData;
+use App\Models\Supplier;
+use App\Services\SupplierService;
 use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
@@ -14,7 +15,7 @@ use Livewire\Component;
 /**
  * Pengadaan → Supplier → Tambah/Ubah (Admin & Pengurus): nama (unik), kontak, telepon, alamat,
  * syarat pembayaran (tunai atau tempo N hari), kategori barang yang dipasok (dari kategori yang
- * ada), catatan, dan status aktif. Tahap ini disimpan lewat MockData::saveSupplier() (session).
+ * ada), catatan, dan status aktif. Disimpan lewat SupplierService (tercatat di audit).
  */
 #[Layout('components.layouts.app')]
 #[Title('Supplier')]
@@ -50,10 +51,11 @@ class SupplierForm extends Component
         if ($supplier === null) {
             return;
         }
-        $s = collect(MockData::suppliers())->firstWhere('id', $supplier);
-        abort_unless($s, 404);
+        $model = Supplier::with('categories')->findOrFail($supplier);
+        $s = SupplierService::toArray($model);
         $this->supplierId = $supplier;
-        $this->fill(collect($s)->only(['name', 'contact', 'phone', 'address', 'categories', 'is_active'])->all());
+        $this->fill(['name' => $s['name'], 'contact' => (string) $s['contact'], 'phone' => $s['phone'], 'address' => (string) $s['address'],
+            'categories' => $s['categories'], 'is_active' => $s['is_active']]);
         $this->note = (string) $s['note'];
         $preset = array_key_exists($s['terms_days'], self::TERMS);
         $this->termsChoice = $preset ? (string) $s['terms_days'] : 'lain';
@@ -70,7 +72,8 @@ class SupplierForm extends Component
     {
         return [
             'name' => ['required', 'string', 'min:3', 'max:100', function ($a, $v, $fail) {
-                $taken = collect(MockData::suppliers())->first(fn ($s) => $s['id'] !== $this->supplierId && mb_strtolower($s['name']) === mb_strtolower(trim($v)));
+                $taken = Supplier::query()->whereRaw('LOWER(name) = ?', [mb_strtolower(trim($v))])
+                    ->when($this->supplierId, fn ($q) => $q->whereKeyNot($this->supplierId))->exists();
                 if ($taken) {
                     $fail('Nama supplier sudah terdaftar.');
                 }
@@ -114,8 +117,7 @@ class SupplierForm extends Component
             throw $e;
         }
 
-        $saved = MockData::saveSupplier([
-            'id' => $this->supplierId,
+        $data = [
             'name' => $this->name,
             'contact' => trim($this->contact) ?: null,
             'phone' => trim($this->phone),
@@ -124,8 +126,10 @@ class SupplierForm extends Component
             'categories' => array_values(array_intersect($this->categoryOptions, $this->categories)),
             'note' => trim($this->note) ?: null,
             'is_active' => $this->is_active,
-        ]);
-        session()->flash('toast', ['type' => 'success', 'message' => $this->supplierId ? "Supplier {$saved['name']} diperbarui." : "Supplier {$saved['name']} ditambahkan."]);
+        ];
+        $service = app(SupplierService::class);
+        $saved = $this->supplierId ? $service->update(Supplier::findOrFail($this->supplierId), $data) : $service->create($data);
+        session()->flash('toast', ['type' => 'success', 'message' => $this->supplierId ? "Supplier {$saved->name} diperbarui." : "Supplier {$saved->name} ditambahkan."]);
 
         return $this->redirectRoute('pengadaan.supplier', navigate: true);
     }

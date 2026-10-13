@@ -2,7 +2,8 @@
 
 namespace App\Livewire\Pengadaan;
 
-use App\Support\MockData;
+use App\Models\Supplier;
+use App\Services\SupplierService;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
@@ -13,7 +14,7 @@ use Livewire\Component;
  * Pengadaan → Supplier (Admin & Pengurus): daftar pemasok dengan kontak, kategori barang yang
  * dipasok, syarat pembayaran (tunai/tempo), pembelian 90 hari, dan hutang berjalan; cari, saring
  * status & kategori, urutkan; panel rincian berisi kontak (telepon/WhatsApp), pesanan, dan hutang.
- * Tahap ini memakai MockData::suppliers(); backend menyusul dengan kontrak yang sama.
+ * Data dari SupplierService (kontrak sama dengan GET /pengadaan/supplier/data).
  */
 #[Layout('components.layouts.app')]
 #[Title('Supplier')]
@@ -38,7 +39,7 @@ class Suppliers extends Component
     #[Computed]
     public function all(): array
     {
-        return MockData::suppliers();
+        return app(SupplierService::class)->list();
     }
 
     #[Computed]
@@ -82,14 +83,9 @@ class Suppliers extends Component
     #[Computed]
     public function selected(): ?array
     {
-        if (! $this->selectedId || ! ($s = collect($this->all)->firstWhere('id', $this->selectedId))) {
-            return null;
-        }
+        $supplier = $this->selectedId ? Supplier::find($this->selectedId) : null;
 
-        return $s + [
-            'orders' => collect(MockData::purchaseOrders())->where('supplier_id', $s['id'])->sortByDesc('ordered_at')->values()->all(),
-            'payables' => collect(MockData::payables())->where('supplier_id', $s['id'])->where('status', '!=', 'lunas')->values()->all(),
-        ];
+        return $supplier ? app(SupplierService::class)->detail($supplier) : null;
     }
 
     public function setStatus(string $status): void
@@ -104,7 +100,32 @@ class Suppliers extends Component
 
     public function closeDetail(): void
     {
-        $this->selectedId = null;
+        $this->reset('selectedId', 'deleteReason', 'confirmingDelete');
+        $this->resetValidation();
+    }
+
+    public bool $confirmingDelete = false;
+
+    public string $deleteReason = '';
+
+    /** Hapus lunak supplier terpilih (ditolak bila masih ada pesanan berjalan atau hutang). */
+    public function delete(): void
+    {
+        $supplier = $this->selectedId ? Supplier::find($this->selectedId) : null;
+        if (! $supplier || ! \Illuminate\Support\Facades\Gate::allows('kelola-pengadaan')) {
+            return;
+        }
+        $this->validate(['deleteReason' => ['nullable', 'string', 'max:200']]);
+        try {
+            app(SupplierService::class)->delete($supplier, trim($this->deleteReason) ?: null);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            $this->addError('deleteReason', collect($e->errors())->flatten()->first());
+
+            return;
+        }
+        $this->closeDetail();
+        unset($this->all, $this->suppliers, $this->summary);
+        $this->dispatch('toast', type: 'success', message: "Supplier {$supplier->name} dihapus.");
     }
 
     public function resetFilters(): void

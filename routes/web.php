@@ -28,6 +28,7 @@ use App\Http\Controllers\Laporan\SalesExportController;
 use App\Http\Controllers\Laporan\SalesReportController;
 use App\Http\Controllers\Notifikasi\AnnouncementController;
 use App\Http\Controllers\Notifikasi\NotificationController;
+use App\Http\Controllers\Pengadaan\SupplierController;
 use App\Http\Controllers\Pengaturan\LogoController;
 use App\Http\Controllers\Promo\PromoController;
 use App\Http\Controllers\Pengaturan\SettingsController;
@@ -169,6 +170,13 @@ Route::middleware('menu:pengadaan')->group(function () {
     Route::get('/pengadaan/hutang', Pengadaan\Payables::class)->name('pengadaan.hutang');
     Route::get('/pengadaan/hutang/bayar', Pengadaan\PaymentForm::class)->name('pengadaan.hutang.bayar');
     Route::get('/pengadaan/supplier', Pengadaan\Suppliers::class)->name('pengadaan.supplier');
+    Route::get('/pengadaan/supplier/data', [SupplierController::class, 'index'])->name('pengadaan.supplier.data');
+    Route::get('/pengadaan/supplier/{supplier}/data', [SupplierController::class, 'show'])->whereNumber('supplier')->name('pengadaan.supplier.show');
+    Route::middleware(['can:kelola-pengadaan', 'throttle:60,1'])->group(function () {
+        Route::post('/pengadaan/supplier', [SupplierController::class, 'store'])->name('pengadaan.supplier.store');
+        Route::put('/pengadaan/supplier/{supplier}', [SupplierController::class, 'update'])->whereNumber('supplier')->name('pengadaan.supplier.update');
+        Route::delete('/pengadaan/supplier/{supplier}', [SupplierController::class, 'destroy'])->whereNumber('supplier')->name('pengadaan.supplier.destroy');
+    });
     Route::get('/pengadaan/supplier/baru', Pengadaan\SupplierForm::class)->name('pengadaan.supplier.buat');
     Route::get('/pengadaan/supplier/{supplier}/ubah', Pengadaan\SupplierForm::class)->whereNumber('supplier')->name('pengadaan.supplier.ubah');
 });
