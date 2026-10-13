@@ -6,12 +6,14 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Prunable;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use App\Services\SettingsService;
 use Illuminate\Support\Facades\Storage;
 
 /**
  * Satu permintaan ekspor laporan yang dikerjakan di antrean latar. Berkas hasil disimpan di
- * disk privat `local` dan hanya bisa diunduh peminta. Dibersihkan otomatis setelah
- * KEEP_DAYS hari (lihat `model:prune` di jadwal), beserta berkasnya.
+ * disk privat `local` dan hanya bisa diunduh peminta. Dibersihkan otomatis beserta berkasnya
+ * setelah `security.export_days` hari (pengaturan Keamanan & retensi; bawaan KEEP_DAYS),
+ * lewat `retensi:bersihkan` di jadwal.
  */
 class ReportExport extends Model
 {
@@ -40,7 +42,12 @@ class ReportExport extends Model
 
     public function prunable(): Builder
     {
-        return static::where('created_at', '<', now()->subDays(self::KEEP_DAYS));
+        return static::where('created_at', '<', now()->subDays(self::keepDays()));
+    }
+
+    public static function keepDays(): int
+    {
+        return (int) (app(SettingsService::class)->security()['export_days'] ?? self::KEEP_DAYS);
     }
 
     protected function pruning(): void

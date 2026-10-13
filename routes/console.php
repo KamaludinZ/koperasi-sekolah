@@ -18,8 +18,17 @@ Artisan::command('notifikasi:stok', function () {
 
 Schedule::command('notifikasi:stok')->dailyAt('06:30');
 
-// Bersihkan ekspor laporan lama (baris & berkas CSV di disk privat), lihat ReportExport::KEEP_DAYS.
-Schedule::command('model:prune', ['--model' => [\App\Models\ReportExport::class]])->dailyAt('02:00');
+// Bersihkan data lewat masa retensi (pengaturan Keamanan & retensi): data master terhapus lunak,
+// berkas ekspor laporan (baris & berkas di disk privat), dan notifikasi lama yang sudah dibaca.
+Artisan::command('retensi:bersihkan {--uji : Hanya hitung tanpa menghapus}', function () {
+    $dry = (bool) $this->option('uji');
+    $counts = app(\App\Services\RetentionService::class)->run($dry);
+    $this->table(['Data', $dry ? 'Akan dibersihkan' : 'Dibersihkan'],
+        collect($counts)->map(fn ($n, $k) => [\App\Services\RetentionService::LABELS[$k], $n])->values()->all());
+    $this->info($dry ? 'Uji coba: tidak ada data yang dihapus.' : 'Pembersihan masa retensi selesai.');
+})->purpose('Hapus permanen data yang melewati masa retensi');
+
+Schedule::command('retensi:bersihkan')->dailyAt('02:00');
 
 Artisan::command('kupon:hitung-ulang', function () {
     $changed = app(\App\Services\CouponService::class)->recount();
