@@ -63,7 +63,7 @@
                                               'bg-red-100 text-red-700' => $out,
                                               'bg-amber-100 text-amber-800' => $low,
                                               'bg-stone-100 text-stone-600' => ! $out && ! $low])>
-                                    {{ $out ? 'Habis' : $product['stock'].' '.$product['unit'] }}
+                                    {{ $out ? 'Habis' : $product['stock'].' '.$product['unit'] }}@if ($low)<span class="sr-only"> (stok menipis)</span>@endif
                                 </span>
                             </span>
                         </button>

@@ -80,4 +80,13 @@ class CartTest extends TestCase
             ->assertSet('items', [$this->pid('ATK001') => 3])
             ->assertSet('lastRemoved', null);
     }
+
+    public function test_line_shows_stock_notes_and_disables_plus_at_max(): void
+    {
+        \App\Models\Product::where('code', 'ATK001')->update(['stock' => 3, 'min_stock' => 2]);
+        $c = \Livewire\Livewire::test(\App\Livewire\Kasir\Cart::class)->call('add', $this->pid('ATK001'));
+        $c->assertSee('Sisa 2 pcs — stok menipis');
+        $c->call('increment', $this->pid('ATK001'))->call('increment', $this->pid('ATK001'))
+            ->assertSee('Stok habis setelah ini (3 pcs)')->assertSeeHtml('data-stock-note="max"');
+    }
 }

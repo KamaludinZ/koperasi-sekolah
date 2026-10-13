@@ -53,9 +53,15 @@
                                    wire:change="setQty({{ $line['id'] }}, $event.target.value || 0)"
                                    aria-label="Jumlah {{ $line['name'] }}"
                                    class="w-11 [appearance:textfield] border-x border-stone-300 py-1 text-center text-sm tabular-nums outline-none [&::-webkit-inner-spin-button]:appearance-none">
-                            <button type="button" wire:click="increment({{ $line['id'] }})" aria-label="Tambah"
-                                    class="grid size-8 place-items-center text-stone-600 hover:bg-stone-100">+</button>
+                            <button type="button" wire:click="increment({{ $line['id'] }})" aria-label="Tambah" @disabled($line['quantity'] >= $line['stock'])
+                                    class="grid size-8 place-items-center text-stone-600 hover:bg-stone-100 disabled:cursor-not-allowed disabled:text-stone-300 disabled:hover:bg-transparent">+</button>
                         </div>
+                        @php $left = $line['stock'] - $line['quantity']; @endphp
+                        @if ($left <= 0)
+                            <p class="mt-1 text-[11px] font-medium text-red-700" data-stock-note="max">Stok habis setelah ini ({{ $line['stock'] }} {{ $line['unit'] }})</p>
+                        @elseif ($left <= ($line['min_stock'] ?? 0))
+                            <p class="mt-1 text-[11px] font-medium text-amber-800" data-stock-note="low">Sisa {{ $left }} {{ $line['unit'] }} — stok menipis</p>
+                        @endif
                     </div>
                     <div class="flex flex-col items-end justify-between">
                         <button type="button" wire:click="remove({{ $line['id'] }})" aria-label="Hapus {{ $line['name'] }}"
