@@ -417,6 +417,27 @@ class MockData
         return $rows;
     }
 
+    /**
+     * Semua shift tiruan dalam rentang tanggal (terbaru dulu), masing-masing dengan tanggal & jumlah
+     * catatan setoran/penarikan kasnya — untuk halaman Riwayat & Selisih Shift.
+     *
+     * @return list<array>
+     */
+    public static function shiftHistory(string $from, string $to): array
+    {
+        $rows = [];
+        $end = min(\Illuminate\Support\Carbon::parse($to)->startOfDay(), today());
+        for ($d = \Illuminate\Support\Carbon::parse($from)->startOfDay(); $d->lte($end); $d->addDay()) {
+            $day = self::cashDay($d->toDateString());
+            $moves = collect($day['movements'])->countBy('shift_id');
+            foreach ($day['shifts'] as $shift) {
+                $rows[] = ['date' => $day['date'], 'key' => $day['date'].'-'.$shift['id'], 'movements' => $moves[$shift['id']] ?? 0, ...$shift];
+            }
+        }
+
+        return array_reverse($rows);
+    }
+
     /** Anggota koperasi tiruan (siswa & guru) dengan saldo tabungan, untuk tahap frontend. */
     public static function members(): array
     {

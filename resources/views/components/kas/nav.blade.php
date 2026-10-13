@@ -1,7 +1,7 @@
 {{-- Navigasi bagian Kas Harian. `active` = nama route halaman ini (tetap benar saat Livewire memperbarui halaman). --}}
 @props(['active'])
 @php
-    $items = ['kas' => 'Harian & shift', 'kas.rekap' => 'Rekap periode'];
+    $items = ['kas' => 'Harian & shift', 'kas.rekap' => 'Rekap periode', 'kas.shift' => 'Riwayat shift'];
 @endphp
 <nav class="mt-3 -mb-px flex gap-1 overflow-x-auto" aria-label="Bagian kas harian">
     @foreach ($items as $route => $label)

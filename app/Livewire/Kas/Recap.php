@@ -51,7 +51,17 @@ class Recap extends Component
     #[Computed]
     public function range(): array
     {
-        return match ($this->period) {
+        return self::rangeFor($this->period);
+    }
+
+    /**
+     * Rentang tanggal (awal, akhir) sebuah periode; dipakai juga oleh Riwayat Shift.
+     *
+     * @return array{0: Carbon, 1: Carbon}
+     */
+    public static function rangeFor(string $period): array
+    {
+        return match ($period) {
             '30-hari' => [today()->subDays(29), today()],
             'bulan-ini' => [today()->startOfMonth(), today()],
             'bulan-lalu' => [today()->subMonthNoOverflow()->startOfMonth(), today()->subMonthNoOverflow()->endOfMonth()->startOfDay()],

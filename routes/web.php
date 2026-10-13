@@ -102,6 +102,7 @@ Route::middleware('menu:kasir')->group(function () {
 Route::middleware('menu:kas')->group(function () {
     Route::get('/kas', Kas\Index::class)->name('kas');
     Route::get('/kas/rekap', Kas\Recap::class)->name('kas.rekap');
+    Route::get('/kas/shift', Kas\Shifts::class)->name('kas.shift');
 });
 
 Route::middleware('menu:barang')->group(function () {

@@ -1,6 +1,6 @@
 {
   "repo": "Koperasi Sekolah",
-  "generatedForCommit": "c06aff0d9ced429ba05092149ef1cbe8dd318bca",
+  "generatedForCommit": "95d2d1b386c43fc529c7d336e1c9222e809bd982",
   "files": [
     {
       "path": ".claude/skills/ngodingpakeai/SKILL.md",
@@ -286,13 +286,13 @@
     },
     {
       "path": "app/Livewire/Kas/Index.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 6608
+      "size": 9558
     },
     {
       "path": "app/Livewire/Kas/Recap.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 3017
     },
@@ -618,7 +618,7 @@
       "path": "app/Support/MockData.php",
       "reason": "changed",
       "language": "php",
-      "size": 25698
+      "size": 26864
     },
     {
       "path": "app/Support/OpeningHours.php",
@@ -1012,7 +1012,7 @@
     },
     {
       "path": "resources/views/components/kas/nav.blade.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 713
     },
@@ -1230,17 +1230,17 @@
       "path": "resources/views/livewire/kas/index.blade.php",
       "reason": "changed",
       "language": "php",
-      "size": 20070
+      "size": 20435
     },
     {
       "path": "resources/views/livewire/kas/partials/shift-form.blade.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 11778
+      "size": 17589
     },
     {
       "path": "resources/views/livewire/kas/recap.blade.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 10869
     },
@@ -1384,7 +1384,7 @@
     },
     {
       "path": "routes/web.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 12201
     },
@@ -1612,13 +1612,13 @@
     },
     {
       "path": "tests/Feature/Kas/IndexTest.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 6189
+      "size": 8307
     },
     {
       "path": "tests/Feature/Kas/RecapTest.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 2815
     },
