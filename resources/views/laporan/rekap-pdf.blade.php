@@ -108,16 +108,17 @@
     @if ($transactions !== null)
         <h2>Rincian transaksi</h2>
         <table>
-            <thead><tr><th>Waktu</th><th>No. invoice</th><th>Kasir</th><th>Anggota</th><th>Metode</th><th class="r">Barang</th><th class="r">Total</th></tr></thead>
+            <thead><tr><th>Waktu</th><th>No. invoice</th><th>Kasir</th><th>Anggota</th><th>Metode</th><th class="r">Barang</th><th class="r">Total</th><th>Status</th></tr></thead>
             <tbody>
                 @forelse ($transactions as $t)
                     <tr>
                         <td>{{ \Illuminate\Support\Carbon::parse($t['created_at'])->format('d/m/Y H:i') }}</td>
                         <td>{{ $t['invoice_number'] }}</td><td>{{ $t['cashier'] }}</td><td>{{ $t['member'] ?? '—' }}</td>
                         <td>{{ $t['payment_method_label'] }}</td><td class="r">{{ $t['item_count'] }}</td><td class="r">{{ $rp($t['total']) }}</td>
+                        <td>{{ \App\Services\SalesExport::status($t) }}@if (! $t['voided'] && $t['returned_amount'] > 0) ({{ $rp($t['returned_amount']) }})@endif</td>
                     </tr>
                 @empty
-                    <tr><td colspan="7" class="muted">Tidak ada transaksi.</td></tr>
+                    <tr><td colspan="8" class="muted">Tidak ada transaksi.</td></tr>
                 @endforelse
             </tbody>
         </table>

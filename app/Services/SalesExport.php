@@ -126,9 +126,10 @@ class SalesExport
 
         if ($d['transactions'] !== null) {
             $rows[] = ['RINCIAN TRANSAKSI'];
-            $rows[] = ['Waktu', 'No. invoice', 'Kasir', 'Anggota', 'Metode', 'Barang', 'Total'];
+            $rows[] = ['Waktu', 'No. invoice', 'Kasir', 'Anggota', 'Metode', 'Barang', 'Total', 'Status', 'Diretur'];
             foreach ($d['transactions'] as $r) {
-                $rows[] = [$r['created_at'], $r['invoice_number'], $r['cashier'], $r['member'] ?? '', $r['payment_method_label'], $r['item_count'], $r['total']];
+                $rows[] = [$r['created_at'], $r['invoice_number'], $r['cashier'], $r['member'] ?? '', $r['payment_method_label'], $r['item_count'], $r['total'],
+                    self::status($r), $r['voided'] ? 0 : $r['returned_amount']];
             }
             $rows[] = [];
         }
@@ -169,6 +170,16 @@ class SalesExport
         return Pdf::loadView('laporan.rekap-pdf', $this->data($start, $end, $sections))
             ->setPaper('a4')
             ->output();
+    }
+
+    /** Status transaksi untuk rincian rekap: Dibatalkan / Retur sebagian / Selesai. */
+    public static function status(array $row): string
+    {
+        return match (true) {
+            $row['voided'] ?? false => 'Dibatalkan',
+            ($row['returned_amount'] ?? 0) > 0 => 'Retur sebagian',
+            default => 'Selesai',
+        };
     }
 
     private function transactions(Carbon $start, Carbon $end): array

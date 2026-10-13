@@ -51,8 +51,20 @@ class SalesExportEndpointTest extends TestCase
 
         $this->assertStringNotContainsString('RINGKASAN', $csv);
         $this->assertLessThan(strpos($csv, 'INV-20261014-0001'), strpos($csv, 'INV-20261013-0001'));
-        $this->assertStringContainsString('"Andi (7A)";Tunai;2;8000', $csv);
+        $this->assertStringContainsString('"Andi (7A)";Tunai;2;8000;Selesai;0', $csv);
         $this->assertStringContainsString('"QRIS / Transfer"', $csv);
+    }
+
+    public function test_csv_transaction_status_marks_voided_and_returned(): void
+    {
+        Transaction::where('invoice_number', 'INV-20261013-0001')->update(['voided_at' => now(), 'void_reason' => 'Salah input']);
+        Transaction::where('invoice_number', 'INV-20261014-0001')->update(['returned_amount' => 4000]);
+
+        $csv = $this->get('/laporan/unduh?dari=2026-10-01&sampai=2026-10-14&isi[]=transactions')->streamedContent();
+
+        $this->assertStringContainsString(';Status;Diretur', $csv);
+        $this->assertStringContainsString('"Andi (7A)";Tunai;2;8000;"Retur sebagian";4000', $csv);
+        $this->assertMatchesRegularExpression('/INV-20261013-0001;.*;Dibatalkan;0/', $csv);
     }
 
     public function test_pdf_download(): void
