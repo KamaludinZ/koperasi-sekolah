@@ -1,4 +1,4 @@
-{{-- Kode kupon/voucher: form dengan umpan balik langsung, atau kupon yang sudah diterima (pratinjau) --}}
+{{-- Kode kupon/voucher: form dengan umpan balik langsung, atau kupon yang sudah diterima (memotong total) --}}
 @if ($summary['count'] > 0)
     @php $c = $this->coupon; @endphp
     @if ($editingCoupon)
@@ -41,7 +41,7 @@
             <p @class(['mt-0.5 text-xs', 'text-emerald-800' => $c['ok'], 'text-amber-900' => ! $c['ok']])>
                 {{ $c['ok'] ? $c['message'] : 'Kupon belum bisa dipakai: '.$c['message'] }}
             </p>
-            <p class="text-[11px] text-stone-500">Pratinjau: kupon belum memotong total.</p>
+            @if ($c['ok'])<p class="text-[11px] text-stone-500">Potongan kupon sudah dikurangkan dari total.</p>@endif
         </div>
     @else
         <button type="button" wire:click="editCoupon" class="flex items-center gap-1 text-sm font-medium text-emerald-800 hover:underline">

@@ -1,6 +1,6 @@
 {
   "repo": "Koperasi Sekolah",
-  "generatedForCommit": "68fe53939bc64a11e969a5b84623ad5e38c63cb3",
+  "generatedForCommit": "d52b7668ccf85c66e30163bfb736e284f6b3fcb5",
   "files": [
     {
       "path": ".claude/skills/ngodingpakeai/SKILL.md",
@@ -148,7 +148,7 @@
     },
     {
       "path": "app/Http/Controllers/Kasir/CheckoutController.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 1811
     },
@@ -342,7 +342,7 @@
       "path": "app/Livewire/Kasir/Cart.php",
       "reason": "changed",
       "language": "php",
-      "size": 12856
+      "size": 13064
     },
     {
       "path": "app/Livewire/Kasir/Index.php",
@@ -562,9 +562,9 @@
     },
     {
       "path": "app/Providers/AppServiceProvider.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 1676
+      "size": 1780
     },
     {
       "path": "app/Services/AnnouncementService.php",
@@ -612,7 +612,7 @@
       "path": "app/Services/CheckoutService.php",
       "reason": "changed",
       "language": "php",
-      "size": 8191
+      "size": 9210
     },
     {
       "path": "app/Services/LogoService.php",
@@ -622,7 +622,7 @@
     },
     {
       "path": "app/Services/ManualDiscountService.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 3839
     },
@@ -675,6 +675,12 @@
       "size": 5208
     },
     {
+      "path": "app/Services/PromoEngine.php",
+      "reason": "new",
+      "language": "php",
+      "size": 2912
+    },
+    {
       "path": "app/Services/ReceiptPdfService.php",
       "reason": "needs_summary",
       "language": "php",
@@ -682,7 +688,7 @@
     },
     {
       "path": "app/Services/ReceiptPresenter.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 4261
     },
@@ -718,7 +724,7 @@
     },
     {
       "path": "app/Services/SettingsService.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 15295
     },
@@ -760,7 +766,7 @@
     },
     {
       "path": "app/Support/MockData.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 25489
     },
@@ -784,9 +790,9 @@
     },
     {
       "path": "app/Support/PromoMatcher.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 5361
+      "size": 5541
     },
     {
       "path": "artisan",
@@ -1480,9 +1486,9 @@
     },
     {
       "path": "resources/views/livewire/kasir/cart.blade.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 7711
+      "size": 7936
     },
     {
       "path": "resources/views/livewire/kasir/index.blade.php",
@@ -1500,7 +1506,7 @@
       "path": "resources/views/livewire/kasir/partials/discount.blade.php",
       "reason": "changed",
       "language": "php",
-      "size": 6673
+      "size": 6700
     },
     {
       "path": "resources/views/livewire/kasir/partials/payment-panel.blade.php",
@@ -1510,9 +1516,9 @@
     },
     {
       "path": "resources/views/livewire/kasir/partials/promo-panel.blade.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 2913
+      "size": 2924
     },
     {
       "path": "resources/views/livewire/kasir/partials/receipt.blade.php",
@@ -1972,7 +1978,7 @@
     },
     {
       "path": "tests/Feature/Kasir/ManualDiscountTest.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 7704
     },
@@ -1996,9 +2002,9 @@
     },
     {
       "path": "tests/Feature/Kasir/PromoPanelTest.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 3811
+      "size": 6134
     },
     {
       "path": "tests/Feature/Kasir/ReceiptPdfTest.php",
@@ -2182,7 +2188,7 @@
     },
     {
       "path": "tests/Feature/Transaksi/DiscountDisplayTest.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 2412
     },

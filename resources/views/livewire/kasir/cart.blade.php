@@ -76,6 +76,9 @@
         @if ($summary['promo'] > 0)
             <div class="flex justify-between text-emerald-800"><span>Promo otomatis</span><span class="font-medium tabular-nums">−{{ $rp($summary['promo']) }}</span></div>
         @endif
+        @if ($summary['coupon'] > 0)
+            <div class="flex justify-between text-emerald-800"><span>Kupon {{ $appliedCoupon }}</span><span class="font-medium tabular-nums">−{{ $rp($summary['coupon']) }}</span></div>
+        @endif
         @include('livewire.kasir.partials.discount')
         @include('livewire.kasir.partials.coupon')
         @php $rate = str_replace('.', ',', (string) ($summary['tax_rate'] + 0)); @endphp

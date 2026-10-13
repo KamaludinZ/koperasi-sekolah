@@ -3,14 +3,13 @@
 namespace App\Livewire\Kasir;
 
 use App\Services\CheckoutService;
+use App\Services\CouponService;
 use App\Services\ManualDiscountService;
 use App\Services\PromoEngine;
 use App\Services\ProductCatalog;
 use App\Services\ReceiptPdfService;
 use App\Services\ReceiptPresenter;
 use App\Services\SettingsService;
-use App\Support\CouponValidator;
-use App\Support\MockData;
 use App\Support\PriceCalculator;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\On;
@@ -150,7 +149,7 @@ class Cart extends Component
     public function applyCoupon(): void
     {
         $this->resetValidation('couponInput');
-        $result = CouponValidator::check($this->couponInput, $this->summary['subtotal'], MockData::coupons());
+        $result = app(CouponService::class)->check($this->couponInput, $this->couponBase());
         if (! $result['ok']) {
             $this->addError('couponInput', $result['message']);
 
@@ -159,7 +158,7 @@ class Cart extends Component
         $this->appliedCoupon = $result['coupon']['code'];
         $this->couponInput = '';
         $this->editingCoupon = false;
-        unset($this->coupon);
+        unset($this->coupon, $this->summary);
     }
 
     public function removeCoupon(): void
@@ -177,7 +176,13 @@ class Cart extends Component
     #[Computed]
     public function coupon(): ?array
     {
-        return $this->appliedCoupon ? CouponValidator::check($this->appliedCoupon, $this->summary['subtotal'], MockData::coupons()) : null;
+        return $this->appliedCoupon ? app(CouponService::class)->check($this->appliedCoupon, $this->couponBase()) : null;
+    }
+
+    /** Dasar potongan kupon: subtotal setelah promo otomatis (sama dengan CheckoutService). */
+    private function couponBase(): int
+    {
+        return array_sum(array_column($this->lines, 'subtotal')) - $this->promos['total'];
     }
 
     public function editDiscount(): void
@@ -215,7 +220,7 @@ class Cart extends Component
 
         $spec = ['type' => $this->discountType, 'value' => (int) $this->discountValue, 'reason' => trim($this->discountReason)];
         try {
-            $discounts->resolve($spec, $this->summary['subtotal'] - $this->summary['promo'], auth()->user());
+            $discounts->resolve($spec, $this->summary['subtotal'] - $this->summary['promo'] - $this->summary['coupon'], auth()->user());
         } catch (ValidationException $e) {
             $message = $e->errors()['discount'][0];
             $this->addError($message === 'Tulis alasan diskon.' ? 'discountReason' : 'discountValue', $message);
@@ -285,14 +290,14 @@ class Cart extends Component
 
         try {
             // Diskon dicek ulang di server (isi keranjang bisa berubah setelah diskon persen diterapkan).
-            $transaction = $checkout->checkout($this->items, $this->paymentMethod, $this->paid, auth()->id(), null, $this->discount);
+            $transaction = $checkout->checkout($this->items, $this->paymentMethod, $this->paid, auth()->id(), null, $this->discount, $this->appliedCoupon);
         } catch (ValidationException $e) {
             foreach ($e->errors() as $field => $messages) {
                 $this->addError(match ($field) {
                     'payment_method' => 'paymentMethod',
-                    'discount' => 'paid', // tampil di panel bayar
+                    'discount', 'coupon' => 'paid', // tampil di panel bayar
                     default => $field,
-                }, ($field === 'discount' ? 'Diskon: ' : '').implode(' ', $messages));
+                }, (['discount' => 'Diskon: ', 'coupon' => 'Kupon: '][$field] ?? '').implode(' ', $messages));
             }
 
             return;
@@ -339,9 +344,10 @@ class Cart extends Component
     {
         $subtotal = array_sum(array_column($this->lines, 'subtotal'));
         $promo = $this->promos['total'];
-        // Diskon manual dihitung dari sisa belanja setelah promo otomatis (sama dengan CheckoutService).
-        $manual = self::discountAmount($this->discount, $subtotal - $promo);
-        $discount = $promo + $manual;
+        $coupon = ($c = $this->coupon) && $c['ok'] ? $c['amount'] : 0;
+        // Urutan sama dengan CheckoutService: promo otomatis → kupon → diskon manual dari sisanya.
+        $manual = self::discountAmount($this->discount, $subtotal - $promo - $coupon);
+        $discount = $promo + $coupon + $manual;
         $net = $subtotal - $discount;
         $tax = app(SettingsService::class)->tax();
         $price = PriceCalculator::compute($net, $tax, $this->paymentMethod);
@@ -350,6 +356,7 @@ class Cart extends Component
             'count' => array_sum(array_column($this->lines, 'quantity')),
             'subtotal' => $subtotal,
             'promo' => $promo,
+            'coupon' => $coupon,
             'manual_discount' => $manual,
             'discount' => $discount,
             'tax_enabled' => (bool) $tax['enabled'],

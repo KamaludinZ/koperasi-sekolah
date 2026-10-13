@@ -14,7 +14,7 @@ use Illuminate\Validation\ValidationException;
 /**
  * Menyimpan transaksi penjualan kasir secara atomik:
  * kunci baris barang → validasi stok → hitung total di server (promo otomatis lewat PromoEngine,
- * lalu diskon manual yang dicek batasnya lewat ManualDiscountService, lalu pajak & pembulatan dari
+ * kupon lewat CouponService (baris kupon dikunci untuk kuota), lalu diskon manual yang dicek batasnya lewat ManualDiscountService, lalu pajak & pembulatan dari
  * pengaturan, lihat PriceCalculator) → simpan rincian diskon (transaction_discounts) →
  * simpan transaksi + item (snapshot nama & harga), tertaut ke shift kasir yang terbuka →
  * kurangi stok → catat mutasi stok.
@@ -26,6 +26,7 @@ class CheckoutService
         private SettingsService $settings,
         private ManualDiscountService $manualDiscounts,
         private PromoEngine $promos,
+        private CouponService $coupons,
     ) {}
 
     public const PAYMENT_METHODS = ['tunai' => 'Tunai', 'qris' => 'QRIS / Transfer'];
@@ -35,10 +36,11 @@ class CheckoutService
      * @param  int|null  $paid  uang dibayar; untuk non-tunai otomatis sama dengan total
      * @param  array{type: string, value: int, reason?: ?string}|null  $manualDiscount  diskon manual kasir (persen/rupiah)
      *                                                                                   atas subtotal, sebelum pajak — dicek batasnya
+     * @param  string|null  $couponCode  kode kupon/voucher (dipotong setelah promo, sebelum diskon manual)
      *
      * @throws ValidationException bila keranjang kosong, stok kurang, atau bayar kurang
      */
-    public function checkout(array $items, string $paymentMethod, ?int $paid, ?int $userId = null, ?int $memberId = null, ?array $manualDiscount = null): Transaction
+    public function checkout(array $items, string $paymentMethod, ?int $paid, ?int $userId = null, ?int $memberId = null, ?array $manualDiscount = null, ?string $couponCode = null): Transaction
     {
         $items = array_filter(array_map('intval', $items), fn ($qty) => $qty > 0);
 
@@ -49,7 +51,7 @@ class CheckoutService
             throw ValidationException::withMessages(['payment_method' => 'Metode bayar tidak dikenal.']);
         }
 
-        return DB::transaction(function () use ($items, $paymentMethod, $paid, $userId, $memberId, $manualDiscount) {
+        return DB::transaction(function () use ($items, $paymentMethod, $paid, $userId, $memberId, $manualDiscount, $couponCode) {
             // Kunci baris barang (urut id agar tidak deadlock) supaya stok tidak terjual ganda.
             $products = Product::active()
                 ->with('category:id,name')
@@ -89,8 +91,10 @@ class CheckoutService
                 'id' => $l['product']->id, 'name' => $l['product']->name, 'category' => $l['product']->category?->name,
                 'price' => $l['price'], 'quantity' => $l['quantity'], 'subtotal' => $l['subtotal'],
             ], $lines));
-            $manual = $this->manualDiscounts->resolve($manualDiscount, $subtotal - $promo['total'], $userId ? User::find($userId) : null);
-            $discount = $promo['total'] + ($manual['amount'] ?? 0);
+            $coupon = $this->coupons->redeem($couponCode, $subtotal - $promo['total'], $memberId);
+            $afterCoupon = $subtotal - $promo['total'] - ($coupon['amount'] ?? 0);
+            $manual = $this->manualDiscounts->resolve($manualDiscount, $afterCoupon, $userId ? User::find($userId) : null);
+            $discount = $promo['total'] + ($coupon['amount'] ?? 0) + ($manual['amount'] ?? 0);
             $discountReason = $manual['reason'] ?? null;
             $price = PriceCalculator::compute($subtotal - $discount, $taxSettings, $paymentMethod);
             $total = $price['payable'];
@@ -122,6 +126,11 @@ class CheckoutService
                 $transaction->discounts()->create([
                     'source' => 'promo', 'promo_id' => $applied['id'], 'label' => $applied['name'], 'amount' => $applied['saving'],
                     'reason' => implode(', ', $applied['items']),
+                ]);
+            }
+            if ($coupon && $coupon['amount'] > 0) {
+                $transaction->discounts()->create([
+                    'source' => 'kupon', 'coupon_id' => $coupon['coupon_id'], 'label' => 'Kupon '.$coupon['code'], 'amount' => $coupon['amount'],
                 ]);
             }
             if ($manual && $manual['amount'] > 0) {
@@ -158,6 +167,7 @@ class CheckoutService
                     'subtotal' => $subtotal,
                     'discount' => $discount ?: null,
                     'discount_reason' => $discountReason,
+                    'coupon' => $coupon ? $coupon['code'].' −'.$coupon['amount'] : null,
                     'promos' => $promo['applied'] ? array_map(fn ($a) => $a['name'].' −'.$a['saving'], $promo['applied']) : null,
                     'tax' => $price['tax'] ?: null,
                     'tax_included' => $price['tax_included'] ?: null,
