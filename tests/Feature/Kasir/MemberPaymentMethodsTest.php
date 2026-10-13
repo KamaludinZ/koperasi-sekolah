@@ -87,7 +87,8 @@ class MemberPaymentMethodsTest extends TestCase
             $odd = Member::factory()->create(['type' => 'siswa']);
         }
         $this->assertSame(['limit' => 50_000, 'outstanding' => 0], array_intersect_key(MockData::memberCredit($odd->id, 'siswa'), ['limit' => 1, 'outstanding' => 1]));
-        $c->call('selectMember', $odd->id)->assertSee('Jatuh tempo bon')->set('bonDays', 30)->call('pay')->assertHasErrors('paymentMethod');
+        $c->call('selectMember', $odd->id)->assertSee('Jatuh tempo bon')->set('bonDays', 30)->call('pay')->assertHasErrors('bonConsent');
+        $c->set('bonConsent', true)->call('pay')->assertHasNoErrors('bonConsent')->assertHasErrors('paymentMethod');
 
         $credit = ['available' => 5_000, 'overdue' => false];
         $this->assertSame(3_000, Cart::shortfall('bon', ['credit' => $credit, 'balance' => 0], 8_000));
@@ -96,6 +97,49 @@ class MemberPaymentMethodsTest extends TestCase
             $overdue = Member::factory()->create(['type' => 'guru']);
         } while ($overdue->id % 4 !== 0);
         $c->call('selectMember', $overdue->id)->call('pay')->assertHasErrors('memberId')->assertSee('lewat jatuh tempo');
+    }
+
+    public function test_bon_form_due_date_note_and_breakdown(): void
+    {
+        $m = Member::factory()->create(['type' => 'siswa']);
+        if ($m->id % 2 === 1) {
+            $m = Member::factory()->create(['type' => 'siswa']);
+        }
+        if ($m->id % 4 === 0) { // hindari anggota contoh yang bonnya lewat jatuh tempo
+            Member::factory()->create();
+            $m = Member::factory()->create(['type' => 'siswa']);
+        }
+        $credit = MockData::memberCredit($m->id, 'siswa');
+        $this->assertGreaterThan(0, $credit['outstanding']);
+
+        $c = $this->cart()->set('paymentMethod', 'bon')->call('selectMember', $m->id)
+            ->assertSee('Bon berjalan')->assertSee('Rp'.number_format($credit['outstanding'] + 8000, 0, ',', '.'))
+            ->assertSee('Bon tertua jatuh tempo')->assertSee('Tanggal lain')->assertSee('menyetujui bon Rp8.000');
+        $this->assertSame(now()->addDays(14)->toDateString(), $c->instance()->bonDueDate());
+
+        $c->set('bonDays', 0)->assertSee('Tanggal jatuh tempo')->set('bonConsent', true)->call('pay')->assertHasErrors(['bonDueAt' => 'required']);
+        $c->set('bonDueAt', now()->addDays(61)->toDateString())->call('pay')->assertHasErrors('bonDueAt');
+        $c->set('bonDueAt', now()->toDateString())->call('pay')->assertHasErrors('bonDueAt');
+        $c->set('bonDueAt', now()->addDays(20)->toDateString())->set('bonNote', str_repeat('x', 101))->call('pay')->assertHasErrors('bonNote');
+        $c->set('bonNote', 'Dilunasi orang tua')->call('pay')->assertHasNoErrors(['bonDueAt', 'bonNote'])->assertHasErrors('paymentMethod');
+        $this->assertSame(now()->addDays(20)->toDateString(), $c->instance()->bonDueDate());
+        $this->assertSame(0, Transaction::count());
+
+        $c->call('closePayment')->call('openPayment')->assertSet('bonDays', 14)->assertSet('bonNote', '')->assertSet('bonConsent', false);
+    }
+
+    public function test_bon_form_hidden_when_over_limit(): void
+    {
+        $m = Member::factory()->create(['type' => 'siswa']);
+        if ($m->id % 2 === 0) {
+            $m = Member::factory()->create(['type' => 'siswa']);
+        }
+        $c = Livewire::test(Cart::class);
+        foreach (range(1, 15) as $_) {
+            $c->call('add', $this->pid('ATK001')); // 15 × Rp4.000 = Rp60.000 > batas siswa Rp50.000
+        }
+        $c->call('openPayment')->set('paymentMethod', 'bon')->call('selectMember', $m->id)
+            ->assertSee('Melebihi sisa batas bon sebesar Rp10.000')->assertDontSee('Tanggal lain');
     }
 
     public function test_cash_and_qris_still_complete(): void

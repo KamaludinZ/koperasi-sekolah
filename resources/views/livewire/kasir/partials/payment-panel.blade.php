@@ -113,21 +113,66 @@
                                     @error('savingsConsent') <p class="text-xs text-red-600" role="alert">{{ $message }}</p> @enderror
                                 @endif
                             </div>
-                            <p x-show="method === 'bon'" class="mt-2 text-xs {{ $bonShort ? 'font-semibold text-red-700' : 'text-stone-600' }}">
-                                {{ $bonShort ? 'Melebihi sisa batas bon sebesar '.$rp($bonShort).'.' : 'Dicatat sebagai bon atas nama anggota.' }}
-                            </p>
-                        </div>
-                        <fieldset x-show="method === 'bon'">
-                            <legend class="mb-1.5 text-sm font-medium">Jatuh tempo bon</legend>
-                            <div class="flex gap-2">
-                                @foreach (\App\Livewire\Kasir\Cart::BON_TERMS as $days => $label)
-                                    <label class="cursor-pointer rounded-full border border-stone-300 px-3 py-1 text-sm has-checked:border-emerald-700 has-checked:bg-emerald-900 has-checked:text-white">
-                                        <input type="radio" wire:model="bonDays" value="{{ $days }}" class="sr-only" @checked($bonDays === $days)> {{ $label }}
-                                    </label>
-                                @endforeach
+                            @php $bonTotal = $summary['totals']['bon']['payable'] ?? $summary['total']; $cr = $m['credit']; $bonAfter = $cr['outstanding'] + $bonTotal; @endphp
+                            <div x-show="method === 'bon'" class="mt-3 space-y-2 border-t border-stone-100 pt-3" data-bon-breakdown>
+                                <dl class="space-y-1 text-xs">
+                                    <div class="flex justify-between"><dt class="text-stone-500">Bon berjalan</dt><dd class="tabular-nums">{{ $rp($cr['outstanding']) }}</dd></div>
+                                    <div class="flex justify-between"><dt class="text-stone-500">Bon baru (belanja ini)</dt><dd class="tabular-nums">+{{ $rp($bonTotal) }}</dd></div>
+                                    <div class="flex justify-between border-t border-dashed border-stone-200 pt-1 text-sm font-semibold">
+                                        <dt>Total bon setelah ini</dt>
+                                        <dd @class(['tabular-nums', 'text-red-700' => $bonShort])>{{ $rp($bonAfter) }} <span class="font-normal text-stone-500">/ {{ $rp($cr['limit']) }}</span></dd>
+                                    </div>
+                                </dl>
+                                <div class="h-1.5 overflow-hidden rounded-full bg-stone-100" aria-hidden="true">
+                                    <span @class(['block h-full rounded-full', 'bg-red-500' => $bonShort, 'bg-amber-500' => ! $bonShort]) style="width: {{ $cr['limit'] ? min(100, (int) round($bonAfter / $cr['limit'] * 100)) : 100 }}%"></span>
+                                </div>
+                                @if ($cr['oldest_due_at'])
+                                    <p @class(['text-xs', 'font-semibold text-red-700' => $cr['overdue'], 'text-stone-500' => ! $cr['overdue']])>Bon tertua jatuh tempo {{ \Illuminate\Support\Carbon::parse($cr['oldest_due_at'])->translatedFormat('d M Y') }}.</p>
+                                @endif
+                                @if ($bonShort)
+                                    <div class="flex items-center justify-between gap-2 rounded-lg bg-red-50 px-3 py-2 text-xs text-red-800" role="status">
+                                        <span>Melebihi sisa batas bon sebesar {{ $rp($bonShort) }}.</span>
+                                        <button type="button" wire:click="switchToCash" class="shrink-0 rounded-md bg-white px-2 py-1 font-semibold text-red-800 ring-1 ring-red-200 hover:bg-red-100">Bayar tunai</button>
+                                    </div>
+                                @elseif ($cr['overdue'])
+                                    <p class="rounded-lg bg-red-50 px-3 py-2 text-xs text-red-800" role="status">Bon lama sudah lewat jatuh tempo. Minta dilunasi dulu sebelum menambah bon baru.</p>
+                                @endif
                             </div>
-                            <p class="mt-1 text-xs text-stone-500">Jatuh tempo {{ now()->addDays($bonDays)->translatedFormat('d M Y') }}.</p>
-                        </fieldset>
+                        </div>
+                        @unless ($bonShort || $m['credit']['overdue'])
+                            <div x-show="method === 'bon'" class="space-y-3">
+                                <fieldset>
+                                    <legend class="mb-1.5 text-sm font-medium">Jatuh tempo bon</legend>
+                                    <div class="flex flex-wrap gap-2">
+                                        @foreach (\App\Livewire\Kasir\Cart::BON_TERMS + [0 => 'Tanggal lain'] as $days => $label)
+                                            <label class="cursor-pointer rounded-full border border-stone-300 px-3 py-1 text-sm has-checked:border-emerald-700 has-checked:bg-emerald-900 has-checked:text-white">
+                                                <input type="radio" wire:model.live="bonDays" value="{{ $days }}" class="sr-only" @checked($bonDays === $days)> {{ $label }}
+                                            </label>
+                                        @endforeach
+                                    </div>
+                                    @if ($bonDays === 0)
+                                        <input type="date" wire:model.live="bonDueAt" value="{{ $bonDueAt }}" aria-label="Tanggal jatuh tempo"
+                                               min="{{ now()->addDay()->toDateString() }}" max="{{ now()->addDays(\App\Livewire\Kasir\Cart::BON_MAX_DAYS)->toDateString() }}"
+                                               class="mt-2 w-full rounded-xl border border-stone-300 px-3.5 py-2 text-sm outline-none focus:border-emerald-600 focus:ring-4 focus:ring-emerald-600/15">
+                                        @error('bonDueAt') <p class="mt-1 text-xs text-red-600" role="alert">{{ $message }}</p> @enderror
+                                    @endif
+                                    @if ($due = $this->bonDueDate())
+                                        <p class="mt-1 text-xs text-stone-500">Jatuh tempo {{ \Illuminate\Support\Carbon::parse($due)->translatedFormat('l, d M Y') }}.</p>
+                                    @endif
+                                </fieldset>
+                                <label class="block">
+                                    <span class="mb-1.5 block text-sm font-medium">Keterangan <span class="font-normal text-stone-500">(opsional)</span></span>
+                                    <input type="text" wire:model="bonNote" maxlength="100" placeholder="mis. Dilunasi orang tua saat ambil rapor"
+                                           class="w-full rounded-xl border border-stone-300 px-3.5 py-2 text-sm outline-none focus:border-emerald-600 focus:ring-4 focus:ring-emerald-600/15">
+                                    @error('bonNote') <span class="mt-1 block text-xs text-red-600">{{ $message }}</span> @enderror
+                                </label>
+                                <label class="flex cursor-pointer items-start gap-2 text-sm">
+                                    <input type="checkbox" wire:model="bonConsent" class="mt-0.5 size-4 accent-emerald-700">
+                                    <span>Anggota menyetujui bon {{ $rp($bonTotal) }} dan berjanji melunasinya sebelum jatuh tempo.</span>
+                                </label>
+                                @error('bonConsent') <p class="text-xs text-red-600" role="alert">{{ $message }}</p> @enderror
+                            </div>
+                        @endunless
                     @else
                         <label class="block">
                             <span class="mb-1.5 block text-sm font-medium">Anggota</span>

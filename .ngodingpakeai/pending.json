@@ -1,6 +1,6 @@
 {
   "repo": "Koperasi Sekolah",
-  "generatedForCommit": "7aae3f8f6f0348044c218797620bce04ff826b9d",
+  "generatedForCommit": "cec45844203bcc1dc25fa48e16c398cb3ebd6320",
   "files": [
     {
       "path": ".claude/skills/ngodingpakeai/SKILL.md",
@@ -468,7 +468,7 @@
       "path": "app/Livewire/Kasir/Cart.php",
       "reason": "changed",
       "language": "php",
-      "size": 16885
+      "size": 17727
     },
     {
       "path": "app/Livewire/Kasir/Index.php",
@@ -1132,7 +1132,7 @@
     },
     {
       "path": "app/Support/MockData.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 16658
     },
@@ -2112,7 +2112,7 @@
       "path": "resources/views/livewire/kasir/partials/payment-panel.blade.php",
       "reason": "changed",
       "language": "php",
-      "size": 16375
+      "size": 19336
     },
     {
       "path": "resources/views/livewire/kasir/partials/promo-panel.blade.php",
@@ -2122,9 +2122,9 @@
     },
     {
       "path": "resources/views/livewire/kasir/partials/receipt.blade.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 4598
+      "size": 5007
     },
     {
       "path": "resources/views/livewire/kasir/product-picker.blade.php",
@@ -2824,9 +2824,9 @@
     },
     {
       "path": "tests/Feature/Kasir/MemberPaymentMethodsTest.php",
-      "reason": "new",
+      "reason": "changed",
       "language": "php",
-      "size": 3625
+      "size": 5479
     },
     {
       "path": "tests/Feature/Kasir/PaymentTest.php",

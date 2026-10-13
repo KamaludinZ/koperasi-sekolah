@@ -62,6 +62,18 @@ class Cart extends Component
 
     public int $bonDays = 14;
 
+    /** Jatuh tempo pilihan sendiri (dipakai bila $bonDays = 0). */
+    public string $bonDueAt = '';
+
+    /** Keterangan bon, mis. "dibayar orang tua". */
+    public string $bonNote = '';
+
+    /** Anggota berjanji melunasi bon sebelum jatuh tempo (wajib untuk metode bon). */
+    public bool $bonConsent = false;
+
+    /** Rentang jatuh tempo bon yang boleh dipilih (hari). */
+    public const BON_MAX_DAYS = 60;
+
     /** Anggota menyetujui saldo tabungannya dipotong (wajib untuk metode tabungan). */
     public bool $savingsConsent = false;
 
@@ -283,6 +295,7 @@ class Cart extends Component
         $this->paymentMethod = 'tunai';
         $this->paid = null;
         $this->savingsConsent = false;
+        $this->reset('bonDays', 'bonDueAt', 'bonNote', 'bonConsent');
         $this->paying = true;
     }
 
@@ -312,14 +325,25 @@ class Cart extends Component
         $this->memberId = Member::active()->whereKey($id)->exists() ? $id : null;
         $this->memberSearch = '';
         $this->savingsConsent = false;
+        $this->bonConsent = false;
         $this->resetValidation('memberId');
         unset($this->member, $this->memberResults);
     }
 
     public function clearMember(): void
     {
-        $this->reset('memberId', 'memberSearch', 'savingsConsent');
+        $this->reset('memberId', 'memberSearch', 'savingsConsent', 'bonConsent');
         unset($this->member);
+    }
+
+    /** Tanggal jatuh tempo bon yang berlaku (Y-m-d), atau null bila tanggal sendiri belum diisi. */
+    public function bonDueDate(): ?string
+    {
+        if ($this->bonDays > 0) {
+            return now()->addDays($this->bonDays)->toDateString();
+        }
+
+        return preg_match('/^\d{4}-\d{2}-\d{2}$/', $this->bonDueAt) ? $this->bonDueAt : null;
     }
 
     /** Saldo tidak cukup: pindah ke tunai tanpa kehilangan isi keranjang. */
@@ -373,6 +397,20 @@ class Cart extends Component
                 $this->addError('memberId', 'Anggota masih punya bon yang lewat jatuh tempo. Minta dilunasi dulu.');
 
                 return;
+            }
+            if ($this->paymentMethod === 'bon') {
+                $this->validate([
+                    'bonDays' => ['required', 'integer', 'in:0,'.implode(',', array_keys(self::BON_TERMS))],
+                    'bonDueAt' => ['exclude_unless:bonDays,0', 'required', 'date_format:Y-m-d', 'after:today', 'before_or_equal:'.now()->addDays(self::BON_MAX_DAYS)->toDateString()],
+                    'bonNote' => ['nullable', 'string', 'max:100'],
+                    'bonConsent' => ['accepted'],
+                ], [
+                    'bonDueAt.required' => 'Pilih tanggal jatuh tempo bon.',
+                    'bonDueAt.after' => 'Jatuh tempo paling cepat besok.',
+                    'bonDueAt.before_or_equal' => 'Jatuh tempo paling lama '.self::BON_MAX_DAYS.' hari dari hari ini.',
+                    'bonNote.max' => 'Keterangan maksimal 100 karakter.',
+                    'bonConsent.accepted' => 'Pastikan anggota sudah menyetujui bon dan jatuh temponya.',
+                ]);
             }
             if ($this->paymentMethod === 'tabungan' && ! $this->savingsConsent) {
                 $this->addError('savingsConsent', 'Pastikan anggota menyetujui pemotongan saldo tabungannya.');
