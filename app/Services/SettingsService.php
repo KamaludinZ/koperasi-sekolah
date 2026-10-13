@@ -19,9 +19,9 @@ use Throwable;
  */
 class SettingsService
 {
-    public const SECTIONS = ['profile', 'receipt', 'tax'];
+    public const SECTIONS = ['profile', 'receipt', 'tax', 'discount'];
 
-    public const SECTION_LABELS = ['profile' => 'Profil koperasi', 'receipt' => 'Pengaturan struk', 'tax' => 'Pajak & pembulatan'];
+    public const SECTION_LABELS = ['profile' => 'Profil koperasi', 'receipt' => 'Pengaturan struk', 'tax' => 'Pajak & pembulatan', 'discount' => 'Diskon manual kasir'];
 
     public const CACHE_KEY = 'settings:all';
 
@@ -58,6 +58,12 @@ class SettingsService
             'rounding' => 'none',    // none | up | nearest | down
             'rounding_unit' => 100,  // 100 | 500 | 1000
             'cash_only' => true,     // pembulatan hanya untuk tunai
+        ],
+        'discount' => [
+            'enabled' => true,          // kasir boleh memberi diskon manual
+            'max_percent' => 10,        // batas persen per transaksi tanpa admin
+            'max_amount' => 20000,      // batas rupiah per transaksi tanpa admin
+            'reason_required' => true,  // alasan wajib diisi
         ],
     ];
 
@@ -107,6 +113,12 @@ class SettingsService
     public function tax(): array
     {
         return $this->section('tax');
+    }
+
+    /** Aturan diskon manual kasir: enabled, max_percent, max_amount, reason_required. */
+    public function discount(): array
+    {
+        return $this->section('discount');
     }
 
     /** Tarif pajak efektif dalam persen (0 bila pajak dimatikan). */
@@ -199,6 +211,12 @@ class SettingsService
                 'rounding_unit' => ['sometimes', 'required', 'integer', 'in:'.implode(',', PriceCalculator::UNITS)],
                 'cash_only' => ['sometimes', 'boolean'],
             ],
+            'discount' => [
+                'enabled' => ['sometimes', 'boolean'],
+                'max_percent' => ['sometimes', 'required', 'integer', 'min:1', 'max:100'],
+                'max_amount' => ['sometimes', 'required', 'integer', 'min:0', 'max:10000000'],
+                'reason_required' => ['sometimes', 'boolean'],
+            ],
             default => abort(404),
         };
     }
@@ -228,6 +246,9 @@ class SettingsService
             'required' => 'Wajib diisi.',
             'max' => 'Maksimal :max karakter.',
             'rate.max' => 'Tarif maksimal 100%.',
+            'max_percent.max' => 'Batas persen maksimal 100%.',
+            'max_percent.min' => 'Batas persen minimal 1%.',
+            'max_amount.max' => 'Batas rupiah terlalu besar.',
             'rate.min' => 'Tarif tidak boleh negatif.',
             'rate.numeric' => 'Tarif harus berupa angka.',
             'rate.decimal' => 'Tarif maksimal 2 angka di belakang koma.',

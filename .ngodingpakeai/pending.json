@@ -1,6 +1,6 @@
 {
   "repo": "Koperasi Sekolah",
-  "generatedForCommit": "0fa22b6ab263021358735e99367b9456b004f0f4",
+  "generatedForCommit": "99af0b6b954540fd048c10e4c8361aa45f140b9a",
   "files": [
     {
       "path": ".claude/skills/ngodingpakeai/SKILL.md",
@@ -118,7 +118,7 @@
     },
     {
       "path": "app/Http/Controllers/Kas/CashExportController.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 3297
     },
@@ -238,7 +238,7 @@
     },
     {
       "path": "app/Jobs/ExportCashRecap.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 2178
     },
@@ -322,19 +322,19 @@
     },
     {
       "path": "app/Livewire/Kas/Index.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 10558
     },
     {
       "path": "app/Livewire/Kas/Recap.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 4437
     },
     {
       "path": "app/Livewire/Kas/Shifts.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 4406
     },
@@ -459,6 +459,12 @@
       "size": 368
     },
     {
+      "path": "app/Models/Coupon.php",
+      "reason": "new",
+      "language": "php",
+      "size": 2285
+    },
+    {
       "path": "app/Models/Member.php",
       "reason": "needs_summary",
       "language": "php",
@@ -477,8 +483,20 @@
       "size": 1408
     },
     {
-      "path": "app/Models/ReportExport.php",
+      "path": "app/Models/Promo.php",
       "reason": "new",
+      "language": "php",
+      "size": 3273
+    },
+    {
+      "path": "app/Models/PromoTarget.php",
+      "reason": "new",
+      "language": "php",
+      "size": 652
+    },
+    {
+      "path": "app/Models/ReportExport.php",
+      "reason": "needs_summary",
       "language": "php",
       "size": 1518
     },
@@ -508,9 +526,15 @@
     },
     {
       "path": "app/Models/Transaction.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 2381
+      "size": 2576
+    },
+    {
+      "path": "app/Models/TransactionDiscount.php",
+      "reason": "new",
+      "language": "php",
+      "size": 1139
     },
     {
       "path": "app/Models/TransactionItem.php",
@@ -574,7 +598,7 @@
     },
     {
       "path": "app/Services/CashRecapExport.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 4089
     },
@@ -658,7 +682,7 @@
     },
     {
       "path": "app/Services/ReportExportService.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 1492
     },
@@ -730,7 +754,7 @@
     },
     {
       "path": "app/Support/MockData.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 25457
     },
@@ -879,6 +903,12 @@
       "size": 297
     },
     {
+      "path": "database/factories/CouponFactory.php",
+      "reason": "new",
+      "language": "php",
+      "size": 722
+    },
+    {
       "path": "database/factories/MemberFactory.php",
       "reason": "needs_summary",
       "language": "php",
@@ -895,6 +925,12 @@
       "reason": "needs_summary",
       "language": "php",
       "size": 999
+    },
+    {
+      "path": "database/factories/PromoFactory.php",
+      "reason": "new",
+      "language": "php",
+      "size": 740
     },
     {
       "path": "database/factories/SavingsTransactionFactory.php",
@@ -1036,9 +1072,15 @@
     },
     {
       "path": "database/migrations/2026_10_13_000005_create_report_exports_table.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 1674
+    },
+    {
+      "path": "database/migrations/2026_10_13_000006_create_promo_coupon_discount_tables.php",
+      "reason": "new",
+      "language": "php",
+      "size": 7132
     },
     {
       "path": "database/seeders/ActivityLogSeeder.php",
@@ -1054,9 +1096,9 @@
     },
     {
       "path": "database/seeders/DatabaseSeeder.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 775
+      "size": 795
     },
     {
       "path": "database/seeders/MemberSeeder.php",
@@ -1075,6 +1117,12 @@
       "reason": "needs_summary",
       "language": "php",
       "size": 1285
+    },
+    {
+      "path": "database/seeders/PromoSeeder.php",
+      "reason": "new",
+      "language": "php",
+      "size": 3900
     },
     {
       "path": "database/seeders/TransactionSeeder.php",
@@ -1402,25 +1450,25 @@
     },
     {
       "path": "resources/views/livewire/kas/index.blade.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 20641
     },
     {
       "path": "resources/views/livewire/kas/partials/shift-form.blade.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 18771
     },
     {
       "path": "resources/views/livewire/kas/recap.blade.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 12426
     },
     {
       "path": "resources/views/livewire/kas/shifts.blade.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 8303
     },
@@ -1588,13 +1636,13 @@
     },
     {
       "path": "routes/console.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 1035
     },
     {
       "path": "routes/web.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 14374
     },
@@ -1785,6 +1833,12 @@
       "size": 3377
     },
     {
+      "path": "tests/Feature/Database/PromoSchemaTest.php",
+      "reason": "new",
+      "language": "php",
+      "size": 4711
+    },
+    {
       "path": "tests/Feature/Database/SavingsTransactionModelTest.php",
       "reason": "needs_summary",
       "language": "php",
@@ -1840,7 +1894,7 @@
     },
     {
       "path": "tests/Feature/Kas/CashExportTest.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 4656
     },
@@ -1864,13 +1918,13 @@
     },
     {
       "path": "tests/Feature/Kas/IndexTest.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 7571
     },
     {
       "path": "tests/Feature/Kas/RecapTest.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 3361
     },
@@ -1888,7 +1942,7 @@
     },
     {
       "path": "tests/Feature/Kas/ShiftsTest.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 3489
     },

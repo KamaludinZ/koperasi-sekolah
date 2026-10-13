@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\CashShift;
 use App\Models\Product;
 use App\Models\Transaction;
+use App\Models\User;
 use App\Support\PriceCalculator;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Support\Facades\DB;
@@ -12,25 +13,27 @@ use Illuminate\Validation\ValidationException;
 
 /**
  * Menyimpan transaksi penjualan kasir secara atomik:
- * kunci baris barang → validasi stok → hitung total di server (diskon manual dipotong
- * dari subtotal, lalu pajak & pembulatan dari pengaturan, lihat PriceCalculator) →
+ * kunci baris barang → validasi stok → hitung total di server (diskon manual dicek batasnya
+ * lewat ManualDiscountService & dipotong dari subtotal, lalu pajak & pembulatan dari
+ * pengaturan, lihat PriceCalculator) → simpan rincian diskon (transaction_discounts) →
  * simpan transaksi + item (snapshot nama & harga), tertaut ke shift kasir yang terbuka →
  * kurangi stok → catat mutasi stok.
  */
 class CheckoutService
 {
-    public function __construct(private StockService $stock, private SettingsService $settings) {}
+    public function __construct(private StockService $stock, private SettingsService $settings, private ManualDiscountService $manualDiscounts) {}
 
     public const PAYMENT_METHODS = ['tunai' => 'Tunai', 'qris' => 'QRIS / Transfer'];
 
     /**
      * @param  array<int, int>  $items  [productId => quantity]
      * @param  int|null  $paid  uang dibayar; untuk non-tunai otomatis sama dengan total
-     * @param  int  $discount  potongan manual (rupiah) atas subtotal, sebelum pajak; dibatasi 0..subtotal
+     * @param  array{type: string, value: int, reason?: ?string}|null  $manualDiscount  diskon manual kasir (persen/rupiah)
+     *                                                                                   atas subtotal, sebelum pajak — dicek batasnya
      *
      * @throws ValidationException bila keranjang kosong, stok kurang, atau bayar kurang
      */
-    public function checkout(array $items, string $paymentMethod, ?int $paid, ?int $userId = null, ?int $memberId = null, int $discount = 0, ?string $discountReason = null): Transaction
+    public function checkout(array $items, string $paymentMethod, ?int $paid, ?int $userId = null, ?int $memberId = null, ?array $manualDiscount = null): Transaction
     {
         $items = array_filter(array_map('intval', $items), fn ($qty) => $qty > 0);
 
@@ -41,7 +44,7 @@ class CheckoutService
             throw ValidationException::withMessages(['payment_method' => 'Metode bayar tidak dikenal.']);
         }
 
-        return DB::transaction(function () use ($items, $paymentMethod, $paid, $userId, $memberId, $discount, $discountReason) {
+        return DB::transaction(function () use ($items, $paymentMethod, $paid, $userId, $memberId, $manualDiscount) {
             // Kunci baris barang (urut id agar tidak deadlock) supaya stok tidak terjual ganda.
             $products = Product::active()
                 ->whereKey(array_keys($items))
@@ -75,7 +78,9 @@ class CheckoutService
 
             $subtotal = array_sum(array_column($lines, 'subtotal'));
             $taxSettings = $this->settings->tax();
-            $discount = max(0, min($discount, $subtotal));
+            $manual = $this->manualDiscounts->resolve($manualDiscount, $subtotal, $userId ? User::find($userId) : null);
+            $discount = $manual['amount'] ?? 0;
+            $discountReason = $manual['reason'] ?? null;
             $price = PriceCalculator::compute($subtotal - $discount, $taxSettings, $paymentMethod);
             $total = $price['payable'];
             $paid = $paymentMethod === 'tunai' ? $paid : $total;
@@ -101,6 +106,12 @@ class CheckoutService
                 'payment_method' => $paymentMethod,
                 'item_count' => array_sum(array_column($lines, 'quantity')),
             ]);
+
+            if ($manual && $manual['amount'] > 0) {
+                $transaction->discounts()->create([
+                    'source' => 'manual', 'label' => $manual['label'], 'amount' => $manual['amount'], 'reason' => $manual['reason'],
+                ]);
+            }
 
             foreach ($lines as $line) {
                 /** @var Product $product */

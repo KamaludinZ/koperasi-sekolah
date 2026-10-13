@@ -23,7 +23,8 @@ class DiscountDisplayTest extends TestCase
 
     private function sale(int $discount, ?string $reason = null)
     {
-        return app(CheckoutService::class)->checkout([$this->pid('ATK001') => 5], 'tunai', 20000, auth()->id(), null, $discount, $reason);
+        return app(CheckoutService::class)->checkout([$this->pid('ATK001') => 5], 'tunai', 20000, auth()->id(), null,
+            $discount ? ['type' => 'nominal', 'value' => $discount, 'reason' => $reason] : null);
     }
 
     public function test_receipt_data_carries_discount_reason(): void

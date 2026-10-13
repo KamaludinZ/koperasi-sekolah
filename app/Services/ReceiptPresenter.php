@@ -47,11 +47,16 @@ class ReceiptPresenter
     }
 
     /**
-     * Alasan diskon manual dari jejak audit penjualan (`sale.created`); null bila tidak dicatat.
-     * Tahap ini belum ada kolom alasan di tabel transaksi.
+     * Alasan diskon manual dari rincian diskon (transaction_discounts); transaksi lama dari
+     * jejak audit penjualan (`sale.created`). Null bila tidak dicatat.
      */
     public static function discountReason(Transaction $transaction): ?string
     {
+        $manual = $transaction->discounts()->where('source', 'manual')->value('reason');
+        if (filled($manual)) {
+            return $manual;
+        }
+
         $properties = ActivityLog::where('subject_type', 'transaction')
             ->where('subject_id', $transaction->id)
             ->where('event', 'sale.created')

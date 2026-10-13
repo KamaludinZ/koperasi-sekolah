@@ -3,6 +3,7 @@
 namespace App\Livewire\Kasir;
 
 use App\Services\CheckoutService;
+use App\Services\ManualDiscountService;
 use App\Services\ProductCatalog;
 use App\Services\ReceiptPdfService;
 use App\Services\ReceiptPresenter;
@@ -21,7 +22,7 @@ use Livewire\Component;
  * ProductPicker dan menghitung subtotal, diskon manual, pajak, pembulatan, dan total (PriceCalculator).
  * Isi keranjang: [productId => qty]; harga diambil ulang dari data barang.
  * Diskon manual (nominal/persen + alasan) dibatasi aturan diskon kasir
- * (tahap ini dari MockData::manualDiscountRules) dan dipotong sebelum pajak.
+ * (pengaturan `discount`, lihat ManualDiscountService; admin boleh melewati batas) dan dipotong sebelum pajak.
  */
 class Cart extends Component
 {
@@ -198,40 +199,31 @@ class Cart extends Component
     }
 
     /** Terapkan diskon manual setelah dicek terhadap batas diskon kasir. */
-    public function applyDiscount(): void
+    public function applyDiscount(ManualDiscountService $discounts): void
     {
-        $rules = MockData::manualDiscountRules();
         $isPercent = $this->discountType === 'persen';
 
         $this->validate([
-            'discountType' => ['required', 'in:nominal,persen'],
+            'discountType' => ['required', 'in:'.implode(',', array_keys(ManualDiscountService::TYPES))],
             'discountValue' => ['required', 'integer', 'min:1', $isPercent ? 'max:100' : 'max:10000000'],
-            'discountReason' => [$rules['reason_required'] ? 'required' : 'nullable', 'string', 'max:100'],
+            'discountReason' => ['nullable', 'string', 'max:100'],
         ], [
             'discountValue.required' => 'Isi besar diskon.',
             'discountValue.min' => 'Diskon minimal 1.',
             'discountValue.max' => $isPercent ? 'Diskon maksimal 100%.' : 'Diskon terlalu besar.',
-            'discountReason.required' => 'Tulis alasan diskon.',
         ]);
 
-        if (! $rules['enabled']) {
-            $this->addError('discountValue', 'Diskon manual sedang dimatikan oleh admin.');
-
-            return;
-        }
-        $amount = self::discountAmount(['type' => $this->discountType, 'value' => $this->discountValue], $this->summary['subtotal']);
-        if (($isPercent && $this->discountValue > $rules['max_percent']) || $amount > $rules['max_amount']) {
-            $this->addError('discountValue', 'Melebihi batas diskon kasir ('.$rules['max_percent'].'% · maks. Rp'.number_format($rules['max_amount'], 0, ',', '.').'). Minta persetujuan admin.');
-
-            return;
-        }
-        if (! $isPercent && $this->discountValue > $this->summary['subtotal']) {
-            $this->addError('discountValue', 'Diskon tidak boleh melebihi subtotal belanja.');
+        $spec = ['type' => $this->discountType, 'value' => (int) $this->discountValue, 'reason' => trim($this->discountReason)];
+        try {
+            $discounts->resolve($spec, $this->summary['subtotal'], auth()->user());
+        } catch (ValidationException $e) {
+            $message = $e->errors()['discount'][0];
+            $this->addError($message === 'Tulis alasan diskon.' ? 'discountReason' : 'discountValue', $message);
 
             return;
         }
 
-        $this->discount = ['type' => $this->discountType, 'value' => $this->discountValue, 'reason' => trim($this->discountReason)];
+        $this->discount = $spec;
         $this->editingDiscount = false;
         unset($this->summary);
     }
@@ -248,12 +240,7 @@ class Cart extends Component
     /** Rupiah potongan dari diskon (persen dibulatkan ke rupiah), tidak melebihi subtotal. */
     public static function discountAmount(?array $discount, int $subtotal): int
     {
-        if (! $discount || $subtotal <= 0) {
-            return 0;
-        }
-        $amount = $discount['type'] === 'persen' ? (int) round($subtotal * $discount['value'] / 100) : (int) $discount['value'];
-
-        return max(0, min($amount, $subtotal));
+        return $discount ? ManualDiscountService::amount($discount['type'], (int) $discount['value'], $subtotal) : 0;
     }
 
     public function openPayment(): void
@@ -288,13 +275,6 @@ class Cart extends Component
             $this->paid = $summary['total'];
         }
 
-        // Isi keranjang bisa berubah setelah diskon persen diterapkan: cek ulang batasnya.
-        if ($summary['discount'] > MockData::manualDiscountRules()['max_amount']) {
-            $this->addError('paid', 'Diskon melebihi batas kasir setelah keranjang berubah. Ubah diskonnya dulu.');
-
-            return;
-        }
-
         $this->validate([
             'paymentMethod' => ['required', 'in:'.implode(',', array_keys(self::PAYMENT_METHODS))],
             'paid' => ['required', 'integer', 'min:'.$summary['total']],
@@ -304,10 +284,15 @@ class Cart extends Component
         ]);
 
         try {
-            $transaction = $checkout->checkout($this->items, $this->paymentMethod, $this->paid, auth()->id(), null, $summary['discount'], $this->discount['reason'] ?? null);
+            // Diskon dicek ulang di server (isi keranjang bisa berubah setelah diskon persen diterapkan).
+            $transaction = $checkout->checkout($this->items, $this->paymentMethod, $this->paid, auth()->id(), null, $this->discount);
         } catch (ValidationException $e) {
             foreach ($e->errors() as $field => $messages) {
-                $this->addError($field === 'payment_method' ? 'paymentMethod' : $field, implode(' ', $messages));
+                $this->addError(match ($field) {
+                    'payment_method' => 'paymentMethod',
+                    'discount' => 'paid', // tampil di panel bayar
+                    default => $field,
+                }, ($field === 'discount' ? 'Diskon: ' : '').implode(' ', $messages));
             }
 
             return;

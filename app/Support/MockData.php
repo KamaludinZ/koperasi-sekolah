@@ -304,10 +304,13 @@ class MockData
         };
     }
 
-    /** Aturan diskon manual kasir tiruan: batas potongan tanpa persetujuan admin. */
+    /** Aturan diskon manual kasir (pengaturan `discount`) + pemakaian 7 hari terakhir. */
     public static function manualDiscountRules(): array
     {
-        return session('mock.manual_discount') ?? ['enabled' => true, 'max_percent' => 10, 'max_amount' => 20000, 'reason_required' => true, 'used_7_days' => 23, 'given_7_days' => 46500];
+        $service = app(\App\Services\ManualDiscountService::class);
+        $usage = $service->usage(7);
+
+        return [...$service->rules(), 'used_7_days' => $usage['count'], 'given_7_days' => $usage['amount']];
     }
 
     /** Anggota koperasi tiruan (siswa & guru) dengan saldo tabungan, untuk tahap frontend. */

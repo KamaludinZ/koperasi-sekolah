@@ -1,6 +1,7 @@
 {{-- Diskon manual transaksi: baris diskon terpasang, tombol tambah, atau form nominal/persen + alasan --}}
 @php
-    $rules = \App\Support\MockData::manualDiscountRules();
+    $rules = app(\App\Services\ManualDiscountService::class)->rules();
+    $unlimited = \App\Services\ManualDiscountService::canExceedLimit(auth()->user());
     $isPercent = $discountType === 'persen';
 @endphp
 @if ($summary['count'] > 0)
@@ -34,7 +35,7 @@
             </div>
             @error('discountValue') <p class="text-xs text-red-600">{{ $message }}</p> @enderror
             <div>
-                <input type="text" wire:model="discountReason" maxlength="100" placeholder="Alasan diskon{{ $rules['reason_required'] ? '' : ' (opsional)' }}" aria-label="Alasan diskon"
+                <input type="text" wire:model="discountReason" maxlength="100" placeholder="Alasan diskon{{ $rules['reason_required'] && ! $unlimited ? '' : ' (opsional)' }}" aria-label="Alasan diskon"
                        @error('discountReason') aria-invalid="true" @enderror
                        class="w-full rounded-lg border border-stone-300 bg-white px-3 py-1.5 text-sm outline-none focus:border-emerald-600 focus:ring-4 focus:ring-emerald-600/15">
                 <div class="mt-1.5 flex flex-wrap gap-1">
@@ -44,7 +45,10 @@
                 </div>
                 @error('discountReason') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
             </div>
-            <p class="text-[11px] text-stone-500">Batas kasir {{ $rules['max_percent'] }}% · maks. {{ $rp($rules['max_amount']) }}. Lebih dari itu perlu persetujuan admin.</p>
+            <p class="text-[11px] text-stone-500">
+                @if ($unlimited) Anda admin: boleh melewati batas kasir ({{ $rules['max_percent'] }}% · maks. {{ $rp($rules['max_amount']) }}).
+                @else Batas kasir {{ $rules['max_percent'] }}% · maks. {{ $rp($rules['max_amount']) }}. Lebih dari itu perlu persetujuan admin. @endif
+            </p>
             <div class="flex gap-2">
                 <button type="button" wire:click="cancelDiscount" class="rounded-lg border border-stone-300 bg-white px-3 py-1.5 text-sm font-medium text-stone-700 hover:bg-stone-50">Batal</button>
                 <button type="submit" wire:loading.attr="disabled" wire:target="applyDiscount" class="flex-1 rounded-lg bg-emerald-700 py-1.5 text-sm font-semibold text-white hover:bg-emerald-800 disabled:opacity-60">Terapkan diskon</button>
@@ -63,7 +67,7 @@
                 </button>
             </span>
         </div>
-    @elseif ($rules['enabled'])
+    @elseif ($rules['enabled'] || $unlimited)
         <button type="button" wire:click="editDiscount" class="flex items-center gap-1 text-sm font-medium text-emerald-800 hover:underline">
             <svg class="size-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
             Tambah diskon

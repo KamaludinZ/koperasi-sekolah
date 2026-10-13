@@ -10,7 +10,8 @@ use Illuminate\Validation\Rule;
 
 /**
  * POST /kasir/transaksi
- * Body: { items: [{product_id, quantity}], payment_method: tunai|qris, paid?: int }
+ * Body: { items: [{product_id, quantity}], payment_method: tunai|qris, paid?: int,
+ *         discount?: {type: persen|nominal, value: int, reason?: string} }  — diskon manual, dicek batasnya
  * Menyimpan transaksi & mengurangi stok; total dihitung ulang di server.
  */
 class CheckoutController extends Controller
@@ -23,6 +24,10 @@ class CheckoutController extends Controller
             'items.*.quantity' => ['required', 'integer', 'min:1', 'max:10000'],
             'payment_method' => ['required', Rule::in(array_keys(CheckoutService::PAYMENT_METHODS))],
             'paid' => ['nullable', 'integer', 'min:0', 'required_if:payment_method,tunai'],
+            'discount' => ['nullable', 'array:type,value,reason'],
+            'discount.type' => ['required_with:discount', Rule::in(['persen', 'nominal'])],
+            'discount.value' => ['required_with:discount', 'integer', 'min:1', 'max:10000000'],
+            'discount.reason' => ['nullable', 'string', 'max:100'],
         ]);
 
         $transaction = $checkout->checkout(
@@ -30,6 +35,8 @@ class CheckoutController extends Controller
             $data['payment_method'],
             $data['paid'] ?? null,
             $request->user()?->id,
+            null,
+            $data['discount'] ?? null,
         );
 
         return response()->json(['data' => $transaction], 201);
