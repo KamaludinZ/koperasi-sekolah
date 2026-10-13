@@ -28,6 +28,7 @@ use App\Http\Controllers\Laporan\SalesExportController;
 use App\Http\Controllers\Laporan\SalesReportController;
 use App\Http\Controllers\Notifikasi\AnnouncementController;
 use App\Http\Controllers\Notifikasi\NotificationController;
+use App\Http\Controllers\Pengadaan\PurchaseOrderController;
 use App\Http\Controllers\Pengadaan\SupplierController;
 use App\Http\Controllers\Pengaturan\LogoController;
 use App\Http\Controllers\Promo\PromoController;
@@ -165,6 +166,13 @@ Route::middleware('menu:promo')->group(function () {
 Route::middleware('menu:pengadaan')->group(function () {
     Route::get('/pengadaan', Pengadaan\Index::class)->name('pengadaan');
     Route::get('/pengadaan/pesanan', Pengadaan\Orders::class)->name('pengadaan.pesanan');
+    Route::get('/pengadaan/pesanan/data', [PurchaseOrderController::class, 'index'])->name('pengadaan.pesanan.data');
+    Route::get('/pengadaan/pesanan/{order}/data', [PurchaseOrderController::class, 'show'])->whereNumber('order')->name('pengadaan.pesanan.show');
+    Route::middleware(['can:kelola-pengadaan', 'throttle:60,1'])->group(function () {
+        Route::post('/pengadaan/pesanan', [PurchaseOrderController::class, 'store'])->name('pengadaan.pesanan.store');
+        Route::post('/pengadaan/pesanan/{order}/kirim', [PurchaseOrderController::class, 'send'])->whereNumber('order')->name('pengadaan.pesanan.send');
+        Route::post('/pengadaan/pesanan/{order}/batal', [PurchaseOrderController::class, 'cancel'])->whereNumber('order')->name('pengadaan.pesanan.cancel');
+    });
     Route::get('/pengadaan/pesanan/baru', Pengadaan\OrderForm::class)->name('pengadaan.pesanan.buat');
     Route::get('/pengadaan/penerimaan', Pengadaan\Receiving::class)->name('pengadaan.penerimaan');
     Route::get('/pengadaan/hutang', Pengadaan\Payables::class)->name('pengadaan.hutang');

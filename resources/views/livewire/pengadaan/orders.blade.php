@@ -12,7 +12,6 @@
                 <p class="text-xs text-stone-500">Pesanan pembelian ke supplier dan kemajuan penerimaannya.</p>
             </div>
             <div class="flex items-center gap-2">
-                <span class="rounded-full bg-amber-100 px-3 py-1 text-xs font-medium text-amber-900">Data contoh</span>
                 @if ($url = Index::link('pengadaan.pesanan.buat'))
                     <a href="{{ $url }}" wire:navigate class="rounded-xl bg-emerald-700 px-4 py-2.5 text-sm font-semibold text-white hover:bg-emerald-800">Buat pesanan</a>
                 @else
@@ -130,10 +129,30 @@
                         </table>
                     </section>
                 </div>
-                @if (in_array($sel['status'], ['dipesan', 'sebagian'], true) && ($url = Index::link('pengadaan.penerimaan', ['pesanan' => $sel['id']])))
-                    <div class="border-t border-stone-200 px-5 py-3">
-                        <a href="{{ $url }}" wire:navigate class="block w-full rounded-xl bg-emerald-700 px-4 py-2 text-center text-sm font-semibold text-white hover:bg-emerald-800">Catat penerimaan barang</a>
+                @if ($this->canManage && $sel['status'] !== 'diterima' && $sel['status'] !== 'dibatalkan')
+                    <div class="space-y-2 border-t border-stone-200 px-5 py-3">
+                        @if ($sel['status'] === 'draf')
+                            <button type="button" wire:click="send" class="block w-full rounded-xl bg-emerald-700 px-4 py-2 text-center text-sm font-semibold text-white hover:bg-emerald-800">Tandai sudah dipesan</button>
+                        @elseif ($url = Index::link('pengadaan.penerimaan', ['pesanan' => $sel['id']]))
+                            <a href="{{ $url }}" wire:navigate class="block w-full rounded-xl bg-emerald-700 px-4 py-2 text-center text-sm font-semibold text-white hover:bg-emerald-800">Catat penerimaan barang</a>
+                        @endif
+                        @if (in_array($sel['status'], ['draf', 'dipesan'], true) && $sel['received_qty'] === 0)
+                            @if ($cancelling)
+                                <label class="block text-xs"><span class="font-medium text-stone-700">Alasan pembatalan</span>
+                                    <input type="text" wire:model="cancelReason" maxlength="200" class="mt-1 w-full rounded-lg border border-stone-300 px-2.5 py-1.5 text-sm"></label>
+                                @error('cancelReason') <p class="text-xs text-red-600">{{ $message }}</p> @enderror
+                                <div class="flex justify-end gap-2">
+                                    <button type="button" wire:click="$set('cancelling', false)" class="rounded-lg px-3 py-1.5 text-xs font-medium text-stone-600 hover:bg-stone-100">Batal</button>
+                                    <button type="button" wire:click="cancel" class="rounded-lg bg-red-700 px-3 py-1.5 text-xs font-semibold text-white hover:bg-red-800">Batalkan pesanan</button>
+                                </div>
+                            @else
+                                <button type="button" wire:click="$set('cancelling', true)" class="block w-full text-center text-sm font-semibold text-red-700 hover:underline">Batalkan pesanan…</button>
+                            @endif
+                        @endif
                     </div>
+                @endif
+                @if ($sel['cancel_reason'])
+                    <p class="border-t border-stone-200 px-5 py-3 text-sm text-red-800">Dibatalkan: {{ $sel['cancel_reason'] }}</p>
                 @endif
             </div>
         </div>

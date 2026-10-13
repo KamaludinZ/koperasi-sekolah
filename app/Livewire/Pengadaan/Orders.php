@@ -2,7 +2,11 @@
 
 namespace App\Livewire\Pengadaan;
 
-use App\Support\MockData;
+use App\Models\PurchaseOrder;
+use App\Services\PurchaseOrderService;
+use App\Services\SupplierService;
+use Illuminate\Support\Facades\Gate;
+use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
@@ -13,7 +17,7 @@ use Livewire\Component;
  * Pengadaan → Pesanan pembelian (Admin & Pengurus): semua pesanan ke supplier dengan status
  * (draf, dipesan, diterima sebagian, diterima, dibatalkan), tanggal pesan & perkiraan tiba
  * (tanda terlambat), kemajuan penerimaan, dan nilai; saring status, supplier, pencarian nomor.
- * Tahap ini memakai MockData::purchaseOrders(); backend menyusul dengan kontrak yang sama.
+ * Data dari PurchaseOrderService; panel rincian bisa menandai draf dipesan atau membatalkan pesanan.
  */
 #[Layout('components.layouts.app')]
 #[Title('Pesanan Pembelian')]
@@ -33,7 +37,7 @@ class Orders extends Component
     #[Computed]
     public function all(): array
     {
-        return collect(MockData::purchaseOrders())->sortByDesc('ordered_at')->values()->all();
+        return app(PurchaseOrderService::class)->list();
     }
 
     #[Computed]
@@ -64,15 +68,15 @@ class Orders extends Component
     #[Computed]
     public function supplierOptions(): array
     {
-        return collect(MockData::suppliers())->pluck('name', 'id')->all();
+        return collect(app(SupplierService::class)->list())->pluck('name', 'id')->all();
     }
 
     #[Computed]
     public function selected(): ?array
     {
-        $o = $this->selectedId ? collect($this->all)->firstWhere('id', $this->selectedId) : null;
+        $o = $this->selectedId ? PurchaseOrder::with(['items', 'supplier', 'creator'])->find($this->selectedId) : null;
 
-        return $o ? $o + ['lines' => MockData::purchaseOrderItems($o['id'])] : null;
+        return $o ? PurchaseOrderService::toArray($o) + ['lines' => PurchaseOrderService::lines($o)] : null;
     }
 
     public static function isLate(array $o): bool
@@ -92,7 +96,54 @@ class Orders extends Component
 
     public function closeDetail(): void
     {
-        $this->selectedId = null;
+        $this->reset('selectedId', 'cancelling', 'cancelReason');
+        $this->resetValidation();
+    }
+
+    public bool $cancelling = false;
+
+    public string $cancelReason = '';
+
+    #[Computed]
+    public function canManage(): bool
+    {
+        return Gate::allows('kelola-pengadaan');
+    }
+
+    public function send(): void
+    {
+        $order = $this->canManage && $this->selectedId ? PurchaseOrder::find($this->selectedId) : null;
+        if (! $order) {
+            return;
+        }
+        try {
+            app(PurchaseOrderService::class)->send($order);
+        } catch (ValidationException $e) {
+            $this->dispatch('toast', type: 'error', message: collect($e->errors())->flatten()->first());
+
+            return;
+        }
+        unset($this->all, $this->orders, $this->tabs, $this->selected);
+        $this->dispatch('toast', type: 'success', message: "Pesanan {$order->number} ditandai dipesan.");
+    }
+
+    public function cancel(): void
+    {
+        $order = $this->canManage && $this->selectedId ? PurchaseOrder::find($this->selectedId) : null;
+        if (! $order) {
+            return;
+        }
+        $this->validate(['cancelReason' => ['required', 'string', 'min:3', 'max:200']], ['cancelReason.required' => 'Tulis alasan pembatalan.', 'cancelReason.min' => 'Alasan minimal 3 huruf.']);
+        try {
+            app(PurchaseOrderService::class)->cancel($order, $this->cancelReason);
+        } catch (ValidationException $e) {
+            $this->addError('cancelReason', collect($e->errors())->flatten()->first());
+
+            return;
+        }
+        $this->reset('cancelling', 'cancelReason');
+        unset($this->all, $this->orders, $this->tabs, $this->selected);
+        $this->dispatch('toast', type: 'success', message: "Pesanan {$order->number} dibatalkan.");
     }
 
     public function render()

@@ -10,7 +10,6 @@
                 <p class="text-xs text-stone-500"><a href="{{ route('pengadaan.pesanan') }}" wire:navigate class="hover:text-emerald-800 hover:underline">Pesanan pembelian</a> / Buat</p>
                 <h1 class="text-lg font-semibold">Pesanan pembelian baru</h1>
             </div>
-            <span class="rounded-full bg-amber-100 px-3 py-1 text-xs font-medium text-amber-900">Data contoh</span>
         </div>
         <x-pengadaan.nav active="pengadaan.pesanan" />
     </header>

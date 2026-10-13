@@ -35,13 +35,13 @@ class Index extends Component
     #[Computed]
     public function suppliers(): array
     {
-        return MockData::suppliers();
+        return app(\App\Services\SupplierService::class)->list();
     }
 
     #[Computed]
     public function orders(): array
     {
-        return MockData::purchaseOrders();
+        return app(\App\Services\PurchaseOrderService::class)->list();
     }
 
     #[Computed]

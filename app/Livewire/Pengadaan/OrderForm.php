@@ -3,7 +3,9 @@
 namespace App\Livewire\Pengadaan;
 
 use App\Models\Product;
-use App\Support\MockData;
+use App\Models\Supplier;
+use App\Services\PurchaseOrderService;
+use App\Services\SupplierService;
 use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
@@ -15,7 +17,7 @@ use Livewire\Component;
  * Pengadaan → Pesanan → Buat (Admin & Pengurus): pilih supplier aktif, perkiraan tiba, catatan,
  * lalu daftar barang (cari dari data barang; harga beli bawaan = harga modal). Tombol "isi dari
  * stok menipis" menambahkan barang kategori supplier yang stoknya ≤ batas minimum dengan saran
- * jumlah. Simpan sebagai draf atau langsung tandai dipesan. Tahap ini disimpan lewat MockData.
+ * jumlah. Simpan sebagai draf atau langsung tandai dipesan lewat PurchaseOrderService.
  */
 #[Layout('components.layouts.app')]
 #[Title('Buat Pesanan')]
@@ -43,7 +45,7 @@ class OrderForm extends Component
     #[Computed]
     public function suppliers(): array
     {
-        return collect(MockData::suppliers())->where('is_active', true)->values()->all();
+        return app(SupplierService::class)->list(['status' => 'aktif']);
     }
 
     #[Computed]
@@ -144,12 +146,12 @@ class OrderForm extends Component
             throw $e;
         }
 
-        $order = MockData::savePurchaseOrder(
-            ['supplier_id' => (int) $this->supplierId, 'expected_at' => $this->expectedAt, 'note' => trim($this->note) ?: null,
-                'status' => $status === 'dipesan' ? 'dipesan' : 'draf'],
-            array_map(fn ($l) => [...$l, 'qty' => (int) $l['qty'], 'cost' => (int) $l['cost']], $this->lines),
-            auth()->user()->name,
-        );
+        $order = app(PurchaseOrderService::class)->create([
+            'supplier_id' => (int) $this->supplierId, 'expected_at' => $this->expectedAt, 'note' => trim($this->note) ?: null,
+            'status' => $status === 'dipesan' ? 'dipesan' : 'draf',
+            'items' => array_map(fn ($l) => ['product_id' => $l['product_id'], 'qty' => (int) $l['qty'], 'cost' => (int) $l['cost']], $this->lines),
+        ], auth()->user());
+        $order = ['number' => $order->number, 'status' => $order->status, 'supplier' => $order->supplier->name];
         session()->flash('toast', ['type' => 'success', 'message' => "Pesanan {$order['number']} ".($order['status'] === 'dipesan' ? 'dipesan ke '.$order['supplier'].'.' : 'disimpan sebagai draf.')]);
 
         return $this->redirectRoute('pengadaan.pesanan', navigate: true);
