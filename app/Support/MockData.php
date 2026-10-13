@@ -422,4 +422,30 @@ class MockData
                 'started_at' => now()->subDays(35)->setTime(9, 55)->toDateTimeString(), 'duration_s' => 44, 'status' => 'berhasil', 'by' => 'Admin Koperasi', 'tables' => 7, 'mismatches' => 0, 'note' => null],
         ];
     }
+
+    /** Nama tampilan pekerjaan latar per kelas job. */
+    public const JOB_LABELS = [
+        'App\\Jobs\\ExportCashRecap' => 'Ekspor rekap kas',
+        'App\\Jobs\\ExportSalesReport' => 'Ekspor laporan penjualan',
+        'App\\Jobs\\SendNotification' => 'Kirim notifikasi',
+        'App\\Jobs\\RunBackup' => 'Cadangan data',
+    ];
+
+    /** Status pekerja antrean tiruan. Kontrak backend: GET /sistem/antrean/pekerja. */
+    public static function queueWorker(): array
+    {
+        return ['running' => true, 'last_seen' => now()->subSeconds(12)->toDateTimeString(), 'started_at' => now()->subHours(5)->toDateTimeString(), 'processed_today' => 37, 'memory_mb' => 48];
+    }
+
+    /** Pekerjaan selesai terbaru tiruan. Kontrak backend: GET /sistem/antrean/selesai → rows[]. */
+    public static function recentJobs(): array
+    {
+        $jobs = [
+            ['Ekspor laporan penjualan', 'default', 4, 'Admin Koperasi'], ['Kirim notifikasi', 'notifikasi', 1, null], ['Ekspor rekap kas', 'default', 3, 'Pak Dedi'],
+            ['Cadangan data', 'cadangan', 19, null], ['Kirim notifikasi', 'notifikasi', 1, null], ['Ekspor laporan penjualan', 'default', 6, 'Admin Koperasi'],
+        ];
+
+        return array_map(fn ($j, $i) => ['id' => 500 - $i, 'name' => $j[0], 'queue' => $j[1], 'duration_s' => $j[2], 'by' => $j[3],
+            'finished_at' => now()->subMinutes(7 + $i * 23)->toDateTimeString()], $jobs, array_keys($jobs));
+    }
 }
