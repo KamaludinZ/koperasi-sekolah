@@ -1,6 +1,6 @@
 {
   "repo": "Koperasi Sekolah",
-  "generatedForCommit": "8ff8880498ae70d667ef561b10e4026aad7abb58",
+  "generatedForCommit": "0e95d2b8e544f64d95bfca0e46470583f398973a",
   "files": [
     {
       "path": ".claude/skills/ngodingpakeai/SKILL.md",
@@ -292,13 +292,13 @@
     },
     {
       "path": "app/Livewire/Kas/Recap.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 3281
     },
     {
       "path": "app/Livewire/Kas/Shifts.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 3876
     },
@@ -622,7 +622,7 @@
     },
     {
       "path": "app/Support/MockData.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 27773
     },
@@ -1017,8 +1017,14 @@
       "size": 527
     },
     {
+      "path": "resources/views/components/kas/difference-badge.blade.php",
+      "reason": "new",
+      "language": "php",
+      "size": 1974
+    },
+    {
       "path": "resources/views/components/kas/nav.blade.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 745
     },
@@ -1234,9 +1240,9 @@
     },
     {
       "path": "resources/views/livewire/kas/index.blade.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 20435
+      "size": 19238
     },
     {
       "path": "resources/views/livewire/kas/partials/shift-form.blade.php",
@@ -1246,15 +1252,15 @@
     },
     {
       "path": "resources/views/livewire/kas/recap.blade.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 10869
+      "size": 10434
     },
     {
       "path": "resources/views/livewire/kas/shifts.blade.php",
-      "reason": "new",
+      "reason": "changed",
       "language": "php",
-      "size": 9820
+      "size": 8515
     },
     {
       "path": "resources/views/livewire/kasir/cart.blade.php",
@@ -1396,7 +1402,7 @@
     },
     {
       "path": "routes/web.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 12269
     },
@@ -1623,6 +1629,12 @@
       "size": 758
     },
     {
+      "path": "tests/Feature/Kas/DifferenceBadgeTest.php",
+      "reason": "new",
+      "language": "php",
+      "size": 1582
+    },
+    {
       "path": "tests/Feature/Kas/IndexTest.php",
       "reason": "needs_summary",
       "language": "php",
@@ -1636,9 +1648,9 @@
     },
     {
       "path": "tests/Feature/Kas/ShiftsTest.php",
-      "reason": "new",
+      "reason": "changed",
       "language": "php",
-      "size": 2825
+      "size": 2828
     },
     {
       "path": "tests/Feature/Kasir/CartTest.php",

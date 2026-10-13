@@ -33,6 +33,7 @@ use App\Livewire\Laporan;
 use App\Livewire\Notifikasi;
 use App\Livewire\Pengaturan;
 use App\Livewire\Pengguna;
+use App\Livewire\Promo;
 use App\Livewire\Transaksi;
 use App\Services\LogoService;
 use App\Services\SettingsService;
@@ -103,6 +104,10 @@ Route::middleware('menu:kas')->group(function () {
     Route::get('/kas', Kas\Index::class)->name('kas');
     Route::get('/kas/rekap', Kas\Recap::class)->name('kas.rekap');
     Route::get('/kas/shift', Kas\Shifts::class)->name('kas.shift');
+});
+
+Route::middleware('menu:promo')->group(function () {
+    Route::get('/promo', Promo\Index::class)->name('promo');
 });
 
 Route::middleware('menu:barang')->group(function () {

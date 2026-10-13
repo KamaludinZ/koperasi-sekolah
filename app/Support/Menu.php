@@ -39,6 +39,11 @@ class Menu
             'description' => 'Daftar barang, harga & stok',
             'icon' => 'M20 7l-8-4-8 4m16 0v10l-8 4m8-14l-8 4m0 10l-8-4V7m8 14V11',
         ],
+        'promo' => [
+            'label' => 'Diskon & Promo', 'route' => 'promo', 'group' => 'data',
+            'description' => 'Promo otomatis, kupon & diskon manual',
+            'icon' => 'M9 15l6-6M9.5 9.5h.01M14.5 14.5h.01M7 3h10l4 4v10l-4 4H7l-4-4V7z',
+        ],
         'anggota' => [
             'label' => 'Anggota', 'route' => 'anggota', 'group' => 'data',
             'description' => 'Anggota & tabungan',
@@ -71,9 +76,9 @@ class Menu
      * Pengurus: memantau data, laporan & rekap kas, tanpa layar kasir.
      */
     public const DEFAULT_PERMISSIONS = [
-        'admin' => ['kasir', 'transaksi', 'kas', 'barang', 'anggota', 'laporan', 'audit', 'pengguna', 'pengaturan'],
-        'kasir' => ['kasir', 'transaksi', 'kas', 'barang', 'anggota'],
-        'pengurus' => ['laporan', 'transaksi', 'kas', 'barang', 'anggota', 'audit'], // urutan pertama = halaman awal setelah masuk
+        'admin' => ['kasir', 'transaksi', 'kas', 'barang', 'promo', 'anggota', 'laporan', 'audit', 'pengguna', 'pengaturan'],
+        'kasir' => ['kasir', 'transaksi', 'kas', 'barang', 'promo', 'anggota'],
+        'pengurus' => ['laporan', 'transaksi', 'kas', 'barang', 'promo', 'anggota', 'audit'], // urutan pertama = halaman awal setelah masuk
     ];
 
     public static function allows(?string $role, string $menu): bool
