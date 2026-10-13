@@ -58,6 +58,29 @@ class AuditEndpointTest extends TestCase
         $this->getJson('/audit/data?per_page=500')->assertUnprocessable();
     }
 
+    public function test_detail_endpoint(): void
+    {
+        $price = \App\Models\ActivityLog::where('reason', 'Harga dari pemasok naik')->first();
+
+        $this->getJson("/audit/{$price->id}/data")->assertOk()
+            ->assertJsonPath('data.id', $price->id)
+            ->assertJsonPath('data.subject.label', 'ATK003 · Pensil 2B')
+            ->assertJsonPath('data.changes.price', ['from' => 2500, 'to' => 3000])
+            ->assertJsonPath('data.reason', 'Harga dari pemasok naik')
+            ->assertJsonPath('data.intact', true)
+            ->assertJsonCount(1, 'data.related')
+            ->assertJsonPath('data.related.0.description', fn ($d) => str_contains($d, 'ATK003') || str_contains($d, 'Pensil'));
+
+        $login = \App\Models\ActivityLog::where('event', 'auth.login')->latest('id')->first();
+        $this->getJson("/audit/{$login->id}/data")->assertJsonPath('data.subject', null)->assertJsonPath('data.related', []);
+        $this->getJson('/audit/999999/data')->assertNotFound();
+
+        $this->loginAs('pengurus@koperasi.test');
+        $this->getJson("/audit/{$price->id}/data")->assertOk()->assertJsonPath('data.ip_address', null);
+        $this->loginAs('kasir@koperasi.test');
+        $this->getJson("/audit/{$price->id}/data")->assertForbidden();
+    }
+
     public function test_permissions(): void
     {
         $this->loginAs('pengurus@koperasi.test');

@@ -1,6 +1,6 @@
 {
   "repo": "Koperasi Sekolah",
-  "generatedForCommit": "3f834eb47309874b80e3c972960a83287c9b5ded",
+  "generatedForCommit": "d633070682ae79a2c419a9dd8bf95349783f8ad7",
   "files": [
     {
       "path": ".claude/skills/ngodingpakeai/SKILL.md",
@@ -1114,9 +1114,9 @@
     },
     {
       "path": "app/Services/DiscountReport.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 4427
+      "size": 4796
     },
     {
       "path": "app/Services/GoodsReceiptService.php",
@@ -1282,7 +1282,7 @@
     },
     {
       "path": "app/Services/SalesExport.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 9811
     },
@@ -1450,9 +1450,9 @@
     },
     {
       "path": "app/Support/ReportCache.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 2380
+      "size": 2413
     },
     {
       "path": "app/Support/Rupiah.php",
@@ -2314,7 +2314,7 @@
     },
     {
       "path": "resources/views/laporan/rekap-pdf.blade.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 6924
     },
@@ -3520,13 +3520,13 @@
     },
     {
       "path": "tests/Feature/Laporan/ReportCacheTest.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 2117
+      "size": 2826
     },
     {
       "path": "tests/Feature/Laporan/SalesExportEndpointTest.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 5276
     },

@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\ActivityLog;
 use App\Models\Role;
 use App\Services\AuditChangeQuery;
+use App\Services\AuditIntegrity;
 use App\Services\AuditQuery;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -20,6 +21,9 @@ use Illuminate\Validation\Rule;
  * GET /audit/perubahan/data?jenis=barang|kategori|anggota|pengaturan&aksi=dibuat|diubah|dihapus|dipulihkan
  *     &petugas=&q=&objek=jenis:id&sensitif=1&periode=|dari=&sampai=&per_page=&page=
  *     Perubahan data master dengan nilai sebelum → sesudah + ringkasan & daftar petugas.
+ * GET /audit/{log}/data
+ *     Satu entri lengkap: properti, nilai sebelum/sesudah, hasil cek keutuhan (checksum),
+ *     dan 10 aktivitas lain terbaru pada objek yang sama.
  */
 class AuditLogController extends Controller
 {
@@ -59,6 +63,39 @@ class AuditLogController extends Controller
             'summary' => $audit->summary($from, $to),
             'meta' => $this->meta($page, $from, $to),
         ]);
+    }
+
+    public function show(Request $request, ActivityLog $log): JsonResponse
+    {
+        $admin = $request->user()->hasRole(Role::ADMIN);
+        $related = $log->subject_type
+            ? ActivityLog::where('subject_type', $log->subject_type)->where('subject_id', $log->subject_id)
+                ->whereKeyNot($log->id)->latestFirst()->limit(10)->get()
+                ->map(fn (ActivityLog $r) => ['id' => $r->id, 'at' => $r->created_at->toDateTimeString(), 'event' => $r->event,
+                    'description' => $r->description, 'actor' => $r->actor_name])
+            : collect();
+
+        return response()->json(['data' => [
+            'id' => $log->id,
+            'at' => $log->created_at->toDateTimeString(),
+            'event' => $log->event,
+            'category' => $log->category,
+            'category_label' => $log->category_label,
+            'action' => $log->action,
+            'description' => $log->description,
+            'subject' => $log->subject_type ? ['type' => $log->subject_type, 'id' => $log->subject_id, 'label' => $log->subject_label] : null,
+            'actor' => ['id' => $log->actor_id, 'name' => $log->actor_name, 'role' => $log->actor_role],
+            'amount' => $log->amount,
+            'reason' => $log->reason,
+            'properties' => $log->properties ?? [],
+            'old_values' => $log->old_values,
+            'new_values' => $log->new_values,
+            'changes' => $log->action ? $log->field_changes : ($log->properties['changes'] ?? null),
+            'intact' => AuditIntegrity::isValid($log),
+            'ip_address' => $admin ? $log->ip_address : null,
+            'user_agent' => $admin ? $log->user_agent : null,
+            'related' => $related->values(),
+        ]]);
     }
 
     public function changes(Request $request, AuditChangeQuery $changes): JsonResponse
