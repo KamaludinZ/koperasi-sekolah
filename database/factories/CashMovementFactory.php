@@ -16,6 +16,7 @@ class CashMovementFactory extends Factory
         return [
             'cash_shift_id' => CashShift::factory(),
             'type' => CashMovement::TYPE_IN,
+            'category' => 'kembalian',
             'amount' => 50000,
             'reason' => 'Tambah uang kembalian',
         ];
@@ -23,6 +24,6 @@ class CashMovementFactory extends Factory
 
     public function out(int $amount = 20000, string $reason = 'Setor ke bendahara'): static
     {
-        return $this->state(['type' => CashMovement::TYPE_OUT, 'amount' => $amount, 'reason' => $reason]);
+        return $this->state(['type' => CashMovement::TYPE_OUT, 'category' => 'bendahara', 'amount' => $amount, 'reason' => $reason]);
     }
 }

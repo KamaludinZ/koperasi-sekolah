@@ -1,6 +1,6 @@
 {
   "repo": "Koperasi Sekolah",
-  "generatedForCommit": "05c21e4559baf81556b24912ea42009ed31fd167",
+  "generatedForCommit": "0e9e6515325199d62664d28806dd7983bea148f9",
   "files": [
     {
       "path": ".claude/skills/ngodingpakeai/SKILL.md",
@@ -115,6 +115,12 @@
       "reason": "needs_summary",
       "language": "php",
       "size": 77
+    },
+    {
+      "path": "app/Http/Controllers/Kas/ShiftController.php",
+      "reason": "new",
+      "language": "php",
+      "size": 1747
     },
     {
       "path": "app/Http/Controllers/Kasir/CheckoutController.php",
@@ -400,19 +406,19 @@
     },
     {
       "path": "app/Models/ActivityLog.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 2012
+      "size": 2051
     },
     {
       "path": "app/Models/CashMovement.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 1286
     },
     {
       "path": "app/Models/CashShift.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 3326
     },
@@ -466,7 +472,7 @@
     },
     {
       "path": "app/Models/Transaction.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 2381
     },
@@ -490,9 +496,9 @@
     },
     {
       "path": "app/Providers/AppServiceProvider.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 1368
+      "size": 1552
     },
     {
       "path": "app/Services/AnnouncementService.php",
@@ -520,9 +526,9 @@
     },
     {
       "path": "app/Services/CheckoutService.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 7287
+      "size": 7462
     },
     {
       "path": "app/Services/LogoService.php",
@@ -619,6 +625,12 @@
       "reason": "needs_summary",
       "language": "php",
       "size": 14189
+    },
+    {
+      "path": "app/Services/ShiftService.php",
+      "reason": "new",
+      "language": "php",
+      "size": 6537
     },
     {
       "path": "app/Services/StockService.php",
@@ -784,13 +796,13 @@
     },
     {
       "path": "database/factories/CashMovementFactory.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 704
     },
     {
       "path": "database/factories/CashShiftFactory.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 983
     },
@@ -946,7 +958,7 @@
     },
     {
       "path": "database/migrations/2026_10_13_000003_create_cash_shifts_tables.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 4051
     },
@@ -1258,9 +1270,9 @@
     },
     {
       "path": "resources/views/livewire/audit/index.blade.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 14651
+      "size": 14750
     },
     {
       "path": "resources/views/livewire/audit/partials/detail.blade.php",
@@ -1498,9 +1510,9 @@
     },
     {
       "path": "routes/web.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 12490
+      "size": 12955
     },
     {
       "path": "tests/Feature/Anggota/IndexTest.php",
@@ -1654,7 +1666,7 @@
     },
     {
       "path": "tests/Feature/Database/CashShiftSchemaTest.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 4262
     },
@@ -1747,6 +1759,12 @@
       "reason": "needs_summary",
       "language": "php",
       "size": 2815
+    },
+    {
+      "path": "tests/Feature/Kas/ShiftEndpointTest.php",
+      "reason": "new",
+      "language": "php",
+      "size": 4974
     },
     {
       "path": "tests/Feature/Kas/ShiftsTest.php",
