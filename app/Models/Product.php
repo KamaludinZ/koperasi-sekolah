@@ -72,6 +72,30 @@ class Product extends Model
         return $this->hasMany(StockMovement::class)->latestFirst();
     }
 
+    /** Pergerakan stok paling akhir. */
+    public function latestMovement(): \Illuminate\Database\Eloquent\Relations\HasOne
+    {
+        return $this->hasOne(StockMovement::class)->latestOfMany();
+    }
+
+    /** Baris penjualan yang memuat barang ini. */
+    public function transactionItems(): HasMany
+    {
+        return $this->hasMany(TransactionItem::class);
+    }
+
+    /** Barang yang dikembalikan (retur/pembatalan). */
+    public function returnItems(): HasMany
+    {
+        return $this->hasMany(TransactionReturnItem::class);
+    }
+
+    /** Baris pesanan pembelian ke supplier. */
+    public function purchaseOrderItems(): HasMany
+    {
+        return $this->hasMany(PurchaseOrderItem::class);
+    }
+
     public function scopeActive(Builder $query): void
     {
         $query->where('is_active', true);
