@@ -286,6 +286,17 @@ Route::middleware('menu:transaksi')->group(function () {
     Route::get('/transaksi/{transaction}/batal', Transaksi\VoidForm::class)
         ->whereNumber('transaction')
         ->name('transaksi.retur.batal');
+    Route::post('/transaksi/{transaction}/batal', [ReturnController::class, 'void'])
+        ->whereNumber('transaction')
+        ->middleware('throttle:30,1')
+        ->name('transaksi.retur.void');
+    Route::get('/transaksi/retur/{return}', [ReturnController::class, 'show'])
+        ->whereNumber('return')
+        ->name('transaksi.retur.show');
+    Route::middleware(['can:setujui-retur', 'throttle:60,1'])->group(function () {
+        Route::post('/transaksi/retur/{return}/setujui', [ReturnController::class, 'approve'])->whereNumber('return')->name('transaksi.retur.approve');
+        Route::post('/transaksi/retur/{return}/tolak', [ReturnController::class, 'reject'])->whereNumber('return')->name('transaksi.retur.reject');
+    });
     Route::get('/transaksi/{transaction}/rincian', TransactionDetailController::class)
         ->whereNumber('transaction')
         ->name('transaksi.detail');

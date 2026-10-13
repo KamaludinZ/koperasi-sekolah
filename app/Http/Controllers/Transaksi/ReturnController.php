@@ -16,6 +16,14 @@ use Illuminate\Validation\Rule;
  *  condition: layak|rusak, refund_method: tunai|qris|tabungan|bon, note?}
  * → 201 {data: pengajuan RTR- berstatus menunggu}. Validasi bisnis (batas hari, sisa jumlah, cara
  * pengembalian, satu pengajuan menunggu) di TransactionReturnService → 422.
+ *
+ * POST /transaksi/{transaction}/batal  {reason: salah_input|batal_beli|ganda|lainnya, note?}
+ * → 201 {data: pengajuan BTL-, auto_approved}. Pembatalan kecil oleh kasir yang sama langsung
+ * `disetujui` (aturan nilai batas di pengaturan), selainnya `menunggu`.
+ *
+ * GET  /transaksi/retur/{return}          → {data}
+ * POST /transaksi/retur/{return}/setujui  {note?}  (gate setujui-retur; bukan pengaju) → {data}
+ * POST /transaksi/retur/{return}/tolak    {note}   (gate setujui-retur; min. 5 karakter) → {data}
  */
 class ReturnController extends Controller
 {
@@ -42,5 +50,38 @@ class ReturnController extends Controller
         );
 
         return response()->json(['data' => TransactionReturnService::toArray($r)], 201);
+    }
+
+    public function void(Request $request, Transaction $transaction, TransactionReturnService $returns): JsonResponse
+    {
+        $data = $request->validate([
+            'reason' => ['required', Rule::in(array_keys(TransactionReturn::VOID_REASONS))],
+            'note' => ['nullable', 'string', 'max:200'],
+        ], ['reason.required' => 'Pilih alasan pembatalan.']);
+
+        $r = $returns->requestVoid($transaction, $data['reason'], $data['note'] ?? null, $request->user());
+
+        return response()->json(['data' => TransactionReturnService::toArray($r), 'auto_approved' => $r->status === 'disetujui'], 201);
+    }
+
+    public function show(TransactionReturn $return): JsonResponse
+    {
+        return response()->json(['data' => TransactionReturnService::toArray($return)]);
+    }
+
+    public function approve(Request $request, TransactionReturn $return, TransactionReturnService $returns): JsonResponse
+    {
+        $data = $request->validate(['note' => ['nullable', 'string', 'max:200']]);
+
+        return response()->json(['data' => TransactionReturnService::toArray($returns->approve($return, $request->user(), $data['note'] ?? null))]);
+    }
+
+    public function reject(Request $request, TransactionReturn $return, TransactionReturnService $returns): JsonResponse
+    {
+        $data = $request->validate(['note' => ['required', 'string', 'min:5', 'max:200']], [
+            'note.required' => 'Tulis alasan penolakan.', 'note.min' => 'Alasan penolakan minimal 5 karakter.',
+        ]);
+
+        return response()->json(['data' => TransactionReturnService::toArray($returns->reject($return, $request->user(), $data['note']))]);
     }
 }

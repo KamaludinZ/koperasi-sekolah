@@ -3,7 +3,9 @@
 namespace App\Livewire\Transaksi;
 
 use App\Models\Transaction;
-use App\Support\MockData;
+use App\Models\TransactionReturn;
+use App\Services\TransactionReturnService;
+use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
@@ -14,7 +16,8 @@ use Livewire\Component;
  * pratinjau akibatnya (semua barang kembali ke stok, dana dikembalikan sesuai metode bayar),
  * dan konfirmasi dengan mengetik 4 digit terakhir nomor transaksi. Ditolak bila lewat batas
  * hari atau transaksi sudah punya pengajuan retur/pembatalan yang berjalan.
- * Tahap tampilan: pengajuan disimulasikan (data tiruan), backend pembatalan menyusul.
+ * Disimpan lewat TransactionReturnService::requestVoid; pembatalan kecil oleh kasir yang sama langsung
+ * disetujui (aturan nilai batas), selainnya menunggu persetujuan Admin/Pengurus.
  */
 #[Layout('components.layouts.app')]
 #[Title('Batalkan Transaksi')]
@@ -50,12 +53,29 @@ class VoidForm extends Component
     #[Computed]
     public function blocked(): ?string
     {
-        if ($this->tx->created_at->lt(now()->subDays(\App\Services\TransactionReturnService::limitDays())->startOfDay())) {
-            return 'Transaksi ini sudah lewat batas '.\App\Services\TransactionReturnService::limitDays().' hari, jadi tidak bisa dibatalkan.';
+        if ($this->tx->isVoided()) {
+            return 'Transaksi ini sudah dibatalkan.';
         }
-        $open = collect(MockData::transactionReturns())->first(fn ($r) => $r['transaction']['id'] === $this->transactionId && $r['status'] !== 'ditolak');
+        if (TransactionReturnService::expired($this->tx)) {
+            return 'Transaksi ini sudah lewat batas '.TransactionReturnService::limitDays().' hari, jadi tidak bisa dibatalkan.';
+        }
+        $open = $this->tx->pendingReturn()->first();
 
-        return $open ? "Transaksi ini sudah punya pengajuan {$open['number']} (".Returns::STATUSES[$open['status']].'). Selesaikan pengajuan itu dulu.' : null;
+        return $open ? "Transaksi ini sudah punya pengajuan {$open->number} (Menunggu). Selesaikan pengajuan itu dulu." : null;
+    }
+
+    /** Akan disetujui otomatis bila diajukan sekarang oleh pengguna ini? */
+    #[Computed]
+    public function autoApproval(): ?string
+    {
+        return TransactionReturnService::autoApproval($this->tx, max(0, (int) $this->tx->total - $this->tx->returned_amount), auth()->user());
+    }
+
+    /** Sisa nilai yang dikembalikan (total dikurangi retur yang sudah disetujui). */
+    #[Computed]
+    public function refundAmount(): int
+    {
+        return max(0, (int) $this->tx->total - $this->tx->returned_amount);
     }
 
     /** 4 digit terakhir nomor transaksi untuk konfirmasi. */
@@ -70,7 +90,7 @@ class VoidForm extends Component
         abort_if($this->blocked !== null, 403);
 
         $this->validate([
-            'reason' => ['required', 'in:'.implode(',', array_keys(MockData::VOID_REASONS))],
+            'reason' => ['required', 'in:'.implode(',', array_keys(TransactionReturn::VOID_REASONS))],
             'note' => [$this->reason === 'lainnya' ? 'required' : 'nullable', 'string', 'min:'.($this->reason === 'lainnya' ? 5 : 0), 'max:200'],
             'confirmCode' => ['required', 'in:'.$this->code],
         ], [
@@ -82,9 +102,18 @@ class VoidForm extends Component
             'confirmCode.in' => 'Kode konfirmasi tidak cocok.',
         ]);
 
-        // Tahap tampilan: pengajuan belum disimpan; backend pembatalan menyusul.
-        $number = 'BTL-'.now()->format('Ymd').'-'.str_pad((string) ($this->transactionId % 10000), 4, '0', STR_PAD_LEFT);
-        session()->flash('toast', ['type' => 'success', 'message' => "Pengajuan pembatalan {$number} untuk {$this->tx->invoice_number} dikirim untuk disetujui. (data contoh)"]);
+        try {
+            $r = app(TransactionReturnService::class)->requestVoid($this->tx, $this->reason, trim($this->note) ?: null, auth()->user());
+        } catch (ValidationException $e) {
+            foreach ($e->errors() as $field => $messages) {
+                $this->addError($field === 'transaction' ? 'reason' : $field, $messages[0]);
+            }
+
+            return null;
+        }
+        session()->flash('toast', ['type' => 'success', 'message' => $r->status === 'disetujui'
+            ? "Transaksi {$this->tx->invoice_number} dibatalkan ({$r->number}). Kembalikan dana Rp".number_format($r->amount, 0, ',', '.').' ke pembeli.'
+            : "Pengajuan pembatalan {$r->number} untuk {$this->tx->invoice_number} dikirim untuk disetujui."]);
 
         return $this->redirectRoute('transaksi.retur', navigate: true);
     }

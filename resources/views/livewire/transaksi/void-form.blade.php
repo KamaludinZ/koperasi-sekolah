@@ -43,7 +43,7 @@
                     <fieldset class="text-sm">
                         <legend class="mb-2 font-medium text-stone-700">Alasan pembatalan</legend>
                         <div class="grid gap-2 sm:grid-cols-2">
-                            @foreach (\App\Support\MockData::VOID_REASONS as $k => $label)
+                            @foreach (\App\Models\TransactionReturn::VOID_REASONS as $k => $label)
                                 <label class="flex cursor-pointer items-center gap-2 rounded-lg border border-stone-300 px-3 py-2 has-checked:border-red-500 has-checked:bg-red-50">
                                     <input type="radio" wire:model.live="reason" value="{{ $k }}" class="accent-red-600" @checked($reason === $k)> {{ $label }}
                                 </label>
@@ -62,15 +62,19 @@
                 <div class="rounded-2xl border border-red-200 bg-white p-5">
                     <h2 class="font-semibold text-red-800">Akibat pembatalan</h2>
                     <ul class="mt-3 space-y-2 text-sm text-stone-700">
-                        <li class="flex gap-2"><span aria-hidden="true">•</span> Seluruh {{ $t->item_count }} barang kembali ke stok.</li>
-                        <li class="flex gap-2"><span aria-hidden="true">•</span> {{ VoidForm::EFFECTS[$t->payment_method] ?? 'Dana dikembalikan ke pembeli.' }} <strong class="tabular-nums">{{ $rp((int) $t->total) }}</strong></li>
+                        <li class="flex gap-2"><span aria-hidden="true">•</span> Seluruh {{ $t->item_count }} barang{{ $t->returned_amount ? ' yang belum diretur' : '' }} kembali ke stok.</li>
+                        <li class="flex gap-2"><span aria-hidden="true">•</span> {{ VoidForm::EFFECTS[$t->payment_method] ?? 'Dana dikembalikan ke pembeli.' }} <strong class="tabular-nums">{{ $rp($this->refundAmount) }}</strong></li>
                         <li class="flex gap-2"><span aria-hidden="true">•</span> Transaksi tetap tercatat dengan tanda <em>dibatalkan</em> dan tidak dihitung di laporan penjualan.</li>
                     </ul>
                     <label class="mt-4 block text-sm"><span class="mb-1 block font-medium text-stone-700">Ketik <span class="font-mono font-bold">{{ $this->code }}</span> (4 digit terakhir nomor transaksi)</span>
                         <input type="text" inputmode="numeric" maxlength="4" wire:model="confirmCode" autocomplete="off" class="{{ $field('confirmCode') }} w-28 font-mono tracking-widest">
                         @error('confirmCode') <span class="mt-1 block text-xs text-red-600">{{ $message }}</span> @enderror
                     </label>
-                    <p class="mt-3 text-xs text-stone-500">Pengajuan perlu disetujui Admin/Pengurus sebelum stok dan uang berubah.</p>
+                    @if ($this->autoApproval)
+                        <p class="mt-3 rounded-lg bg-emerald-50 px-3 py-2 text-xs text-emerald-900">Langsung dibatalkan — {{ mb_strtolower(\Illuminate\Support\Str::after($this->autoApproval, 'Disetujui otomatis: ')) }}</p>
+                    @else
+                        <p class="mt-3 text-xs text-stone-500">Pengajuan perlu disetujui Admin/Pengurus sebelum stok dan uang berubah.</p>
+                    @endif
                     <div class="mt-4 space-y-2">
                         <button type="submit" wire:loading.attr="disabled" wire:target="submit" class="w-full rounded-xl bg-red-700 px-4 py-2.5 text-sm font-semibold text-white hover:bg-red-800">Ajukan pembatalan</button>
                         <a href="{{ route('transaksi.show', $t->id) }}" wire:navigate class="block text-center text-sm font-medium text-stone-500 hover:text-stone-800">Batal</a>
