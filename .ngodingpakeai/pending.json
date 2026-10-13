@@ -1,6 +1,6 @@
 {
   "repo": "Koperasi Sekolah",
-  "generatedForCommit": "33c4813e5b98239d77b8e83d05ab2e0568478f5b",
+  "generatedForCommit": "a2739f55c8d55c717728a6be1b831dd6ec7944e1",
   "files": [
     {
       "path": ".claude/skills/ngodingpakeai/SKILL.md",
@@ -124,7 +124,7 @@
     },
     {
       "path": "app/Http/Controllers/Barang/ProductImportController.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 4782
     },
@@ -328,9 +328,9 @@
     },
     {
       "path": "app/Livewire/Audit/Changes.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 8347
+      "size": 8420
     },
     {
       "path": "app/Livewire/Audit/Index.php",
@@ -364,7 +364,7 @@
     },
     {
       "path": "app/Livewire/Barang/ImportDetail.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 3720
     },
@@ -664,7 +664,7 @@
     },
     {
       "path": "app/Models/ProductImport.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 1942
     },
@@ -826,9 +826,9 @@
     },
     {
       "path": "app/Services/CategoryService.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 5864
+      "size": 5972
     },
     {
       "path": "app/Services/CheckoutService.php",
@@ -906,7 +906,7 @@
       "path": "app/Services/ProductImportService.php",
       "reason": "changed",
       "language": "php",
-      "size": 26164
+      "size": 27606
     },
     {
       "path": "app/Services/ProductListing.php",
@@ -1828,9 +1828,9 @@
     },
     {
       "path": "resources/views/livewire/audit/changes.blade.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 17877
+      "size": 17955
     },
     {
       "path": "resources/views/livewire/audit/index.blade.php",
@@ -1840,9 +1840,9 @@
     },
     {
       "path": "resources/views/livewire/audit/partials/detail.blade.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 6690
+      "size": 6863
     },
     {
       "path": "resources/views/livewire/audit/trash.blade.php",
@@ -2176,7 +2176,7 @@
     },
     {
       "path": "routes/web.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 21609
     },
@@ -2271,6 +2271,12 @@
       "size": 4228
     },
     {
+      "path": "tests/Feature/Audit/CategoryImportAuditTest.php",
+      "reason": "new",
+      "language": "php",
+      "size": 3409
+    },
+    {
       "path": "tests/Feature/Audit/ChangesPageTest.php",
       "reason": "needs_summary",
       "language": "php",
@@ -2362,7 +2368,7 @@
     },
     {
       "path": "tests/Feature/Barang/ImportHistoryEndpointTest.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 3472
     },

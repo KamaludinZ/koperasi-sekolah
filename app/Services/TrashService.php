@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\Category;
 use App\Models\Member;
 use App\Models\Product;
+use App\Models\Supplier;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Collection;
@@ -23,9 +24,10 @@ class TrashService
         'barang' => [Product::class, 'code', 'Kode'],
         'kategori' => [Category::class, 'name', 'Nama kategori'],
         'anggota' => [Member::class, 'member_code', 'Kode anggota'],
+        'supplier' => [Supplier::class, 'name', 'Nama supplier'],
     ];
 
-    public const LABELS = ['barang' => 'Barang', 'kategori' => 'Kategori', 'anggota' => 'Anggota'];
+    public const LABELS = ['barang' => 'Barang', 'kategori' => 'Kategori', 'anggota' => 'Anggota', 'supplier' => 'Supplier'];
 
     /** @var array<int, ?string> nama penghapus yang sudah dibaca */
     private array $userNames = [];
@@ -143,6 +145,7 @@ class TrashService
             'detail' => match ($entity) {
                 'barang' => ($m->category?->name ?? 'Tanpa kategori')." · {$rp($m->price)} · stok {$m->stock}",
                 'kategori' => "{$m->products_count} barang",
+                'supplier' => trim(($m->contact ? $m->contact.' · ' : '').$m->phone.' · '.$m->termsLabel()),
                 default => ($m->type === 'guru' ? 'Guru' : 'Siswa '.$m->class)." · saldo tabungan {$rp($m->balance)}",
             },
             'deleted_at' => $m->deleted_at->toDateTimeString(),

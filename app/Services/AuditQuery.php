@@ -57,7 +57,7 @@ class AuditQuery
             ->when(($f['view'] ?? 'semua') === 'login', fn ($q) => $q->where('category', 'auth'))
             ->when(($f['view'] ?? 'semua') === 'sirkulasi', fn ($q) => $q->whereIn('category', ActivityLog::CIRCULATION))
             ->when(($f['view'] ?? 'semua') === 'data', fn ($q) => $q->where(fn (Builder $w) => $w
-                ->whereIn('category', ['barang', 'anggota', 'pengguna', 'laporan'])
+                ->whereIn('category', ['barang', 'anggota', 'pengguna', 'laporan', 'pengadaan'])
                 ->orWhere(fn (Builder $s) => $s->where('category', 'stok')->where('event', '!=', 'stock.adjusted'))))
             ->when(($f['category'] ?? '') !== '', fn ($q) => $q->where('category', $f['category']))
             ->when(($f['actor'] ?? '') !== '', fn ($q) => $q->where('actor_name', $f['actor']))

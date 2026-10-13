@@ -11,6 +11,7 @@
         'kas' => ['bg-orange-100 text-orange-900', 'M3 7h18v12H3zM3 7l3-3h12l3 3M16 13h2M7 11v4'],
         'stok' => ['bg-violet-100 text-violet-800', 'M20 7l-8-4-8 4m16 0v10l-8 4m8-14l-8 4m0 10l-8-4V7m8 14V11'],
         'barang' => ['bg-teal-100 text-teal-800', 'M7 7h.01M3 11l8.6 8.6a2 2 0 002.8 0l5.2-5.2a2 2 0 000-2.8L11 3H3z'],
+        'pengadaan' => ['bg-sky-100 text-sky-800', 'M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.3 2.3c-.6.6-.2 1.7.7 1.7H17'],
         'anggota' => ['bg-lime-100 text-lime-900', 'M17 20h5v-2a4 4 0 00-5-3.9M9 20H2v-2a4 4 0 014-4h3a4 4 0 014 4v2zM12 7a3 3 0 11-6 0 3 3 0 016 0z'],
         'pengguna' => ['bg-rose-100 text-rose-800', 'M12 15a3 3 0 100-6 3 3 0 000 6zM12 3l7 3v6c0 4.5-3 8-7 9-4-1-7-4.5-7-9V6z'],
         'laporan' => ['bg-stone-200 text-stone-700', 'M4 20V10m6 10V4m6 16v-7m4 7H2'],

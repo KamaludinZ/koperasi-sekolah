@@ -57,7 +57,7 @@ class TrashPageTest extends TestCase
         $c = Livewire::test(Trash::class);
         $s = $c->instance()->summary;
         $this->assertSame(4, $s['total']);
-        $this->assertSame(['barang' => 2, 'kategori' => 1, 'anggota' => 1], $s['by_entity']);
+        $this->assertSame(['barang' => 2, 'kategori' => 1, 'anggota' => 1, 'supplier' => 0], $s['by_entity']);
         $this->assertSame(2, $s['purge_soon']); // dihapus 27 hari lalu, sisa 3 hari
         $this->assertSame(1, $s['conflicts']);
         $this->assertSame(30, $s['keep_days']);
