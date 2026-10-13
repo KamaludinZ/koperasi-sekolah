@@ -21,7 +21,7 @@ class ReportCache
     /** Laporan yang dicache (nama → label tampilan). */
     public const LABELS = [
         'summary' => 'Ringkasan penjualan', 'top' => 'Barang terlaris', 'daily' => 'Rekap per hari',
-        'chart' => 'Grafik penjualan', 'today' => 'Ringkasan hari ini',
+        'chart' => 'Grafik penjualan', 'today' => 'Ringkasan hari ini', 'discounts' => 'Diskon & promo',
     ];
 
     public static function version(): int

@@ -16,6 +16,13 @@ class DiscountReport
 {
     public function report(Carbon $start, Carbon $end): array
     {
+        // Hanya membaca snapshot transaksi & potongannya, jadi cukup diinvalidasi oleh versi ReportCache.
+        return \App\Support\ReportCache::remember('discounts', [$start->copy()->startOfDay(), $end->copy()->endOfDay()],
+            fn () => $this->computeReport($start, $end));
+    }
+
+    private function computeReport(Carbon $start, Carbon $end): array
+    {
         $start = $start->copy()->startOfDay();
         $end = $end->copy()->endOfDay();
 

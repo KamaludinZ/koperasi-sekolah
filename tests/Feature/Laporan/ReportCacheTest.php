@@ -48,6 +48,22 @@ class ReportCacheTest extends TestCase
         $this->assertNotNull($stats['at']);
     }
 
+    public function test_discount_report_is_cached_and_invalidated(): void
+    {
+        $report = fn () => app(\App\Services\DiscountReport::class)->report(today(), today())['summary']['net_sales'];
+        app(CheckoutService::class)->checkout([$this->pid('ATK001') => 2], 'tunai', 10000);
+        $this->assertSame(8000, $report());
+
+        DB::enableQueryLog();
+        $this->assertSame(8000, $report());
+        $this->assertCount(0, DB::getQueryLog());
+        DB::disableQueryLog();
+
+        app(CheckoutService::class)->checkout([$this->pid('ATK001') => 1], 'tunai', 5000);
+        $this->assertSame(12000, $report());
+        $this->assertSame(1, ReportCache::stats()['discounts']['hits']);
+    }
+
     public function test_rolled_back_sale_does_not_bump_version(): void
     {
         $v = ReportCache::version();
