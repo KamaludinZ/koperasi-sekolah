@@ -20,7 +20,7 @@ class DatabaseSeeder extends Seeder
         // Akun demo, anggota, & riwayat contoh hanya untuk pengembangan.
         // Produksi: buat admin dengan `php artisan koperasi:buat-admin`.
         if (app()->environment('local')) {
-            $this->call([UserSeeder::class, MemberSeeder::class, TransactionSeeder::class, CashShiftSeeder::class, PromoSeeder::class, SupplierSeeder::class, ActivityLogSeeder::class, NotificationSeeder::class]);
+            $this->call([UserSeeder::class, MemberSeeder::class, TransactionSeeder::class, CashShiftSeeder::class, PromoSeeder::class, SupplierSeeder::class, PurchaseOrderSeeder::class, ActivityLogSeeder::class, NotificationSeeder::class]);
         }
     }
 }
