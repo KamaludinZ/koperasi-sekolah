@@ -27,7 +27,7 @@ class SavingsTransaction extends Model
         self::TYPE_WITHDRAWAL => 'Penarikan',
     ];
 
-    protected $fillable = ['member_id', 'type', 'amount', 'balance_before', 'balance_after', 'note', 'user_id'];
+    protected $fillable = ['member_id', 'type', 'amount', 'balance_before', 'balance_after', 'note', 'source_type', 'source_id', 'user_id'];
 
     protected function casts(): array
     {

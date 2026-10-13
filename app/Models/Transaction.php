@@ -34,6 +34,12 @@ class Transaction extends Model
         ];
     }
 
+    /** Bon yang tercatat dari transaksi bermetode bon. */
+    public function credit(): \Illuminate\Database\Eloquent\Relations\HasOne
+    {
+        return $this->hasOne(MemberCredit::class);
+    }
+
     public function items(): HasMany
     {
         return $this->hasMany(TransactionItem::class);

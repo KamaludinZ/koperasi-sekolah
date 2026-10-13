@@ -28,7 +28,7 @@ class Member extends Model
     public const TYPES = ['siswa' => 'Siswa', 'guru' => 'Guru'];
 
     protected $fillable = [
-        'member_code', 'name', 'type', 'class', 'phone', 'is_active', 'joined_at',
+        'member_code', 'name', 'type', 'class', 'phone', 'is_active', 'joined_at', 'credit_limit',
     ];
 
     protected $attributes = [
@@ -41,9 +41,20 @@ class Member extends Model
     {
         return [
             'balance' => 'decimal:2',
+            'credit_limit' => 'integer',
             'is_active' => 'boolean',
             'joined_at' => 'date',
         ];
+    }
+
+    public function credits(): HasMany
+    {
+        return $this->hasMany(MemberCredit::class);
+    }
+
+    public function creditPayments(): HasMany
+    {
+        return $this->hasMany(MemberCreditPayment::class);
     }
 
     public function transactions(): HasMany
