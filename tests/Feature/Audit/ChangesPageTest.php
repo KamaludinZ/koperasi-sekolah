@@ -64,7 +64,7 @@ class ChangesPageTest extends TestCase
         $c = Livewire::test(Changes::class);
         $s = $c->instance()->summary;
         $this->assertSame(5, $s['total']); // kategori 40 hari lalu di luar 30 hari
-        $this->assertSame(['barang' => 2, 'kategori' => 0, 'anggota' => 2, 'pengaturan' => 1, 'supplier' => 0], $s['by_entity']);
+        $this->assertSame(['barang' => 2, 'kategori' => 0, 'anggota' => 2, 'pengaturan' => 1, 'supplier' => 0, 'retur' => 0], $s['by_entity']);
         $this->assertSame(1, $s['price_changes']);
         $this->assertSame(4, $s['actors']['Admin Koperasi']);
         $this->assertSame(1, $s['actors']['Pak Dedi']);

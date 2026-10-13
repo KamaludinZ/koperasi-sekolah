@@ -22,6 +22,7 @@ class AuditChangeQuery
         'anggota' => 'member',
         'pengaturan' => 'setting',
         'supplier' => 'supplier',
+        'retur' => 'transaction_return',
     ];
 
     /** Kolom sensitif: perubahannya (bukan pengisian awal) perlu ditinjau, begitu pula penghapusan. */

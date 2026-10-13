@@ -31,6 +31,7 @@ class Changes extends Component
         'anggota' => 'Anggota',
         'pengaturan' => 'Pengaturan',
         'supplier' => 'Supplier',
+        'retur' => 'Retur & pembatalan',
     ];
 
     public const ACTIONS = [
@@ -56,10 +57,12 @@ class Changes extends Component
         'tax.rounding' => 'Pembulatan', 'tax.rounding_unit' => 'Kelipatan pembulatan', 'tax.cash_only' => 'Pembulatan hanya tunai',
         'discount.enabled' => 'Diskon manual aktif', 'discount.max_percent' => 'Batas diskon (%)', 'discount.max_amount' => 'Batas diskon (Rp)',
         'discount.reason_required' => 'Alasan diskon wajib',
+        'kind' => 'Jenis', 'status' => 'Status', 'amount' => 'Nilai', 'quantity' => 'Jumlah barang', 'refund_method' => 'Pengembalian dana',
+        'restock' => 'Kembali ke stok', 'reason' => 'Alasan', 'decided_by' => 'Diputus oleh',
     ];
 
     /** Kolom bernilai uang (ditampilkan sebagai Rupiah). */
-    public const MONEY = ['price', 'cost_price', 'discount.max_amount'];
+    public const MONEY = ['price', 'cost_price', 'discount.max_amount', 'amount'];
 
     /** Label kolom; kolom tanpa label dibaca dari namanya (mis. "show_logo" → "Show logo"). */
     public static function label(string $field): string

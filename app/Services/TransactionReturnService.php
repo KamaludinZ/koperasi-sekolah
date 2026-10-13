@@ -137,12 +137,9 @@ class TransactionReturnService
                 ]);
             }
 
-            AuditLog::record('return.requested', 'transaksi',
-                "Pengajuan retur {$r->number} untuk {$t->invoice_number}: {$r->quantity} barang, Rp".number_format($amount, 0, ',', '.')." ({$r->reason})",
-                ['type' => 'transaction', 'id' => $t->id, 'label' => $t->invoice_number],
-                ['return_id' => $r->id, 'items' => array_map(fn ($l) => ['name' => $l['item']->product_name, 'qty' => $l['qty']], $lines),
-                    'restock' => $restock, 'refund_method' => $refundMethod, 'note' => $r->note],
-                $amount);
+            self::audit('return.requested', "Pengajuan retur {$r->number} untuk {$t->invoice_number}: {$r->quantity} barang, Rp".number_format($amount, 0, ',', '.')." ({$r->reason})",
+                $r, $t, ['items' => array_map(fn ($l) => ['name' => $l['item']->product_name, 'qty' => $l['qty']], $lines)],
+                'dibuat', null, self::snapshot($r), $r->note ? "{$r->reason}: {$r->note}" : $r->reason);
 
             return $r->load('items');
         });
@@ -208,10 +205,9 @@ class TransactionReturnService
                 ]);
             }
 
-            AuditLog::record('void.requested', 'transaksi',
-                "Pengajuan pembatalan {$r->number} untuk {$t->invoice_number}: Rp".number_format($amount, 0, ',', '.')." ({$r->reason})",
-                ['type' => 'transaction', 'id' => $t->id, 'label' => $t->invoice_number],
-                ['return_id' => $r->id, 'note' => $r->note], $amount);
+            self::audit('void.requested', "Pengajuan pembatalan {$r->number} untuk {$t->invoice_number}: Rp".number_format($amount, 0, ',', '.')." ({$r->reason})",
+                $r, $t, ['items' => array_map(fn ($l) => ['name' => $l['item']->product_name, 'qty' => $l['qty']], $lines)],
+                'dibuat', null, self::snapshot($r), $r->note ? "{$r->reason}: {$r->note}" : $r->reason);
 
             if ($auto = self::autoApproval($t, $amount, $by)) {
                 return $this->apply($r->load(['items', 'transaction']), null, $auto);
@@ -262,12 +258,11 @@ class TransactionReturnService
         $t->forceFill($update)->save();
         $r->forceFill(['status' => 'disetujui', 'decided_by' => $userId, 'decided_at' => now(), 'decision_note' => filled($note) ? mb_substr(trim($note), 0, 200) : null])->save();
 
-        AuditLog::record($r->isVoid() ? 'void.approved' : 'return.approved', 'transaksi',
+        self::audit($r->isVoid() ? 'void.approved' : 'return.approved',
             "{$what} {$r->number} disetujui".($userId ? '' : ' otomatis').': Rp'.number_format($r->amount, 0, ',', '.').' dikembalikan ('.mb_strtolower($r->refundLabel()).')'
-                .($r->restock ? ", {$r->quantity} barang kembali ke stok" : ', barang tidak kembali ke stok'),
-            ['type' => 'transaction', 'id' => $t->id, 'label' => $t->invoice_number],
-            ['return_id' => $r->id, 'refund_method' => $r->refund_method, 'restock' => $r->restock, 'note' => $r->decision_note, 'auto' => $userId === null],
-            $r->amount);
+                .($r->restock ? ", {$r->quantity} barang kembali ke stok" : ', barang tidak kembali ke stok').($r->isVoid() ? "; transaksi {$t->invoice_number} dibatalkan" : ''),
+            $r, $t, ['auto' => $userId === null, 'transaction_voided' => $r->isVoid(), 'returned_amount' => $t->returned_amount],
+            'diubah', ['status' => 'menunggu'], ['status' => 'disetujui', 'decided_by' => $userId ? $r->decider?->name : 'Otomatis'], $r->decision_note);
 
         return $r->fresh(['items', 'transaction']);
     }
@@ -284,9 +279,8 @@ class TransactionReturnService
             $r = $this->lockPending($return, $by);
             $r->forceFill(['status' => 'ditolak', 'decided_by' => $by->id, 'decided_at' => now(), 'decision_note' => mb_substr($note, 0, 200)])->save();
 
-            AuditLog::record('return.rejected', 'transaksi', ($r->isVoid() ? 'Pembatalan' : 'Retur')." {$r->number} ditolak: {$note}",
-                ['type' => 'transaction', 'id' => $r->transaction_id, 'label' => $r->transaction->invoice_number],
-                ['return_id' => $r->id, 'note' => $note], $r->amount);
+            self::audit($r->isVoid() ? 'void.rejected' : 'return.rejected', ($r->isVoid() ? 'Pembatalan' : 'Retur')." {$r->number} ditolak: {$note}",
+                $r, $r->transaction, [], 'diubah', ['status' => 'menunggu'], ['status' => 'ditolak', 'decided_by' => $by->name], $note);
 
             return $r->fresh(['items', 'transaction']);
         });
@@ -390,6 +384,22 @@ class TransactionReturnService
             'decided_at' => $r->decided_at?->toDateTimeString(),
             'decision_note' => $r->decision_note,
         ];
+    }
+
+    /** Nilai pengajuan yang dicatat di audit (riwayat objek retur). */
+    private static function snapshot(TransactionReturn $r): array
+    {
+        return ['kind' => $r->kind, 'status' => $r->status, 'amount' => $r->amount, 'quantity' => $r->quantity, 'refund_method' => $r->refund_method,
+            'restock' => $r->restock, 'reason' => $r->reason, 'note' => $r->note];
+    }
+
+    /** Catat ke audit dengan subjek pengajuan (transaction_return) dan rujukan transaksinya. */
+    private static function audit(string $event, string $description, TransactionReturn $r, Transaction $t, array $props, string $action, ?array $old, ?array $new, ?string $reason): void
+    {
+        AuditLog::record($event, 'transaksi', $description,
+            ['type' => 'transaction_return', 'id' => $r->id, 'label' => "{$r->number} · {$t->invoice_number}"],
+            ['return_id' => $r->id, 'transaction_id' => $t->id, 'invoice' => $t->invoice_number, 'kind' => $r->kind, ...$props],
+            $r->amount, action: $action, old: $old, new: $new, reason: $reason);
     }
 
     /** Transaksi masih bisa diajukan retur/pembatalan. */
