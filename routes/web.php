@@ -187,6 +187,12 @@ Route::middleware('menu:barang')->group(function () {
         ->middleware(['can:kelola-katalog', 'throttle:10,1'])->name('barang.impor.store');
     Route::get('/barang/impor/{import}/baris', [ProductImportController::class, 'rows'])->whereNumber('import')
         ->middleware('can:kelola-katalog')->name('barang.impor.rows');
+    Route::middleware('can:kelola-katalog')->group(function () {
+        Route::get('/barang/impor/data', [ProductImportController::class, 'index'])->name('barang.impor.data');
+        Route::get('/barang/impor/{import}/data', [ProductImportController::class, 'show'])->whereNumber('import')->name('barang.impor.show');
+        Route::get('/barang/impor/{import}/hasil', [ProductImportController::class, 'report'])->whereNumber('import')
+            ->middleware('throttle:30,1')->name('barang.impor.report');
+    });
     Route::middleware(['can:kelola-katalog', 'throttle:120,1'])->whereNumber(['import', 'line'])->group(function () {
         Route::put('/barang/impor/{import}/baris/{line}', [ProductImportController::class, 'updateRow'])->name('barang.impor.rows.update');
         Route::post('/barang/impor/{import}/baris/{line}/lewati', [ProductImportController::class, 'skipRow'])->name('barang.impor.rows.skip');

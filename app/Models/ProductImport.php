@@ -14,6 +14,11 @@ class ProductImport extends Model
 {
     public const STATUSES = ['diunggah', 'pratinjau', 'diproses', 'selesai', 'sebagian', 'gagal'];
 
+    public const STATUS_LABELS = [
+        'diunggah' => 'Sedang dibaca', 'pratinjau' => 'Menunggu diperiksa', 'diproses' => 'Sedang disimpan',
+        'selesai' => 'Selesai', 'sebagian' => 'Sebagian tersimpan', 'gagal' => 'Gagal',
+    ];
+
     protected $fillable = [
         'user_id', 'committed_by', 'warnings', 'file_name', 'format', 'file_path', 'file_size', 'status', 'mode', 'update_stock',
         'total_rows', 'created', 'updated', 'skipped', 'failed', 'file_error', 'finished_at',

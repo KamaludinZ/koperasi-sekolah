@@ -7,6 +7,8 @@ use App\Models\ProductImport;
 use App\Services\ProductImportService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 /**
  * Impor barang (JSON, Admin & Pengurus lewat gate kelola-katalog).
@@ -18,6 +20,9 @@ use Illuminate\Http\Request;
  * - POST /barang/impor/{import}/baris/{line}/lewati {lewati: bool} → lewati/sertakan baris
  * - POST /barang/impor/{import}/lewati-masalah → lewati semua baris bermasalah
  * - POST /barang/impor/{import}/simpan → terapkan ke data barang (ditolak bila masih ada baris bermasalah)
+ * - GET  /barang/impor/data?status=&q=&page= → riwayat impor (25 per halaman) + jumlah per status
+ * - GET  /barang/impor/{import}/data → satu impor + kesalahan berkas & baris tidak tersimpan
+ * - GET  /barang/impor/{import}/hasil?format=csv|xlsx → unduh laporan hasil per baris
  */
 class ProductImportController extends Controller
 {
@@ -63,5 +68,33 @@ class ProductImportController extends Controller
         $import = $imports->commit($import, $request->user());
 
         return response()->json(['data' => ProductImportService::toArray($import->load('user'))]);
+    }
+
+    public function index(Request $request, ProductImportService $imports): JsonResponse
+    {
+        $data = $request->validate([
+            'status' => ['nullable', Rule::in(ProductImport::STATUSES)],
+            'q' => ['nullable', 'string', 'max:100'],
+            'page' => ['nullable', 'integer', 'min:1'],
+        ]);
+        $page = $imports->query(['status' => $data['status'] ?? '', 'search' => $data['q'] ?? ''])->paginate(25)->withQueryString();
+
+        return response()->json([
+            'data' => collect($page->items())->map(fn ($i) => ProductImportService::toArray($i)),
+            'counts' => ProductImport::query()->toBase()->groupBy('status')->selectRaw('status, COUNT(*) AS n')->pluck('n', 'status')->map(fn ($n) => (int) $n),
+            'meta' => ['current_page' => $page->currentPage(), 'last_page' => $page->lastPage(), 'total' => $page->total()],
+        ]);
+    }
+
+    public function show(ProductImport $import, ProductImportService $imports): JsonResponse
+    {
+        return response()->json(['data' => ProductImportService::toArray($import->load(['user', 'committer']))] + $imports->detail($import));
+    }
+
+    public function report(Request $request, ProductImport $import, ProductImportService $imports): StreamedResponse
+    {
+        $data = $request->validate(['format' => ['nullable', Rule::in(['csv', 'xlsx'])]]);
+
+        return $imports->download($import, $data['format'] ?? 'csv');
     }
 }

@@ -423,7 +423,7 @@ class ProductImportService
     /** @return list<array<string, mixed>> semua impor, terbaru dulu */
     public function history(?int $limit = null): array
     {
-        return ProductImport::with(['user', 'committer'])->latest('created_at')->latest('id')->when($limit, fn ($q) => $q->limit($limit))->get()
+        return $this->query()->when($limit, fn ($q) => $q->limit($limit))->get()
             ->map(fn (ProductImport $i) => self::toArray($i))->all();
     }
 
@@ -461,5 +461,83 @@ class ProductImportService
         }
 
         return $stale->count();
+    }
+
+    /**
+     * Saring riwayat impor: status, kata kunci (nama berkas/pengunggah), halaman.
+     *
+     * @param  array{status?: string, search?: string}  $f
+     */
+    public function query(array $f = []): \Illuminate\Database\Eloquent\Builder
+    {
+        $term = mb_strtolower(trim($f['search'] ?? ''));
+
+        return ProductImport::query()->with(['user', 'committer'])
+            ->when(in_array($f['status'] ?? '', ProductImport::STATUSES, true), fn ($q) => $q->where('status', $f['status']))
+            ->when($term !== '', fn ($q) => $q->where(fn ($w) => $w->whereRaw('LOWER(file_name) LIKE ?', ["%{$term}%"])
+                ->orWhereHas('user', fn ($u) => $u->whereRaw('LOWER(name) LIKE ?', ["%{$term}%"]))))
+            ->latest('created_at')->latest('id');
+    }
+
+    /**
+     * Laporan hasil impor: ringkasan lalu setiap baris dengan hasilnya (baru/diperbarui/dilewati/gagal)
+     * atau penilaian pratinjau bila belum disimpan.
+     *
+     * @return list<list<scalar|null>>
+     */
+    public function report(ProductImport $import): array
+    {
+        $i = self::toArray($import->loadMissing(['user', 'committer']));
+        $rows = [
+            ['Berkas', $i['file_name']], ['Status', ProductImport::STATUS_LABELS[$i['status']] ?? $i['status']],
+            ['Diunggah', $i['user'].', '.$i['created_at']], ['Disimpan', $i['committed_by'] ? $i['committed_by'].', '.$i['finished_at'] : '—'],
+            ['Baris', $i['total_rows']], ['Baru', $i['created']], ['Diperbarui', $i['updated']], ['Dilewati', $i['skipped']], ['Gagal', $i['failed']],
+        ];
+        if ($i['file_error']) {
+            $rows[] = ['Kesalahan berkas', $i['file_error']];
+        }
+        foreach ($i['warnings'] as $w) {
+            $rows[] = ['Peringatan', $w];
+        }
+        $rows[] = [];
+        $rows[] = ['baris', 'kode', 'nama', 'hasil', 'alasan'];
+
+        if ($import->status === 'pratinjau') {
+            $labels = ['baru' => 'akan ditambah', 'perbarui' => 'akan diperbarui', 'lewati' => 'akan dilewati', 'masalah' => 'bermasalah'];
+            foreach ($this->evaluate($import)['rows'] as $r) {
+                $rows[] = [$r['line'], $r['values']['kode'], $r['values']['nama'], $labels[$r['action']],
+                    $r['errors'] ? implode(' ', $r['errors']) : ($r['reason'] ?? '')];
+            }
+        } else {
+            foreach ($import->rows()->get() as $r) {
+                $rows[] = [$r->line, mb_strtoupper(trim((string) ($r->values['kode'] ?? ''))), trim((string) ($r->values['nama'] ?? '')), $r->result ?? '—', $r->message ?? ''];
+            }
+        }
+
+        return $rows;
+    }
+
+    /** Unduh laporan hasil sebagai CSV (titik koma) atau Excel. */
+    public function download(ProductImport $import, string $format = 'csv'): \Symfony\Component\HttpFoundation\StreamedResponse
+    {
+        $name = 'hasil-impor-'.(Str::slug(pathinfo($import->file_name, PATHINFO_FILENAME)) ?: $import->id);
+        $rows = $this->report($import);
+        AuditLog::record('import.report_downloaded', 'laporan', "Unduh hasil impor {$import->file_name}", ['type' => 'product_import', 'id' => $import->id, 'label' => $import->file_name], ['format' => $format]);
+
+        if ($format === 'xlsx') {
+            $binary = SimpleXlsx::write($rows, 'Hasil impor');
+
+            return response()->streamDownload(fn () => print ($binary), "{$name}.xlsx",
+                ['Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet']);
+        }
+
+        return response()->streamDownload(function () use ($rows) {
+            $out = fopen('php://output', 'w');
+            fwrite($out, "\xEF\xBB\xBF");
+            foreach ($rows as $r) {
+                fputcsv($out, $r, ';');
+            }
+            fclose($out);
+        }, "{$name}.csv", ['Content-Type' => 'text/csv; charset=UTF-8']);
     }
 }
