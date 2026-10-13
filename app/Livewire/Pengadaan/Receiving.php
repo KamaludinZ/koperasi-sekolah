@@ -3,7 +3,9 @@
 namespace App\Livewire\Pengadaan;
 
 use App\Models\Product;
-use App\Support\MockData;
+use App\Models\PurchaseOrder;
+use App\Services\GoodsReceiptService;
+use App\Services\PurchaseOrderService;
 use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
@@ -15,8 +17,8 @@ use Livewire\Component;
  * Pengadaan → Penerimaan barang (Admin & Pengurus): pilih pesanan yang sedang ditunggu, isi jumlah
  * yang datang per barang (bawaan = sisa yang belum diterima), nomor surat jalan, tanggal, dan
  * catatan; pratinjau stok sebelum → sesudah. Menyimpan memperbarui status pesanan (sebagian /
- * diterima). Disertai riwayat penerimaan terbaru. Tahap ini memakai MockData; penambahan stok
- * sungguhan menyusul di backend.
+ * diterima), menambah stok barang, memperbarui harga modal, dan membuat tagihan supplier lewat
+ * GoodsReceiptService. Disertai riwayat penerimaan terbaru.
  */
 #[Layout('components.layouts.app')]
 #[Title('Penerimaan Barang')]
@@ -25,7 +27,7 @@ class Receiving extends Component
     #[Url(as: 'pesanan', except: '')]
     public string $orderId = '';
 
-    /** @var array<int|string, int|string> product_id => jumlah diterima sekarang */
+    /** @var array<int|string, int|string> purchase_order_item_id => jumlah diterima sekarang */
     public array $qty = [];
 
     public string $receivedAt = '';
@@ -48,14 +50,14 @@ class Receiving extends Component
 
     private function prefill(): void
     {
-        $this->qty = collect($this->lines)->mapWithKeys(fn ($l) => [$l['product_id'] => $l['qty'] - $l['received_qty']])->all();
+        $this->qty = collect($this->lines)->mapWithKeys(fn ($l) => [$l['id'] => $l['qty'] - $l['received_qty']])->all();
     }
 
     /** Pesanan yang menunggu barang (dipesan atau diterima sebagian), paling lama dulu. */
     #[Computed]
     public function waiting(): array
     {
-        return collect(MockData::purchaseOrders())->whereIn('status', ['dipesan', 'sebagian'])->sortBy('expected_at')->values()->all();
+        return collect(app(PurchaseOrderService::class)->list())->whereIn('status', PurchaseOrder::WAITING)->sortBy('expected_at')->values()->all();
     }
 
     #[Computed]
@@ -70,15 +72,16 @@ class Receiving extends Component
         if (! $this->order) {
             return [];
         }
-        $stock = Product::whereIn('id', array_column(MockData::purchaseOrderItems($this->order['id']), 'product_id'))->pluck('stock', 'id');
+        $lines = PurchaseOrderService::lines(PurchaseOrder::with('items')->findOrFail($this->order['id']));
+        $stock = Product::whereIn('id', array_filter(array_column($lines, 'product_id')))->pluck('stock', 'id');
 
-        return array_map(fn ($l) => $l + ['stock' => (int) ($stock[$l['product_id']] ?? 0)], MockData::purchaseOrderItems($this->order['id']));
+        return array_map(fn ($l) => $l + ['stock' => (int) ($stock[$l['product_id']] ?? 0)], $lines);
     }
 
     #[Computed]
     public function receipts(): array
     {
-        return array_slice(MockData::receipts(), 0, 8);
+        return app(GoodsReceiptService::class)->recent(8);
     }
 
     public function receiveAll(): void
@@ -96,7 +99,7 @@ class Receiving extends Component
         $rules = ['receivedAt' => ['required', 'date_format:Y-m-d', 'before_or_equal:today', 'after_or_equal:'.$this->order['ordered_at']],
             'deliveryNote' => ['nullable', 'string', 'max:50'], 'note' => ['nullable', 'string', 'max:200']];
         foreach ($this->lines as $l) {
-            $rules["qty.{$l['product_id']}"] = ['required', 'integer', 'min:0', 'max:'.($l['qty'] - $l['received_qty'])];
+            $rules["qty.{$l['id']}"] = ['required', 'integer', 'min:0', 'max:'.($l['qty'] - $l['received_qty'])];
         }
         try {
             $this->validate($rules, [
@@ -106,20 +109,19 @@ class Receiving extends Component
                 'qty.*.min' => 'Tidak boleh kurang dari 0.',
                 'qty.*.*' => 'Isi angka 0 atau lebih.',
             ]);
-            if (array_sum(array_map('intval', $this->qty)) === 0) {
-                throw ValidationException::withMessages(['qty' => 'Isi jumlah barang yang datang (minimal satu barang).']);
-            }
+            $receipt = app(GoodsReceiptService::class)->receive(PurchaseOrder::findOrFail($this->order['id']), array_map('intval', $this->qty),
+                ['received_at' => $this->receivedAt, 'delivery_note' => $this->deliveryNote, 'note' => $this->note], auth()->user());
         } catch (ValidationException $e) {
             $this->dispatch('toast', type: 'error', message: 'Belum tersimpan: periksa isian yang ditandai merah.');
+            if (isset($e->errors()['items'])) {
+                throw ValidationException::withMessages(['qty' => $e->errors()['items'][0]]);
+            }
 
             throw $e;
         }
 
-        $receipt = MockData::receiveOrder($this->order['id'], array_map('intval', $this->qty),
-            ['received_at' => $this->receivedAt, 'delivery_note' => trim($this->deliveryNote) ?: null, 'note' => trim($this->note) ?: null],
-            auth()->user()->name);
-        $status = collect(MockData::purchaseOrders())->firstWhere('id', $this->order['id'])['status'];
-        session()->flash('toast', ['type' => 'success', 'message' => "{$receipt['qty']} unit dari {$receipt['number']} diterima"
+        $status = PurchaseOrder::whereKey($this->order['id'])->value('status');
+        session()->flash('toast', ['type' => 'success', 'message' => "{$receipt->total_quantity} unit dari {$this->order['number']} diterima ({$receipt->number})"
             .($status === 'diterima' ? ' — pesanan lengkap.' : ' — sisanya masih ditunggu.')]);
 
         return $this->redirectRoute('pengadaan.penerimaan', navigate: true);

@@ -12,7 +12,6 @@
                 <h1 class="text-lg font-semibold">Pengadaan Barang</h1>
                 <p class="text-xs text-stone-500">Catat barang yang datang dari supplier. Stok bertambah sesuai jumlah yang diterima.</p>
             </div>
-            <span class="rounded-full bg-amber-100 px-3 py-1 text-xs font-medium text-amber-900">Data contoh</span>
         </div>
         <x-pengadaan.nav active="pengadaan.penerimaan" />
     </header>
@@ -55,17 +54,17 @@
                             </thead>
                             <tbody class="divide-y divide-stone-100">
                                 @foreach ($this->lines as $l)
-                                    @php $left = $l['qty'] - $l['received_qty']; $in = max(0, (int) ($qty[$l['product_id']] ?? 0)); @endphp
-                                    <tr wire:key="rl-{{ $l['product_id'] }}" @class(['opacity-60' => $left === 0])>
+                                    @php $left = $l['qty'] - $l['received_qty']; $in = max(0, (int) ($qty[$l['id']] ?? 0)); @endphp
+                                    <tr wire:key="rl-{{ $l['id'] }}" @class(['opacity-60' => $left === 0])>
                                         <td class="px-5 py-2"><span class="font-mono text-xs">{{ $l['code'] }}</span> {{ $l['name'] }}</td>
                                         <td class="px-3 py-2 text-right tabular-nums">{{ $l['qty'] }} {{ $l['unit'] }}</td>
                                         <td class="px-3 py-2 text-right tabular-nums">{{ $l['received_qty'] }}</td>
                                         <td class="px-3 py-2">
                                             @if ($left > 0)
-                                                <input type="number" min="0" max="{{ $left }}" wire:model.live.debounce.400ms="qty.{{ $l['product_id'] }}" value="{{ $qty[$l['product_id']] ?? '' }}"
-                                                       aria-label="Jumlah datang {{ $l['name'] }}" class="{{ $field('qty.'.$l['product_id']) }} w-24 tabular-nums">
+                                                <input type="number" min="0" max="{{ $left }}" wire:model.live.debounce.400ms="qty.{{ $l['id'] }}" value="{{ $qty[$l['id']] ?? '' }}"
+                                                       aria-label="Jumlah datang {{ $l['name'] }}" class="{{ $field('qty.'.$l['id']) }} w-24 tabular-nums">
                                                 <span class="text-xs text-stone-500">dari sisa {{ $left }}</span>
-                                                @error('qty.'.$l['product_id']) <span class="block text-xs text-red-600">{{ $message }}</span> @enderror
+                                                @error('qty.'.$l['id']) <span class="block text-xs text-red-600">{{ $message }}</span> @enderror
                                             @else
                                                 <span class="text-xs font-medium text-emerald-800">Lengkap</span>
                                             @endif
@@ -102,9 +101,9 @@
             <ul class="mt-2 divide-y divide-stone-100">
                 @forelse ($this->receipts as $r)
                     <li class="px-4 py-2.5 text-sm" wire:key="rc-{{ $r['id'] }}">
-                        <p class="flex justify-between gap-2"><span class="font-mono text-xs font-semibold">{{ $r['number'] }}</span><span class="text-xs text-stone-500">{{ $date($r['received_at']) }}</span></p>
+                        <p class="flex justify-between gap-2"><span class="font-mono text-xs font-semibold">{{ $r['order_number'] }}</span><span class="text-xs text-stone-500">{{ $date($r['received_at']) }}</span></p>
                         <p>{{ $r['supplier'] }} · <span class="tabular-nums">{{ $r['qty'] }} unit</span> <span class="text-xs text-stone-500">({{ $rp($r['value']) }})</span></p>
-                        <p class="text-xs text-stone-500">{{ $r['user'] }}@if ($r['delivery_note']) · {{ $r['delivery_note'] }}@endif</p>
+                        <p class="text-xs text-stone-500">{{ $r['number'] }} · {{ $r['user'] }}@if ($r['delivery_note']) · {{ $r['delivery_note'] }}@endif</p>
                         @if ($r['note'])<p class="text-xs text-amber-800">{{ $r['note'] }}</p>@endif
                     </li>
                 @empty
