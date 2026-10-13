@@ -1,15 +1,7 @@
 @php
     $rp = fn ($n) => 'Rp'.number_format((int) $n, 0, ',', '.');
-    $signed = fn ($n) => ($n > 0 ? '+' : ($n < 0 ? '−' : '')).$rp(abs((int) $n));
     [$from, $to] = $this->range;
     $shifts = $this->shifts;
-    // Status selisih: label + warna + ikon (tidak hanya warna).
-    $badges = [
-        'pas' => ['Pas', 'bg-emerald-100 text-emerald-800', 'm5 13 4 4L19 7'],
-        'kurang' => ['Kurang', 'bg-red-100 text-red-800', 'M12 9v4m0 4h.01M10.3 3.9 1.8 18a2 2 0 001.7 3h17a2 2 0 001.7-3L13.7 3.9a2 2 0 00-3.4 0z'],
-        'lebih' => ['Lebih', 'bg-amber-100 text-amber-900', 'M12 9v4m0 4h.01M12 21a9 9 0 100-18 9 9 0 000 18z'],
-        'berjalan' => ['Berjalan', 'bg-stone-100 text-stone-600', 'M12 8v4l3 2M12 21a9 9 0 100-18 9 9 0 000 18z'],
-    ];
     $filtered = $cashier !== '' || $status !== '';
 @endphp
 <div class="flex min-h-0 flex-1 flex-col overflow-y-auto">
@@ -45,7 +37,7 @@
                                     'border-stone-200' => $cashier !== $p['name']])>
                         <div class="flex items-baseline justify-between gap-2">
                             <p class="font-semibold">{{ $p['name'] }}</p>
-                            <p @class(['font-bold tabular-nums', 'text-red-700' => $p['difference'] < 0, 'text-amber-800' => $p['difference'] > 0, 'text-emerald-800' => $p['difference'] === 0])>{{ $p['difference'] === 0 ? 'Pas' : $signed($p['difference']) }}</p>
+                            <x-kas.difference-badge :amount="$p['difference']" size="md" />
                         </div>
                         <p class="mt-0.5 text-xs text-stone-500">{{ $p['shifts'] }} shift · {{ $p['transactions'] }} transaksi</p>
                         <p class="mt-2 flex flex-wrap gap-x-3 text-xs">
@@ -103,8 +95,6 @@
                     <tbody class="divide-y divide-stone-100">
                         @forelse ($shifts as $s)
                             @php
-                                $st = \App\Livewire\Kas\Shifts::statusOf($s);
-                                [$label, $cls, $icon] = $badges[$st];
                                 $opened = \Illuminate\Support\Carbon::parse($s['opened_at']);
                             @endphp
                             <tr wire:key="sh-{{ $s['key'] }}" class="align-top">
@@ -117,10 +107,7 @@
                                 <td class="px-3 py-2.5 text-right tabular-nums">{{ $rp($s['expected']) }}</td>
                                 <td class="px-3 py-2.5 text-right tabular-nums">{{ $s['counted'] === null ? '—' : $rp($s['counted']) }}</td>
                                 <td class="px-3 py-2.5 text-right whitespace-nowrap">
-                                    <span class="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-semibold {{ $cls }}">
-                                        <svg class="size-3.5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24" aria-hidden="true"><path d="{{ $icon }}"/></svg>
-                                        {{ $label }}@if ($s['difference']) {{ $rp(abs($s['difference'])) }}@endif
-                                    </span>
+                                    <x-kas.difference-badge :amount="$s['difference']" :running="$s['status'] === 'open'" />
                                 </td>
                                 <td class="max-w-56 px-4 py-2.5 text-xs text-stone-600">
                                     {{ $s['note'] ?? '—' }}

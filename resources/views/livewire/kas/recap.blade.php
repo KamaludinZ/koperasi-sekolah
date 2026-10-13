@@ -4,7 +4,7 @@
     [$from, $to] = $this->range;
     $t = $this->totals;
     $rows = $onlyDifferences ? array_values(array_filter($this->rows, fn ($r) => ! $r['closed_day'] && $r['difference'] !== 0)) : $this->rows;
-    $th = 'px-3 py-2 font-medium whitespace-nowrap';
+    $th = 'px-2 py-2 font-medium whitespace-nowrap';
 @endphp
 <div class="flex min-h-0 flex-1 flex-col overflow-y-auto">
     <header class="border-b border-stone-200 bg-white px-4 pt-4 sm:px-6 print:border-0">
@@ -22,7 +22,7 @@
                                         'text-stone-600 hover:text-stone-900' => $period !== $key])>{{ $label }}</button>
                     @endforeach
                 </div>
-                <button type="button" x-on:click="window.print()" class="inline-flex items-center gap-1.5 rounded-xl border border-stone-300 bg-white px-3 py-2 text-sm font-medium text-stone-700 hover:bg-stone-50">
+                <button type="button" x-on:click="window.print()" class="inline-flex items-center gap-1.5 rounded-xl border border-stone-300 bg-white px-2 py-2 text-sm font-medium text-stone-700 hover:bg-stone-50">
                     <svg class="size-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9V3h12v6M6 18H4a1 1 0 01-1-1v-6a2 2 0 012-2h14a2 2 0 012 2v6a1 1 0 01-1 1h-2M6 14h12v7H6z"/></svg>
                     Cetak
                 </button>
@@ -86,27 +86,23 @@
                         @forelse ($rows as $r)
                             @php $d = \Illuminate\Support\Carbon::parse($r['date']); @endphp
                             <tr wire:key="rc-{{ $r['date'] }}" @class(['bg-red-50/40' => $r['difference'] < 0])>
-                                <td class="px-3 py-2 pl-4 whitespace-nowrap">
+                                <td class="px-2 py-2 pl-4 whitespace-nowrap">
                                     <a href="{{ route('kas', ['tanggal' => $d->isToday() ? null : $r['date']]) }}" wire:navigate class="font-medium text-emerald-800 hover:underline">{{ $d->translatedFormat('D, d M') }}</a>
                                 </td>
                                 @if ($r['closed_day'])
-                                    <td colspan="8" class="px-3 py-2 pr-4 text-right text-stone-400">Tutup</td>
+                                    <td colspan="8" class="px-2 py-2 pr-4 text-right text-stone-400">Tutup</td>
                                 @elseif ($r['shifts'] === 0)
-                                    <td colspan="8" class="px-3 py-2 pr-4 text-right text-stone-400">Belum ada shift</td>
+                                    <td colspan="8" class="px-2 py-2 pr-4 text-right text-stone-400">Belum ada shift</td>
                                 @else
-                                    <td class="max-w-32 truncate px-3 py-2 text-stone-600" title="{{ implode(', ', $r['cashiers']) }}">{{ implode(', ', $r['cashiers']) }}</td>
-                                    <td class="px-3 py-2 text-right tabular-nums">{{ $rp($r['cash_sales']) }}</td>
-                                    <td class="px-3 py-2 text-right text-stone-500 tabular-nums">{{ $rp($r['non_cash']) }}</td>
-                                    <td class="px-3 py-2 text-right tabular-nums">{{ $r['cash_in'] ? $rp($r['cash_in']) : '—' }}</td>
-                                    <td class="px-3 py-2 text-right tabular-nums">{{ $r['cash_out'] ? $rp($r['cash_out']) : '—' }}</td>
-                                    <td class="px-3 py-2 text-right font-medium tabular-nums">{{ $rp($r['expected']) }}</td>
-                                    <td class="px-3 py-2 text-right tabular-nums">{{ $r['open_shifts'] ? 'Berjalan' : $rp($r['counted']) }}</td>
-                                    <td @class(['px-3 py-2 pr-4 text-right font-semibold tabular-nums whitespace-nowrap', 'text-red-700' => $r['difference'] < 0, 'text-amber-800' => $r['difference'] > 0, 'text-emerald-800' => $r['difference'] === 0 && ! $r['open_shifts']])>
-                                        @if ($r['open_shifts'] && $r['open_shifts'] === $r['shifts'])
-                                            <span class="font-normal text-stone-400">—</span>
-                                        @else
-                                            {{ $r['difference'] === 0 ? 'Pas' : $signed($r['difference']) }}
-                                        @endif
+                                    <td class="max-w-28 truncate px-2 py-2 text-stone-600" title="{{ implode(', ', $r['cashiers']) }}">{{ implode(', ', $r['cashiers']) }}</td>
+                                    <td class="px-2 py-2 text-right tabular-nums">{{ $rp($r['cash_sales']) }}</td>
+                                    <td class="px-2 py-2 text-right text-stone-500 tabular-nums">{{ $rp($r['non_cash']) }}</td>
+                                    <td class="px-2 py-2 text-right tabular-nums">{{ $r['cash_in'] ? $rp($r['cash_in']) : '—' }}</td>
+                                    <td class="px-2 py-2 text-right tabular-nums">{{ $r['cash_out'] ? $rp($r['cash_out']) : '—' }}</td>
+                                    <td class="px-2 py-2 text-right font-medium tabular-nums">{{ $rp($r['expected']) }}</td>
+                                    <td class="px-2 py-2 text-right tabular-nums">{{ $r['open_shifts'] ? 'Berjalan' : $rp($r['counted']) }}</td>
+                                    <td class="px-2 py-2 pr-4 text-right">
+                                        <x-kas.difference-badge :amount="$r['difference']" :running="$r['open_shifts'] > 0 && $r['open_shifts'] === $r['shifts']" />
                                     </td>
                                 @endif
                             </tr>
@@ -118,14 +114,14 @@
                         <tfoot class="border-t-2 border-stone-200 bg-stone-50 font-semibold">
                             @php $open = collect($rows)->where('closed_day', false); @endphp
                             <tr>
-                                <td class="px-3 py-2 pl-4" colspan="2">Total {{ $onlyDifferences ? 'hari berselisih' : 'periode' }}</td>
-                                <td class="px-3 py-2 text-right tabular-nums">{{ $rp($open->sum('cash_sales')) }}</td>
-                                <td class="px-3 py-2 text-right tabular-nums">{{ $rp($open->sum('non_cash')) }}</td>
-                                <td class="px-3 py-2 text-right tabular-nums">{{ $rp($open->sum('cash_in')) }}</td>
-                                <td class="px-3 py-2 text-right tabular-nums">{{ $rp($open->sum('cash_out')) }}</td>
-                                <td class="px-3 py-2 text-right tabular-nums">{{ $rp($open->sum('expected')) }}</td>
-                                <td class="px-3 py-2 text-right tabular-nums">{{ $rp($open->sum('counted')) }}</td>
-                                <td @class(['px-3 py-2 pr-4 text-right tabular-nums', 'text-red-700' => $open->sum('difference') < 0, 'text-amber-800' => $open->sum('difference') > 0])>{{ $signed($open->sum('difference')) }}</td>
+                                <td class="px-2 py-2 pl-4" colspan="2">Total {{ $onlyDifferences ? 'hari berselisih' : 'periode' }}</td>
+                                <td class="px-2 py-2 text-right tabular-nums">{{ $rp($open->sum('cash_sales')) }}</td>
+                                <td class="px-2 py-2 text-right tabular-nums">{{ $rp($open->sum('non_cash')) }}</td>
+                                <td class="px-2 py-2 text-right tabular-nums">{{ $rp($open->sum('cash_in')) }}</td>
+                                <td class="px-2 py-2 text-right tabular-nums">{{ $rp($open->sum('cash_out')) }}</td>
+                                <td class="px-2 py-2 text-right tabular-nums">{{ $rp($open->sum('expected')) }}</td>
+                                <td class="px-2 py-2 text-right tabular-nums">{{ $rp($open->sum('counted')) }}</td>
+                                <td @class(['px-2 py-2 pr-4 text-right tabular-nums', 'text-red-700' => $open->sum('difference') < 0, 'text-amber-800' => $open->sum('difference') > 0])>{{ $signed($open->sum('difference')) }}</td>
                             </tr>
                         </tfoot>
                     @endif

@@ -5,18 +5,6 @@
     $s = $c['summary'];
     $day = $this->day;
     $open = collect($c['shifts'])->firstWhere('status', 'open');
-    // Status selisih kas: label + warna + ikon (tidak hanya warna).
-    $diff = fn (?int $d) => match (true) {
-        $d === null => ['Belum dihitung', 'bg-stone-100 text-stone-600', 'M12 8v4l3 2M12 21a9 9 0 100-18 9 9 0 000 18z'],
-        $d === 0 => ['Pas', 'bg-emerald-100 text-emerald-800', 'm5 13 4 4L19 7'],
-        $d < 0 => ['Kurang '.$rp(abs($d)), 'bg-red-100 text-red-800', 'M12 9v4m0 4h.01M10.3 3.9 1.8 18a2 2 0 001.7 3h17a2 2 0 001.7-3L13.7 3.9a2 2 0 00-3.4 0z'],
-        default => ['Lebih '.$rp($d), 'bg-amber-100 text-amber-900', 'M12 9v4m0 4h.01M12 21a9 9 0 100-18 9 9 0 000 18z'],
-    };
-    $badge = function (?int $d) use ($diff) {
-        [$label, $cls, $icon] = $diff($d);
-
-        return '<span class="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-semibold '.$cls.'"><svg class="size-3.5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24" aria-hidden="true"><path d="'.$icon.'"/></svg>'.e($label).'</span>';
-    };
     $primary = 'inline-flex items-center gap-1.5 rounded-xl px-3.5 py-2 text-sm font-semibold bg-emerald-800 text-white hover:bg-emerald-900';
 @endphp
 <div class="flex min-h-0 flex-1 flex-col overflow-y-auto">
@@ -137,11 +125,9 @@
                                 <p class="text-xs text-stone-500 tabular-nums">{{ $opened->format('H:i') }} – {{ $closed?->format('H:i') ?? 'sekarang' }} · {{ $shift['transactions'] }} transaksi</p>
                             </div>
                             @if ($shift['status'] === 'open')
-                                <span class="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2 py-0.5 text-xs font-semibold text-amber-900">
-                                    <span class="size-1.5 rounded-full bg-amber-500" aria-hidden="true"></span>Berjalan
-                                </span>
+                                <x-kas.difference-badge running />
                             @else
-                                {!! $badge($shift['difference']) !!}
+                                <x-kas.difference-badge :amount="$shift['difference']" />
                             @endif
                         </div>
                         <dl class="grid gap-x-8 px-4 py-3 text-sm sm:grid-cols-2">
@@ -237,7 +223,7 @@
                                     <td class="px-4 py-2 text-right tabular-nums">{{ $rp($w['revenue']) }}</td>
                                     <td class="px-4 py-2 text-right tabular-nums">{{ $rp($w['cash_sales']) }}</td>
                                     <td class="px-4 py-2 text-right tabular-nums">{{ $w['shifts'] }}</td>
-                                    <td class="px-4 py-2 text-right">{!! $w['open_shifts'] && $w['shifts'] === $w['open_shifts'] ? $badge(null) : $badge($w['difference']) !!}</td>
+                                    <td class="px-4 py-2 text-right"><x-kas.difference-badge :amount="$w['open_shifts'] && $w['shifts'] === $w['open_shifts'] ? null : $w['difference']" /></td>
                                 @endif
                             </tr>
                         @endforeach
