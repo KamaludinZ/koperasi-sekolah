@@ -74,4 +74,20 @@ class ReceiptPdfTest extends TestCase
         $tx = Transaction::first();
         Storage::disk('local')->assertExists(app(ReceiptPdfService::class)->path($tx));
     }
+
+    public function test_paper_width_follows_setting_58_and_80_mm(): void
+    {
+        $tx = $this->checkout();
+        $width = function (): float {
+            $pdf = app(ReceiptPdfService::class)->render(\App\Models\Transaction::latest('id')->first());
+            preg_match('/\/MediaBox \[\s*0\.?0* 0\.?0* ([\d.]+) ([\d.]+)\s*\]/', $pdf, $m);
+
+            return (float) ($m[1] ?? 0);
+        };
+        $this->assertEqualsWithDelta(58 * ReceiptPdfService::PT_PER_MM, $width(), 1.0);
+
+        app(\App\Services\SettingsService::class)->save('receipt', ['paper' => '80mm']);
+        $this->assertEqualsWithDelta(80 * ReceiptPdfService::PT_PER_MM, $width(), 1.0);
+        $this->assertNotNull($tx);
+    }
 }

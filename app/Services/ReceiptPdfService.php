@@ -15,7 +15,7 @@ use Illuminate\Support\Facades\Storage;
 class ReceiptPdfService
 {
     /** 1 mm = 2.8346 pt. */
-    private const PT_PER_MM = 2.8346;
+    public const PT_PER_MM = 2.8346;
 
     public function __construct(private ReceiptPresenter $presenter, private SettingsService $settings) {}
 

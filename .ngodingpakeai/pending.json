@@ -1,6 +1,6 @@
 {
   "repo": "Koperasi Sekolah",
-  "generatedForCommit": "e8e7b57bc4c8b83253fa24a4eb8c57c9e5b98ba4",
+  "generatedForCommit": "1200a3d381f717297900bde7eaf5f66f878fa8ba",
   "files": [
     {
       "path": ".claude/skills/ngodingpakeai/SKILL.md",
@@ -190,9 +190,9 @@
     },
     {
       "path": "app/Http/Controllers/Kasir/CheckoutController.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 2419
+      "size": 3243
     },
     {
       "path": "app/Http/Controllers/Kasir/CouponCheckController.php",
@@ -346,7 +346,7 @@
     },
     {
       "path": "app/Http/Middleware/TrackSlowRequests.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 1780
     },
@@ -712,7 +712,7 @@
     },
     {
       "path": "app/Livewire/Sistem/Performance.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 2716
     },
@@ -970,9 +970,9 @@
     },
     {
       "path": "app/Models/Transaction.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 5036
+      "size": 5050
     },
     {
       "path": "app/Models/TransactionDiscount.php",
@@ -1102,9 +1102,9 @@
     },
     {
       "path": "app/Services/CheckoutService.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 12015
+      "size": 12423
     },
     {
       "path": "app/Services/CouponService.php",
@@ -1408,7 +1408,7 @@
     },
     {
       "path": "app/Support/MockData.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 15359
     },
@@ -1480,7 +1480,7 @@
     },
     {
       "path": "bootstrap/app.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 1927
     },
@@ -1951,6 +1951,12 @@
       "reason": "needs_summary",
       "language": "php",
       "size": 1024
+    },
+    {
+      "path": "database/migrations/2026_10_14_000005_add_client_ref_to_transactions_table.php",
+      "reason": "new",
+      "language": "php",
+      "size": 846
     },
     {
       "path": "database/seeders/ActivityLogSeeder.php",
@@ -2728,7 +2734,7 @@
     },
     {
       "path": "resources/views/livewire/sistem/performance.blade.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 6259
     },
@@ -3357,6 +3363,12 @@
       "size": 3305
     },
     {
+      "path": "tests/Feature/Kasir/CheckoutIdempotencyTest.php",
+      "reason": "new",
+      "language": "php",
+      "size": 2295
+    },
+    {
       "path": "tests/Feature/Kasir/CheckoutTest.php",
       "reason": "needs_summary",
       "language": "php",
@@ -3796,7 +3808,7 @@
     },
     {
       "path": "tests/Feature/Sistem/PerformancePageTest.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 2587
     },
