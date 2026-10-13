@@ -1,6 +1,6 @@
 {
   "repo": "Koperasi Sekolah",
-  "generatedForCommit": "8a25b860e43b3ea19e5ef607fc220d496afa0d15",
+  "generatedForCommit": "855caa8e1fea86398e2cefd68fa1e72b42f376a6",
   "files": [
     {
       "path": ".claude/skills/ngodingpakeai/SKILL.md",
@@ -184,9 +184,9 @@
     },
     {
       "path": "app/Http/Controllers/Kasir/CheckoutController.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 2006
+      "size": 2108
     },
     {
       "path": "app/Http/Controllers/Kasir/CouponCheckController.php",
@@ -292,9 +292,9 @@
     },
     {
       "path": "app/Http/Controllers/Transaksi/TransactionListController.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 3343
+      "size": 3342
     },
     {
       "path": "app/Http/Middleware/EnsureActiveSession.php",
@@ -472,9 +472,9 @@
     },
     {
       "path": "app/Livewire/Kasir/Cart.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 19557
+      "size": 19742
     },
     {
       "path": "app/Livewire/Kasir/Index.php",
@@ -718,25 +718,25 @@
     },
     {
       "path": "app/Models/Member.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 3419
     },
     {
       "path": "app/Models/MemberCredit.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 2414
     },
     {
       "path": "app/Models/MemberCreditAllocation.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 710
     },
     {
       "path": "app/Models/MemberCreditPayment.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 1109
     },
@@ -802,7 +802,7 @@
     },
     {
       "path": "app/Models/SavingsTransaction.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 2321
     },
@@ -838,7 +838,7 @@
     },
     {
       "path": "app/Models/Transaction.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 2844
     },
@@ -952,9 +952,9 @@
     },
     {
       "path": "app/Services/CheckoutService.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 10700
+      "size": 11424
     },
     {
       "path": "app/Services/CouponService.php",
@@ -1072,9 +1072,9 @@
     },
     {
       "path": "app/Services/ReceiptPresenter.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 4747
+      "size": 5226
     },
     {
       "path": "app/Services/ReportExportService.php",
@@ -1099,6 +1099,12 @@
       "reason": "needs_summary",
       "language": "php",
       "size": 11783
+    },
+    {
+      "path": "app/Services/SavingsPaymentService.php",
+      "reason": "new",
+      "language": "php",
+      "size": 4995
     },
     {
       "path": "app/Services/SavingsService.php",
@@ -1144,9 +1150,9 @@
     },
     {
       "path": "app/Services/TransactionHistory.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 10022
+      "size": 10209
     },
     {
       "path": "app/Services/TrashService.php",
@@ -1654,7 +1660,7 @@
     },
     {
       "path": "database/migrations/2026_10_13_000024_create_member_credits_tables.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 5367
     },
@@ -2470,7 +2476,7 @@
     },
     {
       "path": "tests/Feature/Anggota/MemberCreditSchemaTest.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 5249
     },
@@ -2515,6 +2521,12 @@
       "reason": "needs_summary",
       "language": "php",
       "size": 3258
+    },
+    {
+      "path": "tests/Feature/Anggota/SavingsPaymentServiceTest.php",
+      "reason": "new",
+      "language": "php",
+      "size": 5707
     },
     {
       "path": "tests/Feature/Anggota/ShowTest.php",
@@ -2962,9 +2974,9 @@
     },
     {
       "path": "tests/Feature/Kasir/MemberPaymentMethodsTest.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 8160
+      "size": 8360
     },
     {
       "path": "tests/Feature/Kasir/PaymentTest.php",

@@ -22,6 +22,7 @@ use App\Http\Controllers\Kas\ShiftHistoryController;
 use App\Http\Controllers\Kas\ShiftController;
 use App\Http\Controllers\Kasir\CheckoutController;
 use App\Http\Controllers\Kasir\CouponCheckController;
+use App\Http\Controllers\Kasir\MemberPaymentController;
 use App\Http\Controllers\Kasir\ProductSearchController;
 use App\Http\Controllers\Kasir\TransactionReceiptController;
 use App\Http\Controllers\Laporan\SalesExportController;
@@ -118,6 +119,13 @@ Route::middleware('menu:kasir')->group(function () {
     Route::post('/kasir/kupon/cek', CouponCheckController::class)
         ->middleware('throttle:30,1')
         ->name('kasir.coupons.check');
+    Route::get('/kasir/anggota/cari', [MemberPaymentController::class, 'search'])
+        ->middleware('throttle:120,1')
+        ->name('kasir.members.search');
+    Route::get('/kasir/anggota/{member}/tabungan', [MemberPaymentController::class, 'savings'])
+        ->whereNumber('member')
+        ->middleware('throttle:120,1')
+        ->name('kasir.members.savings');
     Route::post('/kasir/transaksi', CheckoutController::class)
         ->middleware('throttle:60,1')
         ->name('kasir.checkout');

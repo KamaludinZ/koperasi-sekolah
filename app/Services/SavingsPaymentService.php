@@ -73,6 +73,32 @@ class SavingsPaymentService
         });
     }
 
+    /**
+     * Pemeriksaan sebelum bayar (tanpa mengubah data): cukupkah saldo anggota untuk $amount.
+     *
+     * @return array{can_pay: bool, reason: string, balance: int, amount: int, shortfall: int, balance_after: ?int}
+     *                                                                                                           reason: ok | inactive | insufficient
+     */
+    public function check(Member $member, int $amount): array
+    {
+        $balance = (int) round((float) $member->balance);
+        $short = max(0, $amount - $balance);
+        $reason = match (true) {
+            ! $member->is_active || $member->trashed() => 'inactive',
+            $short > 0 => 'insufficient',
+            default => 'ok',
+        };
+
+        return [
+            'can_pay' => $reason === 'ok',
+            'reason' => $reason,
+            'balance' => $balance,
+            'amount' => $amount,
+            'shortfall' => $short,
+            'balance_after' => $reason === 'ok' ? $balance - $amount : null,
+        ];
+    }
+
     /** Mutasi pemotongan tabungan untuk sebuah transaksi kasir, bila ada. */
     public function forTransaction(int $transactionId): ?SavingsTransaction
     {
