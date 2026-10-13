@@ -15,7 +15,7 @@
 
     @if ($this->expired)
         <div class="px-4 py-5 sm:px-6">
-            <p class="rounded-xl bg-red-50 px-4 py-3 text-sm text-red-800" role="alert">Transaksi ini sudah lewat batas retur {{ Returns::LIMIT_DAYS }} hari, jadi tidak bisa diretur.
+            <p class="rounded-xl bg-red-50 px-4 py-3 text-sm text-red-800" role="alert">{{ $t->isVoided() ? 'Transaksi ini sudah dibatalkan, jadi tidak bisa diretur.' : 'Transaksi ini sudah lewat batas retur '.Returns::LIMIT_DAYS.' hari, jadi tidak bisa diretur.' }}
                 <a href="{{ route('transaksi.show', $t->id) }}" wire:navigate class="font-semibold underline">Kembali ke transaksi</a></p>
         </div>
     @else
@@ -37,7 +37,7 @@
                                     @php $q = max(0, min($l['left'], (int) ($qty[$l['id']] ?? 0))); @endphp
                                     <tr wire:key="rl-{{ $l['id'] }}" @class(['opacity-60' => $l['left'] === 0])>
                                         <td class="px-5 py-2">{{ $l['name'] }}
-                                            <span class="block text-xs text-stone-500">{{ $rp($l['net']) }}/satuan{{ $l['net'] < $l['price'] ? ' setelah diskon' : '' }}</span></td>
+                                            <span class="block text-xs text-stone-500">{{ $rp($l['net']) }}/satuan{{ $l['net'] !== $l['price'] ? ' (harga bersih transaksi)' : '' }}</span></td>
                                         <td class="px-3 py-2 text-right tabular-nums">{{ $l['bought'] }}@if ($l['returned'])<span class="block text-xs text-stone-500">{{ $l['returned'] }} sudah diretur</span>@endif</td>
                                         <td class="px-3 py-2">
                                             @if ($l['left'] > 0)
@@ -61,7 +61,7 @@
                     <label class="block text-sm"><span class="mb-1 block font-medium text-stone-700">Alasan retur</span>
                         <select wire:model.live="reason" class="{{ $field('reason') }} w-full">
                             <option value="">Pilih alasan…</option>
-                            @foreach (\App\Support\MockData::RETURN_REASONS as $k => $label)<option value="{{ $k }}">{{ $label }}</option>@endforeach
+                            @foreach (\App\Models\TransactionReturn::RETURN_REASONS as $k => $label)<option value="{{ $k }}">{{ $label }}</option>@endforeach
                         </select>
                         @error('reason') <span class="mt-1 block text-xs text-red-600">{{ $message }}</span> @enderror
                     </label>

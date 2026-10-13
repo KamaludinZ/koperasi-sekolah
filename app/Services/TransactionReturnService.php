@@ -190,6 +190,40 @@ class TransactionReturnService
         });
     }
 
+    /** @return array<string, mixed> bentuk data pengajuan untuk API & halaman */
+    public static function toArray(TransactionReturn $r): array
+    {
+        $r->loadMissing(['items', 'transaction.user:id,name', 'requester:id,name', 'decider:id,name']);
+        $t = $r->transaction;
+
+        return [
+            'id' => $r->id,
+            'number' => $r->number,
+            'kind' => $r->kind,
+            'kind_label' => $r->kindLabel(),
+            'status' => $r->status,
+            'status_label' => $r->statusLabel(),
+            'transaction' => ['id' => $t->id, 'invoice' => $t->invoice_number, 'total' => (int) $t->total, 'method' => $t->payment_method,
+                'created_at' => $t->created_at->toDateTimeString(), 'cashier' => $t->user?->name ?? 'Kasir'],
+            'items' => $r->items->map(fn ($i) => ['transaction_item_id' => $i->transaction_item_id, 'product_id' => $i->product_id, 'name' => $i->product_name,
+                'qty' => $i->quantity, 'unit_price' => $i->unit_price, 'amount' => $i->amount])->all(),
+            'qty' => $r->quantity,
+            'amount' => $r->amount,
+            'refund_method' => $r->refund_method,
+            'refund_label' => $r->refundLabel(),
+            'restock' => $r->restock,
+            'reason_key' => $r->reason_key,
+            'reason' => $r->reason,
+            'note' => $r->note,
+            'requested_by' => $r->requester?->name,
+            'requested_by_id' => $r->requested_by,
+            'requested_at' => $r->requested_at->toDateTimeString(),
+            'decided_by' => $r->decider?->name,
+            'decided_at' => $r->decided_at?->toDateTimeString(),
+            'decision_note' => $r->decision_note,
+        ];
+    }
+
     /** Transaksi masih bisa diajukan retur/pembatalan. */
     private function assertOpen(Transaction $t): void
     {

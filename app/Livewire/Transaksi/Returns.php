@@ -36,7 +36,7 @@ class Returns extends Component
     public const REFUND_METHODS = ['tunai' => 'Uang tunai', 'qris' => 'Transfer balik', 'tabungan' => 'Masuk saldo tabungan', 'bon' => 'Mengurangi bon'];
 
     /** Batas hari sejak pembelian untuk retur/pembatalan. */
-    public const LIMIT_DAYS = 3;
+    public const LIMIT_DAYS = \App\Services\TransactionReturnService::LIMIT_DAYS;
 
     #[Url(as: 'status', except: 'semua')]
     public string $status = 'semua';

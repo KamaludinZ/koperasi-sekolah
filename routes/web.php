@@ -39,6 +39,7 @@ use App\Http\Controllers\Promo\PromoController;
 use App\Http\Controllers\Pengaturan\SettingsController;
 use App\Http\Controllers\Pengguna\LockoutController;
 use App\Http\Controllers\Pengguna\UserController;
+use App\Http\Controllers\Transaksi\ReturnController;
 use App\Http\Controllers\Transaksi\TransactionDetailController;
 use App\Http\Controllers\Transaksi\TransactionListController;
 use App\Livewire\Akun;
@@ -278,6 +279,10 @@ Route::middleware('menu:transaksi')->group(function () {
     Route::get('/transaksi/{transaction}/retur', Transaksi\ReturnForm::class)
         ->whereNumber('transaction')
         ->name('transaksi.retur.buat');
+    Route::post('/transaksi/{transaction}/retur', [ReturnController::class, 'store'])
+        ->whereNumber('transaction')
+        ->middleware('throttle:30,1')
+        ->name('transaksi.retur.store');
     Route::get('/transaksi/{transaction}/batal', Transaksi\VoidForm::class)
         ->whereNumber('transaction')
         ->name('transaksi.retur.batal');

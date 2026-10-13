@@ -3,7 +3,9 @@
 namespace App\Livewire\Transaksi;
 
 use App\Models\Transaction;
-use App\Support\MockData;
+use App\Models\TransactionReturn;
+use App\Services\TransactionReturnService;
+use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
@@ -12,8 +14,8 @@ use Livewire\Component;
 /**
  * Form pengajuan retur barang dari satu transaksi: pilih jumlah per barang (≤ jumlah dibeli
  * dikurangi yang sudah diretur), alasan, kondisi barang (kembali ke stok atau tidak), cara
- * pengembalian dana, dan catatan. Nilai retur mengikuti harga setelah diskon transaksi.
- * Tahap tampilan: pengajuan disimulasikan (data tiruan), backend retur menyusul.
+ * pengembalian dana, dan catatan. Nilai retur mengikuti harga bersih transaksi (setelah diskon, pajak
+ * & pembulatan). Disimpan sebagai pengajuan menunggu lewat TransactionReturnService::requestReturn.
  */
 #[Layout('components.layouts.app')]
 #[Title('Retur Barang')]
@@ -50,26 +52,24 @@ class ReturnForm extends Component
     #[Computed]
     public function expired(): bool
     {
-        return $this->tx->created_at->lt(now()->subDays(Returns::LIMIT_DAYS)->startOfDay());
+        return TransactionReturnService::expired($this->tx) || $this->tx->isVoided();
     }
 
-    /** Rasio harga setelah diskon transaksi (diskon dibagi rata ke semua barang). */
+    /** Rasio harga bersih transaksi (total ÷ subtotal: diskon, pajak & pembulatan dibagi rata). */
     #[Computed]
     public function ratio(): float
     {
-        $subtotal = (float) $this->tx->subtotal;
-
-        return $subtotal > 0 ? max(0, ($subtotal - (float) $this->tx->discount) / $subtotal) : 1.0;
+        return TransactionReturnService::ratio($this->tx);
     }
 
     /** @return list<array{id: int, name: string, price: int, net: int, bought: int, returned: int, left: int}> */
     #[Computed]
     public function lines(): array
     {
-        $returned = $this->alreadyReturned();
+        $returned = $this->tx->returnedQuantities();
 
         return $this->tx->items->sortBy('id')->map(function ($it) use ($returned) {
-            $done = $returned[$it->product_name] ?? 0;
+            $done = $returned[$it->id] ?? 0;
 
             return [
                 'id' => $it->id,
@@ -83,37 +83,11 @@ class ReturnForm extends Component
         })->values()->all();
     }
 
-    /** Jumlah barang yang sudah diretur (disetujui/menunggu) dari pengajuan tiruan transaksi ini. */
-    private function alreadyReturned(): array
-    {
-        $out = [];
-        foreach (MockData::transactionReturns() as $r) {
-            if ($r['transaction']['id'] === $this->transactionId && $r['status'] !== 'ditolak') {
-                foreach ($r['items'] as $it) {
-                    $out[$it['name']] = ($out[$it['name']] ?? 0) + $it['qty'];
-                }
-            }
-        }
-
-        return $out;
-    }
-
     /** @return array<string, string> cara pengembalian dana sesuai metode bayar transaksi */
     #[Computed]
     public function refundOptions(): array
     {
-        $method = $this->tx->payment_method;
-        $keys = match ($method) {
-            'tabungan' => ['tabungan', 'tunai'],
-            'bon' => ['bon'],
-            'qris' => ['qris', 'tunai'],
-            default => ['tunai'],
-        };
-        if ($this->tx->member_id && ! in_array('tabungan', $keys, true) && $method !== 'bon') {
-            $keys[] = 'tabungan';
-        }
-
-        return array_intersect_key(Returns::REFUND_METHODS, array_flip($keys));
+        return TransactionReturnService::refundOptions($this->tx);
     }
 
     #[Computed]
@@ -143,7 +117,7 @@ class ReturnForm extends Component
         abort_if($this->expired, 403);
 
         $rules = [
-            'reason' => ['required', 'in:'.implode(',', array_keys(MockData::RETURN_REASONS))],
+            'reason' => ['required', 'in:'.implode(',', array_keys(TransactionReturn::RETURN_REASONS))],
             'condition' => ['required', 'in:'.implode(',', array_keys(self::CONDITIONS))],
             'refundMethod' => ['required', 'in:'.implode(',', array_keys($this->refundOptions))],
             'note' => [$this->reason === 'lainnya' ? 'required' : 'nullable', 'string', 'max:200'],
@@ -168,9 +142,22 @@ class ReturnForm extends Component
             return null;
         }
 
-        // Tahap tampilan: pengajuan belum disimpan; backend retur menyusul.
-        $number = 'RTR-'.now()->format('Ymd').'-'.str_pad((string) ($this->transactionId % 10000), 4, '0', STR_PAD_LEFT);
-        session()->flash('toast', ['type' => 'success', 'message' => "Pengajuan retur {$number} ({$this->summary['units']} barang, Rp".number_format($this->summary['amount'], 0, ',', '.').') dikirim untuk disetujui. (data contoh)']);
+        try {
+            $r = app(TransactionReturnService::class)->requestReturn($this->tx, array_map('intval', array_filter($this->qty, fn ($q) => (int) $q > 0)),
+                $this->reason, $this->condition === 'layak', $this->refundMethod, trim($this->note) ?: null, auth()->user());
+        } catch (ValidationException $e) {
+            foreach ($e->errors() as $field => $messages) {
+                $this->addError(match ($field) {
+                    'refund_method' => 'refundMethod',
+                    'transaction' => 'qty',
+                    default => $field,
+                }, $messages[0]);
+            }
+            unset($this->lines, $this->summary);
+
+            return null;
+        }
+        session()->flash('toast', ['type' => 'success', 'message' => "Pengajuan retur {$r->number} ({$r->quantity} barang, Rp".number_format($r->amount, 0, ',', '.').') dikirim untuk disetujui.']);
 
         return $this->redirectRoute('transaksi.retur', navigate: true);
     }

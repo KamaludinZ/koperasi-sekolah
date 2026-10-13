@@ -1,6 +1,6 @@
 {
   "repo": "Koperasi Sekolah",
-  "generatedForCommit": "3bbd7852dcc83d5080ed80de85f7784202817080",
+  "generatedForCommit": "1df2e6d000109018bbc1a1b371bf433341715358",
   "files": [
     {
       "path": ".claude/skills/ngodingpakeai/SKILL.md",
@@ -856,7 +856,7 @@
     },
     {
       "path": "app/Models/Transaction.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 4755
     },
@@ -868,13 +868,13 @@
     },
     {
       "path": "app/Models/TransactionItem.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 1321
     },
     {
       "path": "app/Models/TransactionReturn.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 3419
     },
@@ -1191,6 +1191,12 @@
       "size": 10937
     },
     {
+      "path": "app/Services/TransactionReturnService.php",
+      "reason": "new",
+      "language": "php",
+      "size": 13785
+    },
+    {
       "path": "app/Services/TrashService.php",
       "reason": "needs_summary",
       "language": "php",
@@ -1456,7 +1462,7 @@
     },
     {
       "path": "database/factories/TransactionReturnFactory.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 2591
     },
@@ -3406,7 +3412,7 @@
     },
     {
       "path": "tests/Feature/Transaksi/ReturnModelTest.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 3327
     },
@@ -3439,6 +3445,12 @@
       "reason": "needs_summary",
       "language": "php",
       "size": 3282
+    },
+    {
+      "path": "tests/Feature/Transaksi/TransactionReturnServiceTest.php",
+      "reason": "new",
+      "language": "php",
+      "size": 9774
     },
     {
       "path": "tests/Feature/Transaksi/TransactionSummaryEndpointTest.php",

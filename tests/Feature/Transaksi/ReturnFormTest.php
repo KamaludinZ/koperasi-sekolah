@@ -53,7 +53,7 @@ class ReturnFormTest extends TestCase
         $line = $this->tx->items()->first();
         $c = Livewire::test(ReturnForm::class, ['transaction' => $this->tx->id])->set("qty.{$line->id}", 1);
         $this->assertSame((int) round($line->price / 2), $c->instance()->summary['amount']);
-        $c->assertSee('setelah diskon');
+        $c->assertSee('harga bersih transaksi');
     }
 
     public function test_validation_and_mock_submit(): void
@@ -68,7 +68,9 @@ class ReturnFormTest extends TestCase
         $c->set('note', 'Salah warna')->set('refundMethod', 'tabungan')->call('submit')->assertHasErrors('refundMethod');
         $c->set('refundMethod', 'tunai')->set('condition', 'rusak')->call('submit')->assertHasNoErrors()->assertRedirect(route('transaksi.retur'));
         $this->assertStringContainsString('Pengajuan retur RTR-', session('toast')['message']);
-        $this->assertSame(3, $line->fresh()->quantity); // data transaksi tidak berubah (tahap tampilan)
+        $r = \App\Models\TransactionReturn::sole();
+        $this->assertSame(['menunggu', 'lainnya', 'Salah warna', false, 1, auth()->id()], [$r->status, $r->reason_key, $r->note, $r->restock, $r->quantity, $r->requested_by]);
+        $this->assertSame(3, $line->fresh()->quantity); // transaksi tidak berubah sampai disetujui
     }
 
     public function test_refund_options_follow_payment_method(): void
@@ -83,15 +85,32 @@ class ReturnFormTest extends TestCase
 
     public function test_already_returned_items_reduce_limit(): void
     {
-        // Setelah ada transaksi lebih baru, transaksi ini masuk data tiruan sebagai pengajuan menunggu.
-        $newer = Transaction::factory()->withItems()->create(['created_at' => now()]);
-        $rows = \App\Support\MockData::transactionReturns();
-        $r = collect($rows)->firstWhere('transaction.id', $this->tx->id);
-        $this->assertNotNull($r);
-        $c = Livewire::test(ReturnForm::class, ['transaction' => $this->tx->id]);
-        $returned = array_sum(array_column($c->instance()->lines, 'returned'));
-        $this->assertSame(array_sum(array_column($r['items'], 'qty')), $returned);
-        $c->assertSee('sudah diretur');
-        $this->assertNotNull($newer);
+        $line = $this->tx->items()->where('product_id', $this->pid('ATK001'))->first();
+        $r = app(\App\Services\TransactionReturnService::class)->requestReturn($this->tx, [$line->id => 2], 'rusak', false, 'tunai', null, null);
+        app(\App\Services\TransactionReturnService::class)->approve($r, auth()->user());
+
+        $c = Livewire::test(ReturnForm::class, ['transaction' => $this->tx->id])->assertSee('2 sudah diretur')->assertSee('maks. 1');
+        $this->assertSame(2, collect($c->instance()->lines)->firstWhere('id', $line->id)['returned']);
+        $c->set("qty.{$line->id}", 2)->set('reason', 'rusak')->call('submit')->assertHasErrors("qty.{$line->id}");
+    }
+
+    public function test_pending_request_blocks_new_one(): void
+    {
+        $line = $this->tx->items()->first();
+        app(\App\Services\TransactionReturnService::class)->requestReturn($this->tx, [$line->id => 1], 'rusak', false, 'tunai', null, null);
+        Livewire::test(ReturnForm::class, ['transaction' => $this->tx->id])->set("qty.{$line->id}", 1)->set('reason', 'rusak')->call('submit')
+            ->assertHasErrors('qty')->assertSee('menunggu');
+    }
+
+    public function test_api_store(): void
+    {
+        $line = $this->tx->items()->where('product_id', $this->pid('ATK001'))->first();
+        $this->postJson(route('transaksi.retur.store', $this->tx), ['items' => [['transaction_item_id' => $line->id, 'quantity' => 1]], 'reason' => 'salah_ambil', 'condition' => 'layak', 'refund_method' => 'tunai'])
+            ->assertCreated()->assertJsonPath('data.status', 'menunggu')->assertJsonPath('data.kind', 'retur')->assertJsonPath('data.restock', true)
+            ->assertJsonPath('data.items.0.qty', 1)->assertJsonPath('data.transaction.invoice', $this->tx->invoice_number);
+        $this->postJson(route('transaksi.retur.store', $this->tx), ['items' => [['transaction_item_id' => $line->id, 'quantity' => 1]], 'reason' => 'rusak', 'condition' => 'rusak', 'refund_method' => 'tunai'])
+            ->assertStatus(422)->assertJsonValidationErrors('transaction');
+        $this->postJson(route('transaksi.retur.store', $this->tx), ['items' => [], 'reason' => 'x', 'condition' => 'baru', 'refund_method' => 'emas'])
+            ->assertStatus(422)->assertJsonValidationErrors(['items', 'reason', 'condition', 'refund_method']);
     }
 }
