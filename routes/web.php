@@ -28,6 +28,7 @@ use App\Http\Controllers\Notifikasi\NotificationController;
 use App\Http\Controllers\Pengaturan\LogoController;
 use App\Http\Controllers\Promo\PromoController;
 use App\Http\Controllers\Pengaturan\SettingsController;
+use App\Http\Controllers\Pengguna\LockoutController;
 use App\Http\Controllers\Pengguna\UserController;
 use App\Http\Controllers\Transaksi\TransactionDetailController;
 use App\Http\Controllers\Transaksi\TransactionListController;
@@ -231,6 +232,9 @@ Route::middleware('menu:laporan')->group(function () {
 Route::middleware(['menu:pengguna', 'peran:admin'])->group(function () {
     Route::get('/pengguna', Pengguna\Index::class)->name('pengguna');
     Route::get('/pengguna/terkunci', Pengguna\Locked::class)->name('pengguna.terkunci');
+    Route::get('/pengguna/terkunci/data', [LockoutController::class, 'index'])->name('pengguna.terkunci.data');
+    Route::post('/pengguna/terkunci/{lockout}/buka', [LockoutController::class, 'unlock'])
+        ->whereNumber('lockout')->middleware('throttle:30,1')->name('pengguna.terkunci.unlock');
     Route::get('/pengguna/daftar', [UserController::class, 'index'])->name('pengguna.list');
     Route::get('/pengguna/peran', [UserController::class, 'roles'])->name('pengguna.roles');
     Route::middleware('throttle:30,1')->group(function () {

@@ -111,6 +111,37 @@ class LoginLockoutService
         LoginLockout::where('email', self::normalize($email))->delete();
     }
 
+    /**
+     * Email yang sedang terkunci (tingkat tertinggi & terbaru dulu) untuk halaman Akun terkunci.
+     *
+     * @return list<array{id: int, email: string, user_id: ?int, name: ?string, role: ?string, failed: int, level: int, locked_at: string, locked_until: ?string, seconds_left: ?int, last_attempt_at: ?string, ip_addresses: list<string>}>
+     */
+    public function list(): array
+    {
+        return LoginLockout::locked()->with('user.role')
+            ->orderByDesc('level')->orderByDesc('locked_at')->get()
+            ->map(fn (LoginLockout $l) => self::toArray($l))->all();
+    }
+
+    /** @return array<string, mixed> */
+    public static function toArray(LoginLockout $l): array
+    {
+        return [
+            'id' => $l->id,
+            'email' => $l->email,
+            'user_id' => $l->user_id,
+            'name' => $l->user?->name,
+            'role' => $l->user?->role?->name,
+            'failed' => $l->failed_count,
+            'level' => $l->level,
+            'locked_at' => $l->locked_at?->toDateTimeString(),
+            'locked_until' => $l->locked_until?->toDateTimeString(),
+            'seconds_left' => $l->secondsLeft(),
+            'last_attempt_at' => $l->last_attempt_at?->toDateTimeString(),
+            'ip_addresses' => $l->ip_addresses ?? [],
+        ];
+    }
+
     /** Admin membuka kunci: hitungan dihapus, tercatat di audit. */
     public function unlock(LoginLockout $row, ?string $note = null): void
     {

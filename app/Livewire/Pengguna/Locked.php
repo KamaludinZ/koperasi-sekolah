@@ -3,8 +3,8 @@
 namespace App\Livewire\Pengguna;
 
 use App\Livewire\Concerns\NotifiesSave;
-use App\Support\MockData;
-use Illuminate\Support\Carbon;
+use App\Models\LoginLockout;
+use App\Services\LoginLockoutService;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
@@ -12,9 +12,9 @@ use Livewire\Component;
 
 /**
  * Pengguna → Akun terkunci (admin): akun/email yang dikunci karena gagal masuk berulang
- * dengan kunci bertingkat (5× → 1 menit, 10× → 15 menit, 15× → sampai dibuka Admin),
- * beserta jumlah gagal, IP, dan sisa waktu kunci. Admin membuka kunci dengan catatan opsional.
- * Tahap ini memakai MockData::lockedAccounts().
+ * dengan kunci bertingkat (N× → 1 menit, 2N× → 15 menit, 3N× → sampai dibuka Admin; N di pengaturan),
+ * beserta jumlah gagal, IP, dan sisa waktu kunci. Admin membuka kunci dengan catatan
+ * (wajib untuk tingkat 3). Data dari LoginLockoutService (kontrak sama dengan GET /pengguna/terkunci/data).
  */
 #[Layout('components.layouts.app')]
 #[Title('Akun Terkunci')]
@@ -26,28 +26,22 @@ class Locked extends Component
 
     public string $note = '';
 
-    /** @return list<array{failed: int, minutes: ?int, label: string}> */
+    /** @return list<array{level: int, failed: int, minutes: ?int, label: string}> */
     public static function tiers(): array
     {
-        return collect(MockData::LOCK_TIERS)->map(fn (?int $m, int $n) => [
-            'failed' => $n,
-            'minutes' => $m,
-            'label' => $m === null ? 'Sampai dibuka Admin' : $m.' menit',
-        ])->values()->all();
+        return LoginLockoutService::tiers();
     }
 
     /** Sisa menit kunci sementara; null = kunci manual (tanpa batas waktu). */
     public static function minutesLeft(array $row): ?int
     {
-        return $row['locked_until'] === null ? null
-            : max(0, (int) ceil(now()->diffInSeconds(Carbon::parse($row['locked_until']), false) / 60));
+        return $row['seconds_left'] === null ? null : (int) ceil($row['seconds_left'] / 60);
     }
 
     #[Computed]
     public function accounts(): array
     {
-        return collect(MockData::lockedAccounts())
-            ->sortBy([['level', 'desc'], ['locked_at', 'desc']])->values()->all();
+        return app(LoginLockoutService::class)->list();
     }
 
     #[Computed]
@@ -96,7 +90,9 @@ class Locked extends Component
             ['note.required' => 'Tulis alasan membuka kunci (wajib untuk kunci tingkat akhir).', 'note.max' => 'Catatan maksimal 200 karakter.'],
         );
 
-        MockData::unlockAccount($row['id']);
+        if ($lockout = LoginLockout::find($row['id'])) {
+            app(LoginLockoutService::class)->unlock($lockout, trim($this->note) ?: null);
+        }
         $this->cancelUnlock();
         unset($this->accounts, $this->summary);
         $this->toast('success', ($row['name'] ?? $row['email']).' dapat mencoba masuk lagi.');

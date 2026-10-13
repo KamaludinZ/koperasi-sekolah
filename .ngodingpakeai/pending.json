@@ -1,6 +1,6 @@
 {
   "repo": "Koperasi Sekolah",
-  "generatedForCommit": "c08267cdecf1ce5c5fbc56df94bd7041dd9a30f3",
+  "generatedForCommit": "4ca5873ca7938c71c83793d96d47d972f587ee3b",
   "files": [
     {
       "path": ".claude/skills/ngodingpakeai/SKILL.md",
@@ -316,9 +316,9 @@
     },
     {
       "path": "app/Livewire/Auth/Login.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 3669
+      "size": 3475
     },
     {
       "path": "app/Livewire/Barang/Index.php",
@@ -531,6 +531,12 @@
       "size": 2511
     },
     {
+      "path": "app/Models/LoginLockout.php",
+      "reason": "new",
+      "language": "php",
+      "size": 1789
+    },
+    {
       "path": "app/Models/Member.php",
       "reason": "needs_summary",
       "language": "php",
@@ -562,7 +568,7 @@
     },
     {
       "path": "app/Models/ReportExport.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 1777
     },
@@ -670,9 +676,9 @@
     },
     {
       "path": "app/Services/AuthService.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 3924
+      "size": 4351
     },
     {
       "path": "app/Services/CashMovementService.php",
@@ -709,6 +715,12 @@
       "reason": "needs_summary",
       "language": "php",
       "size": 4353
+    },
+    {
+      "path": "app/Services/LoginLockoutService.php",
+      "reason": "new",
+      "language": "php",
+      "size": 6018
     },
     {
       "path": "app/Services/LogoService.php",
@@ -802,7 +814,7 @@
     },
     {
       "path": "app/Services/RetentionService.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 3852
     },
@@ -1249,6 +1261,12 @@
       "reason": "needs_summary",
       "language": "php",
       "size": 2094
+    },
+    {
+      "path": "database/migrations/2026_10_13_000013_create_login_lockouts_table.php",
+      "reason": "new",
+      "language": "php",
+      "size": 1685
     },
     {
       "path": "database/seeders/ActivityLogSeeder.php",
@@ -1846,7 +1864,7 @@
     },
     {
       "path": "routes/console.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 2221
     },
@@ -1965,10 +1983,16 @@
       "size": 4469
     },
     {
-      "path": "tests/Feature/Auth/LoginTest.php",
-      "reason": "needs_summary",
+      "path": "tests/Feature/Auth/LoginLockoutTest.php",
+      "reason": "new",
       "language": "php",
-      "size": 6504
+      "size": 5034
+    },
+    {
+      "path": "tests/Feature/Auth/LoginTest.php",
+      "reason": "changed",
+      "language": "php",
+      "size": 6608
     },
     {
       "path": "tests/Feature/Auth/RoleMenuTest.php",
@@ -2086,7 +2110,7 @@
     },
     {
       "path": "tests/Feature/Database/RetentionCleanupTest.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 5176
     },
