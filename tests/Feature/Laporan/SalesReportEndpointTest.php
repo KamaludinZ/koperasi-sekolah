@@ -65,6 +65,19 @@ class SalesReportEndpointTest extends TestCase
             ->assertJsonCount(30, 'data')
             ->assertJsonPath('meta.unit', 'hari');
 
+        $this->getJson('/laporan/ringkasan?dari=2026-10-13&sampai=2026-10-13')
+            ->assertOk()
+            ->assertJsonPath('data.summary.revenue', 24000)
+            ->assertJsonPath('data.summary.count', 2)
+            ->assertJsonPath('data.comparison.label', '1 hari sebelumnya')
+            ->assertJsonPath('data.top_products.0.quantity', 6)
+            ->assertJsonPath('meta.period', 'kustom')
+            ->assertJsonPath('meta.from', '2026-10-13 00:00:00')
+            ->assertJsonPath('meta.to', '2026-10-13 23:59:59');
+        $this->getJson('/laporan/ringkasan?dari=2026-10-14&sampai=2026-10-13')->assertJsonValidationErrors('sampai');
+        $this->getJson('/laporan/ringkasan?dari=2026-10-14&sampai=2026-10-20')->assertJsonValidationErrors('sampai');
+        $this->getJson('/laporan/ringkasan?dari=2026-10-01')->assertJsonValidationErrors('sampai');
+        $this->getJson('/laporan/ringkasan?dari=2025-01-01&sampai=2026-10-14')->assertJsonValidationErrors('sampai');
         $this->getJson('/laporan/ringkasan?periode=tahun-ini')->assertUnprocessable();
         $this->getJson('/laporan/grafik?rentang=1-tahun')->assertUnprocessable();
     }

@@ -1,6 +1,6 @@
 {
   "repo": "Koperasi Sekolah",
-  "generatedForCommit": "751b18e6d1c75f5446d04158dc14b77d62f3aa2c",
+  "generatedForCommit": "bdfd4355ffc9b12f094808af7f89e688459a8fe8",
   "files": [
     {
       "path": ".claude/skills/ngodingpakeai/SKILL.md",
@@ -82,7 +82,7 @@
     },
     {
       "path": "app/Http/Controllers/Anggota/SavingsController.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 4053
     },
@@ -934,7 +934,7 @@
     },
     {
       "path": "app/Models/SavingsTransaction.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 2335
     },
@@ -1294,13 +1294,13 @@
     },
     {
       "path": "app/Services/SavingsPaymentService.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 6984
+      "size": 7655
     },
     {
       "path": "app/Services/SavingsService.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 10023
     },
@@ -1966,7 +1966,7 @@
     },
     {
       "path": "database/migrations/2026_10_14_000006_add_client_ref_to_savings_transactions.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 855
     },
@@ -2902,7 +2902,7 @@
     },
     {
       "path": "tests/Feature/Anggota/SavingsEndpointTest.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 4858
     },
@@ -2944,9 +2944,9 @@
     },
     {
       "path": "tests/Feature/Audit/AuditLogTest.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 5497
+      "size": 6820
     },
     {
       "path": "tests/Feature/Audit/AuditPageTest.php",

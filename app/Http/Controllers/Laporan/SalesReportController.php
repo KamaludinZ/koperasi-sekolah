@@ -16,6 +16,8 @@ use Illuminate\Validation\Rule;
  * - GET /laporan/hari-ini            → ringkasan hari ini vs kemarin s.d. jam yang sama,
  *                                      barang terlaris, penjualan per jam, dan 5 barang terlaris
  * - GET /laporan/ringkasan?periode=  → ringkasan periode + pembanding + barang terlaris
+ * - GET /laporan/ringkasan?dari=&sampai= → ringkasan rentang kustom (maks. 1 tahun, s.d. hari ini)
+ *                                      dengan pembanding rentang sama panjang tepat sebelumnya
  * - GET /laporan/grafik?rentang=     → titik grafik pilihan cepat (7-hari, 30-hari, 12-minggu)
  * - GET /laporan/grafik?dari=&sampai=&satuan= → titik grafik rentang kustom; satuan
  *                                      hari|minggu|bulan (kosong = otomatis menurut panjang rentang)
@@ -67,13 +69,32 @@ class SalesReportController extends Controller
 
     public function summary(Request $request, SalesReport $report): JsonResponse
     {
-        $data = $request->validate(['periode' => ['nullable', Rule::in(array_keys(SalesReport::PERIODS))]]);
-        $period = $data['periode'] ?? 'hari-ini';
-        [$start, $end] = SalesReport::range($period);
+        $data = $request->validate([
+            'periode' => ['nullable', Rule::in(array_keys(SalesReport::PERIODS))],
+            'dari' => ['nullable', 'required_with:sampai', 'date_format:Y-m-d', 'before_or_equal:today'],
+            'sampai' => ['nullable', 'required_with:dari', 'date_format:Y-m-d', 'after_or_equal:dari', 'before_or_equal:today'],
+        ], [
+            'sampai.after_or_equal' => 'Tanggal akhir tidak boleh sebelum tanggal awal.',
+            'required_with' => 'Isi tanggal awal dan akhir.',
+            'before_or_equal' => 'Tanggal tidak boleh melewati hari ini.',
+        ]);
+
+        if (isset($data['dari'])) {
+            $period = 'kustom';
+            [[$start, $end]] = SalesReport::customRanges($data['dari'], $data['sampai']);
+            if ($start->diffInDays($end) > 366) {
+                return response()->json(['message' => 'Rentang maksimal 1 tahun.', 'errors' => ['sampai' => ['Rentang maksimal 1 tahun.']]], 422);
+            }
+            $periodReport = $report->customReport($data['dari'], $data['sampai']);
+        } else {
+            $period = $data['periode'] ?? 'hari-ini';
+            [$start, $end] = SalesReport::range($period);
+            $periodReport = $report->periodReport($period);
+        }
 
         return response()->json([
             'data' => [
-                ...$report->periodReport($period),
+                ...$periodReport,
                 'top_products' => $report->topProducts($start, $end, 5),
             ],
             'meta' => [
