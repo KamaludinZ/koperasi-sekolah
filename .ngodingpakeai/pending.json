@@ -1,6 +1,6 @@
 {
   "repo": "Koperasi Sekolah",
-  "generatedForCommit": "3276ae547966e44a4bf1b276b7b369ef85958cc1",
+  "generatedForCommit": "78ab4b80891fc640c905920221e7418e1524ad15",
   "files": [
     {
       "path": ".claude/skills/ngodingpakeai/SKILL.md",
@@ -298,7 +298,7 @@
     },
     {
       "path": "app/Http/Controllers/Transaksi/ReturnController.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 7037
     },
@@ -658,15 +658,15 @@
     },
     {
       "path": "app/Livewire/Transaksi/ReturnHistory.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 3970
     },
     {
       "path": "app/Livewire/Transaksi/ReturnStatusNotice.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 1738
+      "size": 2188
     },
     {
       "path": "app/Livewire/Transaksi/Returns.php",
@@ -772,9 +772,9 @@
     },
     {
       "path": "app/Models/Notification.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 5491
+      "size": 5954
     },
     {
       "path": "app/Models/Product.php",
@@ -1138,7 +1138,7 @@
     },
     {
       "path": "app/Services/ReturnHistoryExport.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 2827
     },
@@ -1212,7 +1212,7 @@
       "path": "app/Services/TransactionReturnService.php",
       "reason": "changed",
       "language": "php",
-      "size": 26669
+      "size": 28795
     },
     {
       "path": "app/Services/TrashService.php",
@@ -1252,9 +1252,9 @@
     },
     {
       "path": "app/Support/MockData.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 18775
+      "size": 15359
     },
     {
       "path": "app/Support/OpeningHours.php",
@@ -1735,6 +1735,12 @@
       "reason": "needs_summary",
       "language": "php",
       "size": 5840
+    },
+    {
+      "path": "database/migrations/2026_10_13_000026_add_recipient_to_notifications_table.php",
+      "reason": "new",
+      "language": "php",
+      "size": 920
     },
     {
       "path": "database/seeders/ActivityLogSeeder.php",
@@ -2494,7 +2500,7 @@
     },
     {
       "path": "resources/views/livewire/transaksi/return-history.blade.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 9332
     },
@@ -2530,7 +2536,7 @@
     },
     {
       "path": "routes/web.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 28289
     },
@@ -3436,7 +3442,7 @@
     },
     {
       "path": "tests/Feature/Transaksi/ReturnHistoryTest.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 5030
     },
@@ -3454,9 +3460,9 @@
     },
     {
       "path": "tests/Feature/Transaksi/ReturnStatusNoticeTest.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 3287
+      "size": 4974
     },
     {
       "path": "tests/Feature/Transaksi/ReturnsPageTest.php",

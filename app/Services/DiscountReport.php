@@ -19,7 +19,7 @@ class DiscountReport
         $start = $start->copy()->startOfDay();
         $end = $end->copy()->endOfDay();
 
-        $tx = Transaction::whereBetween('created_at', [$start, $end])
+        $tx = Transaction::whereBetween('created_at', [$start, $end])->whereNull('voided_at')
             ->selectRaw('COUNT(*) AS n, COALESCE(SUM(subtotal), 0) AS gross, COALESCE(SUM(total), 0) AS net,
                 SUM(CASE WHEN discount > 0 THEN 1 ELSE 0 END) AS discounted,
                 COALESCE(SUM(CASE WHEN discount > 0 THEN total ELSE 0 END), 0) AS discounted_total')
@@ -31,7 +31,8 @@ class DiscountReport
 
         $rows = TransactionDiscount::query()
             ->join('transactions', 'transactions.id', '=', 'transaction_discounts.transaction_id')
-            ->whereBetween('transactions.created_at', [$start, $end]);
+            ->whereBetween('transactions.created_at', [$start, $end])
+            ->whereNull('transactions.voided_at');
 
         $bySource = (clone $rows)->groupBy('transaction_discounts.source')
             ->selectRaw('transaction_discounts.source AS source, COUNT(*) AS n, COALESCE(SUM(transaction_discounts.amount), 0) AS amount')

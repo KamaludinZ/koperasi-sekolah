@@ -51,6 +51,9 @@ class ReceiptPresenter
             'total' => (int) $transaction->total,
             'paid' => (int) $transaction->paid,
             'change' => (int) $transaction->change,
+            'voided_at' => $transaction->voided_at?->toDateTimeString(),
+            'void_reason' => $transaction->void_reason,
+            'returned_amount' => (int) $transaction->returned_amount,
         ] + $this->savingsInfo($transaction);
     }
 

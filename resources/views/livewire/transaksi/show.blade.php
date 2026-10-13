@@ -22,7 +22,7 @@
         </div>
 
         <div class="flex flex-wrap items-center gap-2">
-        @unless ($at->lt(now()->subDays(\App\Services\TransactionReturnService::limitDays())->startOfDay()))
+        @unless (($tx['voided_at'] ?? null) || $at->lt(now()->subDays(\App\Services\TransactionReturnService::limitDays())->startOfDay()))
             <a href="{{ route('transaksi.retur.buat', $tx['id']) }}" wire:navigate
                class="rounded-lg border border-amber-300 bg-amber-50 px-3 py-1.5 text-sm font-medium text-amber-900 hover:bg-amber-100">Retur barang</a>
             <a href="{{ route('transaksi.retur.batal', $tx['id']) }}" wire:navigate
@@ -45,6 +45,15 @@
         </div>
     </header>
 
+    @if ($tx['voided_at'] ?? null)
+        <p class="mx-4 mt-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800 sm:mx-6" role="status">
+            Transaksi ini <strong>dibatalkan</strong> pada {{ \Illuminate\Support\Carbon::parse($tx['voided_at'])->translatedFormat('d M Y, H:i') }}{{ $tx['void_reason'] ? ' — '.$tx['void_reason'] : '' }}. Tidak dihitung di laporan penjualan.
+        </p>
+    @elseif (($tx['returned_amount'] ?? 0) > 0)
+        <p class="mx-4 mt-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900 sm:mx-6" role="status">
+            Ada retur yang disetujui senilai <strong>{{ $rp($tx['returned_amount']) }}</strong>. <a href="{{ route('transaksi.retur', ['q' => $tx['invoice_number']]) }}" wire:navigate class="font-semibold underline">Lihat retur</a>
+        </p>
+    @endif
     <div class="grid gap-5 px-4 py-5 sm:px-6 lg:grid-cols-[1fr_auto]">
         <div class="min-w-0 space-y-5">
             {{-- Ringkasan uang --}}

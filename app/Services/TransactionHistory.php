@@ -82,6 +82,8 @@ class TransactionHistory
             'change' => (int) $t->change,
             'payment_method' => $t->payment_method,
             'payment_method_label' => CheckoutService::PAYMENT_LABELS[$t->payment_method] ?? $t->payment_method,
+            'voided' => $t->voided_at !== null,
+            'returned_amount' => (int) $t->returned_amount,
             // Saldo tabungan setelah transaksi (metode tabungan) dan bon yang tercatat (metode bon).
             'balance_after' => $t->payment_method === 'tabungan' && $t->relationLoaded('savingsEntry') && $t->savingsEntry ? (int) round((float) $t->savingsEntry->balance_after) : null,
             'credit' => $t->payment_method === 'bon' && $t->relationLoaded('credit') && $t->credit
@@ -203,7 +205,8 @@ class TransactionHistory
             ->betweenDates($start, $end)
             ->paymentMethod($method)
             ->groupBy('payment_method')
-            ->selectRaw('payment_method, COUNT(*) AS tx_count, COALESCE(SUM(total), 0) AS total, COALESCE(SUM(item_count), 0) AS items, COALESCE(SUM(discount), 0) AS discount, SUM(CASE WHEN discount > 0 THEN 1 ELSE 0 END) AS discounted')
+            ->notVoided() // transaksi batal tidak dihitung; nilai retur dikurangkan
+            ->selectRaw('payment_method, COUNT(*) AS tx_count, COALESCE(SUM(total - returned_amount), 0) AS total, COALESCE(SUM(item_count), 0) AS items, COALESCE(SUM(discount), 0) AS discount, SUM(CASE WHEN discount > 0 THEN 1 ELSE 0 END) AS discounted')
             ->get()
             ->keyBy('payment_method');
 

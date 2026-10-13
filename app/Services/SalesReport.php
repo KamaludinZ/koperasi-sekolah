@@ -6,12 +6,15 @@ use App\Models\Transaction;
 use App\Models\TransactionItem;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\DB;
 
 /**
  * Agregasi laporan penjualan untuk pengurus: ringkasan periode (omzet, laba kotor,
  * margin, transaksi, barang, rata-rata) + pembanding periode setara, ringkasan hari ini,
  * barang terlaris, rekap per hari, dan titik grafik per hari/minggu.
  * Laba kotor memakai snapshot harga modal item (transaction_items.cost_price).
+ * Angka bersih: transaksi yang dibatalkan tidak dihitung; nilai, jumlah barang, dan modal barang
+ * retur yang disetujui dikurangkan (modal barang rusak tetap menjadi beban).
  */
 class SalesReport
 {
@@ -65,21 +68,23 @@ class SalesReport
     /** Ringkasan penjualan dalam rentang (agregat SQL). */
     public function summary(Carbon $start, Carbon $end): array
     {
-        $tx = Transaction::query()->betweenDates($start, $end)->toBase()
-            ->selectRaw('COUNT(*) AS n, COALESCE(SUM(total), 0) AS revenue, COALESCE(SUM(item_count), 0) AS items')
+        // Penjualan bersih: transaksi batal tidak dihitung; nilai & barang retur yang disetujui dikurangkan.
+        $tx = Transaction::query()->betweenDates($start, $end)->notVoided()->toBase()
+            ->selectRaw('COUNT(*) AS n, COALESCE(SUM(total - returned_amount), 0) AS revenue, COALESCE(SUM(item_count), 0) AS items')
             ->first();
         $cost = (float) $this->items($start, $end)->toBase()
             ->selectRaw('COALESCE(SUM(transaction_items.cost_price * transaction_items.quantity), 0) AS cost')
             ->value('cost');
+        $returned = $this->returnedTotals($start, $end);
 
         $count = (int) $tx->n;
         $revenue = (int) round((float) $tx->revenue);
-        $profit = $revenue - (int) round($cost);
+        $profit = $revenue - (int) round($cost - $returned['cost']);
 
         return [
             'revenue' => $revenue,
             'count' => $count,
-            'items' => (int) $tx->items,
+            'items' => max(0, (int) $tx->items - $returned['quantity']),
             'gross_profit' => $profit,
             'margin' => $revenue > 0 ? (int) round($profit / $revenue * 100) : 0,
             'average' => $count ? (int) round($revenue / $count) : 0,
@@ -133,11 +138,11 @@ class SalesReport
 
         [$open, $close] = self::OPEN_HOURS;
         $hourly = collect(range($open, $close))->mapWithKeys(fn ($h) => [$h => 0])->all();
-        $rows = Transaction::query()->betweenDates($start, $now)->get(['created_at', 'total']);
+        $rows = Transaction::query()->betweenDates($start, $now)->notVoided()->get(['created_at', 'total', 'returned_amount']);
         foreach ($rows as $t) {
             $h = (int) $t->created_at->format('G');
             if (array_key_exists($h, $hourly)) {
-                $hourly[$h] += (int) round((float) $t->total);
+                $hourly[$h] += (int) round((float) $t->total) - $t->returned_amount;
             }
         }
 
@@ -161,22 +166,29 @@ class SalesReport
      */
     public function topProducts(Carbon $start, Carbon $end, ?int $limit = 5): array
     {
-        return $this->items($start, $end)->toBase()
+        $returned = $this->returnedByProduct($start, $end);
+
+        $rows = collect($this->items($start, $end)->toBase()
             ->groupBy('transaction_items.product_name')
             ->selectRaw('transaction_items.product_name AS name, SUM(transaction_items.quantity) AS quantity,
                 SUM(transaction_items.subtotal) AS revenue,
                 SUM(transaction_items.subtotal - transaction_items.cost_price * transaction_items.quantity) AS profit')
-            ->orderByDesc('quantity')
-            ->orderBy('name')
-            ->when($limit, fn ($q) => $q->limit($limit))
-            ->get()
-            ->map(fn ($r) => [
-                'name' => $r->name,
-                'quantity' => (int) $r->quantity,
-                'revenue' => (int) round((float) $r->revenue),
-                'profit' => (int) round((float) $r->profit),
-            ])
-            ->all();
+            ->get())
+            ->map(function ($r) use ($returned) {
+                $back = $returned[$r->name] ?? ['quantity' => 0, 'amount' => 0, 'cost' => 0];
+
+                return [
+                    'name' => $r->name,
+                    'quantity' => (int) $r->quantity - $back['quantity'],
+                    'revenue' => (int) round((float) $r->revenue) - $back['amount'],
+                    'profit' => (int) round((float) $r->profit) - $back['amount'] + $back['cost'],
+                ];
+            })
+            ->filter(fn ($r) => $r['quantity'] > 0)
+            ->sortBy([['quantity', 'desc'], ['name', 'asc']])
+            ->values();
+
+        return ($limit ? $rows->take($limit) : $rows)->all();
     }
 
     /**
@@ -186,15 +198,15 @@ class SalesReport
      */
     public function daily(Carbon $start, Carbon $end): array
     {
-        return Transaction::query()->betweenDates($start, $end)
-            ->get(['created_at', 'total', 'item_count'])
+        return Transaction::query()->betweenDates($start, $end)->notVoided()
+            ->get(['created_at', 'total', 'item_count', 'returned_amount'])
             ->groupBy(fn ($t) => $t->created_at->toDateString())
             ->sortKeys()
             ->map(fn ($day, $date) => [
                 'date' => $date,
                 'count' => $day->count(),
                 'items' => (int) $day->sum('item_count'),
-                'revenue' => (int) round((float) $day->sum('total')),
+                'revenue' => (int) round((float) $day->sum('total')) - (int) $day->sum('returned_amount'),
             ])
             ->values()
             ->all();
@@ -267,10 +279,10 @@ class SalesReport
             ];
         }
 
-        foreach (Transaction::query()->betweenDates($start, $end)->get(['created_at', 'total']) as $t) {
+        foreach (Transaction::query()->betweenDates($start, $end)->notVoided()->get(['created_at', 'total', 'returned_amount']) as $t) {
             $key = $bucketStart($t->created_at)->toDateString();
             if (isset($buckets[$key])) {
-                $buckets[$key]['value'] += (int) round((float) $t->total);
+                $buckets[$key]['value'] += (int) round((float) $t->total) - $t->returned_amount;
                 $buckets[$key]['count']++;
             }
         }
@@ -278,12 +290,44 @@ class SalesReport
         return array_values($buckets);
     }
 
-    /** Item terjual dari transaksi dalam rentang. */
+    /** Item terjual dari transaksi (tidak batal) dalam rentang. */
     private function items(Carbon $start, Carbon $end): Builder
     {
         return TransactionItem::query()
             ->join('transactions', 'transactions.id', '=', 'transaction_items.transaction_id')
             ->where('transactions.created_at', '>=', $start)
-            ->where('transactions.created_at', '<=', $end);
+            ->where('transactions.created_at', '<=', $end)
+            ->whereNull('transactions.voided_at');
+    }
+
+    /**
+     * Barang retur yang disetujui dari transaksi (tidak batal) dalam rentang, per nama barang:
+     * jumlah, nilai bersih dikembalikan, dan modal yang kembali (hanya barang yang masuk stok lagi).
+     *
+     * @return array<string, array{quantity: int, amount: int, cost: int}>
+     */
+    private function returnedByProduct(Carbon $start, Carbon $end): array
+    {
+        return DB::table('transaction_return_items as ri')
+            ->join('transaction_returns as r', 'r.id', '=', 'ri.transaction_return_id')
+            ->join('transaction_items as ti', 'ti.id', '=', 'ri.transaction_item_id')
+            ->join('transactions as t', 't.id', '=', 'r.transaction_id')
+            ->where('r.status', 'disetujui')->where('r.kind', 'retur')
+            ->whereNull('t.voided_at')
+            ->where('t.created_at', '>=', $start)->where('t.created_at', '<=', $end)
+            ->groupBy('ri.product_name')
+            ->selectRaw('ri.product_name AS name, SUM(ri.quantity) AS quantity, SUM(ri.amount) AS amount,
+                SUM(CASE WHEN r.restock THEN ti.cost_price * ri.quantity ELSE 0 END) AS cost')
+            ->get()
+            ->mapWithKeys(fn ($r) => [$r->name => ['quantity' => (int) $r->quantity, 'amount' => (int) $r->amount, 'cost' => (int) round((float) $r->cost)]])
+            ->all();
+    }
+
+    /** @return array{quantity: int, amount: int, cost: int} total barang retur dalam rentang */
+    private function returnedTotals(Carbon $start, Carbon $end): array
+    {
+        $all = collect($this->returnedByProduct($start, $end));
+
+        return ['quantity' => (int) $all->sum('quantity'), 'amount' => (int) $all->sum('amount'), 'cost' => (int) $all->sum('cost')];
     }
 }

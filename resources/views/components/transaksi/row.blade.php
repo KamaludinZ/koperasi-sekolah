@@ -6,6 +6,8 @@
     $time = substr($tx['created_at'], 11, 5);
     $total = 'Rp'.number_format($tx['total'], 0, ',', '.');
     $discount = 'Rp'.number_format($tx['discount'] ?? 0, 0, ',', '.');
+    $voided = $tx['voided'] ?? false;
+    $returned = $tx['returned_amount'] ?? 0;
 @endphp
 
 @if ($variant === 'table')
@@ -21,8 +23,13 @@
         <td class="px-4 py-2.5 text-stone-600">{{ $tx['member'] ?? '—' }}</td>
         <td class="px-4 py-2.5 text-right tabular-nums">{{ $tx['item_count'] }}</td>
         <td class="px-4 py-2.5"><x-transaksi.method-badge :method="$tx['payment_method']" /></td>
-        <td class="px-4 py-2.5 text-right font-semibold tabular-nums">
+        <td @class(['px-4 py-2.5 text-right font-semibold tabular-nums', 'text-stone-400 line-through' => $voided])>
             {{ $total }}
+            @if ($voided)
+                <span class="block text-[11px] font-semibold text-red-700 no-underline">Dibatalkan</span>
+            @elseif ($returned > 0)
+                <span class="block text-[11px] font-medium text-amber-800">retur −Rp{{ number_format($returned, 0, ',', '.') }}</span>
+            @endif
             @if (($tx['discount'] ?? 0) > 0)
                 <span class="block text-[11px] font-medium text-emerald-700" title="Diskon {{ $discount }}">diskon −{{ $discount }}</span>
             @endif
@@ -42,7 +49,8 @@
             </span>
             <span class="flex shrink-0 items-center gap-2">
                 <span class="text-right">
-                    <span class="block font-semibold tabular-nums">{{ $total }}</span>
+                    <span @class(['block font-semibold tabular-nums', 'text-stone-400 line-through' => $voided])>{{ $total }}</span>
+                    @if ($voided)<span class="block text-[11px] font-semibold text-red-700">Dibatalkan</span>@elseif ($returned > 0)<span class="block text-[11px] font-medium text-amber-800">retur −Rp{{ number_format($returned, 0, ',', '.') }}</span>@endif
                     @if (($tx['discount'] ?? 0) > 0)<span class="block text-[11px] font-medium text-emerald-700 tabular-nums">diskon −{{ $discount }}</span>@endif
                     <x-transaksi.method-badge :method="$tx['payment_method']" />
                 </span>

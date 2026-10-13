@@ -140,6 +140,7 @@ class PromoService
             return TransactionItem::query()
                 ->join('transactions', 'transactions.id', '=', 'transaction_items.transaction_id')
                 ->whereBetween('transactions.created_at', [$from->copy()->startOfDay(), $to->copy()->endOfDay()])
+                ->whereNull('transactions.voided_at')
                 ->when($productIds !== null, fn ($q) => $q->whereIn('transaction_items.product_id', $productIds))
                 ->selectRaw('COALESCE(SUM(transaction_items.subtotal), 0) AS revenue, COALESCE(SUM(transaction_items.quantity), 0) AS units')
                 ->toBase()->first();
