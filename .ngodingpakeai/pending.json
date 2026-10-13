@@ -1,6 +1,6 @@
 {
   "repo": "Koperasi Sekolah",
-  "generatedForCommit": "efb239e1c04a48b33ba07e5f9362f712d1002e36",
+  "generatedForCommit": "8d8c107e80c0a0e89048e1b9325cdff096ac21ec",
   "files": [
     {
       "path": ".claude/skills/ngodingpakeai/SKILL.md",
@@ -256,7 +256,7 @@
     },
     {
       "path": "app/Http/Middleware/EnsureActiveSession.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 2105
     },
@@ -273,6 +273,12 @@
       "size": 940
     },
     {
+      "path": "app/Http/Middleware/ForceHttps.php",
+      "reason": "new",
+      "language": "php",
+      "size": 1671
+    },
+    {
       "path": "app/Jobs/ExportCashRecap.php",
       "reason": "needs_summary",
       "language": "php",
@@ -286,7 +292,7 @@
     },
     {
       "path": "app/Livewire/Akun/Sessions.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 1888
     },
@@ -448,9 +454,9 @@
     },
     {
       "path": "app/Livewire/Pengaturan/Security.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 6208
+      "size": 6451
     },
     {
       "path": "app/Livewire/Pengaturan/Tax.php",
@@ -646,9 +652,9 @@
     },
     {
       "path": "app/Providers/AppServiceProvider.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 2000
+      "size": 2522
     },
     {
       "path": "app/Services/AnnouncementService.php",
@@ -934,7 +940,7 @@
     },
     {
       "path": "app/Support/SessionPolicy.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 1327
     },
@@ -946,9 +952,9 @@
     },
     {
       "path": "bootstrap/app.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 996
+      "size": 1259
     },
     {
       "path": "bootstrap/providers.php",
@@ -976,7 +982,7 @@
     },
     {
       "path": "config/auth.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 4196
     },
@@ -1002,7 +1008,7 @@
       "path": "config/koperasi.php",
       "reason": "changed",
       "language": "php",
-      "size": 349
+      "size": 1183
     },
     {
       "path": "config/logging.php",
@@ -1030,7 +1036,7 @@
     },
     {
       "path": "config/session.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 8373
     },
@@ -1426,7 +1432,7 @@
     },
     {
       "path": "resources/views/components/idle-warning.blade.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 2720
     },
@@ -1450,7 +1456,7 @@
     },
     {
       "path": "resources/views/components/layouts/app.blade.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 7808
     },
@@ -1888,7 +1894,7 @@
     },
     {
       "path": "routes/web.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 16689
     },
@@ -2001,6 +2007,12 @@
       "size": 4469
     },
     {
+      "path": "tests/Feature/Auth/ForceHttpsTest.php",
+      "reason": "new",
+      "language": "php",
+      "size": 2261
+    },
+    {
       "path": "tests/Feature/Auth/LoginLockoutTest.php",
       "reason": "needs_summary",
       "language": "php",
@@ -2026,7 +2038,7 @@
     },
     {
       "path": "tests/Feature/Auth/SessionHardeningTest.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 4349
     },
@@ -2446,9 +2458,9 @@
     },
     {
       "path": "tests/Feature/Pengaturan/SecuritySettingsTest.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 4092
+      "size": 4157
     },
     {
       "path": "tests/Feature/Pengaturan/SettingsAuthorizationTest.php",

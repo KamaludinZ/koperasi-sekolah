@@ -26,22 +26,16 @@ class LogoService
 
     public function __construct(private SettingsService $settings) {}
 
+    /** Aturan unggah logo: ukuran & jenis dari pengaturan Keamanan & retensi (UploadPolicy). */
     public static function rules(): array
     {
-        return ['required', 'image', 'mimes:png,jpg,jpeg,webp', 'mimetypes:'.implode(',', array_keys(self::EXTENSIONS)), 'max:512', 'dimensions:min_width=64,min_height=64,max_width=2000,max_height=2000'];
+        return UploadPolicy::rules('logo');
     }
 
     /** Pesan validasi untuk atribut $field. */
     public static function messages(string $field = 'logo'): array
     {
-        return [
-            "{$field}.required" => 'Pilih berkas logo.',
-            "{$field}.image" => 'Logo harus berupa gambar.',
-            "{$field}.mimes" => 'Gunakan PNG, JPG, atau WEBP.',
-            "{$field}.mimetypes" => 'Gunakan PNG, JPG, atau WEBP.',
-            "{$field}.max" => 'Ukuran logo maksimal 512 KB.',
-            "{$field}.dimensions" => 'Logo minimal 64×64 dan maksimal 2000×2000 piksel.',
-        ];
+        return UploadPolicy::messages('logo', $field);
     }
 
     /** Simpan logo baru (sudah divalidasi), hapus berkas lama. Mengembalikan pengaturan terbaru. */

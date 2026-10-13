@@ -83,7 +83,7 @@ class Profile extends Component
             'phone' => ['nullable', 'string', 'max:20', 'regex:/^[0-9+\-\s()]{6,20}$/'],
             'email' => ['nullable', 'email', 'max:150'],
             'motto' => ['nullable', 'string', 'max:150'],
-            'logoUpload' => ['nullable', ...array_slice(LogoService::rules(), 1)],
+            'logoUpload' => \App\Services\UploadPolicy::rules('logo', required: false),
             'schedule.*.open' => ['boolean'],
             'schedule.*.from' => ['required_if:schedule.*.open,true', 'date_format:H:i'],
             'schedule.*.to' => ['required_if:schedule.*.open,true', 'date_format:H:i', function ($attr, $value, $fail) {

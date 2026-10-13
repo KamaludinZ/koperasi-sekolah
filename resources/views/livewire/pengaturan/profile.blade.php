@@ -69,7 +69,7 @@
                             @if ($logoSrc)
                                 <button type="button" wire:click="removeLogo" class="ml-2 text-sm font-medium text-red-700 hover:underline">Hapus</button>
                             @endif
-                            <p class="text-xs text-stone-500" wire:loading.remove wire:target="logoUpload">PNG/JPG/WEBP, persegi, min. 64×64 px, maks. 512 KB.</p>
+                            <p class="text-xs text-stone-500" wire:loading.remove wire:target="logoUpload">{{ strtoupper(implode('/', \App\Services\UploadPolicy::limits('logo')['types'])) }}, persegi, min. 64×64 px, maks. {{ \App\Livewire\Pengaturan\Security::size(\App\Services\UploadPolicy::limits('logo')['max_kb']) }}.</p>
                             <p class="text-xs text-emerald-700" wire:loading wire:target="logoUpload">Mengunggah…</p>
                             @error('logoUpload') <span class="block text-xs text-red-600">{{ $message }}</span> @enderror
                         </div>
