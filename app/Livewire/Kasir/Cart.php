@@ -9,6 +9,7 @@ use App\Services\ReceiptPresenter;
 use App\Services\SettingsService;
 use App\Support\MockData;
 use App\Support\PriceCalculator;
+use App\Support\PromoMatcher;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\On;
 use Illuminate\Validation\ValidationException;
@@ -317,6 +318,16 @@ class Cart extends Component
                 ? ['payable' => $price['payable'], 'rounding' => $price['rounding']]
                 : ['payable' => ($p = PriceCalculator::compute($net, $tax, $method))['payable'], 'rounding' => $p['rounding']])->all(),
         ];
+    }
+
+    /**
+     * Promo otomatis yang cocok dengan isi keranjang (PromoMatcher). Tahap frontend: pratinjau
+     * dari data tiruan — belum memotong total yang dibayar.
+     */
+    #[Computed]
+    public function promos(): array
+    {
+        return PromoMatcher::match($this->lines, MockData::promos());
     }
 
     private function catalog(): array

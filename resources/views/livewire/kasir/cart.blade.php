@@ -69,6 +69,8 @@
         </ul>
     @endif
 
+    @include('livewire.kasir.partials.promo-panel')
+
     <div class="space-y-2 border-t border-stone-200 px-5 py-4 text-sm">
         <div class="flex justify-between text-stone-600"><span>Subtotal</span><span class="tabular-nums">{{ $rp($summary['subtotal']) }}</span></div>
         @include('livewire.kasir.partials.discount')
