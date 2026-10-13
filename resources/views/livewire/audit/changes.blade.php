@@ -222,10 +222,12 @@
                     @endif
                 </div>
 
-                <div class="border-t border-stone-200 px-5 py-3">
-                    <button type="button" wire:click="followSubject('{{ $r['entity'] }}', {{ $r['subject_id'] }})"
-                            class="w-full rounded-xl border border-emerald-700 px-4 py-2 text-sm font-semibold text-emerald-800 hover:bg-emerald-50">Lihat semua riwayat {{ mb_strtolower(Changes::ENTITIES[$r['entity']]) }} ini</button>
-                </div>
+                @if ($r['subject_id'])
+                    <div class="border-t border-stone-200 px-5 py-3">
+                        <button type="button" wire:click="followSubject('{{ $r['entity'] }}', {{ $r['subject_id'] }})"
+                                class="w-full rounded-xl border border-emerald-700 px-4 py-2 text-sm font-semibold text-emerald-800 hover:bg-emerald-50">Lihat semua riwayat {{ mb_strtolower(Changes::ENTITIES[$r['entity']]) }} ini</button>
+                    </div>
+                @endif
             </div>
         </div>
     @endif

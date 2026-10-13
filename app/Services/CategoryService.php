@@ -137,8 +137,9 @@ class CategoryService
 
         $after = Category::ordered()->pluck('name')->all();
         if ($before !== $after) {
-            AuditLog::record('category.reordered', 'barang', 'Urutan kategori diubah: '.implode(', ', $after), null,
-                [], action: 'diubah', old: ['urutan' => $before], new: ['urutan' => $after]);
+            AuditLog::record('category.reordered', 'barang', 'Urutan kategori diubah: '.implode(', ', $after),
+                ['type' => 'category', 'id' => null, 'label' => 'Urutan kategori'],
+                [], action: 'diubah', old: ['urutan' => implode(', ', $before)], new: ['urutan' => implode(', ', $after)]);
         }
     }
 }

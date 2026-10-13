@@ -182,6 +182,12 @@ class ProductImportService
         return $rows;
     }
 
+    /** @return array{type: string, id: int, label: string} subjek audit satu impor */
+    private static function subject(ProductImport $import): array
+    {
+        return ['type' => 'product_import', 'id' => $import->id, 'label' => $import->file_name];
+    }
+
     /** Hapus berkas asli impor dari disk (dipakai saat impor dibatalkan/dibersihkan). */
     public function deleteFile(ProductImport $import): void
     {
@@ -302,7 +308,16 @@ class ProductImportService
     {
         $row = $this->openRow($import, $line);
         $clean = array_map(fn ($v) => Str::limit(trim((string) $v), 200, ''), array_intersect_key($values, array_flip(ProductImportFormat::headers())));
-        $row->update(['values' => array_merge($row->values, $clean)]);
+        $before = $row->values;
+        $row->update(['values' => array_merge($before, $clean)]);
+
+        $changed = array_keys(array_filter($clean, fn ($v, $k) => (string) ($before[$k] ?? '') !== $v, ARRAY_FILTER_USE_BOTH));
+        if ($changed) {
+            AuditLog::record('import.row_edited', 'barang', "Baris {$line} impor {$import->file_name} diperbaiki: ".implode(', ', $changed),
+                self::subject($import), ['line' => $line],
+                old: collect($changed)->mapWithKeys(fn ($k) => [$k => $before[$k] ?? ''])->all(),
+                new: collect($changed)->mapWithKeys(fn ($k) => [$k => $clean[$k]])->all());
+        }
 
         return $row;
     }
@@ -311,7 +326,11 @@ class ProductImportService
     public function setSkipped(ProductImport $import, int $line, bool $skipped): ProductImportRow
     {
         $row = $this->openRow($import, $line);
-        $row->update(['skipped' => $skipped]);
+        if ($row->skipped !== $skipped) {
+            $row->update(['skipped' => $skipped]);
+            AuditLog::record('import.row_skipped', 'barang', "Baris {$line} impor {$import->file_name} ".($skipped ? 'dilewati' : 'disertakan kembali'),
+                self::subject($import), ['line' => $line, 'skipped' => $skipped]);
+        }
 
         return $row;
     }
@@ -320,10 +339,14 @@ class ProductImportService
     public function skipProblems(ProductImport $import): int
     {
         $this->assertOpen($import);
-        $ids = collect($this->evaluate($import)['rows'])->where('action', 'masalah')->pluck('id');
-        ProductImportRow::whereIn('id', $ids)->update(['skipped' => true]);
+        $problems = collect($this->evaluate($import)['rows'])->where('action', 'masalah');
+        ProductImportRow::whereIn('id', $problems->pluck('id'))->update(['skipped' => true]);
+        if ($problems->isNotEmpty()) {
+            AuditLog::record('import.row_skipped', 'barang', $problems->count()." baris bermasalah impor {$import->file_name} dilewati",
+                self::subject($import), ['lines' => $problems->pluck('line')->all(), 'skipped' => true]);
+        }
 
-        return $ids->count();
+        return $problems->count();
     }
 
     /**

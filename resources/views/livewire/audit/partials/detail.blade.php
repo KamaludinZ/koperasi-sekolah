@@ -16,6 +16,7 @@
         $subjectUrl = match ($log->subject_type) {
             'transaction' => $log->subject_id ? route('transaksi.show', $log->subject_id) : null,
             'member' => $log->subject_id && \App\Models\Member::whereKey($log->subject_id)->exists() ? route('anggota.show', $log->subject_id) : null,
+            'product_import' => $log->subject_id && \App\Models\ProductImport::whereKey($log->subject_id)->exists() ? route('barang.impor.detail', $log->subject_id) : null,
             default => null,
         };
     @endphp
