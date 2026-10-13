@@ -1,6 +1,6 @@
 {
   "repo": "Koperasi Sekolah",
-  "generatedForCommit": "23afe1e7a933fcee525e26b8c71220a63e84ed47",
+  "generatedForCommit": "e8e7b57bc4c8b83253fa24a4eb8c57c9e5b98ba4",
   "files": [
     {
       "path": ".claude/skills/ngodingpakeai/SKILL.md",
@@ -298,7 +298,7 @@
     },
     {
       "path": "app/Http/Controllers/Sistem/BackupController.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 5168
     },
@@ -343,6 +343,12 @@
       "reason": "needs_summary",
       "language": "php",
       "size": 1671
+    },
+    {
+      "path": "app/Http/Middleware/TrackSlowRequests.php",
+      "reason": "new",
+      "language": "php",
+      "size": 1780
     },
     {
       "path": "app/Jobs/ExportCashRecap.php",
@@ -706,13 +712,13 @@
     },
     {
       "path": "app/Livewire/Sistem/Performance.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 2137
+      "size": 2716
     },
     {
       "path": "app/Livewire/Sistem/Queue.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 2140
     },
@@ -1018,7 +1024,7 @@
     },
     {
       "path": "app/Providers/AppServiceProvider.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 4624
     },
@@ -1228,7 +1234,7 @@
     },
     {
       "path": "app/Services/QueueService.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 5474
     },
@@ -1404,7 +1410,7 @@
       "path": "app/Support/MockData.php",
       "reason": "changed",
       "language": "php",
-      "size": 16976
+      "size": 15359
     },
     {
       "path": "app/Support/OpeningHours.php",
@@ -1474,9 +1480,9 @@
     },
     {
       "path": "bootstrap/app.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 1880
+      "size": 1927
     },
     {
       "path": "bootstrap/providers.php",
@@ -2722,13 +2728,13 @@
     },
     {
       "path": "resources/views/livewire/sistem/performance.blade.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 6322
+      "size": 6259
     },
     {
       "path": "resources/views/livewire/sistem/queue.blade.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 6959
     },
@@ -2806,7 +2812,7 @@
     },
     {
       "path": "routes/web.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 32175
     },
@@ -3790,9 +3796,9 @@
     },
     {
       "path": "tests/Feature/Sistem/PerformancePageTest.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 1908
+      "size": 2587
     },
     {
       "path": "tests/Feature/Sistem/QueueConfigTest.php",
@@ -3802,7 +3808,7 @@
     },
     {
       "path": "tests/Feature/Sistem/QueuePageTest.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 4751
     },

@@ -49,11 +49,16 @@ class CheckoutService
      *                                                                                   atas subtotal, sebelum pajak — dicek batasnya
      * @param  string|null  $couponCode  kode kupon/voucher (dipotong setelah promo, sebelum diskon manual)
      * @param  array{due_at?: ?string, note?: ?string}|null  $credit  jatuh tempo & keterangan untuk metode bon
+     * @param  string|null  $clientRef  kunci idempoten: bila sudah dipakai, transaksi yang ada dikembalikan
      *
      * @throws ValidationException bila keranjang kosong, stok kurang, atau bayar kurang
      */
-    public function checkout(array $items, string $paymentMethod, ?int $paid, ?int $userId = null, ?int $memberId = null, ?array $manualDiscount = null, ?string $couponCode = null, ?array $credit = null): Transaction
+    public function checkout(array $items, string $paymentMethod, ?int $paid, ?int $userId = null, ?int $memberId = null, ?array $manualDiscount = null, ?string $couponCode = null, ?array $credit = null, ?string $clientRef = null): Transaction
     {
+        if ($clientRef !== null && ($existing = Transaction::where('client_ref', $clientRef)->first())) {
+            return $existing->load('items'); // permintaan ulang → tidak membuat penjualan dobel
+        }
+
         $items = array_filter(array_map('intval', $items), fn ($qty) => $qty > 0);
 
         if ($items === []) {
@@ -70,7 +75,7 @@ class CheckoutService
             MemberCreditService::validDueDate($credit['due_at'] ?? null); // gagal cepat sebelum mengunci stok
         }
 
-        return DB::transaction(function () use ($items, $paymentMethod, $paid, $userId, $memberId, $manualDiscount, $couponCode, $credit) {
+        return DB::transaction(function () use ($items, $paymentMethod, $paid, $userId, $memberId, $manualDiscount, $couponCode, $credit, $clientRef) {
             // Kunci baris barang (urut id agar tidak deadlock) supaya stok tidak terjual ganda.
             $products = Product::active()
                 ->with('category:id,name')
@@ -124,6 +129,7 @@ class CheckoutService
             }
 
             $transaction = $this->createWithInvoiceNumber([
+                'client_ref' => $clientRef,
                 'user_id' => $userId,
                 'cash_shift_id' => CashShift::open()->value('id'), // penjualan masuk ke laci shift berjalan
                 'member_id' => $memberId,

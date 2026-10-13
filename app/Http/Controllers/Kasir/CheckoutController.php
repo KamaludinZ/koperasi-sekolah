@@ -13,7 +13,9 @@ use Illuminate\Validation\Rule;
  * Body: { items: [{product_id, quantity}], payment_method: tunai|qris, paid?: int,
  *         discount?: {type: persen|nominal, value: int, reason?: string},  — diskon manual, dicek batasnya
  *         coupon?: string }                                                  — kode kupon/voucher
- * Menyimpan transaksi & mengurangi stok; total dihitung ulang di server.
+ * Menyimpan transaksi & mengurangi stok secara atomik (satu transaksi DB, baris barang dikunci);
+ * total dihitung ulang di server. Header Idempotency-Key (atau client_ref) mencegah penjualan dobel:
+ * permintaan ulang dengan kunci sama → 200 berisi transaksi yang sudah ada (replayed: true).
  */
 class CheckoutController extends Controller
 {
@@ -33,7 +35,14 @@ class CheckoutController extends Controller
             'discount.value' => ['required_with:discount', 'integer', 'min:1', 'max:10000000'],
             'discount.reason' => ['nullable', 'string', 'max:100'],
             'coupon' => ['nullable', 'string', 'max:30'],
+            'client_ref' => ['nullable', 'string', 'max:64', 'regex:/^[A-Za-z0-9_\-:.]+$/'],
         ]);
+
+        $ref = $request->header('Idempotency-Key') ?: ($data['client_ref'] ?? null);
+        if ($ref !== null && (mb_strlen($ref) > 64 || ! preg_match('/^[A-Za-z0-9_\-:.]+$/', $ref))) {
+            return response()->json(['message' => 'Idempotency-Key tidak valid.', 'errors' => ['client_ref' => ['Kunci idempoten tidak valid.']]], 422);
+        }
+        $existing = $ref ? \App\Models\Transaction::where('client_ref', $ref)->exists() : false;
 
         $transaction = $checkout->checkout(
             collect($data['items'])->pluck('quantity', 'product_id')->all(),
@@ -44,8 +53,9 @@ class CheckoutController extends Controller
             $data['discount'] ?? null,
             $data['coupon'] ?? null,
             ($data['payment_method'] === 'bon') ? ['due_at' => $data['credit_due_at'] ?? null, 'note' => $data['credit_note'] ?? null] : null,
+            $ref,
         );
 
-        return response()->json(['data' => $transaction], 201);
+        return response()->json(['data' => $transaction, 'replayed' => $existing], $existing ? 200 : 201);
     }
 }
