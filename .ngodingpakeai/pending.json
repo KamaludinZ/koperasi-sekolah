@@ -1,6 +1,6 @@
 {
   "repo": "Koperasi Sekolah",
-  "generatedForCommit": "117fef763f145c2a2982d73eb901900af2e4a9ef",
+  "generatedForCommit": "c572c94fc9d7f6d788c888372bc209b143238bbb",
   "files": [
     {
       "path": ".claude/skills/ngodingpakeai/SKILL.md",
@@ -376,7 +376,7 @@
     },
     {
       "path": "app/Livewire/Audit/Changes.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 9008
     },
@@ -988,7 +988,7 @@
     },
     {
       "path": "app/Services/AuditChangeQuery.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 6386
     },
@@ -1288,7 +1288,7 @@
     },
     {
       "path": "app/Services/UserService.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 9810
     },
@@ -2524,15 +2524,15 @@
     },
     {
       "path": "resources/views/livewire/pengaturan/credit.blade.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 6323
+      "size": 6313
     },
     {
       "path": "resources/views/livewire/pengaturan/index.blade.php",
       "reason": "changed",
       "language": "php",
-      "size": 10859
+      "size": 10849
     },
     {
       "path": "resources/views/livewire/pengaturan/profile.blade.php",
@@ -2542,15 +2542,15 @@
     },
     {
       "path": "resources/views/livewire/pengaturan/receipt.blade.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 6804
+      "size": 6800
     },
     {
       "path": "resources/views/livewire/pengaturan/returns.blade.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 4459
+      "size": 4449
     },
     {
       "path": "resources/views/livewire/pengaturan/security.blade.php",
@@ -2560,9 +2560,9 @@
     },
     {
       "path": "resources/views/livewire/pengaturan/tax.blade.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 10270
+      "size": 10276
     },
     {
       "path": "resources/views/livewire/pengguna/active-sessions.blade.php",
@@ -2572,7 +2572,7 @@
     },
     {
       "path": "resources/views/livewire/pengguna/index.blade.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 10995
     },
@@ -2830,7 +2830,7 @@
     },
     {
       "path": "tests/Feature/Audit/ChangesPageTest.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 5504
     },
@@ -2842,7 +2842,7 @@
     },
     {
       "path": "tests/Feature/Audit/SettingsAndAccountHistoryTest.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 2458
     },
@@ -3580,9 +3580,9 @@
     },
     {
       "path": "tests/Feature/Pengaturan/TaxSettingsTest.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 3653
+      "size": 4097
     },
     {
       "path": "tests/Feature/Pengguna/IndexTest.php",
