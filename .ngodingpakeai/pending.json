@@ -1,6 +1,6 @@
 {
   "repo": "Koperasi Sekolah",
-  "generatedForCommit": "2de13fa33a0062cde865f6b7122e15e7a9214218",
+  "generatedForCommit": "23afe1e7a933fcee525e26b8c71220a63e84ed47",
   "files": [
     {
       "path": ".claude/skills/ngodingpakeai/SKILL.md",
@@ -298,9 +298,9 @@
     },
     {
       "path": "app/Http/Controllers/Sistem/BackupController.php",
-      "reason": "new",
+      "reason": "changed",
       "language": "php",
-      "size": 3666
+      "size": 5168
     },
     {
       "path": "app/Http/Controllers/Transaksi/ReturnController.php",
@@ -358,13 +358,13 @@
     },
     {
       "path": "app/Jobs/RunBackup.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 912
     },
     {
       "path": "app/Jobs/RunRestoreTest.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 770
     },
@@ -694,7 +694,7 @@
     },
     {
       "path": "app/Livewire/Sistem/Backups.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 4683
     },
@@ -712,13 +712,13 @@
     },
     {
       "path": "app/Livewire/Sistem/Queue.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 4052
+      "size": 2140
     },
     {
       "path": "app/Livewire/Sistem/RestoreTest.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 4214
     },
@@ -772,7 +772,7 @@
     },
     {
       "path": "app/Models/Backup.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 2251
     },
@@ -916,7 +916,7 @@
     },
     {
       "path": "app/Models/RestoreTest.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 1565
     },
@@ -1018,9 +1018,9 @@
     },
     {
       "path": "app/Providers/AppServiceProvider.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 4300
+      "size": 4624
     },
     {
       "path": "app/Rules/SafeUpload.php",
@@ -1066,7 +1066,7 @@
     },
     {
       "path": "app/Services/BackupService.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 10367
     },
@@ -1227,6 +1227,12 @@
       "size": 2505
     },
     {
+      "path": "app/Services/QueueService.php",
+      "reason": "new",
+      "language": "php",
+      "size": 5474
+    },
+    {
       "path": "app/Services/ReceiptPdfService.php",
       "reason": "needs_summary",
       "language": "php",
@@ -1252,7 +1258,7 @@
     },
     {
       "path": "app/Services/RestoreTestService.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 6824
     },
@@ -1398,7 +1404,7 @@
       "path": "app/Support/MockData.php",
       "reason": "changed",
       "language": "php",
-      "size": 18417
+      "size": 16976
     },
     {
       "path": "app/Support/OpeningHours.php",
@@ -2704,7 +2710,7 @@
     },
     {
       "path": "resources/views/livewire/sistem/backups.blade.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 11384
     },
@@ -2722,13 +2728,13 @@
     },
     {
       "path": "resources/views/livewire/sistem/queue.blade.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 6747
+      "size": 6959
     },
     {
       "path": "resources/views/livewire/sistem/restore-test.blade.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 7536
     },
@@ -2802,7 +2808,7 @@
       "path": "routes/web.php",
       "reason": "changed",
       "language": "php",
-      "size": 31480
+      "size": 32175
     },
     {
       "path": "tests/Concerns/MakesProductImports.php",
@@ -3754,13 +3760,13 @@
     },
     {
       "path": "tests/Feature/Sistem/BackupStatusTest.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 2891
     },
     {
       "path": "tests/Feature/Sistem/BackupsPageTest.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 3065
     },
@@ -3796,13 +3802,13 @@
     },
     {
       "path": "tests/Feature/Sistem/QueuePageTest.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 2715
+      "size": 4751
     },
     {
       "path": "tests/Feature/Sistem/RestoreTestPageTest.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 4253
     },

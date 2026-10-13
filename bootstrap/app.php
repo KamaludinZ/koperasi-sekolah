@@ -17,7 +17,7 @@ return Application::configure(basePath: dirname(__DIR__))
 
         // Batasi menu sesuai peran petugas.
         // Sesi petugas: keluarkan akun nonaktif / sesi yang terlalu lama tidak aktif.
-        $middleware->web(append: [\App\Http\Middleware\EnsureActiveSession::class]);
+        $middleware->web(append: [\App\Http\Middleware\EnsureActiveSession::class, \App\Http\Middleware\TrackSlowRequests::class]);
 
         // Pembatas akses di rute: menu:<kunci> (wajib masuk + hak menu), peran:<nama,...>.
         $middleware->alias([

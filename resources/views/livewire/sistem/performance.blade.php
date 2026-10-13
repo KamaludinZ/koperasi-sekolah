@@ -12,25 +12,24 @@
         <section class="overflow-hidden rounded-2xl border border-stone-200 bg-white" aria-labelledby="pf-cache">
             <div class="flex flex-wrap items-center justify-between gap-2 px-5 pt-5">
                 <div>
-                    <h2 id="pf-cache" class="font-semibold">Cache laporan <span class="text-xs font-normal text-stone-400">data contoh</span></h2>
-                    <p class="text-xs text-stone-500">Store: {{ config('cache.default') }}. Cache diperbarui otomatis saat ada penjualan baru atau masa berlakunya habis.</p>
+                    <h2 id="pf-cache" class="font-semibold">Cache laporan</h2>
+                    <p class="text-xs text-stone-500">Store: {{ config('cache.default') }}. Laporan dihitung ulang otomatis saat ada penjualan/retur baru atau masa berlakunya habis.</p>
                 </div>
                 <button type="button" wire:click="clearAll" class="rounded-lg border border-stone-300 px-3 py-1.5 text-sm font-medium text-stone-700 hover:bg-stone-50">Kosongkan semua</button>
             </div>
             <div class="mt-3 overflow-x-auto">
                 <table class="w-full min-w-[40rem] text-sm">
-                    <thead class="bg-stone-50 text-left text-xs text-stone-500"><tr><th class="px-5 py-2 font-medium">Data</th><th class="px-3 py-2 font-medium">Umur</th><th class="px-3 py-2 font-medium">Rasio kena</th><th class="px-3 py-2 text-right font-medium">Ukuran</th><th class="px-5 py-2"></th></tr></thead>
+                    <thead class="bg-stone-50 text-left text-xs text-stone-500"><tr><th class="px-5 py-2 font-medium">Laporan</th><th class="px-3 py-2 font-medium">Terakhir dihitung</th><th class="px-3 py-2 font-medium">Rasio kena</th><th class="px-5 py-2 text-right font-medium">Kena / meleset</th></tr></thead>
                     <tbody class="divide-y divide-stone-100">
                         @foreach ($this->caches as $c)
                             @php $rate = Performance::hitRate($c); @endphp
                             <tr wire:key="c-{{ $c['key'] }}">
                                 <td class="px-5 py-2.5"><span class="font-medium">{{ $c['label'] }}</span><span class="block font-mono text-[11px] text-stone-500">{{ $c['key'] }}</span></td>
-                                <td class="px-3 py-2.5 text-stone-600">{{ $c['age_min'] === null ? 'kosong' : ($c['age_min'] < 1 ? 'baru saja' : $c['age_min'].' mnt') }}<span class="block text-[11px] text-stone-400">{{ $c['ttl_min'] ? 'berlaku '.$c['ttl_min'].' mnt' : 'sampai diubah' }}</span></td>
+                                <td class="px-3 py-2.5 text-stone-600">{{ $c['age_min'] === null ? 'belum' : ($c['age_min'] < 1 ? 'baru saja' : $c['age_min'].' mnt lalu') }}<span class="block text-[11px] text-stone-400">{{ $c['ttl_min'] ? 'berlaku '.$c['ttl_min'].' mnt' : 'sampai diubah' }}</span></td>
                                 <td class="px-3 py-2.5">
                                     <span class="flex items-center gap-2"><span class="h-1.5 w-20 overflow-hidden rounded-full bg-stone-100" aria-hidden="true"><span @class(['block h-full rounded-full', 'bg-emerald-600' => $rate >= 70, 'bg-amber-500' => $rate < 70]) style="width: {{ $rate }}%"></span></span><span class="text-xs tabular-nums">{{ $rate }}%</span></span>
                                 </td>
-                                <td class="px-3 py-2.5 text-right tabular-nums text-stone-600">{{ SystemHealth::bytes($c['size']) }}</td>
-                                <td class="px-5 py-2.5 text-right"><button type="button" wire:click="clear('{{ $c['key'] }}')" @disabled($c['age_min'] === null) class="text-xs font-medium text-emerald-800 hover:underline disabled:text-stone-300 disabled:no-underline">Kosongkan</button></td>
+                                <td class="px-5 py-2.5 text-right tabular-nums text-stone-600">{{ number_format($c['hits'], 0, ',', '.') }} / {{ number_format($c['misses'], 0, ',', '.') }}</td>
                             </tr>
                         @endforeach
                     </tbody>
@@ -61,10 +60,11 @@
         </section>
 
         <section class="rounded-2xl border border-stone-200 bg-white p-5" aria-labelledby="pf-slow">
-            <h2 id="pf-slow" class="font-semibold">Halaman lambat minggu ini <span class="text-xs font-normal text-stone-400">data contoh</span></h2>
+            <h2 id="pf-slow" class="font-semibold">Halaman lambat (7 hari)</h2>
+            <p class="text-xs text-stone-500">Permintaan yang butuh lebih dari {{ \App\Http\Middleware\TrackSlowRequests::THRESHOLD_MS / 1000 }} detik.</p>
             <ul class="mt-2 divide-y divide-stone-100 text-sm">
-                @forelse (\App\Support\MockData::slowQueries() as $q)
-                    <li class="flex flex-wrap justify-between gap-2 py-2.5"><span>{{ $q['page'] }} <span class="block text-xs text-stone-500">{{ $q['hint'] }}</span></span><span class="text-xs text-stone-600 tabular-nums">{{ $q['ms'] }} ms · {{ $q['count'] }}×</span></li>
+                @forelse ($this->slow as $q)
+                    <li class="flex flex-wrap justify-between gap-2 py-2.5"><span><span class="font-mono text-xs">{{ $q['path'] }}</span><span class="block text-xs text-stone-500">{{ $q['route'] }} · terakhir {{ \Illuminate\Support\Carbon::parse($q['last_at'])->diffForHumans() }}</span></span><span class="text-xs text-stone-600 tabular-nums">maks {{ $q['max_ms'] }} ms · rata-rata {{ $q['avg_ms'] }} ms · {{ $q['count'] }}×</span></li>
                 @empty
                     <li class="py-4 text-center text-stone-400">Tidak ada halaman lambat.</li>
                 @endforelse

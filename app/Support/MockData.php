@@ -356,29 +356,4 @@ class MockData
             ['id' => 14, 'code' => 'SRG003', 'name' => 'Ikat Pinggang', 'category' => 'Seragam', 'price' => 18000, 'cost_price' => 14400, 'stock' => 14, 'min_stock' => 5, 'unit' => 'pcs'],
         ];
     }
-
-    /**
-     * Cache laporan tiruan. Kontrak backend: GET /sistem/performa/cache → rows[].
-     *
-     * @return list<array{key: string, label: string, ttl_min: int, age_min: int, hits: int, misses: int, size: int}>
-     */
-    public static function reportCaches(): array
-    {
-        return [
-            ['key' => 'laporan:ringkasan', 'label' => 'Ringkasan penjualan', 'ttl_min' => 10, 'age_min' => 3, 'hits' => 412, 'misses' => 38, 'size' => 4_200],
-            ['key' => 'laporan:grafik', 'label' => 'Grafik penjualan', 'ttl_min' => 10, 'age_min' => 3, 'hits' => 287, 'misses' => 41, 'size' => 9_800],
-            ['key' => 'laporan:terlaris', 'label' => 'Barang terlaris', 'ttl_min' => 15, 'age_min' => 11, 'hits' => 198, 'misses' => 22, 'size' => 3_100],
-            ['key' => 'beranda:hari-ini', 'label' => 'Ringkasan hari ini', 'ttl_min' => 1, 'age_min' => 0, 'hits' => 1_204, 'misses' => 315, 'size' => 1_900],
-            ['key' => 'settings:all', 'label' => 'Pengaturan koperasi', 'ttl_min' => 0, 'age_min' => 240, 'hits' => 5_830, 'misses' => 4, 'size' => 2_700],
-        ];
-    }
-
-    /** Kueri lambat tiruan (> 200 ms) minggu ini. */
-    public static function slowQueries(): array
-    {
-        return [
-            ['page' => 'Laporan → 30 hari', 'ms' => 640, 'count' => 6, 'last_at' => now()->subDays(1)->setTime(13, 20)->toDateTimeString(), 'hint' => 'Sudah dibantu cache laporan.'],
-            ['page' => 'Audit → Semua periode', 'ms' => 380, 'count' => 2, 'last_at' => now()->subDays(3)->setTime(9, 5)->toDateTimeString(), 'hint' => 'Saring periode agar lebih cepat.'],
-        ];
-    }
 }
