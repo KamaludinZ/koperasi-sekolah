@@ -569,4 +569,73 @@ class MockData
             'status' => 'dilewati', 'message' => 'Dilewati petugas saat pratinjau.',
         ])->values()->all()];
     }
+
+    /**
+     * Supplier tiruan. Kontrak backend: GET /pengadaan/supplier/data → {id, name, contact, phone, address,
+     * terms_days, categories, is_active, last_order_at, purchases_90d, open_payable, note}.
+     */
+    public static function suppliers(): array
+    {
+        return session('mock.suppliers') ?? [
+            ['id' => 1, 'name' => 'CV Sinar Ilmu', 'contact' => 'Bu Lestari', 'phone' => '0341-555-120', 'address' => 'Jl. Kawi 12, Malang',
+                'terms_days' => 30, 'categories' => ['Alat Tulis'], 'is_active' => true, 'last_order_at' => now()->subDays(3)->toDateString(),
+                'purchases_90d' => 2_450_000, 'open_payable' => 860_000, 'note' => 'Minimal pesan Rp300.000, gratis antar.'],
+            ['id' => 2, 'name' => 'UD Berkah Pangan', 'contact' => 'Pak Rahmat', 'phone' => '0812-3300-4411', 'address' => 'Pasar Besar Blok C-7, Malang',
+                'terms_days' => 7, 'categories' => ['Makanan', 'Minuman'], 'is_active' => true, 'last_order_at' => now()->subDays(1)->toDateString(),
+                'purchases_90d' => 3_120_000, 'open_payable' => 1_250_000, 'note' => 'Antar setiap Senin & Kamis pagi.'],
+            ['id' => 3, 'name' => 'Konveksi Amanah', 'contact' => 'Bu Siti', 'phone' => '0813-2211-7788', 'address' => 'Jl. Sukarno-Hatta 40, Malang',
+                'terms_days' => 14, 'categories' => ['Seragam'], 'is_active' => true, 'last_order_at' => now()->subDays(20)->toDateString(),
+                'purchases_90d' => 1_800_000, 'open_payable' => 0, 'note' => null],
+            ['id' => 4, 'name' => 'Toko Grosir Jaya', 'contact' => 'Koh Ahong', 'phone' => '0341-555-987', 'address' => 'Jl. Pasar Besar 5, Malang',
+                'terms_days' => 0, 'categories' => ['Makanan', 'Alat Tulis'], 'is_active' => false, 'last_order_at' => now()->subDays(120)->toDateString(),
+                'purchases_90d' => 0, 'open_payable' => 0, 'note' => 'Tunai saja. Tidak dipakai lagi sejak harga naik.'],
+        ];
+    }
+
+    /**
+     * Pesanan pembelian tiruan. Kontrak: GET /pengadaan/pesanan/data → {id, number, supplier_id, supplier,
+     * status (draf|dipesan|sebagian|diterima|dibatalkan), ordered_at, expected_at, items, qty, received_qty, total, created_by}.
+     */
+    public static function purchaseOrders(): array
+    {
+        $rows = [
+            [7, 2, 'dipesan', 0, 2, 6, 120, 0, 980_000],
+            [6, 1, 'sebagian', 3, -1, 5, 260, 180, 1_120_000],
+            [5, 3, 'draf', 0, 5, 3, 60, 0, 1_350_000],
+            [4, 2, 'diterima', 8, -6, 4, 96, 96, 640_000],
+            [3, 1, 'diterima', 15, -12, 6, 300, 300, 1_330_000],
+            [2, 4, 'dibatalkan', 40, -33, 2, 50, 0, 210_000],
+        ];
+        $suppliers = collect(self::suppliers())->keyBy('id');
+
+        return array_map(fn ($r) => [
+            'id' => $r[0], 'number' => 'PO-'.now()->subDays($r[3])->format('Ym').'-'.str_pad((string) $r[0], 4, '0', STR_PAD_LEFT),
+            'supplier_id' => $r[1], 'supplier' => $suppliers[$r[1]]['name'] ?? '—', 'status' => $r[2],
+            'ordered_at' => now()->subDays($r[3])->toDateString(), 'expected_at' => now()->addDays($r[4])->toDateString(),
+            'items' => $r[5], 'qty' => $r[6], 'received_qty' => $r[7], 'total' => $r[8],
+            'created_by' => $r[0] % 2 ? 'Pak Dedi' : 'Admin Koperasi',
+        ], $rows);
+    }
+
+    /**
+     * Hutang ke supplier tiruan. Kontrak: GET /pengadaan/hutang/data → {id, po_number, supplier_id, supplier,
+     * amount, paid, due_at, status (belum|sebagian|lunas)}.
+     */
+    public static function payables(): array
+    {
+        $rows = [
+            [1, 6, 1, 1_120_000, 260_000, 27],
+            [2, 4, 2, 640_000, 0, -1],
+            [3, 7, 2, 610_000, 0, 5],
+            [4, 3, 1, 1_330_000, 1_330_000, 18],
+        ];
+        $suppliers = collect(self::suppliers())->keyBy('id');
+        $pos = collect(self::purchaseOrders())->keyBy('id');
+
+        return array_map(fn ($r) => [
+            'id' => $r[0], 'po_number' => $pos[$r[1]]['number'] ?? '—', 'supplier_id' => $r[2], 'supplier' => $suppliers[$r[2]]['name'] ?? '—',
+            'amount' => $r[3], 'paid' => $r[4], 'due_at' => now()->addDays($r[5])->toDateString(),
+            'status' => $r[4] >= $r[3] ? 'lunas' : ($r[4] > 0 ? 'sebagian' : 'belum'),
+        ], $rows);
+    }
 }

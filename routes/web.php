@@ -42,6 +42,7 @@ use App\Livewire\Kas;
 use App\Livewire\Kasir;
 use App\Livewire\Laporan;
 use App\Livewire\Notifikasi;
+use App\Livewire\Pengadaan;
 use App\Livewire\Pengaturan;
 use App\Livewire\Pengguna;
 use App\Livewire\Promo;
@@ -146,6 +147,10 @@ Route::middleware('menu:promo')->group(function () {
         Route::get('/promo/jadwal/data', [PromoController::class, 'schedule'])->name('promo.schedule.data');
         Route::get('/promo/{promo}/dampak', [PromoController::class, 'impact'])->whereNumber('promo')->name('promo.impact');
     });
+});
+
+Route::middleware('menu:pengadaan')->group(function () {
+    Route::get('/pengadaan', Pengadaan\Index::class)->name('pengadaan');
 });
 
 Route::middleware('menu:barang')->group(function () {

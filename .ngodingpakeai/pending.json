@@ -1,6 +1,6 @@
 {
   "repo": "Koperasi Sekolah",
-  "generatedForCommit": "187ab400bb3363bb1b2f6f987ef84f067cee8f5b",
+  "generatedForCommit": "09769cb45291fe5e9d6838ec3ab1f7449468ee53",
   "files": [
     {
       "path": ".claude/skills/ngodingpakeai/SKILL.md",
@@ -352,13 +352,13 @@
     },
     {
       "path": "app/Livewire/Barang/ImportDetail.php",
-      "reason": "new",
+      "reason": "changed",
       "language": "php",
-      "size": 1959
+      "size": 5113
     },
     {
       "path": "app/Livewire/Barang/ImportHistory.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 2360
     },
@@ -958,7 +958,7 @@
     },
     {
       "path": "app/Support/MockData.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 26604
     },
@@ -1456,15 +1456,21 @@
     },
     {
       "path": "resources/js/app.js",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "javascript",
-      "size": 1004
+      "size": 1077
     },
     {
       "path": "resources/js/bootstrap.js",
       "reason": "needs_summary",
       "language": "javascript",
       "size": 127
+    },
+    {
+      "path": "resources/js/clipboard.js",
+      "reason": "new",
+      "language": "javascript",
+      "size": 1289
     },
     {
       "path": "resources/js/sales-chart.js",
@@ -1726,19 +1732,19 @@
     },
     {
       "path": "resources/views/livewire/barang/catalog.blade.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 20689
     },
     {
       "path": "resources/views/livewire/barang/import-detail.blade.php",
-      "reason": "new",
+      "reason": "changed",
       "language": "php",
-      "size": 6377
+      "size": 7925
     },
     {
       "path": "resources/views/livewire/barang/import-history.blade.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 6772
     },
@@ -1996,7 +2002,7 @@
     },
     {
       "path": "routes/web.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 17577
     },
@@ -2158,13 +2164,13 @@
     },
     {
       "path": "tests/Feature/Barang/ImportHistoryPageTest.php",
-      "reason": "new",
+      "reason": "changed",
       "language": "php",
-      "size": 2830
+      "size": 4179
     },
     {
       "path": "tests/Feature/Barang/ImportPreviewPageTest.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 5801
     },
