@@ -21,9 +21,9 @@ class NotificationService
     private array $pendingStock = [];
 
     /**
-     * Antre pemeriksaan peringatan stok untuk barang-barang ini; dijalankan sekali
-     * setelah transaksi database selesai (langsung bila tidak sedang dalam transaksi).
-     * Dipanggil dari StockService, MinStockService, dan event model Product.
+     * Antre pemeriksaan peringatan stok untuk barang-barang ini: setelah transaksi database selesai,
+     * satu job SyncStockAlerts dikirim ke antrean `notifikasi` (langsung bila tidak sedang dalam
+     * transaksi). Dipanggil dari StockService, MinStockService, dan event model Product.
      */
     public function queueStockCheck(int ...$productIds): void
     {
@@ -40,7 +40,7 @@ class NotificationService
                 }
                 $ids = array_keys($this->pendingStock);
                 $this->pendingStock = [];
-                $this->syncStockAlerts(Product::whereKey($ids)->get(), $ids);
+                \App\Jobs\SyncStockAlerts::dispatch($ids);
             });
         }
     }
