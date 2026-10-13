@@ -90,7 +90,8 @@ class UserService
         ])->load('role');
 
         AuditLog::record('user.created', 'pengguna', "Akun baru {$user->name} sebagai {$user->role->label}", self::subject($user),
-            ['email' => $user->email, 'role' => $user->role->name]);
+            ['email' => $user->email, 'role' => $user->role->name],
+            action: 'dibuat', new: ['name' => $user->name, 'email' => $user->email, 'role' => $user->role->name, 'is_active' => (bool) $user->is_active]);
 
         return $user;
     }
@@ -122,11 +123,13 @@ class UserService
         $after = ['name' => $user->name, 'email' => $user->email, 'role' => $user->role->name, 'is_active' => (bool) $user->is_active];
         if ($changes = AuditLog::diff($before, $after, array_keys($after))) {
             AuditLog::record(isset($changes['role']) ? 'user.role_changed' : 'user.updated', 'pengguna',
-                "Akun {$user->name} diubah: ".implode(', ', array_keys($changes)), self::subject($user), ['changes' => $changes]);
+                "Akun {$user->name} diubah: ".implode(', ', array_keys($changes)), self::subject($user), ['changes' => $changes],
+                action: 'diubah', old: array_map(fn ($c) => $c['from'], $changes), new: array_map(fn ($c) => $c['to'], $changes));
         }
         if (filled($data['password'] ?? null)) {
             $this->sessions->revokeAll($user);
-            AuditLog::record('user.password_reset', 'pengguna', "Kata sandi akun {$user->name} diatur ulang (semua sesinya diakhiri)", self::subject($user));
+            AuditLog::record('user.password_reset', 'pengguna', "Kata sandi akun {$user->name} diatur ulang (semua sesinya diakhiri)", self::subject($user),
+                action: 'diubah', new: ['password' => '(diatur ulang)']);
         } elseif (! $user->is_active && $before['is_active']) {
             $this->sessions->revokeAll($user);
         }
@@ -145,7 +148,8 @@ class UserService
         }
 
         AuditLog::record($user->is_active ? 'user.activated' : 'user.deactivated', 'pengguna',
-            'Akun '.$user->name.($user->is_active ? ' diaktifkan' : ' dinonaktifkan dan dikeluarkan dari semua perangkat'), self::subject($user));
+            'Akun '.$user->name.($user->is_active ? ' diaktifkan' : ' dinonaktifkan dan dikeluarkan dari semua perangkat'), self::subject($user),
+            action: 'diubah', old: ['is_active' => ! $user->is_active], new: ['is_active' => (bool) $user->is_active]);
 
         return $user;
     }
@@ -171,7 +175,8 @@ class UserService
             $label = fn (array $keys) => implode(', ', array_map(fn ($k) => Menu::ITEMS[$k]['label'] ?? $k, $keys));
             AuditLog::record('role.permissions_updated', 'pengguna',
                 "Hak akses peran {$role->label} diubah".($added ? ' (+'.$label($added).')' : '').($removed ? ' (−'.$label($removed).')' : ''),
-                ['type' => 'role', 'id' => $role->id, 'label' => $role->label], ['added' => $added, 'removed' => $removed]);
+                ['type' => 'role', 'id' => $role->id, 'label' => $role->label], ['added' => $added, 'removed' => $removed],
+                action: 'diubah', old: ['menus' => $label($before)], new: ['menus' => $label($menus)]);
         }
 
         return $role;

@@ -11,11 +11,16 @@
                 <h1 class="text-lg font-semibold">Kelola Pengguna</h1>
                 <p class="text-xs text-stone-500">Akun petugas koperasi, peran, dan status masuknya.</p>
             </div>
+            <div class="flex flex-wrap items-center gap-2">
+            @if (auth()->user()->canOpen('audit'))
+                <a href="{{ route('audit.perubahan', ['jenis' => 'pengguna', 'periode' => 'semua']) }}" wire:navigate class="rounded-xl border border-stone-300 bg-white px-3 py-2.5 text-sm font-medium text-stone-700 hover:bg-stone-50">Riwayat perubahan akun</a>
+            @endif
             <button type="button" wire:click="create"
                     class="inline-flex items-center gap-2 rounded-xl bg-emerald-700 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-emerald-800">
                 <svg class="size-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
                 Tambah pengguna
             </button>
+            </div>
         </div>
         <x-pengguna.nav active="pengguna" />
     </header>

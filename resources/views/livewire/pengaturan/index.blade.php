@@ -22,6 +22,11 @@
 
                 </p>
             </div>
+            @if (auth()->user()->canOpen('audit'))
+                <a href="{{ route('audit.perubahan', ['jenis' => 'pengaturan', 'periode' => 'semua']) }}" wire:navigate class="inline-flex items-center gap-1.5 rounded-xl border border-stone-300 bg-white px-3 py-2 text-sm font-medium text-stone-700 hover:bg-stone-50">
+                    <svg class="size-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 8v4l3 2M3.05 11a9 9 0 11.5 4M3 4v5h5"/></svg>Riwayat perubahan
+                </a>
+            @endif
         </div>
         <x-pengaturan.nav />
     </header>

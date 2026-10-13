@@ -32,6 +32,8 @@ class Changes extends Component
         'pengaturan' => 'Pengaturan',
         'supplier' => 'Supplier',
         'retur' => 'Retur & pembatalan',
+        'pengguna' => 'Akun petugas',
+        'peran' => 'Peran & hak menu',
     ];
 
     public const ACTIONS = [
@@ -59,6 +61,7 @@ class Changes extends Component
         'discount.reason_required' => 'Alasan diskon wajib',
         'kind' => 'Jenis', 'status' => 'Status', 'amount' => 'Nilai', 'quantity' => 'Jumlah barang', 'refund_method' => 'Pengembalian dana',
         'restock' => 'Kembali ke stok', 'reason' => 'Alasan', 'decided_by' => 'Diputus oleh',
+        'role' => 'Peran', 'password' => 'Kata sandi', 'menus' => 'Menu yang boleh dibuka',
     ];
 
     /** Kolom bernilai uang (ditampilkan sebagai Rupiah). */
