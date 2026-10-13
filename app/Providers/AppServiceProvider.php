@@ -22,6 +22,7 @@ class AppServiceProvider extends ServiceProvider
     {
         // Satu instans per request agar antrean pemeriksaan stok terkumpul lalu diproses sekali.
         $this->app->scoped(NotificationService::class);
+        $this->app->scoped(\App\Services\PromoEngine::class); // promo berjalan di-cache per permintaan
     }
 
     /**

@@ -30,7 +30,7 @@
                     <button type="button" wire:click="$set('discountValue', {{ $n }})" class="rounded-md border border-stone-300 bg-white px-2 py-0.5 text-xs font-medium tabular-nums hover:border-emerald-600">{{ $isPercent ? $n.'%' : $rp($n) }}</button>
                 @endforeach
                 @if ($discountValue)
-                    <span class="ml-auto self-center text-xs text-emerald-900 tabular-nums">−{{ $rp(\App\Livewire\Kasir\Cart::discountAmount(['type' => $discountType, 'value' => (int) $discountValue], $summary['subtotal'])) }}</span>
+                    <span class="ml-auto self-center text-xs text-emerald-900 tabular-nums">−{{ $rp(\App\Livewire\Kasir\Cart::discountAmount(['type' => $discountType, 'value' => (int) $discountValue], $summary['subtotal'] - $summary['promo'])) }}</span>
                 @endif
             </div>
             @error('discountValue') <p class="text-xs text-red-600">{{ $message }}</p> @enderror
@@ -61,7 +61,7 @@
                 @if ($discount['reason'])<span class="block truncate text-xs text-stone-500">{{ $discount['reason'] }}</span>@endif
             </button>
             <span class="flex shrink-0 items-center gap-1.5">
-                <span class="font-medium tabular-nums">−{{ $rp($summary['discount']) }}</span>
+                <span class="font-medium tabular-nums">−{{ $rp($summary['manual_discount']) }}</span>
                 <button type="button" wire:click="removeDiscount" class="text-stone-400 hover:text-red-600" aria-label="Hapus diskon">
                     <svg class="size-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg>
                 </button>

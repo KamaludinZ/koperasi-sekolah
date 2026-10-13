@@ -73,6 +73,9 @@
 
     <div class="space-y-2 border-t border-stone-200 px-5 py-4 text-sm">
         <div class="flex justify-between text-stone-600"><span>Subtotal</span><span class="tabular-nums">{{ $rp($summary['subtotal']) }}</span></div>
+        @if ($summary['promo'] > 0)
+            <div class="flex justify-between text-emerald-800"><span>Promo otomatis</span><span class="font-medium tabular-nums">−{{ $rp($summary['promo']) }}</span></div>
+        @endif
         @include('livewire.kasir.partials.discount')
         @include('livewire.kasir.partials.coupon')
         @php $rate = str_replace('.', ',', (string) ($summary['tax_rate'] + 0)); @endphp

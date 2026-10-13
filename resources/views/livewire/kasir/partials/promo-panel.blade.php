@@ -1,4 +1,4 @@
-{{-- Promo otomatis yang cocok dengan isi keranjang + petunjuk agar dapat promo (pratinjau tahap frontend) --}}
+{{-- Promo otomatis yang berlaku untuk isi keranjang (sudah memotong total) + petunjuk agar dapat promo --}}
 @php $promo = $this->promos; @endphp
 @if ($summary['count'] > 0 && ($promo['applied'] !== [] || $promo['hints'] !== []))
     <section class="mx-5 mb-3 rounded-xl border border-emerald-200 bg-emerald-50/60 text-sm" aria-labelledby="cart-promo-title" x-data="{ open: true }">
@@ -29,7 +29,7 @@
                     <span><span class="font-medium">{{ $h['name'] }}:</span> {{ $h['message'] }}</span>
                 </p>
             @endforeach
-            <p class="text-[11px] text-stone-500">Pratinjau tahap pengembangan: promo belum memotong total yang dibayar.</p>
+            @if ($promo['total'] > 0)<p class="text-[11px] text-stone-500">Potongan promo otomatis sudah dikurangkan dari total.</p>@endif
         </div>
     </section>
 @endif

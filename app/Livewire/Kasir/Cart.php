@@ -4,6 +4,7 @@ namespace App\Livewire\Kasir;
 
 use App\Services\CheckoutService;
 use App\Services\ManualDiscountService;
+use App\Services\PromoEngine;
 use App\Services\ProductCatalog;
 use App\Services\ReceiptPdfService;
 use App\Services\ReceiptPresenter;
@@ -11,7 +12,6 @@ use App\Services\SettingsService;
 use App\Support\CouponValidator;
 use App\Support\MockData;
 use App\Support\PriceCalculator;
-use App\Support\PromoMatcher;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\On;
 use Illuminate\Validation\ValidationException;
@@ -215,7 +215,7 @@ class Cart extends Component
 
         $spec = ['type' => $this->discountType, 'value' => (int) $this->discountValue, 'reason' => trim($this->discountReason)];
         try {
-            $discounts->resolve($spec, $this->summary['subtotal'], auth()->user());
+            $discounts->resolve($spec, $this->summary['subtotal'] - $this->summary['promo'], auth()->user());
         } catch (ValidationException $e) {
             $message = $e->errors()['discount'][0];
             $this->addError($message === 'Tulis alasan diskon.' ? 'discountReason' : 'discountValue', $message);
@@ -338,7 +338,10 @@ class Cart extends Component
     public function summary(): array
     {
         $subtotal = array_sum(array_column($this->lines, 'subtotal'));
-        $discount = self::discountAmount($this->discount, $subtotal);
+        $promo = $this->promos['total'];
+        // Diskon manual dihitung dari sisa belanja setelah promo otomatis (sama dengan CheckoutService).
+        $manual = self::discountAmount($this->discount, $subtotal - $promo);
+        $discount = $promo + $manual;
         $net = $subtotal - $discount;
         $tax = app(SettingsService::class)->tax();
         $price = PriceCalculator::compute($net, $tax, $this->paymentMethod);
@@ -346,6 +349,8 @@ class Cart extends Component
         return [
             'count' => array_sum(array_column($this->lines, 'quantity')),
             'subtotal' => $subtotal,
+            'promo' => $promo,
+            'manual_discount' => $manual,
             'discount' => $discount,
             'tax_enabled' => (bool) $tax['enabled'],
             'tax_label' => $tax['label'],
@@ -361,14 +366,11 @@ class Cart extends Component
         ];
     }
 
-    /**
-     * Promo otomatis yang cocok dengan isi keranjang (PromoMatcher). Tahap frontend: pratinjau
-     * dari data tiruan — belum memotong total yang dibayar.
-     */
+    /** Promo otomatis yang berlaku untuk isi keranjang (PromoEngine) — ikut memotong total. */
     #[Computed]
     public function promos(): array
     {
-        return PromoMatcher::match($this->lines, MockData::promos());
+        return app(PromoEngine::class)->evaluate($this->lines);
     }
 
     private function catalog(): array

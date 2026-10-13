@@ -3,7 +3,11 @@
 namespace Tests\Feature\Kasir;
 
 use App\Livewire\Kasir\Cart;
+use App\Models\Transaction;
+use App\Services\CheckoutService;
+use App\Services\PromoEngine;
 use App\Support\MockData;
+use Database\Seeders\PromoSeeder;
 use App\Support\PromoMatcher;
 use Database\Seeders\ProductSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -71,16 +75,58 @@ class PromoPanelTest extends TestCase
         $this->assertSame(0, PromoMatcher::match([$this->line('Roti Coklat', 'Makanan', 5000, 1)], MockData::promos(), Carbon::parse('2026-10-14 13:00'))['total']);
     }
 
-    public function test_cart_shows_promo_preview_without_changing_total(): void
+    public function test_cart_applies_running_promo_from_database(): void
     {
+        $this->seed(PromoSeeder::class);
+
         $c = Livewire::test(Cart::class)
             ->call('setQty', $this->pid('ATK002'), 2) // pulpen Rp3.000 × 2, alat tulis 10%
             ->assertSee('Promo otomatis')
             ->assertSee('Diskon Alat Tulis Awal Semester')
             ->assertSee('hemat Rp600')
-            ->assertSee('belum memotong total');
+            ->assertSee('sudah dikurangkan dari total');
 
-        $this->assertSame(6000, $c->instance()->summary['total']);
+        $this->assertSame([600, 5400], [$c->instance()->summary['promo'], $c->instance()->summary['total']]);
+    }
+
+    public function test_manual_discount_applies_after_promo(): void
+    {
+        $this->seed(PromoSeeder::class);
+
+        $c = Livewire::test(Cart::class)
+            ->call('setQty', $this->pid('ATK001'), 5) // Rp20.000 − promo 10% = Rp18.000
+            ->call('editDiscount')->set('discountValue', 10)->set('discountReason', 'Pelanggan tetap')->call('applyDiscount');
+
+        $this->assertSame([2000, 1800, 3800, 16200], [
+            $c->instance()->summary['promo'], $c->instance()->summary['manual_discount'],
+            $c->instance()->summary['discount'], $c->instance()->summary['total'],
+        ]);
+
+        $c->call('openPayment')->set('paymentMethod', 'qris')->call('pay')->assertHasNoErrors();
+        $tx = Transaction::latest('id')->first();
+        $this->assertSame([3800, 16200], [(int) $tx->discount, (int) $tx->total]);
+        $this->assertSame(['promo' => 2000, 'manual' => 1800], $tx->discounts->mapWithKeys(fn ($d) => [$d->source => (int) $d->amount])->all());
+        $this->assertSame('Buku Tulis 38 Lembar', $tx->discounts->firstWhere('source', 'promo')->reason);
+    }
+
+    public function test_checkout_picks_best_promo_and_ignores_inactive_or_out_of_hours(): void
+    {
+        $this->seed(PromoSeeder::class);
+        $checkout = app(CheckoutService::class);
+
+        // 10 buku tulis: grosir (Rp5.000) lebih hemat dari alat tulis 10% (Rp4.000).
+        $tx = $checkout->checkout([$this->pid('ATK001') => 10], 'qris', null);
+        $this->assertSame(['Grosir Buku Tulis (isi 10)'], $tx->discounts->pluck('label')->all());
+        $this->assertSame(5000, (int) $tx->discount);
+
+        // Teh kotak pukul 10.00: happy hour (13.00–14.30) belum berlaku; roti coklat: promo nonaktif.
+        $tx = $checkout->checkout([$this->pid('MNM002') => 2, $this->pid('MKN001') => 1], 'qris', null);
+        $this->assertSame(0, (int) $tx->discount);
+
+        Carbon::setTestNow('2026-10-14 13:30:00');
+        app(PromoEngine::class)->flush();
+        $tx = $checkout->checkout([$this->pid('MNM002') => 2], 'qris', null);
+        $this->assertSame(1000, (int) $tx->discount);
     }
 
     public function test_no_panel_without_matching_promo(): void

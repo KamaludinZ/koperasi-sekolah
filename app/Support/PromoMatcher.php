@@ -79,7 +79,8 @@ class PromoMatcher
     {
         return match ($promo['scope']) {
             'kategori' => in_array($line['category'] ?? null, $promo['targets'], true),
-            'barang' => in_array($line['name'], $promo['targets'], true),
+            // Barang dicocokkan lewat id (data database); data tanpa id dicocokkan lewat nama.
+            'barang' => isset($promo['product_ids']) ? in_array($line['id'], $promo['product_ids'], true) : in_array($line['name'], $promo['targets'], true),
             default => true,
         };
     }
