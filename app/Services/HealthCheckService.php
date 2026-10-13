@@ -51,14 +51,42 @@ class HealthCheckService
     {
         $t = microtime(true);
         $r = self::report(withHistory: false);
+        $prev = \App\Models\HealthCheck::orderByDesc('created_at')->orderByDesc('id')->first();
         $row = \App\Models\HealthCheck::create([
             'status' => $r['status'],
             'results' => collect($r['checks'])->mapWithKeys(fn ($c) => [$c['key'] => ['status' => $c['status'], 'detail' => $c['detail']]])->all(),
             'duration_ms' => (int) round((microtime(true) - $t) * 1000),
         ]);
         \App\Models\HealthCheck::where('created_at', '<', now()->subDays(30))->delete();
+        self::alert($r['checks'], $prev?->results ?? []);
 
         return $row;
+    }
+
+    /**
+     * Peringatan lewat notifikasi Admin: komponen yang memburuk (normal → perhatian/gangguan, atau
+     * perhatian → gangguan) mendapat satu notifikasi; saat kembali normal notifikasi itu dihapus dan
+     * diganti pemberitahuan pulih.
+     *
+     * @param  list<array{key: string, label: string, status: string, detail: string}>  $checks
+     * @param  array<string, array{status: string}>  $previous
+     */
+    private static function alert(array $checks, array $previous): void
+    {
+        $url = \Illuminate\Support\Facades\Route::has('sistem') ? route('sistem', [], false) : null;
+        foreach ($checks as $c) {
+            $before = $previous[$c['key']]['status'] ?? 'ok';
+            $key = "health-alert-{$c['key']}";
+            if ($c['status'] !== 'ok' && self::RANK[$c['status']] > self::RANK[$before]) {
+                \App\Models\Notification::where('dedupe_key', $key)->delete();
+                \App\Models\Notification::create(['dedupe_key' => $key, 'type' => 'sistem', 'target' => 'admin', 'url' => $url,
+                    'title' => ($c['status'] === 'gangguan' ? 'Gangguan: ' : 'Perlu perhatian: ').$c['label'], 'message' => $c['detail']]);
+            } elseif ($c['status'] === 'ok' && $before !== 'ok') {
+                \App\Models\Notification::where('dedupe_key', $key)->delete();
+                \App\Models\Notification::updateOrCreate(['dedupe_key' => "health-ok-{$c['key']}-".now()->format('YmdHi')],
+                    ['type' => 'sistem', 'target' => 'admin', 'url' => $url, 'title' => "{$c['label']} kembali normal", 'message' => $c['detail']]);
+            }
+        }
     }
 
     /**
