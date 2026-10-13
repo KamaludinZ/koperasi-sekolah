@@ -1,6 +1,6 @@
 {
   "repo": "Koperasi Sekolah",
-  "generatedForCommit": "c8a9f8dc6bced73ac085c1fe873ef565f25ad16f",
+  "generatedForCommit": "a8d31d608e1dcb19bd48a693dd6cca641da77150",
   "files": [
     {
       "path": ".claude/skills/ngodingpakeai/SKILL.md",
@@ -292,7 +292,7 @@
     },
     {
       "path": "app/Livewire/Audit/Trash.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 4576
     },
@@ -433,6 +433,12 @@
       "reason": "needs_summary",
       "language": "php",
       "size": 4296
+    },
+    {
+      "path": "app/Livewire/Pengguna/Locked.php",
+      "reason": "new",
+      "language": "php",
+      "size": 3285
     },
     {
       "path": "app/Livewire/Promo/Index.php",
@@ -810,7 +816,7 @@
       "path": "app/Support/MockData.php",
       "reason": "changed",
       "language": "php",
-      "size": 24295
+      "size": 27253
     },
     {
       "path": "app/Support/OpeningHours.php",
@@ -1276,7 +1282,7 @@
     },
     {
       "path": "resources/views/components/audit/nav.blade.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 712
     },
@@ -1327,6 +1333,12 @@
       "reason": "needs_summary",
       "language": "php",
       "size": 1084
+    },
+    {
+      "path": "resources/views/components/pengguna/nav.blade.php",
+      "reason": "new",
+      "language": "php",
+      "size": 679
     },
     {
       "path": "resources/views/components/promo/nav.blade.php",
@@ -1492,7 +1504,7 @@
     },
     {
       "path": "resources/views/livewire/audit/trash.blade.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 12538
     },
@@ -1678,9 +1690,15 @@
     },
     {
       "path": "resources/views/livewire/pengguna/index.blade.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 10466
+      "size": 10584
+    },
+    {
+      "path": "resources/views/livewire/pengguna/locked.blade.php",
+      "reason": "new",
+      "language": "php",
+      "size": 10419
     },
     {
       "path": "resources/views/livewire/pengguna/partials/user-form.blade.php",
@@ -1734,7 +1752,7 @@
       "path": "routes/web.php",
       "reason": "changed",
       "language": "php",
-      "size": 15320
+      "size": 15409
     },
     {
       "path": "tests/Feature/Anggota/IndexTest.php",
@@ -1810,7 +1828,7 @@
     },
     {
       "path": "tests/Feature/Audit/TrashPageTest.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 3961
     },
@@ -2269,6 +2287,12 @@
       "reason": "needs_summary",
       "language": "php",
       "size": 7595
+    },
+    {
+      "path": "tests/Feature/Pengguna/LockedPageTest.php",
+      "reason": "new",
+      "language": "php",
+      "size": 3209
     },
     {
       "path": "tests/Feature/Promo/IndexTest.php",

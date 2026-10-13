@@ -537,4 +537,31 @@ class MockData
 
         return $row;
     }
+
+    /** Pengaturan keamanan & retensi bawaan (tiruan; backend menyusul sebagai bagian `security` di tabel settings). */
+    public const SECURITY_DEFAULTS = [
+        'trash_days' => 30,
+        'export_days' => 7,
+        'notification_days' => 90,
+        'idle_minutes' => 60,
+        'max_attempts' => 5,
+        'logo_max_kb' => 512,
+        'logo_types' => ['png', 'jpg', 'webp'],
+        'import_max_kb' => 5120,
+        'import_types' => ['csv', 'xlsx'],
+    ];
+
+    /** Pengaturan keamanan & retensi saat ini (session `mock.security`, jatuh ke bawaan). */
+    public static function security(): array
+    {
+        return array_merge(self::SECURITY_DEFAULTS, session('mock.security', []));
+    }
+
+    public static function saveSecurity(array $values): array
+    {
+        $saved = array_intersect_key($values, self::SECURITY_DEFAULTS);
+        session(['mock.security' => $saved]);
+
+        return self::security();
+    }
 }

@@ -249,6 +249,7 @@ Route::middleware('menu:pengaturan')->group(function () {
     Route::get('/pengaturan/profil', Pengaturan\Profile::class)->name('pengaturan.profil');
     Route::get('/pengaturan/struk', Pengaturan\Receipt::class)->name('pengaturan.struk');
     Route::get('/pengaturan/pajak', Pengaturan\Tax::class)->name('pengaturan.pajak');
+    Route::get('/pengaturan/keamanan', Pengaturan\Security::class)->name('pengaturan.keamanan');
 
     Route::get('/pengaturan/data', [SettingsController::class, 'index'])->name('pengaturan.data');
     Route::get('/pengaturan/data/{section}', [SettingsController::class, 'show'])->whereIn('section', SettingsService::SECTIONS)->name('pengaturan.data.show');
