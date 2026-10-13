@@ -29,8 +29,8 @@
             <li>
                 <p>{{ $item['product_name'] }}</p>
                 <div class="flex justify-between">
-                    <span>{{ $item['quantity'] }} x {{ number_format($item['price'], 0, ',', '.') }}</span>
-                    <span>{{ number_format($item['subtotal'], 0, ',', '.') }}</span>
+                    <span>{{ $item['quantity'] }} x {{ \App\Support\Rupiah::number($item['price']) }}</span>
+                    <span>{{ \App\Support\Rupiah::number($item['subtotal']) }}</span>
                 </div>
             </li>
         @endforeach

@@ -1,4 +1,4 @@
-@php $n = fn ($v) => number_format($v, 0, ',', '.'); $rc = $profile['receipt']; @endphp
+@php $n = fn ($v) => \App\Support\Rupiah::number($v); $rc = $profile['receipt']; @endphp
 <!DOCTYPE html>
 <html lang="id">
 <head>

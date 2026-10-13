@@ -1,6 +1,6 @@
 {
   "repo": "Koperasi Sekolah",
-  "generatedForCommit": "527c4a4f45c680a983676291730977a827107d0b",
+  "generatedForCommit": "7983247ab1667981e8d487d3766d795648bf319d",
   "files": [
     {
       "path": ".claude/skills/ngodingpakeai/SKILL.md",
@@ -502,7 +502,7 @@
     },
     {
       "path": "app/Livewire/Kasir/ProductPicker.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 3362
     },
@@ -592,9 +592,9 @@
     },
     {
       "path": "app/Livewire/Pengaturan/Profile.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 5861
+      "size": 7076
     },
     {
       "path": "app/Livewire/Pengaturan/Receipt.php",
@@ -1143,6 +1143,12 @@
       "size": 8565
     },
     {
+      "path": "app/Services/QrisImageService.php",
+      "reason": "new",
+      "language": "php",
+      "size": 2505
+    },
+    {
       "path": "app/Services/ReceiptPdfService.php",
       "reason": "needs_summary",
       "language": "php",
@@ -1204,9 +1210,9 @@
     },
     {
       "path": "app/Services/SettingsService.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 21476
+      "size": 21570
     },
     {
       "path": "app/Services/ShiftService.php",
@@ -2350,9 +2356,9 @@
     },
     {
       "path": "resources/views/livewire/kasir/partials/payment-panel.blade.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 24312
+      "size": 25223
     },
     {
       "path": "resources/views/livewire/kasir/partials/promo-panel.blade.php",
@@ -2368,7 +2374,7 @@
     },
     {
       "path": "resources/views/livewire/kasir/product-picker.blade.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 6193
     },
@@ -2482,9 +2488,9 @@
     },
     {
       "path": "resources/views/livewire/pengaturan/profile.blade.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 13093
+      "size": 15344
     },
     {
       "path": "resources/views/livewire/pengaturan/receipt.blade.php",
@@ -2632,9 +2638,9 @@
     },
     {
       "path": "routes/web.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 28782
+      "size": 29349
     },
     {
       "path": "tests/Concerns/MakesProductImports.php",
@@ -3184,7 +3190,7 @@
     },
     {
       "path": "tests/Feature/Kasir/ProductPickerTest.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 2716
     },
@@ -3199,6 +3205,12 @@
       "reason": "needs_summary",
       "language": "php",
       "size": 6459
+    },
+    {
+      "path": "tests/Feature/Kasir/QrisPaymentTest.php",
+      "reason": "new",
+      "language": "php",
+      "size": 2382
     },
     {
       "path": "tests/Feature/Kasir/ReceiptPaymentInfoTest.php",

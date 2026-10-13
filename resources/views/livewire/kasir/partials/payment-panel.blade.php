@@ -14,7 +14,7 @@
     <div class="fixed inset-0 z-40 flex items-end justify-center bg-stone-950/50 p-0 sm:items-center sm:p-4"
          x-data="{ paid: $wire.entangle('paid'), method: $wire.entangle('paymentMethod'), totals: @js($summary['totals']),
                   get total() { return this.totals[this.method]?.payable ?? 0 }, get rounding() { return this.totals[this.method]?.rounding ?? 0 },
-                  rp(n) { return 'Rp' + Math.abs(n).toLocaleString('id-ID') } }"
+                  rp(n) { return window.rupiah ? window.rupiah(Math.abs(n)) : 'Rp' + Math.abs(n).toLocaleString('id-ID') } }"
          x-init="$nextTick(() => $refs.paid?.focus())"
          x-on:keydown.escape.window="$wire.closePayment()"
          role="dialog" aria-modal="true" aria-labelledby="payment-title">
@@ -219,7 +219,7 @@
                         <span class="text-sm font-medium" x-text="(paid || 0) >= total ? 'Kembalian' : 'Kurang'"></span>
                         <span class="text-2xl font-bold tabular-nums"
                               :class="(paid || 0) >= total ? 'text-emerald-800' : 'text-red-600'"
-                              x-text="'Rp' + Math.abs((paid || 0) - total).toLocaleString('id-ID')"></span>
+                              x-text="rp((paid || 0) - total)"></span>
                     </div>
                 </div>
 

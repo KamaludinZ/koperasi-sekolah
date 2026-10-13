@@ -2,6 +2,12 @@ import './bootstrap';
 import salesChart from './sales-chart';
 import registerCopy from './clipboard';
 
+/** Format rupiah seragam (sama dengan App\Support\Rupiah): Rp12.500, minus memakai "−". */
+window.rupiah = (n, signed = false) => {
+    const v = Math.round(Number(n) || 0);
+    return (v < 0 ? '−' : signed && v > 0 ? '+' : '') + 'Rp' + Math.abs(v).toLocaleString('id-ID');
+};
+
 document.addEventListener('alpine:init', () => {
     window.Alpine.data('salesChart', salesChart);
     registerCopy(window.Alpine);

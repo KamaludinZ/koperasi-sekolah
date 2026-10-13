@@ -32,6 +32,9 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // Format rupiah seragam: @rupiah($n) → "Rp12.500" (lihat App\Support\Rupiah).
+        \Illuminate\Support\Facades\Blade::directive('rupiah', fn ($expr) => "<?php echo e(\\App\\Support\\Rupiah::format({$expr})); ?>");
+
         // Semua URL yang dibuat aplikasi memakai https bila HTTPS dipaksa.
         if (config('koperasi.force_https')) {
             URL::forceScheme('https');

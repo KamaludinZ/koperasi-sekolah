@@ -58,7 +58,7 @@
                             <span class="font-mono text-[11px] tracking-wide text-stone-400">{{ $product['code'] }}</span>
                             <span class="mt-1 line-clamp-2 text-sm leading-snug font-medium">{{ $product['name'] }}</span>
                             <span class="mt-auto flex items-end justify-between gap-2 pt-3">
-                                <span class="font-semibold text-emerald-800 tabular-nums">Rp{{ number_format($product['price'], 0, ',', '.') }}</span>
+                                <span class="font-semibold text-emerald-800 tabular-nums">@rupiah($product['price'])</span>
                                 <span @class(['rounded px-1.5 py-0.5 text-[11px] font-medium tabular-nums',
                                               'bg-red-100 text-red-700' => $out,
                                               'bg-amber-100 text-amber-800' => $low,

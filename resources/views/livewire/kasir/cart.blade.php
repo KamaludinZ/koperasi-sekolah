@@ -1,5 +1,5 @@
 @php
-    $rp = fn ($n) => 'Rp'.number_format($n, 0, ',', '.');
+    $rp = fn ($n) => \App\Support\Rupiah::format($n);
     $summary = $this->summary;
 @endphp
 <aside class="fixed inset-x-0 bottom-0 z-30 flex max-h-[85dvh] min-h-0 flex-col md:bg-white md:static md:max-h-none md:rounded-none md:border-t-0 md:border-l md:shadow-none"

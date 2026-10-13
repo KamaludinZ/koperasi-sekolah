@@ -409,7 +409,7 @@ class Cart extends Component
                 return;
             }
             if ($short = self::shortfall($this->paymentMethod, $member, $summary['total'])) {
-                $this->addError('memberId', ($this->paymentMethod === 'tabungan' ? 'Saldo tabungan kurang ' : 'Melebihi sisa batas bon sebesar ').'Rp'.number_format($short, 0, ',', '.').'.');
+                $this->addError('memberId', ($this->paymentMethod === 'tabungan' ? 'Saldo tabungan kurang ' : 'Melebihi sisa batas bon sebesar ').\App\Support\Rupiah::format($short).'.');
 
                 return;
             }

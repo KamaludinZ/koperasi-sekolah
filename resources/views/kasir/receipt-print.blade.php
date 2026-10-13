@@ -1,4 +1,4 @@
-@php $rp = fn ($n) => 'Rp'.number_format($n, 0, ',', '.'); @endphp
+@php $rp = fn ($n) => \App\Support\Rupiah::format($n); @endphp
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 <head>
