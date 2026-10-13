@@ -1,6 +1,6 @@
 {
   "repo": "Koperasi Sekolah",
-  "generatedForCommit": "01b73eab8d1cc3d4209b3924c2886ce12482b13a",
+  "generatedForCommit": "27d92af0a820513596be7672cd3c59c34952f923",
   "files": [
     {
       "path": ".claude/skills/ngodingpakeai/SKILL.md",
@@ -472,9 +472,15 @@
     },
     {
       "path": "app/Livewire/Pengadaan/Index.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 3972
+    },
+    {
+      "path": "app/Livewire/Pengadaan/Suppliers.php",
+      "reason": "new",
+      "language": "php",
+      "size": 4339
     },
     {
       "path": "app/Livewire/Pengaturan/Index.php",
@@ -958,13 +964,13 @@
     },
     {
       "path": "app/Support/Menu.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 7302
     },
     {
       "path": "app/Support/MockData.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 30894
     },
@@ -1360,7 +1366,7 @@
     },
     {
       "path": "database/migrations/2026_10_13_000014_add_pengadaan_menu_to_roles.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 1249
     },
@@ -1492,7 +1498,7 @@
     },
     {
       "path": "resources/views/beranda.blade.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 14656
     },
@@ -1510,7 +1516,7 @@
     },
     {
       "path": "resources/views/components/brand/favicon.blade.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 691
     },
@@ -1552,19 +1558,19 @@
     },
     {
       "path": "resources/views/components/layouts/app.blade.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 8049
     },
     {
       "path": "resources/views/components/layouts/guest.blade.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 864
     },
     {
       "path": "resources/views/components/pengadaan/nav.blade.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 1151
     },
@@ -1654,7 +1660,7 @@
     },
     {
       "path": "resources/views/errors/layout.blade.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 3177
     },
@@ -1666,13 +1672,13 @@
     },
     {
       "path": "resources/views/kasir/receipt-print.blade.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 1418
     },
     {
       "path": "resources/views/laporan/rekap-pdf.blade.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 6742
     },
@@ -1936,9 +1942,15 @@
     },
     {
       "path": "resources/views/livewire/pengadaan/index.blade.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 12114
+    },
+    {
+      "path": "resources/views/livewire/pengadaan/suppliers.blade.php",
+      "reason": "new",
+      "language": "php",
+      "size": 12824
     },
     {
       "path": "resources/views/livewire/pengaturan/index.blade.php",
@@ -2034,7 +2046,7 @@
       "path": "routes/web.php",
       "reason": "changed",
       "language": "php",
-      "size": 18383
+      "size": 18478
     },
     {
       "path": "tests/Feature/Anggota/IndexTest.php",
@@ -2164,7 +2176,7 @@
     },
     {
       "path": "tests/Feature/Auth/RoleMenuTest.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 3332
     },
@@ -2488,7 +2500,7 @@
     },
     {
       "path": "tests/Feature/Kasir/ReceiptSettingsIntegrationTest.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 4842
     },
@@ -2596,9 +2608,15 @@
     },
     {
       "path": "tests/Feature/Pengadaan/ProcurementHubTest.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 2216
+    },
+    {
+      "path": "tests/Feature/Pengadaan/SupplierListTest.php",
+      "reason": "new",
+      "language": "php",
+      "size": 2224
     },
     {
       "path": "tests/Feature/Pengaturan/IndexTest.php",
@@ -2614,7 +2632,7 @@
     },
     {
       "path": "tests/Feature/Pengaturan/LogoEverywhereTest.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 2300
     },

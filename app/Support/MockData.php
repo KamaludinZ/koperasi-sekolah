@@ -638,4 +638,16 @@ class MockData
             'status' => $r[4] >= $r[3] ? 'lunas' : ($r[4] > 0 ? 'sebagian' : 'belum'),
         ], $rows);
     }
+
+    /** Simpan supplier baru (tanpa id) atau ubah yang ada (session). Mengembalikan barisnya. */
+    public static function saveSupplier(array $data): array
+    {
+        $rows = collect(self::suppliers())->keyBy('id');
+        $id = $data['id'] ?? (($rows->keys()->max() ?? 0) + 1);
+        $base = $rows[$id] ?? ['last_order_at' => null, 'purchases_90d' => 0, 'open_payable' => 0];
+        $rows[$id] = [...$base, ...collect($data)->only(['name', 'contact', 'phone', 'address', 'terms_days', 'categories', 'is_active', 'note'])->all(), 'id' => $id];
+        session(['mock.suppliers' => $rows->values()->all()]);
+
+        return $rows[$id];
+    }
 }
