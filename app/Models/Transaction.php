@@ -43,6 +43,29 @@ class Transaction extends Model
         return $this->hasMany(TransactionReturn::class);
     }
 
+    /** Pengajuan retur/pembatalan yang masih menunggu keputusan. */
+    public function pendingReturn(): \Illuminate\Database\Eloquent\Relations\HasOne
+    {
+        return $this->hasOne(TransactionReturn::class)->where('status', 'menunggu');
+    }
+
+    /**
+     * Jumlah barang per baris transaksi yang sudah diajukan/disetujui untuk diretur.
+     *
+     * @return array<int, int> transaction_item_id → jumlah
+     */
+    public function returnedQuantities(): array
+    {
+        return TransactionReturnItem::query()
+            ->whereIn('transaction_item_id', $this->items()->pluck('id'))
+            ->whereHas('return', fn ($q) => $q->active())
+            ->selectRaw('transaction_item_id, SUM(quantity) as qty')
+            ->groupBy('transaction_item_id')
+            ->pluck('qty', 'transaction_item_id')
+            ->map(fn ($q) => (int) $q)
+            ->all();
+    }
+
     public function voider(): BelongsTo
     {
         return $this->belongsTo(User::class, 'voided_by');

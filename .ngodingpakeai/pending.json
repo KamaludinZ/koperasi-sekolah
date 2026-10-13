@@ -1,6 +1,6 @@
 {
   "repo": "Koperasi Sekolah",
-  "generatedForCommit": "8ca76473af7fbfad8fc178fb63e3c6b17ff7f70e",
+  "generatedForCommit": "6167d57b671600c7272cb93d54f4ef32b9fde2a3",
   "files": [
     {
       "path": ".claude/skills/ngodingpakeai/SKILL.md",
@@ -858,7 +858,7 @@
       "path": "app/Models/Transaction.php",
       "reason": "changed",
       "language": "php",
-      "size": 3173
+      "size": 3870
     },
     {
       "path": "app/Models/TransactionDiscount.php",
@@ -871,6 +871,18 @@
       "reason": "needs_summary",
       "language": "php",
       "size": 835
+    },
+    {
+      "path": "app/Models/TransactionReturn.php",
+      "reason": "new",
+      "language": "php",
+      "size": 2426
+    },
+    {
+      "path": "app/Models/TransactionReturnItem.php",
+      "reason": "new",
+      "language": "php",
+      "size": 919
     },
     {
       "path": "app/Models/User.php",
@@ -1096,7 +1108,7 @@
     },
     {
       "path": "app/Services/ReceiptPresenter.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 6693
     },
@@ -1174,7 +1186,7 @@
     },
     {
       "path": "app/Services/TransactionHistory.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 10937
     },
@@ -1687,6 +1699,12 @@
       "reason": "needs_summary",
       "language": "php",
       "size": 5367
+    },
+    {
+      "path": "database/migrations/2026_10_13_000025_create_transaction_returns_tables.php",
+      "reason": "new",
+      "language": "php",
+      "size": 5840
     },
     {
       "path": "database/seeders/ActivityLogSeeder.php",
@@ -2458,7 +2476,7 @@
     },
     {
       "path": "resources/views/livewire/transaksi/show.blade.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 11874
     },
@@ -3358,7 +3376,7 @@
     },
     {
       "path": "tests/Feature/Transaksi/PaymentInfoApiTest.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 3783
     },
@@ -3379,6 +3397,12 @@
       "reason": "needs_summary",
       "language": "php",
       "size": 2897
+    },
+    {
+      "path": "tests/Feature/Transaksi/ReturnSchemaTest.php",
+      "reason": "new",
+      "language": "php",
+      "size": 4023
     },
     {
       "path": "tests/Feature/Transaksi/ReturnStatusNoticeTest.php",

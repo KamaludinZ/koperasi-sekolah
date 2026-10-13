@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -10,6 +11,11 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 /** Pengajuan retur barang (RTR-) atau pembatalan transaksi (BTL-) beserta keputusannya. */
 class TransactionReturn extends Model
 {
+    use HasFactory;
+
+    /** Awalan nomor per jenis: RTR-YYYYMMDD-NNNN / BTL-YYYYMMDD-NNNN. */
+    public const PREFIXES = ['retur' => 'RTR', 'batal' => 'BTL'];
+
     public const KINDS = ['retur' => 'Retur barang', 'batal' => 'Pembatalan'];
 
     public const STATUSES = ['menunggu' => 'Menunggu', 'disetujui' => 'Disetujui', 'ditolak' => 'Ditolak'];
@@ -63,8 +69,39 @@ class TransactionReturn extends Model
         $query->whereIn('status', ['menunggu', 'disetujui']);
     }
 
+    public function scopeOfKind(Builder $query, ?string $kind): void
+    {
+        $query->when($kind, fn ($q) => $q->where('kind', $kind));
+    }
+
+    /** Sudah diputus (disetujui/ditolak). */
+    public function scopeDecided(Builder $query): void
+    {
+        $query->whereIn('status', ['disetujui', 'ditolak']);
+    }
+
     public function isPending(): bool
     {
         return $this->status === 'menunggu';
+    }
+
+    public function isVoid(): bool
+    {
+        return $this->kind === 'batal';
+    }
+
+    public function kindLabel(): string
+    {
+        return self::KINDS[$this->kind] ?? $this->kind;
+    }
+
+    public function statusLabel(): string
+    {
+        return self::STATUSES[$this->status] ?? $this->status;
+    }
+
+    public function refundLabel(): string
+    {
+        return self::REFUND_METHODS[$this->refund_method] ?? $this->refund_method;
     }
 }

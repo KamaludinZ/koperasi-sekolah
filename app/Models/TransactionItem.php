@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class TransactionItem extends Model
 {
@@ -29,5 +30,17 @@ class TransactionItem extends Model
     public function product(): BelongsTo
     {
         return $this->belongsTo(Product::class)->withTrashed(); // riwayat tetap menampilkan data yang dihapus lunak
+    }
+
+    /** Baris retur yang merujuk baris transaksi ini. */
+    public function returnItems(): HasMany
+    {
+        return $this->hasMany(TransactionReturnItem::class);
+    }
+
+    /** Jumlah yang sudah diajukan/disetujui untuk diretur (pengajuan ditolak tidak dihitung). */
+    public function returnedQuantity(): int
+    {
+        return (int) $this->returnItems()->whereHas('return', fn ($q) => $q->active())->sum('quantity');
     }
 }
