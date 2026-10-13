@@ -258,6 +258,7 @@ Route::middleware('menu:transaksi')->group(function () {
         ->middleware('throttle:120,1')
         ->name('transaksi.summary');
     Route::get('/transaksi/retur', Transaksi\Returns::class)->name('transaksi.retur');
+    Route::get('/transaksi/retur/riwayat', Transaksi\ReturnHistory::class)->name('transaksi.retur.riwayat');
     Route::get('/transaksi/{transaction}', Transaksi\Show::class)
         ->whereNumber('transaction')
         ->name('transaksi.show');
