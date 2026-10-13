@@ -1,6 +1,6 @@
 {
   "repo": "Koperasi Sekolah",
-  "generatedForCommit": "9b8e43e428f34b62c98fd52d02b855b224111c9a",
+  "generatedForCommit": "429170969c495f46d43a2a572f84b93d44b38b34",
   "files": [
     {
       "path": ".claude/skills/ngodingpakeai/SKILL.md",
@@ -298,9 +298,9 @@
     },
     {
       "path": "app/Livewire/Auth/Login.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 2130
+      "size": 3669
     },
     {
       "path": "app/Livewire/Barang/Index.php",
@@ -424,7 +424,7 @@
     },
     {
       "path": "app/Livewire/Pengaturan/Security.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 6365
     },
@@ -820,7 +820,7 @@
     },
     {
       "path": "app/Support/MockData.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 28186
     },
@@ -1336,7 +1336,7 @@
     },
     {
       "path": "resources/views/components/pengaturan/nav.blade.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 1139
     },
@@ -1516,9 +1516,9 @@
     },
     {
       "path": "resources/views/livewire/auth/login.blade.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 9347
+      "size": 12174
     },
     {
       "path": "resources/views/livewire/barang/index.blade.php",
@@ -1690,7 +1690,7 @@
     },
     {
       "path": "resources/views/livewire/pengaturan/security.blade.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 11435
     },
@@ -1762,7 +1762,7 @@
     },
     {
       "path": "routes/web.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 15506
     },
@@ -1852,9 +1852,9 @@
     },
     {
       "path": "tests/Feature/Auth/LoginTest.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 4673
+      "size": 6504
     },
     {
       "path": "tests/Feature/Auth/RoleMenuTest.php",
@@ -2272,7 +2272,7 @@
     },
     {
       "path": "tests/Feature/Pengaturan/SecuritySettingsTest.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 3738
     },
