@@ -115,7 +115,10 @@ class Security extends Component
     {
         $https = str_starts_with((string) config('app.url'), 'https://');
 
+        $force = (bool) config('koperasi.force_https');
+
         return [
+            ['label' => 'Koneksi http dialihkan ke https', 'ok' => $force, 'detail' => $force ? 'Pengalihan paksa & HSTS aktif.' : 'Aktifkan FORCE_HTTPS (bawaan aktif di production).'],
             ['label' => 'Alamat aplikasi memakai HTTPS', 'ok' => $https, 'detail' => $https ? 'Koneksi terenkripsi.' : 'APP_URL masih http — atur ke https di server.'],
             ['label' => 'Cookie sesi hanya lewat HTTPS', 'ok' => (bool) config('session.secure'), 'detail' => config('session.secure') ? 'Cookie tidak terkirim lewat koneksi biasa.' : 'Aktifkan SESSION_SECURE_COOKIE di server produksi.'],
             ['label' => 'Cookie tidak bisa dibaca skrip', 'ok' => (bool) config('session.http_only', true), 'detail' => 'HttpOnly melindungi sesi dari pencurian lewat skrip.'],

@@ -11,6 +11,10 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        // Paksa HTTPS + header keamanan untuk semua permintaan (termasuk API & aset dinamis).
+        // Dipasang setelah TrustProxies agar X-Forwarded-Proto dari proxy tepercaya ikut dibaca.
+        $middleware->append(\App\Http\Middleware\ForceHttps::class);
+
         // Batasi menu sesuai peran petugas.
         // Sesi petugas: keluarkan akun nonaktif / sesi yang terlalu lama tidak aktif.
         $middleware->web(append: [\App\Http\Middleware\EnsureActiveSession::class]);

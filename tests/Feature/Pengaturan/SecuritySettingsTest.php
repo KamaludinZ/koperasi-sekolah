@@ -75,12 +75,12 @@ class SecuritySettingsTest extends TestCase
 
     public function test_production_checks_follow_config(): void
     {
-        config(['app.url' => 'https://koperasi.example', 'session.secure' => true, 'app.debug' => false, 'session.same_site' => 'lax']);
+        config(['app.url' => 'https://koperasi.example', 'session.secure' => true, 'app.debug' => false, 'session.same_site' => 'lax', 'koperasi.force_https' => true]);
         $checks = Livewire::test(Security::class)->instance()->checks;
         $this->assertTrue(collect($checks)->every('ok'));
 
-        config(['app.url' => 'http://localhost', 'session.secure' => false]);
+        config(['app.url' => 'http://localhost', 'session.secure' => false, 'koperasi.force_https' => false]);
         $checks = Livewire::test(Security::class)->instance()->checks;
-        $this->assertSame(2, collect($checks)->where('ok', false)->count());
+        $this->assertSame(3, collect($checks)->where('ok', false)->count());
     }
 }

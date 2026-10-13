@@ -1,6 +1,6 @@
 {
   "repo": "Koperasi Sekolah",
-  "generatedForCommit": "d4a2a46e113e1c27bcf79ecc0983e065bdb8e3b0",
+  "generatedForCommit": "efb239e1c04a48b33ba07e5f9362f712d1002e36",
   "files": [
     {
       "path": ".claude/skills/ngodingpakeai/SKILL.md",
@@ -226,7 +226,7 @@
     },
     {
       "path": "app/Http/Controllers/Pengguna/LockoutController.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 1786
     },
@@ -256,9 +256,9 @@
     },
     {
       "path": "app/Http/Middleware/EnsureActiveSession.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 1880
+      "size": 2105
     },
     {
       "path": "app/Http/Middleware/EnsureMenuAccess.php",
@@ -286,9 +286,9 @@
     },
     {
       "path": "app/Livewire/Akun/Sessions.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 1884
+      "size": 1888
     },
     {
       "path": "app/Livewire/Anggota/Index.php",
@@ -466,7 +466,7 @@
     },
     {
       "path": "app/Livewire/Pengguna/Locked.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 3153
     },
@@ -724,7 +724,7 @@
     },
     {
       "path": "app/Services/LoginLockoutService.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 7328
     },
@@ -904,7 +904,7 @@
     },
     {
       "path": "app/Support/MockData.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 15359
     },
@@ -931,6 +931,12 @@
       "reason": "needs_summary",
       "language": "php",
       "size": 5545
+    },
+    {
+      "path": "app/Support/SessionPolicy.php",
+      "reason": "new",
+      "language": "php",
+      "size": 1327
     },
     {
       "path": "artisan",
@@ -970,9 +976,9 @@
     },
     {
       "path": "config/auth.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 4040
+      "size": 4196
     },
     {
       "path": "config/cache.php",
@@ -994,9 +1000,9 @@
     },
     {
       "path": "config/koperasi.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 241
+      "size": 349
     },
     {
       "path": "config/logging.php",
@@ -1024,9 +1030,9 @@
     },
     {
       "path": "config/session.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 7848
+      "size": 8373
     },
     {
       "path": "database/.gitignore",
@@ -1419,6 +1425,12 @@
       "size": 527
     },
     {
+      "path": "resources/views/components/idle-warning.blade.php",
+      "reason": "new",
+      "language": "php",
+      "size": 2720
+    },
+    {
       "path": "resources/views/components/kas/difference-badge.blade.php",
       "reason": "needs_summary",
       "language": "php",
@@ -1438,9 +1450,9 @@
     },
     {
       "path": "resources/views/components/layouts/app.blade.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 7717
+      "size": 7808
     },
     {
       "path": "resources/views/components/layouts/guest.blade.php",
@@ -1822,7 +1834,7 @@
     },
     {
       "path": "resources/views/livewire/pengguna/locked.blade.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 10303
     },
@@ -1878,7 +1890,7 @@
       "path": "routes/web.php",
       "reason": "changed",
       "language": "php",
-      "size": 16437
+      "size": 16689
     },
     {
       "path": "tests/Feature/Anggota/IndexTest.php",
@@ -2011,6 +2023,12 @@
       "reason": "needs_summary",
       "language": "php",
       "size": 3443
+    },
+    {
+      "path": "tests/Feature/Auth/SessionHardeningTest.php",
+      "reason": "new",
+      "language": "php",
+      "size": 4349
     },
     {
       "path": "tests/Feature/Auth/SessionManagementTest.php",
@@ -2464,7 +2482,7 @@
     },
     {
       "path": "tests/Feature/Pengguna/LockedPageTest.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 5738
     },
