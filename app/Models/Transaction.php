@@ -14,7 +14,7 @@ class Transaction extends Model
     use HasFactory;
 
     protected $fillable = [
-        'invoice_number', 'user_id', 'member_id', 'subtotal', 'tax', 'tax_label', 'tax_rate', 'tax_included',
+        'invoice_number', 'user_id', 'cash_shift_id', 'member_id', 'subtotal', 'tax', 'tax_label', 'tax_rate', 'tax_included',
         'discount', 'rounding', 'total', 'paid', 'change', 'payment_method', 'item_count',
     ];
 
@@ -43,6 +43,12 @@ class Transaction extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    /** Shift kasir saat transaksi dibuat (null = sebelum fitur shift / tanpa shift). */
+    public function shift(): BelongsTo
+    {
+        return $this->belongsTo(CashShift::class, 'cash_shift_id');
     }
 
     /** Terbaru dulu, stabil untuk transaksi pada detik yang sama. */
