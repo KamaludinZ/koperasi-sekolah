@@ -153,4 +153,40 @@ class IndexTest extends TestCase
             ->call('openDialog', 'buka')->assertSet('dialog', null)
             ->assertDontSee('Buka shift baru');
     }
+
+    public function test_record_cash_in_and_out_updates_expected_cash(): void
+    {
+        $this->loginAs('kasir');
+        $shift = collect(MockData::cashDay('2026-10-14')['shifts'])->firstWhere('status', 'open');
+
+        Livewire::test(Index::class)
+            ->call('openDialog', 'kas')->assertSet('dialog', 'kas')->assertSee('Uang masuk laci')
+            ->call('saveMovement')->assertHasErrors(['movementAmount' => 'required', 'movementReason' => 'required'])
+            ->set('movementAmount', 50000)->set('movementReason', 'Tambah uang kembalian')
+            ->call('saveMovement')->assertHasNoErrors()->assertSet('dialog', null)
+            ->assertDispatched('toast', type: 'success', message: 'Setoran kas Rp50.000 dicatat.')
+            ->call('openDialog', 'kas')->call('setMovementType', 'out')
+            ->set('movementAmount', $shift['expected'] + 50000 + 500)->set('movementReason', 'Setor ke bendahara')
+            ->call('saveMovement')->assertHasErrors('movementAmount')
+            ->set('movementAmount', 20000)
+            ->call('saveMovement')->assertHasNoErrors()
+            ->assertSee('Setor ke bendahara');
+
+        $day = MockData::cashDay('2026-10-14');
+        $after = collect($day['shifts'])->firstWhere('id', $shift['id']);
+        $this->assertSame($shift['cash_in'] + 50000, $after['cash_in']);
+        $this->assertSame($shift['cash_out'] + 20000, $after['cash_out']);
+        $this->assertSame($shift['expected'] + 30000, $after['expected']);
+        $this->assertSame(['out', 20000, 'Setor ke bendahara'], [$day['movements'][0]['type'], $day['movements'][0]['amount'], $day['movements'][0]['reason']]);
+    }
+
+    public function test_cash_movement_needs_running_shift(): void
+    {
+        Carbon::setTestNow('2026-10-14 16:00:00'); // semua shift sudah ditutup
+
+        Livewire::test(Index::class)
+            ->call('openDialog', 'kas')->assertSet('dialog', null)->assertDispatched('toast', type: 'error')
+            ->set('movementAmount', 10000)->set('movementReason', 'Coba catat')
+            ->call('saveMovement')->assertHasErrors('movementAmount');
+    }
 }

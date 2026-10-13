@@ -32,7 +32,13 @@ class Index extends Component
     /** Pecahan uang untuk alat bantu hitung laci saat tutup shift. */
     public const DENOMINATIONS = [100000, 50000, 20000, 10000, 5000, 2000, 1000, 500, 200, 100];
 
-    /** Dialog yang terbuka: 'buka' | 'tutup' | null. */
+    /** Alasan cepat setoran (in) / penarikan (out) kas laci. */
+    public const MOVEMENT_REASONS = [
+        'in' => ['Tambah uang kembalian', 'Tukar pecahan dari bendahara', 'Titipan iuran kegiatan'],
+        'out' => ['Setor ke bendahara', 'Beli plastik & perlengkapan', 'Bayar galon air', 'Ongkos angkut barang'],
+    ];
+
+    /** Dialog yang terbuka: 'buka' | 'tutup' | 'kas' | null. */
     public ?string $dialog = null;
 
     public string $shiftName = 'Shift pagi';
@@ -42,6 +48,13 @@ class Index extends Component
     public ?int $countedCash = null;
 
     public string $closeNote = '';
+
+    /** Setoran/penarikan kas: 'in' (uang masuk laci) | 'out' (uang keluar laci). */
+    public string $movementType = 'in';
+
+    public ?int $movementAmount = null;
+
+    public string $movementReason = '';
 
     /** Tanggal yang dilihat (Y-m-d); kosong = hari ini. */
     #[Url(as: 'tanggal', except: '')]
@@ -71,7 +84,12 @@ class Index extends Component
 
     public function openDialog(string $dialog): void
     {
-        if (! in_array($dialog, ['buka', 'tutup'], true) || ! $this->canOperate || ! $this->cash['is_today']) {
+        if (! in_array($dialog, ['buka', 'tutup', 'kas'], true) || ! $this->canOperate || ! $this->cash['is_today']) {
+            return;
+        }
+        if ($dialog !== 'buka' && ! $this->openShiftRow) {
+            $this->toast('error', 'Tidak ada shift yang sedang berjalan.');
+
             return;
         }
         $this->resetValidation();
@@ -79,9 +97,13 @@ class Index extends Component
         if ($dialog === 'buka') {
             $this->shiftName = self::SHIFT_NAMES[now()->hour < 10 ? 0 : (now()->hour < 14 ? 1 : 2)];
             $this->openingCash = 200000;
-        } else {
+        } elseif ($dialog === 'tutup') {
             $this->countedCash = null;
             $this->closeNote = '';
+        } else {
+            $this->movementType = 'in';
+            $this->movementAmount = null;
+            $this->movementReason = '';
         }
     }
 
@@ -134,6 +156,46 @@ class Index extends Component
             }
             MockData::closeShift($shift['id'], $this->countedCash, trim($this->closeNote) ?: null);
         }, ($shift['name'] ?? 'Shift').' ditutup.');
+
+        $this->dialog = null;
+        unset($this->cash, $this->week, $this->openShiftRow);
+    }
+
+    public function setMovementType(string $type): void
+    {
+        if (in_array($type, ['in', 'out'], true)) {
+            $this->movementType = $type;
+            $this->resetValidation();
+        }
+    }
+
+    /** Catat uang masuk/keluar laci di luar penjualan pada shift yang sedang berjalan. */
+    public function saveMovement(): void
+    {
+        abort_unless($this->canOperate, 403);
+        $shift = $this->openShiftRow;
+        $isIn = $this->movementType === 'in';
+
+        $this->saveWithToast(function () use ($shift, $isIn) {
+            $this->validate([
+                'movementType' => ['required', 'in:in,out'],
+                'movementAmount' => ['required', 'integer', 'min:500', 'max:'.self::MAX_CASH],
+                'movementReason' => ['required', 'string', 'min:3', 'max:150'],
+            ], [
+                'movementAmount.required' => 'Isi jumlah uang.',
+                'movementAmount.min' => 'Jumlah minimal Rp500.',
+                'movementAmount.max' => 'Jumlah terlalu besar (maks. Rp50.000.000).',
+                'movementReason.required' => 'Tulis alasannya agar bisa dipertanggungjawabkan.',
+                'movementReason.min' => 'Alasan terlalu singkat.',
+            ]);
+            if (! $shift) {
+                throw \Illuminate\Validation\ValidationException::withMessages(['movementAmount' => 'Buka shift dulu sebelum mencatat uang masuk/keluar laci.']);
+            }
+            if (! $isIn && $this->movementAmount > $shift['expected']) {
+                throw \Illuminate\Validation\ValidationException::withMessages(['movementAmount' => 'Uang di laci tidak cukup (seharusnya Rp'.number_format($shift['expected'], 0, ',', '.').').']);
+            }
+            MockData::recordCashMovement($this->movementType, $this->movementAmount, trim($this->movementReason), auth()->user()->name);
+        }, ($isIn ? 'Setoran' : 'Penarikan').' kas Rp'.number_format((int) $this->movementAmount, 0, ',', '.').' dicatat.');
 
         $this->dialog = null;
         unset($this->cash, $this->week, $this->openShiftRow);

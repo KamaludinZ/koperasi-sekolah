@@ -1,4 +1,4 @@
-{{-- Dialog buka shift (modal awal) / tutup shift (hitung uang laci & selisih) --}}
+{{-- Dialog buka shift (modal awal) / tutup shift (hitung uang laci & selisih) / setor-tarik kas laci --}}
 @if ($dialog)
     @php
         $isOpen = $dialog === 'buka';
@@ -60,7 +60,7 @@
                             class="flex-1 rounded-xl bg-emerald-700 py-3 text-base font-semibold text-white hover:bg-emerald-800 disabled:cursor-not-allowed disabled:bg-stone-300">Mulai shift</button>
                 </div>
             </form>
-        @elseif ($shift)
+        @elseif ($dialog === 'tutup' && $shift)
             <form wire:submit="closeShift" class="relative flex max-h-[95dvh] w-full max-w-lg flex-col rounded-t-2xl bg-white shadow-xl sm:rounded-2xl"
                   x-data="{
                       amount: $wire.entangle('countedCash'),
@@ -132,6 +132,72 @@
                     <button type="button" wire:click="closeDialog" class="rounded-xl border border-stone-300 px-4 py-3 text-sm font-medium text-stone-700 hover:bg-stone-50">Batal</button>
                     <button type="submit" wire:loading.attr="disabled" wire:target="closeShift" :disabled="diff === null || amount < 0"
                             class="flex-1 rounded-xl bg-emerald-700 py-3 text-base font-semibold text-white hover:bg-emerald-800 disabled:cursor-not-allowed disabled:bg-stone-300">Tutup shift</button>
+                </div>
+            </form>
+        @elseif ($dialog === 'kas' && $shift)
+            @php $isIn = $movementType === 'in'; @endphp
+            <form wire:submit="saveMovement" class="relative w-full max-w-md rounded-t-2xl bg-white shadow-xl sm:rounded-2xl"
+                  x-data="{ amount: $wire.entangle('movementAmount'), expected: {{ $shift['expected'] }}, deposit: {{ $isIn ? 'true' : 'false' }} }"
+                  x-init="$nextTick(() => $refs.amount.focus())">
+                <div class="flex items-center justify-between border-b border-stone-200 px-5 py-4">
+                    <div>
+                        <h2 id="shift-title" class="font-semibold">Setor / tarik kas laci</h2>
+                        <p class="text-xs text-stone-500">{{ $shift['name'] }} · kas seharusnya {{ $rp($shift['expected']) }}</p>
+                    </div>
+                    <button type="button" wire:click="closeDialog" class="text-stone-400 hover:text-stone-600" aria-label="Tutup">
+                        <svg class="size-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg>
+                    </button>
+                </div>
+
+                <div class="space-y-4 px-5 py-5">
+                    <div class="grid grid-cols-2 gap-2" role="group" aria-label="Jenis catatan kas">
+                        <button type="button" wire:click="setMovementType('in')" aria-pressed="{{ $isIn ? 'true' : 'false' }}"
+                                @class(['rounded-lg border px-3 py-2 text-sm font-medium', 'border-emerald-600 bg-emerald-50 text-emerald-900' => $isIn, 'border-stone-300 text-stone-600' => ! $isIn])>Uang masuk laci</button>
+                        <button type="button" wire:click="setMovementType('out')" aria-pressed="{{ $isIn ? 'false' : 'true' }}"
+                                @class(['rounded-lg border px-3 py-2 text-sm font-medium', 'border-red-600 bg-red-50 text-red-800' => ! $isIn, 'border-stone-300 text-stone-600' => $isIn])>Uang keluar laci</button>
+                    </div>
+
+                    <label class="block">
+                        <span class="mb-2 block text-sm font-medium">Jumlah</span>
+                        <div class="relative">
+                            <span class="pointer-events-none absolute top-1/2 left-4 -translate-y-1/2 text-stone-500">Rp</span>
+                            <input type="number" inputmode="numeric" min="500" step="500" x-ref="amount" x-model.number="amount" class="{{ $money }}" @error('movementAmount') aria-invalid="true" @enderror>
+                        </div>
+                    </label>
+                    <div class="flex flex-wrap gap-2">
+                        @foreach ([5000, 10000, 20000, 50000, 100000] as $n)
+                            <button type="button" x-on:click="amount = {{ $n }}" class="rounded-lg border border-stone-300 px-3 py-1.5 text-sm font-medium tabular-nums hover:border-emerald-600 hover:bg-emerald-50">{{ $rp($n) }}</button>
+                        @endforeach
+                    </div>
+                    @error('movementAmount') <p class="text-sm text-red-600">{{ $message }}</p> @enderror
+
+                    <div class="flex items-baseline justify-between rounded-xl border border-dashed px-4 py-3"
+                         :class="!deposit && (amount || 0) > expected ? 'border-red-300' : 'border-stone-300'">
+                        <span class="text-sm text-stone-600">Kas seharusnya setelah ini</span>
+                        <span class="text-xl font-bold tabular-nums"
+                              :class="!deposit && (amount || 0) > expected ? 'text-red-600' : 'text-emerald-900'"
+                              x-text="'Rp' + (expected + (deposit ? 1 : -1) * (amount || 0)).toLocaleString('id-ID')">{{ $rp($shift['expected']) }}</span>
+                    </div>
+
+                    <div>
+                        <label for="movement-reason" class="mb-1 block text-sm font-medium">Alasan</label>
+                        <input id="movement-reason" type="text" wire:model="movementReason" maxlength="150" placeholder="{{ $isIn ? 'mis. Tambah uang kembalian' : 'mis. Setor ke bendahara' }}" class="{{ $field }}" @error('movementReason') aria-invalid="true" @enderror>
+                        <div class="mt-2 flex flex-wrap gap-1.5">
+                            @foreach (\App\Livewire\Kas\Index::MOVEMENT_REASONS[$movementType] as $reason)
+                                <button type="button" wire:click="$set('movementReason', @js($reason))" class="rounded-full bg-stone-100 px-2.5 py-1 text-xs text-stone-700 hover:bg-emerald-100 hover:text-emerald-900">{{ $reason }}</button>
+                            @endforeach
+                        </div>
+                        @error('movementReason') <span class="mt-1 block text-xs text-red-600">{{ $message }}</span> @enderror
+                    </div>
+                </div>
+
+                <div class="flex gap-2 border-t border-stone-200 px-5 py-4">
+                    <button type="button" wire:click="closeDialog" class="rounded-xl border border-stone-300 px-4 py-3 text-sm font-medium text-stone-700 hover:bg-stone-50">Batal</button>
+                    <button type="submit" wire:loading.attr="disabled" wire:target="saveMovement" :disabled="(amount || 0) < 500 || (!deposit && amount > expected)"
+                            @class(['flex-1 rounded-xl py-3 text-base font-semibold text-white disabled:cursor-not-allowed disabled:bg-stone-300',
+                                    'bg-emerald-700 hover:bg-emerald-800' => $isIn, 'bg-red-600 hover:bg-red-700' => ! $isIn])>
+                        {{ $isIn ? 'Catat uang masuk' : 'Catat uang keluar' }}
+                    </button>
                 </div>
             </form>
         @endif

@@ -1,6 +1,6 @@
 {
   "repo": "Koperasi Sekolah",
-  "generatedForCommit": "4caf368640a23d01b84fe78da10f28fa6c73f22d",
+  "generatedForCommit": "c06aff0d9ced429ba05092149ef1cbe8dd318bca",
   "files": [
     {
       "path": ".claude/skills/ngodingpakeai/SKILL.md",
@@ -286,9 +286,15 @@
     },
     {
       "path": "app/Livewire/Kas/Index.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 6608
+    },
+    {
+      "path": "app/Livewire/Kas/Recap.php",
+      "reason": "new",
+      "language": "php",
+      "size": 3017
     },
     {
       "path": "app/Livewire/Kasir/Cart.php",
@@ -612,7 +618,7 @@
       "path": "app/Support/MockData.php",
       "reason": "changed",
       "language": "php",
-      "size": 24389
+      "size": 25698
     },
     {
       "path": "app/Support/OpeningHours.php",
@@ -1005,6 +1011,12 @@
       "size": 527
     },
     {
+      "path": "resources/views/components/kas/nav.blade.php",
+      "reason": "new",
+      "language": "php",
+      "size": 713
+    },
+    {
       "path": "resources/views/components/laporan/delta.blade.php",
       "reason": "needs_summary",
       "language": "php",
@@ -1218,13 +1230,19 @@
       "path": "resources/views/livewire/kas/index.blade.php",
       "reason": "changed",
       "language": "php",
-      "size": 19677
+      "size": 20070
     },
     {
       "path": "resources/views/livewire/kas/partials/shift-form.blade.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 11778
+    },
+    {
+      "path": "resources/views/livewire/kas/recap.blade.php",
+      "reason": "new",
+      "language": "php",
+      "size": 10869
     },
     {
       "path": "resources/views/livewire/kasir/cart.blade.php",
@@ -1366,9 +1384,9 @@
     },
     {
       "path": "routes/web.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 12134
+      "size": 12201
     },
     {
       "path": "tests/Feature/Anggota/IndexTest.php",
@@ -1594,9 +1612,15 @@
     },
     {
       "path": "tests/Feature/Kas/IndexTest.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 6189
+    },
+    {
+      "path": "tests/Feature/Kas/RecapTest.php",
+      "reason": "new",
+      "language": "php",
+      "size": 2815
     },
     {
       "path": "tests/Feature/Kasir/CartTest.php",

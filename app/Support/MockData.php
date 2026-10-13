@@ -239,6 +239,33 @@ class MockData
         return null;
     }
 
+    /**
+     * Catat setoran (in) / penarikan (out) kas laci tiruan pada shift yang sedang berjalan hari ini;
+     * kas masuk/keluar & kas seharusnya shift ikut diperbarui. Null bila tidak ada shift berjalan.
+     */
+    public static function recordCashMovement(string $type, int $amount, string $reason, string $cashier): ?array
+    {
+        $day = self::cashDay(today()->toDateString());
+        foreach ($day['shifts'] as &$shift) {
+            if ($shift['status'] !== 'open') {
+                continue;
+            }
+            $shift[$type === 'in' ? 'cash_in' : 'cash_out'] += $amount;
+            $shift['expected'] += $type === 'in' ? $amount : -$amount;
+            $movement = [
+                'id' => (collect($day['movements'])->max('id') ?? (int) today()->format('ymd') * 10) + 1,
+                'shift_id' => $shift['id'], 'type' => $type, 'amount' => $amount, 'reason' => $reason,
+                'cashier' => $cashier, 'created_at' => now()->toDateTimeString(),
+            ];
+            array_unshift($day['movements'], $movement);
+            self::storeCashDay($day);
+
+            return $movement;
+        }
+
+        return null;
+    }
+
     private static function storeCashDay(array $day): void
     {
         unset($day['summary']);
