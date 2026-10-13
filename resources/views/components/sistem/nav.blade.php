@@ -1,7 +1,7 @@
 {{-- Navigasi bagian Sistem. `active` = nama route halaman ini. Halaman yang belum dibuat tampil "segera". --}}
 @props(['active'])
 @php
-    $items = ['sistem' => 'Kesehatan', 'sistem.cadangan' => 'Cadangan data', 'sistem.antrean' => 'Antrean', 'sistem.performa' => 'Performa & cache'];
+    $items = ['sistem' => 'Kesehatan', 'sistem.cadangan' => 'Cadangan data', 'sistem.restore' => 'Uji pemulihan', 'sistem.antrean' => 'Antrean', 'sistem.performa' => 'Performa & cache'];
 @endphp
 <nav class="mt-3 -mb-px flex gap-1 overflow-x-auto" aria-label="Bagian sistem">
     @foreach ($items as $route => $label)

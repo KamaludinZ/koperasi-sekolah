@@ -397,4 +397,29 @@ class MockData
 
         return $rows;
     }
+
+    /** Tabel yang dibandingkan saat uji pemulihan (kunci tabel → label). */
+    public const RESTORE_TABLES = ['transactions' => 'Transaksi', 'transaction_items' => 'Baris transaksi', 'products' => 'Barang', 'members' => 'Anggota',
+        'savings_transactions' => 'Mutasi tabungan', 'users' => 'Pengguna', 'activity_logs' => 'Catatan audit'];
+
+    /** Langkah uji pemulihan. */
+    public const RESTORE_STEPS = ['verify' => 'Periksa checksum arsip', 'extract' => 'Buka arsip cadangan', 'restore' => 'Pulihkan ke basis data uji', 'count' => 'Hitung & bandingkan data', 'cleanup' => 'Hapus basis data uji'];
+
+    /**
+     * Riwayat uji pemulihan tiruan (terbaru dulu). Kontrak backend: GET /sistem/uji-pemulihan/riwayat → rows[].
+     *
+     * @return list<array{id: int, backup: string, backup_at: string, started_at: string, duration_s: int, status: string, by: string, tables: int, mismatches: int, note: ?string}>
+     */
+    public static function restoreTests(): array
+    {
+        return [
+            ['id' => 12, 'backup' => 'koperasi-'.now()->subDays(8)->format('Y-m-d').'-230004.zip', 'backup_at' => now()->subDays(8)->setTime(23, 0, 4)->toDateTimeString(),
+                'started_at' => now()->subDays(7)->setTime(10, 5)->toDateTimeString(), 'duration_s' => 47, 'status' => 'berhasil', 'by' => 'Admin Koperasi', 'tables' => 7, 'mismatches' => 0, 'note' => null],
+            ['id' => 11, 'backup' => 'koperasi-'.now()->subDays(36)->format('Y-m-d').'-230006.zip', 'backup_at' => now()->subDays(36)->setTime(23, 0, 6)->toDateTimeString(),
+                'started_at' => now()->subDays(35)->setTime(9, 40)->toDateTimeString(), 'duration_s' => 12, 'status' => 'gagal', 'by' => 'Admin Koperasi', 'tables' => 0, 'mismatches' => 0,
+                'note' => 'Checksum arsip tidak cocok — berkas cadangan rusak. Cadangan berikutnya diuji ulang dan berhasil.'],
+            ['id' => 10, 'backup' => 'koperasi-'.now()->subDays(37)->format('Y-m-d').'-230003.zip', 'backup_at' => now()->subDays(37)->setTime(23, 0, 3)->toDateTimeString(),
+                'started_at' => now()->subDays(35)->setTime(9, 55)->toDateTimeString(), 'duration_s' => 44, 'status' => 'berhasil', 'by' => 'Admin Koperasi', 'tables' => 7, 'mismatches' => 0, 'note' => null],
+        ];
+    }
 }

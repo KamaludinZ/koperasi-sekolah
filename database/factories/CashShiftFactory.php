@@ -18,7 +18,7 @@ class CashShiftFactory extends Factory
         return [
             'name' => 'Shift pagi',
             'status' => CashShift::STATUS_OPEN,
-            'opened_at' => now()->subHours(2),
+            'opened_at' => now()->subHours(2)->max(today()), // tetap di hari ini (aman dijalankan lewat tengah malam)
             'opening_cash' => 200000,
         ];
     }

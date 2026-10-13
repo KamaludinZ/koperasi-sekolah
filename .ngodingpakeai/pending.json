@@ -1,6 +1,6 @@
 {
   "repo": "Koperasi Sekolah",
-  "generatedForCommit": "170aa29ed40c008ba242f9931d5b561d55303076",
+  "generatedForCommit": "939f67475e147ae2e2e90212c98e514685734fad",
   "files": [
     {
       "path": ".claude/skills/ngodingpakeai/SKILL.md",
@@ -646,9 +646,9 @@
     },
     {
       "path": "app/Livewire/Sistem/Backups.php",
-      "reason": "new",
+      "reason": "changed",
       "language": "php",
-      "size": 4495
+      "size": 4895
     },
     {
       "path": "app/Livewire/Sistem/Health.php",
@@ -1251,6 +1251,12 @@
       "size": 3471
     },
     {
+      "path": "app/Support/BackupStatus.php",
+      "reason": "new",
+      "language": "php",
+      "size": 3132
+    },
+    {
       "path": "app/Support/CouponValidator.php",
       "reason": "needs_summary",
       "language": "php",
@@ -1264,7 +1270,7 @@
     },
     {
       "path": "app/Support/MockData.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 17553
     },
@@ -1312,9 +1318,9 @@
     },
     {
       "path": "app/Support/SystemHealth.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 7882
+      "size": 8163
     },
     {
       "path": "artisan",
@@ -2007,6 +2013,12 @@
       "size": 675
     },
     {
+      "path": "resources/views/components/sistem/backup-status.blade.php",
+      "reason": "new",
+      "language": "php",
+      "size": 3637
+    },
+    {
       "path": "resources/views/components/sistem/nav.blade.php",
       "reason": "needs_summary",
       "language": "php",
@@ -2506,15 +2518,15 @@
     },
     {
       "path": "resources/views/livewire/sistem/backups.blade.php",
-      "reason": "new",
+      "reason": "changed",
       "language": "php",
-      "size": 11252
+      "size": 11326
     },
     {
       "path": "resources/views/livewire/sistem/health.blade.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 6902
+      "size": 7205
     },
     {
       "path": "resources/views/livewire/transaksi/index.blade.php",
@@ -2578,7 +2590,7 @@
     },
     {
       "path": "routes/web.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 28522
     },
@@ -3441,8 +3453,14 @@
       "size": 4433
     },
     {
-      "path": "tests/Feature/Sistem/BackupsPageTest.php",
+      "path": "tests/Feature/Sistem/BackupStatusTest.php",
       "reason": "new",
+      "language": "php",
+      "size": 2595
+    },
+    {
+      "path": "tests/Feature/Sistem/BackupsPageTest.php",
+      "reason": "needs_summary",
       "language": "php",
       "size": 2478
     },
