@@ -38,6 +38,10 @@
             @endforeach
         </ol>
 
+        @foreach ($imp['warnings'] as $w)
+            <p class="rounded-xl border border-amber-200 bg-amber-50 px-4 py-2.5 text-sm text-amber-900">{{ $w }}</p>
+        @endforeach
+
         @if ($this->finished)
             <p class="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-900" role="status">Impor ini sudah disimpan: {{ $imp['created'] }} baru, {{ $imp['updated'] }} diperbarui, {{ $imp['skipped'] }} dilewati.</p>
         @endif

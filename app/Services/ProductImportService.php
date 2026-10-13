@@ -121,7 +121,7 @@ class ProductImportService
             return $this->fail($import, 'Berkas berisi '.number_format(count($rows), 0, ',', '.').' baris; maksimal '.number_format(ProductImportFormat::MAX_ROWS, 0, ',', '.').' baris per impor. Bagi menjadi beberapa berkas.');
         }
 
-        DB::transaction(function () use ($import, $rows) {
+        DB::transaction(function () use ($import, $rows, $mapped) {
             $import->rows()->delete();
             foreach (array_chunk($rows, 500) as $chunk) {
                 ProductImportRow::insert(array_map(fn ($r) => [
@@ -129,7 +129,8 @@ class ProductImportService
                     'skipped' => false, 'created_at' => now(), 'updated_at' => now(),
                 ], $chunk));
             }
-            $import->update(['status' => 'pratinjau', 'total_rows' => count($rows), 'file_error' => null]);
+            $import->update(['status' => 'pratinjau', 'total_rows' => count($rows), 'file_error' => null,
+                'warnings' => $mapped['unknown'] ? ['Kolom diabaikan karena tidak dikenal: '.implode(', ', array_map(fn ($c) => '"'.$c.'"', $mapped['unknown'])).'.'] : null]);
         });
 
         return $import->refresh();
@@ -207,6 +208,8 @@ class ProductImportService
             'failed' => $i->failed,
             'file_error' => $i->file_error,
             'user' => $i->user?->name ?? 'Sistem',
+            'committed_by' => $i->committed_by ? ($i->committer?->name ?? 'Sistem') : null,
+            'warnings' => $i->warnings ?? [],
             'created_at' => $i->created_at?->toDateTimeString(),
             'finished_at' => $i->finished_at?->toDateTimeString(),
         ];
@@ -385,7 +388,8 @@ class ProductImportService
                 }
             });
 
-            $import->update([...$counts, 'failed' => 0, 'status' => $counts['skipped'] > 0 ? 'sebagian' : 'selesai', 'finished_at' => now()]);
+            $import->update([...$counts, 'failed' => 0, 'status' => $counts['skipped'] > 0 ? 'sebagian' : 'selesai', 'finished_at' => now(),
+                'committed_by' => $by?->id]);
             AuditLog::record('import.completed', 'barang',
                 "Impor {$import->file_name}: {$counts['created']} baru, {$counts['updated']} diperbarui, {$counts['skipped']} dilewati",
                 ['type' => 'product_import', 'id' => $import->id, 'label' => $import->file_name], $counts);
@@ -419,7 +423,7 @@ class ProductImportService
     /** @return list<array<string, mixed>> semua impor, terbaru dulu */
     public function history(?int $limit = null): array
     {
-        return ProductImport::with('user')->latest('created_at')->latest('id')->when($limit, fn ($q) => $q->limit($limit))->get()
+        return ProductImport::with(['user', 'committer'])->latest('created_at')->latest('id')->when($limit, fn ($q) => $q->limit($limit))->get()
             ->map(fn (ProductImport $i) => self::toArray($i))->all();
     }
 
@@ -437,5 +441,25 @@ class ProductImportService
             ])->all();
 
         return ['file_error' => $import->file_error, 'problems' => $problems];
+    }
+
+    /** Hari impor yang tidak kunjung disimpan sebelum dibatalkan otomatis. */
+    public const ABANDON_DAYS = 30;
+
+    /**
+     * Batalkan impor yang terbengkalai (masih pratinjau lebih dari ABANDON_DAYS hari): status gagal
+     * dengan alasan, berkas aslinya dihapus. Dipanggil pembersihan retensi.
+     */
+    public function abandonStale(bool $dryRun = false): int
+    {
+        $stale = ProductImport::whereIn('status', ['diunggah', 'pratinjau'])->where('created_at', '<', now()->subDays(self::ABANDON_DAYS))->get();
+        if (! $dryRun) {
+            foreach ($stale as $import) {
+                $this->deleteFile($import);
+                $import->update(['status' => 'gagal', 'file_error' => 'Tidak disimpan dalam '.self::ABANDON_DAYS.' hari sehingga dibatalkan otomatis.', 'finished_at' => now()]);
+            }
+        }
+
+        return $stale->count();
     }
 }

@@ -69,7 +69,7 @@ class RetentionCleanupTest extends TestCase
     {
         $counts = app(RetentionService::class)->run(dryRun: true);
 
-        $this->assertSame(['barang' => 1, 'kategori' => 1, 'kategori_dilewati' => 0, 'anggota' => 1, 'anggota_dilewati' => 1, 'ekspor' => 1, 'notifikasi' => 1], $counts);
+        $this->assertSame(['barang' => 1, 'kategori' => 1, 'kategori_dilewati' => 0, 'anggota' => 1, 'anggota_dilewati' => 1, 'ekspor' => 1, 'impor' => 0, 'notifikasi' => 1], $counts);
         $this->assertNotNull(Product::withTrashed()->find($this->oldProduct->id));
         $this->assertSame(0, ActivityLog::where('event', 'retention.purged')->count());
     }

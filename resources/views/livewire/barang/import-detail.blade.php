@@ -43,6 +43,10 @@
             </div>
         @endif
 
+        @foreach ($imp['warnings'] as $w)
+            <p class="rounded-xl border border-amber-200 bg-amber-50 px-4 py-2.5 text-sm text-amber-900">{{ $w }}</p>
+        @endforeach
+
         <div class="grid grid-cols-2 gap-3 lg:grid-cols-5">
             @foreach ([['Baris dibaca', $imp['total_rows'], ''], ['Baru', $imp['created'], 'text-emerald-800'], ['Diperbarui', $imp['updated'], 'text-sky-800'], ['Dilewati', $imp['skipped'], 'text-stone-600'], ['Gagal', $imp['failed'], $imp['failed'] ? 'text-red-700' : '']] as [$l, $n, $c])
                 <div class="rounded-xl border border-stone-200 bg-white px-4 py-3">
@@ -56,6 +60,7 @@
             <dl class="h-fit space-y-2 rounded-xl border border-stone-200 bg-white p-4 text-sm">
                 <div><dt class="text-xs text-stone-500">Cara menyimpan</dt><dd>{{ $modes[$imp['mode'] ?? 'semua'][0] }}@if ($imp['update_stock'] ?? false) · stok ikut diperbarui @endif</dd></div>
                 <div><dt class="text-xs text-stone-500">Diunggah</dt><dd>{{ $imp['user'] }} · {{ \Illuminate\Support\Carbon::parse($imp['created_at'])->translatedFormat('l, d F Y H:i') }}</dd></div>
+                @if ($imp['committed_by'])<div><dt class="text-xs text-stone-500">Disimpan oleh</dt><dd>{{ $imp['committed_by'] }}</dd></div>@endif
                 <div><dt class="text-xs text-stone-500">Selesai</dt><dd>{{ $imp['finished_at'] ? \Illuminate\Support\Carbon::parse($imp['finished_at'])->translatedFormat('H:i').' ('.ImportHistory::duration($imp).')' : '—' }}</dd></div>
                 <div><dt class="text-xs text-stone-500">Format</dt><dd class="uppercase">{{ $imp['format'] }}</dd></div>
             </dl>

@@ -15,7 +15,7 @@ class ProductImport extends Model
     public const STATUSES = ['diunggah', 'pratinjau', 'diproses', 'selesai', 'sebagian', 'gagal'];
 
     protected $fillable = [
-        'user_id', 'file_name', 'format', 'file_path', 'file_size', 'status', 'mode', 'update_stock',
+        'user_id', 'committed_by', 'warnings', 'file_name', 'format', 'file_path', 'file_size', 'status', 'mode', 'update_stock',
         'total_rows', 'created', 'updated', 'skipped', 'failed', 'file_error', 'finished_at',
     ];
 
@@ -30,12 +30,19 @@ class ProductImport extends Model
             'skipped' => 'integer',
             'failed' => 'integer',
             'finished_at' => 'datetime',
+            'warnings' => 'array',
         ];
     }
 
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    /** Petugas yang menyimpan impor ke data barang. */
+    public function committer(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'committed_by');
     }
 
     public function rows(): HasMany

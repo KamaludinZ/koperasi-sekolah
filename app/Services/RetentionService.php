@@ -16,6 +16,7 @@ use Illuminate\Support\Facades\DB;
  *   (tercatat `*.purged` di audit; anggota yang masih punya riwayat tabungan dan kategori yang
  *   masih dipakai barang dilewati);
  * - berkas ekspor laporan lebih dari `export_days` (baris + berkas di disk privat);
+ * - impor barang yang tak kunjung disimpan > 30 hari → dibatalkan & berkasnya dihapus;
  * - notifikasi lebih dari `notification_days` yang sudah dibaca/ditutup petugas
  *   (pengumuman yang masih berlaku tidak dihapus).
  * Jejak audit tidak pernah dibersihkan. Dijalankan lewat `php artisan retensi:bersihkan`.
@@ -31,6 +32,7 @@ class RetentionService
         'kategori_dilewati' => 'Kategori dilewati (masih dipakai barang)',
         'anggota_dilewati' => 'Anggota dilewati (punya riwayat tabungan)',
         'ekspor' => 'Berkas ekspor',
+        'impor' => 'Impor barang terbengkalai (dibatalkan)',
         'notifikasi' => 'Notifikasi lama',
     ];
 
@@ -52,6 +54,7 @@ class RetentionService
             'anggota' => $this->purge($members->where('savings_exists', false), $dryRun),
             'anggota_dilewati' => $members->where('savings_exists', true)->count(),
             'ekspor' => $this->purgeExports($dryRun),
+            'impor' => app(ProductImportService::class)->abandonStale($dryRun),
             'notifikasi' => $this->purgeNotifications($dryRun),
         ];
 
