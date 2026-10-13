@@ -384,6 +384,7 @@ Route::middleware('menu:laporan')->group(function () {
 Route::middleware(['menu:pengguna', 'peran:admin'])->group(function () {
     Route::get('/pengguna', Pengguna\Index::class)->name('pengguna');
     Route::get('/pengguna/terkunci', Pengguna\Locked::class)->name('pengguna.terkunci');
+    Route::get('/pengguna/sesi-aktif', Pengguna\ActiveSessions::class)->name('pengguna.sesi');
     Route::get('/pengguna/terkunci/data', [LockoutController::class, 'index'])->name('pengguna.terkunci.data');
     Route::post('/pengguna/terkunci/{lockout}/buka', [LockoutController::class, 'unlock'])
         ->whereNumber('lockout')->middleware('throttle:30,1')->name('pengguna.terkunci.unlock');

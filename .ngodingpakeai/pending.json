@@ -1,6 +1,6 @@
 {
   "repo": "Koperasi Sekolah",
-  "generatedForCommit": "da8f1282dabdc128593152ef548ecaa52c36faa9",
+  "generatedForCommit": "2b58dc31a4e2ba8af1c2a3f32304d00e89bbfccb",
   "files": [
     {
       "path": ".claude/skills/ngodingpakeai/SKILL.md",
@@ -520,7 +520,7 @@
     },
     {
       "path": "app/Livewire/Laporan/Index.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 8924
     },
@@ -1960,9 +1960,9 @@
     },
     {
       "path": "resources/js/sales-chart.js",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "javascript",
-      "size": 2885
+      "size": 2922
     },
     {
       "path": "resources/views/beranda.blade.php",
@@ -2418,7 +2418,7 @@
       "path": "resources/views/livewire/laporan/index.blade.php",
       "reason": "changed",
       "language": "php",
-      "size": 10417
+      "size": 11124
     },
     {
       "path": "resources/views/livewire/laporan/partials/discount-report.blade.php",
@@ -2434,15 +2434,15 @@
     },
     {
       "path": "resources/views/livewire/laporan/partials/sales-chart.blade.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 2866
+      "size": 3089
     },
     {
       "path": "resources/views/livewire/laporan/partials/today-card.blade.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 3555
+      "size": 3817
     },
     {
       "path": "resources/views/livewire/notifikasi/announcements.blade.php",
@@ -3312,7 +3312,7 @@
       "path": "tests/Feature/Laporan/IndexTest.php",
       "reason": "changed",
       "language": "php",
-      "size": 9656
+      "size": 10246
     },
     {
       "path": "tests/Feature/Laporan/NetSalesAfterReturnsTest.php",
