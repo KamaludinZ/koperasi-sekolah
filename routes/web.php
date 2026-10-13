@@ -108,6 +108,7 @@ Route::middleware('menu:kas')->group(function () {
 
 Route::middleware('menu:promo')->group(function () {
     Route::get('/promo', Promo\Index::class)->name('promo');
+    Route::get('/promo/jadwal', Promo\Schedule::class)->name('promo.jadwal');
 });
 
 Route::middleware('menu:barang')->group(function () {

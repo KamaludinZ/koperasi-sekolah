@@ -511,6 +511,42 @@ class MockData
         }, $rows);
     }
 
+    /**
+     * Dampak promo tiruan terhadap penjualan barang yang dicakup: rata-rata penjualan per hari
+     * 7 hari sebelum promo vs selama promo berjalan (sampai hari ini), barang terjual, potongan,
+     * dan perubahan (%). Deterministik per promo; promo yang belum mulai tidak punya dampak.
+     *
+     * @return array{days_running: int, before_daily: int, during_daily: int, uplift: ?int, units: int, revenue: int, discount: int, net_effect: int}|null
+     */
+    public static function promoImpact(array $promo): ?array
+    {
+        $start = \Illuminate\Support\Carbon::parse($promo['starts_at']);
+        if ($start->isFuture() || $promo['usage_count'] === 0) {
+            return null;
+        }
+        $end = min(\Illuminate\Support\Carbon::parse($promo['ends_at']), today());
+        $days = max(1, (int) $start->diffInDays($end) + 1);
+
+        mt_srand(7000 + $promo['id']);
+        $before = mt_rand(20, 60) * 1000;
+        $uplift = $promo['is_active'] ? mt_rand(-5, 45) : mt_rand(-10, 10);
+        mt_srand();
+        $during = (int) round($before * (100 + $uplift) / 100 / 500) * 500;
+        $revenue = $during * $days;
+        $extra = ($during - $before) * $days;
+
+        return [
+            'days_running' => $days,
+            'before_daily' => $before,
+            'during_daily' => $during,
+            'uplift' => $before > 0 ? (int) round(($during - $before) / $before * 100) : null,
+            'units' => (int) round($revenue / 3500),
+            'revenue' => $revenue,
+            'discount' => $promo['discount_given'],
+            'net_effect' => $extra - $promo['discount_given'], // tambahan penjualan dikurangi potongan
+        ];
+    }
+
     /** Status berlaku dari rentang tanggal (inklusif) & saklar aktif. */
     private static function periodStatus(string $start, string $end, bool $active): string
     {

@@ -19,17 +19,20 @@
     $soon = 'inline-flex cursor-not-allowed items-center gap-1.5 rounded-xl border border-stone-200 bg-white px-3 py-2 text-sm font-medium text-stone-400';
 @endphp
 <div class="flex min-h-0 flex-1 flex-col overflow-y-auto">
-    <header class="flex flex-wrap items-center justify-between gap-3 border-b border-stone-200 bg-white px-4 py-4 sm:px-6">
-        <div>
-            <h1 class="text-lg font-semibold">Diskon & Promo</h1>
-            <p class="text-xs text-stone-500">Promo otomatis di kasir, kupon & voucher, dan batas diskon manual.</p>
-        </div>
-        @if ($this->canManage)
-            <div class="flex flex-wrap gap-2">
-                <span class="{{ $soon }}" title="Segera hadir">Buat kupon · segera</span>
-                <span class="{{ $soon }}" title="Segera hadir">Buat promo · segera</span>
+    <header class="border-b border-stone-200 bg-white px-4 pt-4 sm:px-6">
+        <div class="flex flex-wrap items-center justify-between gap-3">
+            <div>
+                <h1 class="text-lg font-semibold">Diskon & Promo</h1>
+                <p class="text-xs text-stone-500">Promo otomatis di kasir, kupon & voucher, dan batas diskon manual.</p>
             </div>
-        @endif
+            @if ($this->canManage)
+                <div class="flex flex-wrap gap-2">
+                    <span class="{{ $soon }}" title="Segera hadir">Buat kupon · segera</span>
+                    <span class="{{ $soon }}" title="Segera hadir">Buat promo · segera</span>
+                </div>
+            @endif
+        </div>
+        <x-promo.nav active="promo" />
     </header>
 
     <div class="space-y-5 px-4 py-5 sm:px-6">
