@@ -1,6 +1,6 @@
 {
   "repo": "Koperasi Sekolah",
-  "generatedForCommit": "9db38dfa6090c3e31fcf478e87dc4c16e6ac92eb",
+  "generatedForCommit": "753b64c61660ef220dff48ea18a5a8393b42d829",
   "files": [
     {
       "path": ".claude/skills/ngodingpakeai/SKILL.md",
@@ -346,9 +346,9 @@
     },
     {
       "path": "app/Livewire/Anggota/Show.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 5150
+      "size": 9122
     },
     {
       "path": "app/Livewire/Audit/Changes.php",
@@ -466,7 +466,7 @@
     },
     {
       "path": "app/Livewire/Kasir/Cart.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 19623
     },
@@ -1132,9 +1132,9 @@
     },
     {
       "path": "app/Support/MockData.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 16658
+      "size": 18301
     },
     {
       "path": "app/Support/OpeningHours.php",
@@ -1947,10 +1947,22 @@
       "size": 7108
     },
     {
+      "path": "resources/views/livewire/anggota/partials/bon-card.blade.php",
+      "reason": "new",
+      "language": "php",
+      "size": 3052
+    },
+    {
       "path": "resources/views/livewire/anggota/partials/member-form.blade.php",
       "reason": "needs_summary",
       "language": "php",
       "size": 5561
+    },
+    {
+      "path": "resources/views/livewire/anggota/partials/repay-form.blade.php",
+      "reason": "new",
+      "language": "php",
+      "size": 7515
     },
     {
       "path": "resources/views/livewire/anggota/partials/saving-form.blade.php",
@@ -1966,9 +1978,9 @@
     },
     {
       "path": "resources/views/livewire/anggota/show.blade.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 6023
+      "size": 6136
     },
     {
       "path": "resources/views/livewire/audit/changes.blade.php",
@@ -2110,7 +2122,7 @@
     },
     {
       "path": "resources/views/livewire/kasir/partials/payment-panel.blade.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 24351
     },
@@ -2329,6 +2341,12 @@
       "reason": "needs_summary",
       "language": "php",
       "size": 2121
+    },
+    {
+      "path": "tests/Feature/Anggota/BonRepaymentTest.php",
+      "reason": "new",
+      "language": "php",
+      "size": 4701
     },
     {
       "path": "tests/Feature/Anggota/IndexTest.php",
@@ -2824,7 +2842,7 @@
     },
     {
       "path": "tests/Feature/Kasir/MemberPaymentMethodsTest.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 8128
     },

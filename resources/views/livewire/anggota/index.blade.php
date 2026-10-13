@@ -4,16 +4,19 @@
     $select = 'rounded-lg border border-stone-300 bg-white px-3 py-2 text-sm outline-none focus:border-emerald-600';
 @endphp
 <div class="flex min-h-0 flex-1 flex-col overflow-y-auto">
-    <header class="flex flex-wrap items-center justify-between gap-3 border-b border-stone-200 bg-white px-4 py-4 sm:px-6">
-        <div>
-            <h1 class="text-lg font-semibold">Anggota & Tabungan</h1>
-            <p class="text-xs text-stone-500">Data siswa dan guru anggota koperasi beserta saldo tabungannya.</p>
+    <header class="border-b border-stone-200 bg-white px-4 pt-4 sm:px-6">
+        <div class="flex flex-wrap items-center justify-between gap-3">
+            <div>
+                <h1 class="text-lg font-semibold">Anggota & Tabungan</h1>
+                <p class="text-xs text-stone-500">Data siswa dan guru anggota koperasi beserta saldo tabungannya.</p>
+            </div>
+            <button type="button" wire:click="create"
+                    class="inline-flex items-center gap-2 rounded-xl bg-emerald-700 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-emerald-800">
+                <svg class="size-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
+                Tambah anggota
+            </button>
         </div>
-        <button type="button" wire:click="create"
-                class="inline-flex items-center gap-2 rounded-xl bg-emerald-700 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-emerald-800">
-            <svg class="size-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
-            Tambah anggota
-        </button>
+        <x-anggota.nav active="anggota" />
     </header>
 
     <div class="space-y-4 px-4 py-5 sm:px-6">

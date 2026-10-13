@@ -415,4 +415,30 @@ class MockData
 
         return $bills;
     }
+
+    /**
+     * Riwayat bon & pelunasan anggota (tiruan): bon yang masih berjalan dari memberBills(), ditambah
+     * bon lama yang sudah dilunasi untuk anggota id ganjil kelipatan 3. Terbaru dulu.
+     * Kontrak backend: GET /anggota/piutang/riwayat → events[].
+     *
+     * @return list<array{id: string, date: string, kind: 'bon'|'pelunasan', number: string, amount: int, method: ?string, note: ?string}>
+     */
+    public static function memberBonHistory(int $memberId, string $type = 'siswa'): array
+    {
+        $events = [];
+        foreach (self::memberBills($memberId, $type) as $b) {
+            $events[] = ['id' => $b['id'].'-bon', 'date' => $b['created_at'], 'kind' => 'bon', 'number' => $b['number'], 'amount' => $b['amount'], 'method' => null, 'note' => $b['invoice']];
+        }
+        if ($memberId % 2 === 1 && $memberId % 3 === 0) {
+            $amount = 6_000 + ($memberId % 7) * 2_000;
+            $start = now()->subDays(20 + $memberId % 15);
+            $number = 'BON-'.$start->format('Ymd').'-'.str_pad((string) ($memberId * 10), 4, '0', STR_PAD_LEFT);
+            $events[] = ['id' => "L{$memberId}-bon", 'date' => $start->toDateString(), 'kind' => 'bon', 'number' => $number, 'amount' => $amount, 'method' => null, 'note' => null];
+            $events[] = ['id' => "L{$memberId}-lunas", 'date' => $start->copy()->addDays(9)->toDateString(), 'kind' => 'pelunasan', 'number' => $number, 'amount' => $amount,
+                'method' => $memberId % 4 === 1 ? 'tabungan' : 'tunai', 'note' => $memberId % 4 === 1 ? null : 'Dibayar orang tua'];
+        }
+        usort($events, fn ($a, $b) => [$b['date'], $b['id']] <=> [$a['date'], $a['id']]);
+
+        return $events;
+    }
 }

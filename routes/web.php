@@ -267,6 +267,7 @@ Route::middleware('menu:transaksi')->group(function () {
 
 Route::middleware('menu:anggota')->group(function () {
     Route::get('/anggota', Anggota\Index::class)->name('anggota');
+    Route::get('/anggota/piutang', Anggota\Piutang::class)->name('anggota.piutang');
     Route::get('/anggota/daftar', [MemberController::class, 'index'])
         ->middleware('throttle:120,1')
         ->name('anggota.list');
