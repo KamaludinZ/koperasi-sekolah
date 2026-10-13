@@ -48,3 +48,29 @@ Artisan::command('hutang:ingatkan', function () {
 })->purpose('Ingatkan hutang supplier yang jatuh tempo');
 
 Schedule::command('hutang:ingatkan')->dailyAt('06:45');
+
+// Cadangan data: arsip zip (database.json portabel, pg_dump bila PostgreSQL, logo & QRIS) di disk privat.
+Artisan::command('cadangan:buat {--jenis=lengkap : lengkap | basis data} {--catatan= : Catatan singkat} {--manual : Tandai sebagai cadangan manual}', function () {
+    $type = (string) $this->option('jenis');
+    if (! array_key_exists($type, \App\Models\Backup::TYPES)) {
+        $this->error('Jenis harus "lengkap" atau "basis data".');
+
+        return 1;
+    }
+    $b = app(\App\Services\BackupService::class)->run($type, $this->option('manual') ? 'manual' : 'terjadwal', $this->option('catatan'));
+    if ($b->status !== 'berhasil') {
+        $this->error("Cadangan gagal: {$b->error}");
+
+        return 1;
+    }
+    $this->info("Cadangan {$b->name} dibuat (".\App\Support\SystemHealth::bytes($b->size).", {$b->duration_s} dtk).");
+
+    return 0;
+})->purpose('Buat cadangan data koperasi sekarang');
+
+Schedule::command('cadangan:buat')->dailyAt(config('koperasi.backup.time', '23:00'))
+    ->when(fn () => (bool) config('koperasi.backup.enabled', true))->withoutOverlapping();
+
+// Denyut penjadwal untuk pemantauan kesehatan (Sistem → Kesehatan).
+Schedule::call(fn () => \Illuminate\Support\Facades\Cache::put('health:scheduler_heartbeat', now()->toDateTimeString(), now()->addDay()))
+    ->everyMinute()->name('health-heartbeat');

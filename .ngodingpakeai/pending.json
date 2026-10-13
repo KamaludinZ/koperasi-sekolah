@@ -1,6 +1,6 @@
 {
   "repo": "Koperasi Sekolah",
-  "generatedForCommit": "c572c94fc9d7f6d788c888372bc209b143238bbb",
+  "generatedForCommit": "27e43268033752f041e6bbc686af9b0169f2b205",
   "files": [
     {
       "path": ".claude/skills/ngodingpakeai/SKILL.md",
@@ -739,6 +739,12 @@
       "reason": "needs_summary",
       "language": "php",
       "size": 3582
+    },
+    {
+      "path": "app/Models/Backup.php",
+      "reason": "new",
+      "language": "php",
+      "size": 2267
     },
     {
       "path": "app/Models/CashMovement.php",
@@ -1497,6 +1503,12 @@
       "size": 10
     },
     {
+      "path": "database/factories/BackupFactory.php",
+      "reason": "new",
+      "language": "php",
+      "size": 1108
+    },
+    {
       "path": "database/factories/CashMovementFactory.php",
       "reason": "needs_summary",
       "language": "php",
@@ -1837,6 +1849,12 @@
       "reason": "needs_summary",
       "language": "php",
       "size": 1227
+    },
+    {
+      "path": "database/migrations/2026_10_14_000001_create_backups_table.php",
+      "reason": "new",
+      "language": "php",
+      "size": 2572
     },
     {
       "path": "database/seeders/ActivityLogSeeder.php",
@@ -2524,13 +2542,13 @@
     },
     {
       "path": "resources/views/livewire/pengaturan/credit.blade.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 6313
     },
     {
       "path": "resources/views/livewire/pengaturan/index.blade.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 10849
     },
@@ -2542,13 +2560,13 @@
     },
     {
       "path": "resources/views/livewire/pengaturan/receipt.blade.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 6800
     },
     {
       "path": "resources/views/livewire/pengaturan/returns.blade.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 4449
     },
@@ -2560,7 +2578,7 @@
     },
     {
       "path": "resources/views/livewire/pengaturan/tax.blade.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 10276
     },
@@ -3580,7 +3598,7 @@
     },
     {
       "path": "tests/Feature/Pengaturan/TaxSettingsTest.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 4097
     },
@@ -3607,6 +3625,12 @@
       "reason": "needs_summary",
       "language": "php",
       "size": 4433
+    },
+    {
+      "path": "tests/Feature/Sistem/BackupSchemaTest.php",
+      "reason": "new",
+      "language": "php",
+      "size": 2077
     },
     {
       "path": "tests/Feature/Sistem/BackupStatusTest.php",

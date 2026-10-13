@@ -24,4 +24,12 @@ return [
     // Proxy tepercaya (mis. Nginx/Cloudflare) agar skema asli dibaca dari X-Forwarded-Proto.
     // "*" = semua, atau daftar IP dipisah koma. Kosong = tidak ada.
     'trusted_proxies' => env('TRUSTED_PROXIES'),
+
+    // Cadangan data otomatis: jam harian, jumlah arsip berhasil yang disimpan, dan pg_dump (PostgreSQL).
+    'backup' => [
+        'enabled' => (bool) env('KOPERASI_BACKUP_ENABLED', true),
+        'time' => env('KOPERASI_BACKUP_TIME', '23:00'),
+        'keep' => (int) env('KOPERASI_BACKUP_KEEP', 14),
+        'pg_dump' => (bool) env('KOPERASI_BACKUP_PG_DUMP', true),
+    ],
 ];
