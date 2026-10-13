@@ -25,7 +25,9 @@ class ProductSeeder extends Seeder
     private function seedRows(): void
     {
         $categories = collect(MockData::categories())
-            ->mapWithKeys(fn ($name) => [$name => Category::firstOrCreate(['name' => $name])->id]);
+            ->values()
+            ->mapWithKeys(fn ($name, $i) => [$name => Category::firstOrCreate(['name' => $name],
+                ['position' => $i + 1, 'color' => Category::COLORS[$i % count(Category::COLORS)]])->id]);
 
         foreach (MockData::seedProducts() as $p) {
             Product::updateOrCreate(['code' => $p['code']], [

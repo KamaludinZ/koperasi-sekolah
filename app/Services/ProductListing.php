@@ -113,7 +113,7 @@ class ProductListing
     /** @return list<string> */
     public function categories(): array
     {
-        return Category::orderBy('name')->pluck('name')->all();
+        return Category::ordered()->pluck('name')->all();
     }
 
     private function lowStockQuery(): Builder

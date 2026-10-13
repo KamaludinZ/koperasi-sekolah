@@ -63,7 +63,7 @@ class SupplierForm extends Component
     #[Computed]
     public function categoryOptions(): array
     {
-        return Category::orderBy('name')->pluck('name')->all();
+        return Category::ordered()->pluck('name')->all();
     }
 
     protected function rules(): array

@@ -77,7 +77,7 @@ class ProductCatalog
     /** @return list<string> */
     public function categories(): array
     {
-        return Category::orderBy('name')->pluck('name')->all();
+        return Category::ordered()->pluck('name')->all();
     }
 
     public static function toArray(Product $p): array

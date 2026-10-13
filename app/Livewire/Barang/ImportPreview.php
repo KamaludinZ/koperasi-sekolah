@@ -62,7 +62,7 @@ class ImportPreview extends Component
     public function rows(): array
     {
         $raw = MockData::importRows($this->importId);
-        $categories = Category::orderBy('name')->pluck('name')->all();
+        $categories = Category::ordered()->pluck('name')->all();
         $cleaned = array_map(fn ($r) => [...$r, 'values' => ProductImportFormat::clean($r['values'])], $raw);
 
         $seen = [];
