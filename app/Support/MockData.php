@@ -608,13 +608,13 @@ class MockData
         ];
         $suppliers = collect(self::suppliers())->keyBy('id');
 
-        return array_map(fn ($r) => [
+        return [...session('mock.orders', []), ...array_map(fn ($r) => [
             'id' => $r[0], 'number' => 'PO-'.now()->subDays($r[3])->format('Ym').'-'.str_pad((string) $r[0], 4, '0', STR_PAD_LEFT),
             'supplier_id' => $r[1], 'supplier' => $suppliers[$r[1]]['name'] ?? '—', 'status' => $r[2],
             'ordered_at' => now()->subDays($r[3])->toDateString(), 'expected_at' => now()->addDays($r[4])->toDateString(),
             'items' => $r[5], 'qty' => $r[6], 'received_qty' => $r[7], 'total' => $r[8],
             'created_by' => $r[0] % 2 ? 'Pak Dedi' : 'Admin Koperasi',
-        ], $rows);
+        ], $rows)];
     }
 
     /**
@@ -657,6 +657,9 @@ class MockData
      */
     public static function purchaseOrderItems(int $orderId): array
     {
+        if ($stored = session("mock.order_items.{$orderId}")) {
+            return $stored;
+        }
         $order = collect(self::purchaseOrders())->firstWhere('id', $orderId);
         $supplier = $order ? collect(self::suppliers())->firstWhere('id', $order['supplier_id']) : null;
         if (! $supplier) {
@@ -678,5 +681,27 @@ class MockData
             return ['product_id' => $p->id, 'code' => $p->code, 'name' => $p->name, 'unit' => $p->unit,
                 'qty' => $qty, 'received_qty' => $got, 'cost' => (int) $p->cost_price];
         })->all();
+    }
+
+    /**
+     * Simpan pesanan pembelian baru (session). $lines: [{product_id, code, name, unit, qty, cost}].
+     * Kontrak backend: POST /pengadaan/pesanan {supplier_id, expected_at, note, status, items[]}.
+     */
+    public static function savePurchaseOrder(array $data, array $lines, string $user): array
+    {
+        $orders = self::purchaseOrders();
+        $id = (collect($orders)->max('id') ?? 0) + 1;
+        $supplier = collect(self::suppliers())->firstWhere('id', $data['supplier_id']);
+        $order = [
+            'id' => $id, 'number' => 'PO-'.now()->format('Ym').'-'.str_pad((string) $id, 4, '0', STR_PAD_LEFT),
+            'supplier_id' => $data['supplier_id'], 'supplier' => $supplier['name'] ?? '—', 'status' => $data['status'],
+            'ordered_at' => now()->toDateString(), 'expected_at' => $data['expected_at'], 'items' => count($lines),
+            'qty' => array_sum(array_column($lines, 'qty')), 'received_qty' => 0,
+            'total' => array_sum(array_map(fn ($l) => $l['qty'] * $l['cost'], $lines)), 'created_by' => $user, 'note' => $data['note'] ?? null,
+        ];
+        session(['mock.orders' => [$order, ...session('mock.orders', [])],
+            "mock.order_items.{$id}" => array_map(fn ($l) => [...$l, 'received_qty' => 0], $lines)]);
+
+        return $order;
     }
 }
