@@ -84,6 +84,30 @@ class AuditLogTest extends TestCase
         $this->assertSame(3000, $this->last('savings.withdraw')->properties['balance_after']);
     }
 
+    public function test_every_savings_mutation_has_an_audit_entry(): void
+    {
+        $m = Member::factory()->create();
+        $savings = app(SavingsService::class);
+        $payments = app(\App\Services\SavingsPaymentService::class);
+
+        $savings->deposit($m, 50000);
+        $savings->withdraw($m, 5000);
+        $payments->charge($m->id, 4000, \App\Models\Transaction::factory()->create(['member_id' => $m->id]), null);
+        $payments->debitForCredit($m->id, 3000, 77, 'Pelunasan bon PLN-TES');
+        $payments->refund($m->id, 2000, 'return', 5, 'Retur RTR-TES');
+
+        $logs = ActivityLog::where('category', 'tabungan')->get()->keyBy(fn ($l) => $l->properties['savings_id'] ?? null);
+        foreach ($m->savings()->get() as $entry) {
+            $log = $logs->get($entry->id);
+            $this->assertNotNull($log, "Mutasi #{$entry->id} ({$entry->note}) tidak tercatat di audit.");
+            $this->assertSame((int) $entry->amount, $log->amount);
+            $this->assertSame((int) $entry->balance_before, $log->properties['balance_before']);
+            $this->assertSame((int) $entry->balance_after, $log->properties['balance_after']);
+        }
+        $this->assertSame(5, $m->savings()->count());
+        $this->assertSame(77, $this->last('savings.credit')->properties['payment_id']);
+    }
+
     public function test_login_logout_and_failures_are_logged(): void
     {
         auth()->logout();

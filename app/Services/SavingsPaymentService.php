@@ -63,7 +63,16 @@ class SavingsPaymentService
                 throw ValidationException::withMessages(['amount' => 'Saldo tabungan hanya Rp'.number_format($before, 0, ',', '.').'.']);
             }
 
-            return $this->post($member, SavingsTransaction::TYPE_WITHDRAWAL, $amount, $note, 'credit_payment', $paymentId, $userId);
+            $entry = $this->post($member, SavingsTransaction::TYPE_WITHDRAWAL, $amount, $note, 'credit_payment', $paymentId, $userId);
+
+            AuditLog::record('savings.credit', 'tabungan',
+                "Potong tabungan {$member->name} untuk {$note}: Rp".number_format($amount, 0, ',', '.')
+                    .' (saldo Rp'.number_format((int) $entry->balance_after, 0, ',', '.').')',
+                ['type' => 'member', 'id' => $member->id, 'label' => "{$member->member_code} · {$member->name}"],
+                ['savings_id' => $entry->id, 'payment_id' => $paymentId, 'balance_before' => $before, 'balance_after' => (int) $entry->balance_after],
+                $amount);
+
+            return $entry;
         });
     }
 
@@ -80,12 +89,13 @@ class SavingsPaymentService
 
         return DB::transaction(function () use ($memberId, $amount, $source, $sourceId, $note, $userId) {
             $member = Member::withTrashed()->whereKey($memberId)->lockForUpdate()->firstOrFail();
+            $before = (int) round((float) $member->balance);
             $entry = $this->post($member, SavingsTransaction::TYPE_DEPOSIT, $amount, $note, $source, $sourceId, $userId);
 
             AuditLog::record('savings.refund', 'tabungan',
                 "Pengembalian ke tabungan {$member->name}: Rp".number_format($amount, 0, ',', '.')." ({$note})",
                 ['type' => 'member', 'id' => $member->id, 'label' => "{$member->member_code} · {$member->name}"],
-                ['savings_id' => $entry->id, 'source_type' => $source, 'source_id' => $sourceId, 'balance_after' => (int) $entry->balance_after],
+                ['savings_id' => $entry->id, 'source_type' => $source, 'source_id' => $sourceId, 'balance_before' => $before, 'balance_after' => (int) $entry->balance_after],
                 $amount);
 
             return $entry;

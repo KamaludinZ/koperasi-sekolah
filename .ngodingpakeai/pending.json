@@ -1,6 +1,6 @@
 {
   "repo": "Koperasi Sekolah",
-  "generatedForCommit": "1a8eb2b968e793a9d3864a8e8b3688d5163f4a73",
+  "generatedForCommit": "751b18e6d1c75f5446d04158dc14b77d62f3aa2c",
   "files": [
     {
       "path": ".claude/skills/ngodingpakeai/SKILL.md",
@@ -76,15 +76,15 @@
     },
     {
       "path": "app/Http/Controllers/Anggota/MemberController.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 4931
     },
     {
       "path": "app/Http/Controllers/Anggota/SavingsController.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 3260
+      "size": 4053
     },
     {
       "path": "app/Http/Controllers/Audit/AuditLogController.php",
@@ -934,9 +934,9 @@
     },
     {
       "path": "app/Models/SavingsTransaction.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 2321
+      "size": 2335
     },
     {
       "path": "app/Models/Setting.php",
@@ -1162,7 +1162,7 @@
     },
     {
       "path": "app/Services/MemberService.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 8194
     },
@@ -1300,9 +1300,9 @@
     },
     {
       "path": "app/Services/SavingsService.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 8920
+      "size": 10023
     },
     {
       "path": "app/Services/SessionService.php",
@@ -1963,6 +1963,12 @@
       "reason": "needs_summary",
       "language": "php",
       "size": 846
+    },
+    {
+      "path": "database/migrations/2026_10_14_000006_add_client_ref_to_savings_transactions.php",
+      "reason": "new",
+      "language": "php",
+      "size": 855
     },
     {
       "path": "database/seeders/ActivityLogSeeder.php",
@@ -2824,7 +2830,7 @@
     },
     {
       "path": "routes/web.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 32981
     },
@@ -2866,7 +2872,7 @@
     },
     {
       "path": "tests/Feature/Anggota/MemberEndpointTest.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 6339
     },
@@ -2896,9 +2902,9 @@
     },
     {
       "path": "tests/Feature/Anggota/SavingsEndpointTest.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 3707
+      "size": 4858
     },
     {
       "path": "tests/Feature/Anggota/SavingsHistoryEndpointTest.php",
