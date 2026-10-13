@@ -1,6 +1,6 @@
 {
   "repo": "Koperasi Sekolah",
-  "generatedForCommit": "45d6de3d291a9e9cf4ad62347cc0dc31cf0954c1",
+  "generatedForCommit": "fc5793ba90bb1b2012ec195aa9d2f66b078c1c02",
   "files": [
     {
       "path": ".claude/skills/ngodingpakeai/SKILL.md",
@@ -231,8 +231,14 @@
       "size": 3552
     },
     {
-      "path": "app/Http/Controllers/Pengadaan/PurchaseOrderController.php",
+      "path": "app/Http/Controllers/Pengadaan/GoodsReceiptController.php",
       "reason": "new",
+      "language": "php",
+      "size": 1375
+    },
+    {
+      "path": "app/Http/Controllers/Pengadaan/PurchaseOrderController.php",
+      "reason": "needs_summary",
       "language": "php",
       "size": 2987
     },
@@ -496,19 +502,19 @@
     },
     {
       "path": "app/Livewire/Pengadaan/Index.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 4028
     },
     {
       "path": "app/Livewire/Pengadaan/OrderForm.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 6410
     },
     {
       "path": "app/Livewire/Pengadaan/Orders.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 5343
     },
@@ -526,9 +532,9 @@
     },
     {
       "path": "app/Livewire/Pengadaan/Receiving.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 4817
+      "size": 4944
     },
     {
       "path": "app/Livewire/Pengadaan/SupplierForm.php",
@@ -903,6 +909,12 @@
       "size": 4353
     },
     {
+      "path": "app/Services/GoodsReceiptService.php",
+      "reason": "new",
+      "language": "php",
+      "size": 7017
+    },
+    {
       "path": "app/Services/LoginLockoutService.php",
       "reason": "needs_summary",
       "language": "php",
@@ -988,7 +1000,7 @@
     },
     {
       "path": "app/Services/PurchaseOrderService.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 8565
     },
@@ -1108,9 +1120,9 @@
     },
     {
       "path": "app/Support/MockData.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 27867
+      "size": 21458
     },
     {
       "path": "app/Support/OpeningHours.php",
@@ -2158,13 +2170,13 @@
     },
     {
       "path": "resources/views/livewire/pengadaan/order-form.blade.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 9729
     },
     {
       "path": "resources/views/livewire/pengadaan/orders.blade.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 12647
     },
@@ -2182,9 +2194,9 @@
     },
     {
       "path": "resources/views/livewire/pengadaan/receiving.blade.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 9712
+      "size": 9576
     },
     {
       "path": "resources/views/livewire/pengadaan/supplier-form.blade.php",
@@ -2292,7 +2304,7 @@
       "path": "routes/web.php",
       "reason": "changed",
       "language": "php",
-      "size": 23298
+      "size": 23637
     },
     {
       "path": "tests/Concerns/MakesProductImports.php",
@@ -2932,13 +2944,13 @@
     },
     {
       "path": "tests/Feature/Pengadaan/OrderFormTest.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 3473
     },
     {
       "path": "tests/Feature/Pengadaan/OrderListTest.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 3420
     },
@@ -2956,21 +2968,21 @@
     },
     {
       "path": "tests/Feature/Pengadaan/ProcurementHubTest.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 2438
     },
     {
       "path": "tests/Feature/Pengadaan/PurchaseOrderEndpointTest.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 2935
     },
     {
       "path": "tests/Feature/Pengadaan/ReceivingTest.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 2852
+      "size": 5267
     },
     {
       "path": "tests/Feature/Pengadaan/SupplierEndpointTest.php",

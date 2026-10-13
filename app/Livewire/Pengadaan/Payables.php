@@ -2,7 +2,8 @@
 
 namespace App\Livewire\Pengadaan;
 
-use App\Support\MockData;
+use App\Models\SupplierBill;
+use App\Services\SupplierBillService;
 use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
@@ -14,7 +15,7 @@ use Livewire\Component;
  * Pengadaan → Hutang (Admin & Pengurus): hutang pembelian ke supplier dengan sisa, jatuh tempo
  * (lewat / ≤ 7 hari / nanti), dan status; saring status, supplier, dan rentang jatuh tempo;
  * catat pembayaran (tunai/transfer, maks. sisa hutang) dan lihat riwayat pembayarannya.
- * Tahap ini memakai MockData::payables() & payPayable(); backend menyusul dengan kontrak yang sama.
+ * Data & pembayaran lewat SupplierBillService (tagihan dibuat otomatis saat barang diterima).
  */
 #[Layout('components.layouts.app')]
 #[Title('Hutang Supplier')]
@@ -59,7 +60,7 @@ class Payables extends Component
     #[Computed]
     public function all(): array
     {
-        return collect(MockData::payables())->sortBy('due_at')->values()->all();
+        return app(SupplierBillService::class)->list();
     }
 
     public static function daysLeft(array $p): int
@@ -107,7 +108,7 @@ class Payables extends Component
             'outstanding' => $remain($open),
             'overdue' => $remain($open->filter(fn ($p) => self::daysLeft($p) < 0)),
             'week' => $remain($open->filter(fn ($p) => self::daysLeft($p) >= 0 && self::daysLeft($p) <= 7)),
-            'paid_month' => collect(MockData::payablePayments())->filter(fn ($x) => substr($x['paid_at'], 0, 7) === now()->format('Y-m'))->sum('amount'),
+            'paid_month' => app(SupplierBillService::class)->summary()['paid_month'],
         ];
     }
 
@@ -128,7 +129,7 @@ class Payables extends Component
     {
         $p = $this->historyId ? collect($this->all)->firstWhere('id', $this->historyId) : null;
 
-        return $p ? $p + ['payments' => MockData::payablePayments($p['id'])] : null;
+        return $p ? $p + ['payments' => app(SupplierBillService::class)->payments(SupplierBill::findOrFail($p['id']))] : null;
     }
 
     public function setFilter(string $filter): void
@@ -187,8 +188,8 @@ class Payables extends Component
             throw $e;
         }
 
-        MockData::payPayable($p['id'], ['amount' => (int) $this->amount, 'paid_at' => $this->paidAt, 'method' => $this->method,
-            'reference' => trim($this->reference) ?: null, 'note' => trim($this->note) ?: null], auth()->user()->name);
+        app(SupplierBillService::class)->pay([$p['id'] => (int) $this->amount], ['paid_at' => $this->paidAt, 'method' => $this->method,
+            'reference' => trim($this->reference) ?: null, 'note' => trim($this->note) ?: null], auth()->user());
         $lunas = (int) $this->amount === $remaining;
         $this->cancelPay();
         unset($this->all, $this->payables, $this->counts, $this->summary);

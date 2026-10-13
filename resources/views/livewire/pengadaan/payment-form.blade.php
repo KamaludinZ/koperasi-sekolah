@@ -14,7 +14,6 @@
                 <p class="text-xs text-stone-500"><a href="{{ route('pengadaan.hutang') }}" wire:navigate class="hover:text-emerald-800 hover:underline">Hutang</a> / Bayar</p>
                 <h1 class="text-lg font-semibold">Bayar hutang supplier</h1>
             </div>
-            <span class="rounded-full bg-amber-100 px-3 py-1 text-xs font-medium text-amber-900">Data contoh</span>
         </div>
         <x-pengadaan.nav active="pengadaan.hutang" />
     </header>

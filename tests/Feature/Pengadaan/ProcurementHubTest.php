@@ -43,8 +43,8 @@ class ProcurementHubTest extends TestCase
         $this->assertSame(3, $s['open_orders']);                       // draf, dipesan, sebagian
         $this->assertSame($open->sum('total'), $s['open_value']);
         $this->assertSame(120 + 78, $s['awaiting_qty']);                // draf tidak dihitung
-        $this->assertSame(860_000 + 640_000 + 610_000, $s['payable']);
-        $this->assertSame(1, $s['overdue']);
+        $this->assertSame(259_200 + 166_400, $s['payable']);
+        $this->assertSame(0, $s['overdue']);
         $this->assertSame(1, $s['due_soon']);
         $this->assertSame(3, $s['suppliers']);
 
@@ -54,6 +54,6 @@ class ProcurementHubTest extends TestCase
         $this->assertSame([0, 10, 'CV Sinar Ilmu'], [$penggaris['stock'], $penggaris['suggested'], $penggaris['supplier']]);
         $this->assertSame('ATK005', $restock->first()['code']); // paling kurang dulu
 
-        $c->assertSee('lewat 1 hari')->assertSee('Terlambat')->assertSee('Belum dikirim ke supplier');
+        $c->assertSee('jatuh tempo 1 hari lagi')->assertSee('Terlambat')->assertSee('Belum dikirim ke supplier');
     }
 }

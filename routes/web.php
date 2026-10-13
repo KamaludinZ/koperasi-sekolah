@@ -30,6 +30,7 @@ use App\Http\Controllers\Notifikasi\AnnouncementController;
 use App\Http\Controllers\Notifikasi\NotificationController;
 use App\Http\Controllers\Pengadaan\GoodsReceiptController;
 use App\Http\Controllers\Pengadaan\PurchaseOrderController;
+use App\Http\Controllers\Pengadaan\SupplierBillController;
 use App\Http\Controllers\Pengadaan\SupplierController;
 use App\Http\Controllers\Pengaturan\LogoController;
 use App\Http\Controllers\Promo\PromoController;
@@ -179,6 +180,8 @@ Route::middleware('menu:pengadaan')->group(function () {
     Route::get('/pengadaan/penerimaan', Pengadaan\Receiving::class)->name('pengadaan.penerimaan');
     Route::get('/pengadaan/penerimaan/data', [GoodsReceiptController::class, 'index'])->name('pengadaan.penerimaan.data');
     Route::get('/pengadaan/hutang', Pengadaan\Payables::class)->name('pengadaan.hutang');
+    Route::get('/pengadaan/hutang/data', [SupplierBillController::class, 'index'])->name('pengadaan.hutang.data');
+    Route::get('/pengadaan/hutang/{bill}/data', [SupplierBillController::class, 'show'])->whereNumber('bill')->name('pengadaan.hutang.show');
     Route::get('/pengadaan/hutang/bayar', Pengadaan\PaymentForm::class)->name('pengadaan.hutang.bayar');
     Route::get('/pengadaan/supplier', Pengadaan\Suppliers::class)->name('pengadaan.supplier');
     Route::get('/pengadaan/supplier/data', [SupplierController::class, 'index'])->name('pengadaan.supplier.data');

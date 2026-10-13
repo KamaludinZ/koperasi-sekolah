@@ -40,3 +40,11 @@ Artisan::command('kupon:hitung-ulang', function () {
 
 // Periksa keaslian jejak audit setiap malam; baris yang diubah langsung di database memicu notifikasi Admin.
 Schedule::command('audit:verifikasi')->dailyAt('02:30');
+
+// Pengingat hutang supplier yang jatuh tempo ≤ 3 hari atau sudah lewat (notifikasi untuk Pengurus & Admin).
+Artisan::command('hutang:ingatkan', function () {
+    $n = app(\App\Services\SupplierBillService::class)->remind();
+    $this->info("Pengingat hutang: {$n} notifikasi baru.");
+})->purpose('Ingatkan hutang supplier yang jatuh tempo');
+
+Schedule::command('hutang:ingatkan')->dailyAt('06:45');

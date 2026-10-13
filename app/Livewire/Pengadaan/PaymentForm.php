@@ -2,7 +2,7 @@
 
 namespace App\Livewire\Pengadaan;
 
-use App\Support\MockData;
+use App\Services\SupplierBillService;
 use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
@@ -14,7 +14,7 @@ use Livewire\Component;
  * Pengadaan → Hutang → Bayar (Admin & Pengurus): bayar satu atau beberapa tagihan ke satu supplier
  * sekaligus. Jumlah dibayar dialokasikan otomatis ke tagihan terpilih mulai jatuh tempo terdekat
  * (bisa diubah per tagihan), lengkap dengan tanggal, cara bayar, no. bukti, dan catatan; ringkasan
- * menunjukkan tagihan yang lunas & sisa. Tahap ini disimpan lewat MockData::payPayable().
+ * menunjukkan tagihan yang lunas & sisa. Disimpan lewat SupplierBillService::pay().
  */
 #[Layout('components.layouts.app')]
 #[Title('Bayar Hutang')]
@@ -54,7 +54,7 @@ class PaymentForm extends Component
     #[Computed]
     public function suppliers(): array
     {
-        return collect(MockData::payables())->where('status', '!=', 'lunas')
+        return collect(app(SupplierBillService::class)->list())->where('status', '!=', 'lunas')
             ->groupBy('supplier_id')->map(fn ($g) => ['id' => $g->first()['supplier_id'], 'name' => $g->first()['supplier'],
                 'remaining' => $g->sum(fn ($p) => $p['amount'] - $p['paid']), 'count' => $g->count()])
             ->sortBy('name')->values()->all();
@@ -63,7 +63,7 @@ class PaymentForm extends Component
     #[Computed]
     public function bills(): array
     {
-        return collect(MockData::payables())->where('supplier_id', (int) $this->supplierId)->where('status', '!=', 'lunas')
+        return collect(app(SupplierBillService::class)->list())->where('supplier_id', (int) $this->supplierId)->where('status', '!=', 'lunas')
             ->sortBy('due_at')->map(fn ($p) => $p + ['remaining' => $p['amount'] - $p['paid']])->values()->all();
     }
 
@@ -134,13 +134,11 @@ class PaymentForm extends Component
         }
 
         $paidOff = 0;
+        $alloc = array_filter(array_map('intval', $this->alloc), fn ($v) => $v > 0);
+        app(SupplierBillService::class)->pay($alloc, ['paid_at' => $this->paidAt, 'method' => $this->method,
+            'reference' => trim($this->reference) ?: null, 'note' => trim($this->note) ?: null], auth()->user());
         foreach ($this->bills as $b) {
-            $amount = (int) ($this->alloc[$b['id']] ?? 0);
-            if ($amount > 0) {
-                MockData::payPayable($b['id'], ['amount' => $amount, 'paid_at' => $this->paidAt, 'method' => $this->method,
-                    'reference' => trim($this->reference) ?: null, 'note' => trim($this->note) ?: null], auth()->user()->name);
-                $paidOff += $amount === $b['remaining'] ? 1 : 0;
-            }
+            $paidOff += ($alloc[$b['id']] ?? 0) === $b['remaining'] ? 1 : 0;
         }
         $sum = array_sum(array_map('intval', $this->alloc));
         $name = collect($this->suppliers)->firstWhere('id', (int) $this->supplierId)['name'];

@@ -3,7 +3,6 @@
 namespace App\Livewire\Pengadaan;
 
 use App\Models\Product;
-use App\Support\MockData;
 use Illuminate\Support\Facades\Route;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
@@ -14,7 +13,7 @@ use Livewire\Component;
  * Pengadaan (Admin & Pengurus): ringkasan pembelian barang dari supplier — pesanan berjalan &
  * barang yang menunggu diterima, hutang jatuh tempo terdekat, barang stok menipis yang perlu
  * dipesan (dari data barang sungguhan, dengan saran supplier sesuai kategori), dan supplier aktif.
- * Supplier, pesanan, dan hutang tahap ini memakai MockData; backend menyusul dengan kontrak yang sama.
+ * Supplier, pesanan, dan hutang dari SupplierService, PurchaseOrderService, dan SupplierBillService.
  */
 #[Layout('components.layouts.app')]
 #[Title('Pengadaan')]
@@ -47,7 +46,7 @@ class Index extends Component
     #[Computed]
     public function payables(): array
     {
-        return collect(MockData::payables())->where('status', '!=', 'lunas')->sortBy('due_at')->values()->all();
+        return collect(app(\App\Services\SupplierBillService::class)->list())->where('status', '!=', 'lunas')->values()->all();
     }
 
     /** Pesanan yang masih berjalan (draf, dipesan, diterima sebagian). */
