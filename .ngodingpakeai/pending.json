@@ -1,6 +1,6 @@
 {
   "repo": "Koperasi Sekolah",
-  "generatedForCommit": "dec7dad5110e3029b6e6fb3ce647f7ace5b6ad81",
+  "generatedForCommit": "6fcac647098887807d5ca9298e1d8d766cbd113b",
   "files": [
     {
       "path": ".claude/skills/ngodingpakeai/SKILL.md",
@@ -328,7 +328,7 @@
     },
     {
       "path": "app/Livewire/Audit/Changes.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 8553
     },
@@ -598,7 +598,7 @@
     },
     {
       "path": "app/Models/ActivityLog.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 3582
     },
@@ -687,6 +687,18 @@
       "size": 652
     },
     {
+      "path": "app/Models/PurchaseOrder.php",
+      "reason": "new",
+      "language": "php",
+      "size": 2648
+    },
+    {
+      "path": "app/Models/PurchaseOrderItem.php",
+      "reason": "new",
+      "language": "php",
+      "size": 1026
+    },
+    {
       "path": "app/Models/ReportExport.php",
       "reason": "needs_summary",
       "language": "php",
@@ -718,7 +730,7 @@
     },
     {
       "path": "app/Models/Supplier.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 1808
     },
@@ -784,7 +796,7 @@
     },
     {
       "path": "app/Services/AuditChangeQuery.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 6288
     },
@@ -802,7 +814,7 @@
     },
     {
       "path": "app/Services/AuditQuery.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 5960
     },
@@ -1012,7 +1024,7 @@
     },
     {
       "path": "app/Services/TrashService.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 6791
     },
@@ -1251,6 +1263,12 @@
       "size": 740
     },
     {
+      "path": "database/factories/PurchaseOrderFactory.php",
+      "reason": "new",
+      "language": "php",
+      "size": 701
+    },
+    {
       "path": "database/factories/SavingsTransactionFactory.php",
       "reason": "needs_summary",
       "language": "php",
@@ -1258,7 +1276,7 @@
     },
     {
       "path": "database/factories/SupplierFactory.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 768
     },
@@ -1480,9 +1498,15 @@
     },
     {
       "path": "database/migrations/2026_10_13_000019_create_suppliers_tables.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 2178
+    },
+    {
+      "path": "database/migrations/2026_10_13_000020_create_purchase_orders_tables.php",
+      "reason": "new",
+      "language": "php",
+      "size": 3450
     },
     {
       "path": "database/seeders/ActivityLogSeeder.php",
@@ -1500,7 +1524,7 @@
       "path": "database/seeders/DatabaseSeeder.php",
       "reason": "changed",
       "language": "php",
-      "size": 818
+      "size": 846
     },
     {
       "path": "database/seeders/MemberSeeder.php",
@@ -1527,8 +1551,14 @@
       "size": 3900
     },
     {
-      "path": "database/seeders/SupplierSeeder.php",
+      "path": "database/seeders/PurchaseOrderSeeder.php",
       "reason": "new",
+      "language": "php",
+      "size": 2749
+    },
+    {
+      "path": "database/seeders/SupplierSeeder.php",
+      "reason": "needs_summary",
       "language": "php",
       "size": 1484
     },
@@ -1858,7 +1888,7 @@
     },
     {
       "path": "resources/views/livewire/audit/index.blade.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 15008
     },
@@ -2302,7 +2332,7 @@
     },
     {
       "path": "tests/Feature/Audit/ChangesPageTest.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 5459
     },
@@ -2314,7 +2344,7 @@
     },
     {
       "path": "tests/Feature/Audit/TrashPageTest.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 6655
     },
@@ -2535,6 +2565,12 @@
       "size": 4756
     },
     {
+      "path": "tests/Feature/Database/PurchaseOrderSchemaTest.php",
+      "reason": "new",
+      "language": "php",
+      "size": 2570
+    },
+    {
       "path": "tests/Feature/Database/RetentionCleanupTest.php",
       "reason": "needs_summary",
       "language": "php",
@@ -2566,7 +2602,7 @@
     },
     {
       "path": "tests/Feature/Database/SupplierSchemaTest.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 2543
     },

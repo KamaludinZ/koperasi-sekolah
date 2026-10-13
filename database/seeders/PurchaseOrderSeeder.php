@@ -10,7 +10,7 @@ use Illuminate\Database\Seeder;
 
 /**
  * Pesanan pembelian contoh (berbagai status) dengan barang dari kategori yang dipasok supplier.
- * Hanya mengisi tabel pesanan; stok barang tidak diubah.
+ * Barang yang sudah diterima dicatat sebagai penerimaan (tanpa mengubah stok contoh).
  */
 class PurchaseOrderSeeder extends Seeder
 {
@@ -54,6 +54,20 @@ class PurchaseOrderSeeder extends Seeder
                 ]);
             }
             $order->recalculate();
+
+            $received = $order->items()->where('received_quantity', '>', 0)->get();
+            if ($received->isNotEmpty()) {
+                $receipt = \App\Models\GoodsReceipt::create([
+                    'number' => \App\Models\GoodsReceipt::nextNumber(), 'purchase_order_id' => $order->id, 'supplier_id' => $supplier->id,
+                    'received_at' => now()->addDays(min($eta, 0))->toDateString(), 'delivery_note' => 'SJ-'.str_pad((string) (800 + $order->id), 4, '0', STR_PAD_LEFT),
+                    'note' => $status === 'sebagian' ? 'Sebagian barang menyusul.' : null,
+                    'total_quantity' => $received->sum('received_quantity'), 'total_value' => $received->sum(fn ($i) => $i->received_quantity * $i->cost),
+                    'received_by' => $admin,
+                ]);
+                foreach ($received as $i) {
+                    $receipt->items()->create(['purchase_order_item_id' => $i->id, 'product_id' => $i->product_id, 'quantity' => $i->received_quantity, 'cost' => $i->cost]);
+                }
+            }
         }
     }
 }

@@ -60,4 +60,22 @@ class PurchaseOrderSchemaTest extends TestCase
         $this->expectException(QueryException::class);
         $item->update(['received_quantity' => $item->quantity + 1]);
     }
+
+    public function test_seeded_receipts_match_received_quantities(): void
+    {
+        $receipts = \App\Models\GoodsReceipt::with(['items', 'order.items'])->get();
+        $this->assertSame(3, $receipts->count());
+        $this->assertSame('TB-202610-0001', $receipts->min('number'));
+        foreach ($receipts as $r) {
+            $this->assertSame($r->order->items->sum('received_quantity'), $r->total_quantity);
+            $this->assertSame($r->items->sum('quantity'), $r->total_quantity);
+            $this->assertSame($r->order->supplier_id, $r->supplier_id);
+        }
+        $this->assertSame('TB-202610-0004', \App\Models\GoodsReceipt::nextNumber());
+        $this->assertSame('Sebagian barang menyusul.', PurchaseOrder::where('status', 'sebagian')->first()->receipts()->value('note'));
+
+        // Item pesanan yang sudah punya penerimaan tidak boleh dihapus.
+        $this->expectException(QueryException::class);
+        DB::table('purchase_order_items')->where('id', $receipts->first()->items->first()->purchase_order_item_id)->delete();
+    }
 }

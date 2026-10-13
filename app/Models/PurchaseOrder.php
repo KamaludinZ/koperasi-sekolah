@@ -57,6 +57,11 @@ class PurchaseOrder extends Model
         return $this->hasMany(PurchaseOrderItem::class)->orderBy('id');
     }
 
+    public function receipts(): HasMany
+    {
+        return $this->hasMany(GoodsReceipt::class)->orderBy('received_at')->orderBy('id');
+    }
+
     public function creator(): BelongsTo
     {
         return $this->belongsTo(User::class, 'created_by');
