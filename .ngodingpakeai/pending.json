@@ -1,6 +1,6 @@
 {
   "repo": "Koperasi Sekolah",
-  "generatedForCommit": "61a2b467210f1dd5b85ffcfd380311ecbc32cc22",
+  "generatedForCommit": "beeb9b50cbeb21a17caddab59992c4e7a0f8cefc",
   "files": [
     {
       "path": ".claude/skills/ngodingpakeai/SKILL.md",
@@ -340,9 +340,15 @@
     },
     {
       "path": "app/Jobs/ExportCashRecap.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 2339
+    },
+    {
+      "path": "app/Jobs/ExportSalesReport.php",
+      "reason": "new",
+      "language": "php",
+      "size": 2367
     },
     {
       "path": "app/Livewire/Akun/Password.php",
@@ -520,9 +526,9 @@
     },
     {
       "path": "app/Livewire/Laporan/Index.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 8924
+      "size": 10155
     },
     {
       "path": "app/Livewire/Notifikasi/Announcements.php",
@@ -1198,9 +1204,9 @@
     },
     {
       "path": "app/Services/ReportExportService.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 1492
+      "size": 2942
     },
     {
       "path": "app/Services/RestockAdvisor.php",
@@ -1228,9 +1234,9 @@
     },
     {
       "path": "app/Services/SalesExport.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 7927
+      "size": 9359
     },
     {
       "path": "app/Services/SalesReport.php",
@@ -1474,7 +1480,7 @@
     },
     {
       "path": "config/koperasi.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 2141
     },
@@ -1498,7 +1504,7 @@
     },
     {
       "path": "config/queue.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 4393
     },
@@ -2482,9 +2488,9 @@
     },
     {
       "path": "resources/views/livewire/laporan/partials/export-panel.blade.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 3664
+      "size": 5176
     },
     {
       "path": "resources/views/livewire/laporan/partials/sales-chart.blade.php",
@@ -2734,15 +2740,15 @@
     },
     {
       "path": "routes/console.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 4590
     },
     {
       "path": "routes/web.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 29859
+      "size": 30494
     },
     {
       "path": "tests/Concerns/MakesProductImports.php",
@@ -3405,6 +3411,12 @@
       "size": 3013
     },
     {
+      "path": "tests/Feature/Laporan/QueuedSalesExportTest.php",
+      "reason": "new",
+      "language": "php",
+      "size": 2573
+    },
+    {
       "path": "tests/Feature/Laporan/SalesExportEndpointTest.php",
       "reason": "needs_summary",
       "language": "php",
@@ -3694,7 +3706,7 @@
     },
     {
       "path": "tests/Feature/Sistem/QueueConfigTest.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 1534
     },

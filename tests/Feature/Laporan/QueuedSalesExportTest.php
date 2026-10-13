@@ -56,9 +56,10 @@ class QueuedSalesExportTest extends TestCase
         Livewire::test(Index::class)->call('export')->assertHasErrors('exportFrom');
         $this->assertSame(3, ReportExport::count());
 
-        $job = new ExportSalesReport(ReportExport::first()->id);
-        $job->failed(new \RuntimeException('Disk penuh'));
-        $this->assertSame(['failed', 'Disk penuh'], [ReportExport::first()->status, ReportExport::first()->error]);
-        $this->get(route('laporan.unduhan', ReportExport::first()))->assertStatus(409);
+        $id = ReportExport::orderBy('id')->value('id');
+        (new ExportSalesReport($id))->failed(new \RuntimeException('Disk penuh'));
+        $failed = ReportExport::find($id);
+        $this->assertSame(['failed', 'Disk penuh'], [$failed->status, $failed->error]);
+        $this->get(route('laporan.unduhan', $failed))->assertStatus(409);
     }
 }
