@@ -1,6 +1,6 @@
 {
   "repo": "Koperasi Sekolah",
-  "generatedForCommit": "c50d2a3eeecbcbcbc61aa51e44b5b8633a53051f",
+  "generatedForCommit": "5908ef333e49da75b2fb920dc521fd7b7513a1f6",
   "files": [
     {
       "path": ".claude/skills/ngodingpakeai/SKILL.md",
@@ -645,6 +645,12 @@
       "size": 2768
     },
     {
+      "path": "app/Livewire/Sistem/Health.php",
+      "reason": "new",
+      "language": "php",
+      "size": 1238
+    },
+    {
       "path": "app/Livewire/Transaksi/Index.php",
       "reason": "needs_summary",
       "language": "php",
@@ -1006,7 +1012,7 @@
     },
     {
       "path": "app/Services/DiscountReport.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 4427
     },
@@ -1102,7 +1108,7 @@
     },
     {
       "path": "app/Services/PromoService.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 8494
     },
@@ -1120,7 +1126,7 @@
     },
     {
       "path": "app/Services/ReceiptPresenter.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 6892
     },
@@ -1150,7 +1156,7 @@
     },
     {
       "path": "app/Services/SalesReport.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 14562
     },
@@ -1204,7 +1210,7 @@
     },
     {
       "path": "app/Services/TransactionHistory.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 11148
     },
@@ -1246,9 +1252,9 @@
     },
     {
       "path": "app/Support/Menu.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 7302
+      "size": 7674
     },
     {
       "path": "app/Support/MockData.php",
@@ -1297,6 +1303,12 @@
       "reason": "needs_summary",
       "language": "php",
       "size": 8953
+    },
+    {
+      "path": "app/Support/SystemHealth.php",
+      "reason": "new",
+      "language": "php",
+      "size": 7882
     },
     {
       "path": "artisan",
@@ -1743,6 +1755,12 @@
       "size": 920
     },
     {
+      "path": "database/migrations/2026_10_13_000027_add_sistem_menu_to_admin_role.php",
+      "reason": "new",
+      "language": "php",
+      "size": 1227
+    },
+    {
       "path": "database/seeders/ActivityLogSeeder.php",
       "reason": "needs_summary",
       "language": "php",
@@ -1983,6 +2001,12 @@
       "size": 675
     },
     {
+      "path": "resources/views/components/sistem/nav.blade.php",
+      "reason": "new",
+      "language": "php",
+      "size": 1046
+    },
+    {
       "path": "resources/views/components/stock-badge.blade.php",
       "reason": "needs_summary",
       "language": "php",
@@ -2008,7 +2032,7 @@
     },
     {
       "path": "resources/views/components/transaksi/row.blade.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 4013
     },
@@ -2475,6 +2499,12 @@
       "size": 12154
     },
     {
+      "path": "resources/views/livewire/sistem/health.blade.php",
+      "reason": "new",
+      "language": "php",
+      "size": 6902
+    },
+    {
       "path": "resources/views/livewire/transaksi/index.blade.php",
       "reason": "needs_summary",
       "language": "php",
@@ -2518,7 +2548,7 @@
     },
     {
       "path": "resources/views/livewire/transaksi/show.blade.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 12767
     },
@@ -2536,9 +2566,9 @@
     },
     {
       "path": "routes/web.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 28289
+      "size": 28438
     },
     {
       "path": "tests/Concerns/MakesProductImports.php",
@@ -2710,9 +2740,9 @@
     },
     {
       "path": "tests/Feature/Auth/RoleMenuTest.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 3332
+      "size": 3342
     },
     {
       "path": "tests/Feature/Auth/RoleMiddlewareTest.php",
@@ -3154,7 +3184,7 @@
     },
     {
       "path": "tests/Feature/Laporan/NetSalesAfterReturnsTest.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 3013
     },
@@ -3397,6 +3427,12 @@
       "reason": "needs_summary",
       "language": "php",
       "size": 4433
+    },
+    {
+      "path": "tests/Feature/Sistem/HealthPageTest.php",
+      "reason": "new",
+      "language": "php",
+      "size": 2390
     },
     {
       "path": "tests/Feature/Transaksi/DateFilterTest.php",

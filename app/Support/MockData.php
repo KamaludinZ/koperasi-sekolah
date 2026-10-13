@@ -356,4 +356,45 @@ class MockData
             ['id' => 14, 'code' => 'SRG003', 'name' => 'Ikat Pinggang', 'category' => 'Seragam', 'price' => 18000, 'cost_price' => 14400, 'stock' => 14, 'min_stock' => 5, 'unit' => 'pcs'],
         ];
     }
+
+    /** Jadwal cadangan tiruan. Kontrak backend: GET /sistem/cadangan/jadwal. */
+    public const BACKUP_SCHEDULE = ['enabled' => true, 'frequency' => 'harian', 'time' => '23:00', 'keep' => 14, 'include_files' => true, 'disk' => 'local'];
+
+    /**
+     * Daftar cadangan tiruan (terbaru dulu): satu per malam selama 14 hari, satu gagal, satu manual hari ini.
+     * Kontrak backend: GET /sistem/cadangan/daftar → rows[].
+     *
+     * @return list<array{id: int, name: string, created_at: string, type: string, trigger: string, status: string, size: int, duration_s: int, includes: list<string>, note: ?string, by: ?string, checksum: ?string}>
+     */
+    public static function backups(): array
+    {
+        $rows = [];
+        $id = 100;
+        for ($d = 0; $d < 14; $d++) {
+            $at = now()->subDays($d + 1)->setTime(23, 0, 4 + $d % 7);
+            $failed = $d === 5;
+            $size = 2_300_000 + (13 - $d) * 18_500;
+            $rows[] = [
+                'id' => $id--,
+                'name' => 'koperasi-'.$at->format('Y-m-d-His').'.zip',
+                'created_at' => $at->toDateTimeString(),
+                'type' => 'lengkap',
+                'trigger' => 'terjadwal',
+                'status' => $failed ? 'gagal' : 'berhasil',
+                'size' => $failed ? 0 : $size,
+                'duration_s' => $failed ? 3 : 18 + $d % 5,
+                'includes' => $failed ? [] : ['basis data', 'logo & berkas unggahan'],
+                'note' => $failed ? 'Ruang penyimpanan penuh saat menulis arsip.' : null,
+                'by' => null,
+                'checksum' => $failed ? null : substr(md5('backup'.$d), 0, 16),
+            ];
+        }
+        array_unshift($rows, [
+            'id' => 101, 'name' => 'koperasi-'.now()->setTime(9, 15, 2)->format('Y-m-d-His').'.zip', 'created_at' => now()->setTime(9, 15, 2)->toDateTimeString(),
+            'type' => 'basis data', 'trigger' => 'manual', 'status' => 'berhasil', 'size' => 1_820_000, 'duration_s' => 9,
+            'includes' => ['basis data'], 'note' => 'Sebelum impor barang semester baru', 'by' => 'Admin Koperasi', 'checksum' => substr(md5('manual'), 0, 16),
+        ]);
+
+        return $rows;
+    }
 }

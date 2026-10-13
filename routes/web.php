@@ -399,6 +399,7 @@ Route::middleware(['menu:audit', 'peran:admin,pengurus'])->group(function () {
 
 Route::middleware('menu:sistem')->group(function () {
     Route::get('/sistem', Sistem\Health::class)->name('sistem');
+    Route::get('/sistem/cadangan', Sistem\Backups::class)->name('sistem.cadangan');
 });
 
 Route::middleware('menu:pengaturan')->group(function () {
