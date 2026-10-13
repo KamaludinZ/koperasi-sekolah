@@ -1,6 +1,6 @@
 {
   "repo": "Koperasi Sekolah",
-  "generatedForCommit": "78ab4b80891fc640c905920221e7418e1524ad15",
+  "generatedForCommit": "c50d2a3eeecbcbcbc61aa51e44b5b8633a53051f",
   "files": [
     {
       "path": ".claude/skills/ngodingpakeai/SKILL.md",
@@ -664,7 +664,7 @@
     },
     {
       "path": "app/Livewire/Transaksi/ReturnStatusNotice.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 2188
     },
@@ -772,7 +772,7 @@
     },
     {
       "path": "app/Models/Notification.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 5954
     },
@@ -1006,9 +1006,9 @@
     },
     {
       "path": "app/Services/DiscountReport.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 4353
+      "size": 4427
     },
     {
       "path": "app/Services/GoodsReceiptService.php",
@@ -1102,9 +1102,9 @@
     },
     {
       "path": "app/Services/PromoService.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 8440
+      "size": 8494
     },
     {
       "path": "app/Services/PurchaseOrderService.php",
@@ -1120,9 +1120,9 @@
     },
     {
       "path": "app/Services/ReceiptPresenter.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 6693
+      "size": 6892
     },
     {
       "path": "app/Services/ReportExportService.php",
@@ -1150,9 +1150,9 @@
     },
     {
       "path": "app/Services/SalesReport.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 11783
+      "size": 14562
     },
     {
       "path": "app/Services/SavingsPaymentService.php",
@@ -1204,13 +1204,13 @@
     },
     {
       "path": "app/Services/TransactionHistory.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 10937
+      "size": 11148
     },
     {
       "path": "app/Services/TransactionReturnService.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 28795
     },
@@ -1252,7 +1252,7 @@
     },
     {
       "path": "app/Support/MockData.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 15359
     },
@@ -1738,7 +1738,7 @@
     },
     {
       "path": "database/migrations/2026_10_13_000026_add_recipient_to_notifications_table.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 920
     },
@@ -2008,9 +2008,9 @@
     },
     {
       "path": "resources/views/components/transaksi/row.blade.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 3255
+      "size": 4013
     },
     {
       "path": "resources/views/errors/401.blade.php",
@@ -2518,9 +2518,9 @@
     },
     {
       "path": "resources/views/livewire/transaksi/show.blade.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 11882
+      "size": 12767
     },
     {
       "path": "resources/views/livewire/transaksi/void-form.blade.php",
@@ -3153,6 +3153,12 @@
       "size": 6609
     },
     {
+      "path": "tests/Feature/Laporan/NetSalesAfterReturnsTest.php",
+      "reason": "new",
+      "language": "php",
+      "size": 3013
+    },
+    {
       "path": "tests/Feature/Laporan/SalesExportEndpointTest.php",
       "reason": "needs_summary",
       "language": "php",
@@ -3460,7 +3466,7 @@
     },
     {
       "path": "tests/Feature/Transaksi/ReturnStatusNoticeTest.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 4974
     },

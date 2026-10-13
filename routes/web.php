@@ -53,6 +53,7 @@ use App\Livewire\Laporan;
 use App\Livewire\Notifikasi;
 use App\Livewire\Pengadaan;
 use App\Livewire\Pengaturan;
+use App\Livewire\Sistem;
 use App\Livewire\Pengguna;
 use App\Livewire\Promo;
 use App\Livewire\Transaksi;
@@ -394,6 +395,10 @@ Route::middleware(['menu:audit', 'peran:admin,pengurus'])->group(function () {
     Route::get('/audit/terhapus/data', [TrashController::class, 'index'])->name('audit.terhapus.data');
     Route::post('/audit/terhapus/pulihkan', [TrashController::class, 'restore'])
         ->middleware(['can:pulihkan-data', 'throttle:30,1'])->name('audit.terhapus.restore');
+});
+
+Route::middleware('menu:sistem')->group(function () {
+    Route::get('/sistem', Sistem\Health::class)->name('sistem');
 });
 
 Route::middleware('menu:pengaturan')->group(function () {

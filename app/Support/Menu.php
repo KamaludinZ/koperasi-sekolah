@@ -69,6 +69,11 @@ class Menu
             'description' => 'Akun petugas & peran',
             'icon' => 'M16 21v-2a4 4 0 00-4-4H6a4 4 0 00-4 4v2M9 11a4 4 0 100-8 4 4 0 000 8zM19 8v6M22 11h-6',
         ],
+        'sistem' => [
+            'label' => 'Sistem', 'route' => 'sistem', 'group' => 'pengurus',
+            'description' => 'Kesehatan sistem, cadangan data & antrean',
+            'icon' => 'M5 12h14M5 12a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v4a2 2 0 01-2 2M5 12a2 2 0 00-2 2v4a2 2 0 002 2h14a2 2 0 002-2v-4a2 2 0 00-2-2m-2-4h.01M17 16h.01',
+        ],
         'pengaturan' => [
             'label' => 'Pengaturan', 'route' => 'pengaturan', 'group' => 'pengurus',
             'description' => 'Identitas koperasi, struk & pajak',
@@ -81,7 +86,7 @@ class Menu
      * Pengurus: memantau data, laporan & rekap kas, pengadaan barang, tanpa layar kasir.
      */
     public const DEFAULT_PERMISSIONS = [
-        'admin' => ['kasir', 'transaksi', 'kas', 'barang', 'pengadaan', 'promo', 'anggota', 'laporan', 'audit', 'pengguna', 'pengaturan'],
+        'admin' => ['kasir', 'transaksi', 'kas', 'barang', 'pengadaan', 'promo', 'anggota', 'laporan', 'audit', 'pengguna', 'sistem', 'pengaturan'],
         'kasir' => ['kasir', 'transaksi', 'kas', 'barang', 'promo', 'anggota'],
         'pengurus' => ['laporan', 'transaksi', 'kas', 'barang', 'pengadaan', 'promo', 'anggota', 'audit'], // urutan pertama = halaman awal setelah masuk
     ];
