@@ -68,6 +68,11 @@ class SalesReport
     /** Ringkasan penjualan dalam rentang (agregat SQL). */
     public function summary(Carbon $start, Carbon $end): array
     {
+        return \App\Support\ReportCache::remember('summary', [$start, $end], fn () => $this->computeSummary($start, $end));
+    }
+
+        private function computeSummary(Carbon $start, Carbon $end): array
+    {
         // Penjualan bersih: transaksi batal tidak dihitung; nilai & barang retur yang disetujui dikurangkan.
         $tx = Transaction::query()->betweenDates($start, $end)->notVoided()->toBase()
             ->selectRaw('COUNT(*) AS n, COALESCE(SUM(total - returned_amount), 0) AS revenue, COALESCE(SUM(item_count), 0) AS items')
@@ -157,6 +162,11 @@ class SalesReport
      */
     public function today(): array
     {
+        return \App\Support\ReportCache::remember('today', [now()], fn () => $this->computeToday(), 60);
+    }
+
+        private function computeToday(): array
+    {
         $now = now();
         $start = $now->copy()->startOfDay();
         $today = $this->summary($start, $now);
@@ -193,6 +203,11 @@ class SalesReport
      */
     public function topProducts(Carbon $start, Carbon $end, ?int $limit = 5): array
     {
+        return \App\Support\ReportCache::remember('top', [$start, $end, $limit], fn () => $this->computeTopProducts($start, $end, $limit));
+    }
+
+        private function computeTopProducts(Carbon $start, Carbon $end, ?int $limit = 5): array
+    {
         $returned = $this->returnedByProduct($start, $end);
 
         $rows = collect($this->items($start, $end)->toBase()
@@ -224,6 +239,11 @@ class SalesReport
      * @return list<array{date: string, count: int, items: int, revenue: int}>
      */
     public function daily(Carbon $start, Carbon $end): array
+    {
+        return \App\Support\ReportCache::remember('daily', [$start, $end], fn () => $this->computeDaily($start, $end));
+    }
+
+        private function computeDaily(Carbon $start, Carbon $end): array
     {
         return Transaction::query()->betweenDates($start, $end)->notVoided()
             ->get(['created_at', 'total', 'item_count', 'returned_amount'])
@@ -273,6 +293,11 @@ class SalesReport
      * @return list<array{date: string, end: string, label: string, tooltip: string, value: int, count: int}>
      */
     public function chart(Carbon $start, Carbon $end, string $unit = 'hari', ?string $dayLabel = null): array
+    {
+        return \App\Support\ReportCache::remember('chart', [$start, $end, $unit, $dayLabel], fn () => $this->computeChart($start, $end, $unit, $dayLabel));
+    }
+
+        private function computeChart(Carbon $start, Carbon $end, string $unit = 'hari', ?string $dayLabel = null): array
     {
         $bucketStart = fn (Carbon $d) => match ($unit) {
             'minggu' => $d->copy()->startOfWeek(),

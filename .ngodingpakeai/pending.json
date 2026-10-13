@@ -1,6 +1,6 @@
 {
   "repo": "Koperasi Sekolah",
-  "generatedForCommit": "526c4e34befb74d773fc1e976c815deb5f92fe3e",
+  "generatedForCommit": "92ac13d1860f8b5a2a9521c045653b7473fbda92",
   "files": [
     {
       "path": ".claude/skills/ngodingpakeai/SKILL.md",
@@ -352,7 +352,7 @@
     },
     {
       "path": "app/Jobs/SyncStockAlerts.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 858
     },
@@ -1138,7 +1138,7 @@
     },
     {
       "path": "app/Services/NotificationService.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 7318
     },
@@ -1891,6 +1891,12 @@
       "reason": "needs_summary",
       "language": "php",
       "size": 1751
+    },
+    {
+      "path": "database/migrations/2026_10_14_000003_add_search_expression_indexes.php",
+      "reason": "new",
+      "language": "php",
+      "size": 2046
     },
     {
       "path": "database/seeders/ActivityLogSeeder.php",
@@ -3165,6 +3171,12 @@
       "size": 3233
     },
     {
+      "path": "tests/Feature/Database/SearchIndexTest.php",
+      "reason": "new",
+      "language": "php",
+      "size": 1368
+    },
+    {
       "path": "tests/Feature/Database/SettingsSchemaTest.php",
       "reason": "needs_summary",
       "language": "php",
@@ -3418,7 +3430,7 @@
     },
     {
       "path": "tests/Feature/Laporan/QueuedSalesExportTest.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 2589
     },
@@ -3502,7 +3514,7 @@
     },
     {
       "path": "tests/Feature/Notifikasi/StockAlertQueueTest.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 1923
     },

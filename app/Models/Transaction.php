@@ -19,6 +19,13 @@ class Transaction extends Model
         'voided_at', 'voided_by', 'void_reason', 'returned_amount',
     ];
 
+    /** Data penjualan berubah → cache laporan dibuang (versi naik setelah commit). */
+    protected static function booted(): void
+    {
+        static::saved(fn () => \App\Support\ReportCache::bump());
+        static::deleted(fn () => \App\Support\ReportCache::bump());
+    }
+
     protected function casts(): array
     {
         return [

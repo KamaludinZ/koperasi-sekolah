@@ -33,6 +33,13 @@ class TransactionReturn extends Model
 
     protected $attributes = ['status' => 'menunggu', 'restock' => true];
 
+    /** Data penjualan berubah → cache laporan dibuang (versi naik setelah commit). */
+    protected static function booted(): void
+    {
+        static::saved(fn () => \App\Support\ReportCache::bump());
+        static::deleted(fn () => \App\Support\ReportCache::bump());
+    }
+
     protected function casts(): array
     {
         return ['restock' => 'boolean', 'amount' => 'integer', 'quantity' => 'integer', 'requested_at' => 'datetime', 'decided_at' => 'datetime'];
