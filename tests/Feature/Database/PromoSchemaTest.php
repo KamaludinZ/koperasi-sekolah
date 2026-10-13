@@ -63,9 +63,10 @@ class PromoSchemaTest extends TestCase
 
         $tx = Transaction::factory()->create(['total' => 15000, 'discount' => 5000]);
         TransactionDiscount::create(['transaction_id' => $tx->id, 'source' => 'kupon', 'coupon_id' => $coupon->id, 'label' => $coupon->code, 'amount' => 5000]);
+        $coupon->increment('used_count');
 
         $this->assertSame('habis', $coupon->fresh()->status);
-        $this->assertSame(1, Coupon::withCount('redemptions')->find($coupon->id)->usedCount());
+        $this->assertSame([1, 0], [$coupon->fresh()->usedCount(), $coupon->fresh()->remaining()]);
         $this->assertSame(['kupon'], $tx->discounts->pluck('source')->all());
 
         $this->expectException(QueryException::class);

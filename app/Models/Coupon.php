@@ -10,7 +10,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 /**
  * Kupon/voucher: kode (huruf besar tanpa spasi), potongan persen (dengan batas maks.) atau
  * rupiah, minimal belanja, kuota total & per anggota, masa berlaku. Pemakaian dicatat di
- * transaction_discounts (source = kupon). Status: aktif | terjadwal | berakhir | habis | nonaktif.
+ * transaction_discounts (source = kupon) dan penghitung used_count (sisa kuota). Status: aktif | terjadwal | berakhir | habis | nonaktif.
  */
 class Coupon extends Model
 {
@@ -31,6 +31,7 @@ class Coupon extends Model
             'min_purchase' => 'decimal:2',
             'quota' => 'integer',
             'per_member' => 'integer',
+            'used_count' => 'integer',
             'starts_on' => 'date',
             'ends_on' => 'date',
             'is_active' => 'boolean',
@@ -58,10 +59,16 @@ class Coupon extends Model
         return $this->belongsTo(User::class, 'created_by');
     }
 
-    /** Jumlah pemakaian (pakai `redemptions_count` bila sudah dimuat lewat withCount). */
+    /** Jumlah pemakaian (penghitung `used_count`, dinaikkan/dikembalikan oleh CouponService). */
     public function usedCount(): int
     {
-        return (int) ($this->redemptions_count ?? $this->redemptions()->count());
+        return (int) $this->used_count;
+    }
+
+    /** Sisa kuota; null = tanpa batas. */
+    public function remaining(): ?int
+    {
+        return $this->quota === null ? null : max(0, $this->quota - $this->usedCount());
     }
 
     public function getStatusAttribute(): string

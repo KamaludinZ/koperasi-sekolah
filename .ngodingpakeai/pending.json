@@ -1,6 +1,6 @@
 {
   "repo": "Koperasi Sekolah",
-  "generatedForCommit": "af7e19235a53a02c739cf66fe629d51b9ee9adbc",
+  "generatedForCommit": "3212035087220727e233d8a99d36b18139d79069",
   "files": [
     {
       "path": ".claude/skills/ngodingpakeai/SKILL.md",
@@ -148,13 +148,13 @@
     },
     {
       "path": "app/Http/Controllers/Kasir/CheckoutController.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 2006
     },
     {
       "path": "app/Http/Controllers/Kasir/CouponCheckController.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 1336
     },
@@ -346,7 +346,7 @@
     },
     {
       "path": "app/Livewire/Kasir/Cart.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 13461
     },
@@ -618,11 +618,11 @@
       "path": "app/Services/CheckoutService.php",
       "reason": "changed",
       "language": "php",
-      "size": 10029
+      "size": 10367
     },
     {
       "path": "app/Services/CouponService.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 3300
     },
@@ -700,9 +700,9 @@
     },
     {
       "path": "app/Services/ReceiptPresenter.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 4261
+      "size": 4671
     },
     {
       "path": "app/Services/ReportExportService.php",
@@ -1107,6 +1107,12 @@
       "size": 7132
     },
     {
+      "path": "database/migrations/2026_10_13_000007_backfill_transaction_discounts.php",
+      "reason": "new",
+      "language": "php",
+      "size": 1567
+    },
+    {
       "path": "database/seeders/ActivityLogSeeder.php",
       "reason": "needs_summary",
       "language": "php",
@@ -1114,9 +1120,9 @@
     },
     {
       "path": "database/seeders/CashShiftSeeder.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 4729
+      "size": 4992
     },
     {
       "path": "database/seeders/DatabaseSeeder.php",
@@ -1360,9 +1366,9 @@
     },
     {
       "path": "resources/views/kasir/receipt-pdf.blade.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 3779
+      "size": 4050
     },
     {
       "path": "resources/views/kasir/receipt-print.blade.php",
@@ -1498,7 +1504,7 @@
     },
     {
       "path": "resources/views/livewire/kasir/cart.blade.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 8175
     },
@@ -1510,7 +1516,7 @@
     },
     {
       "path": "resources/views/livewire/kasir/partials/coupon.blade.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 4357
     },
@@ -1534,9 +1540,9 @@
     },
     {
       "path": "resources/views/livewire/kasir/partials/receipt.blade.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 4260
+      "size": 4598
     },
     {
       "path": "resources/views/livewire/kasir/product-picker.blade.php",
@@ -1654,9 +1660,9 @@
     },
     {
       "path": "resources/views/livewire/transaksi/show.blade.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 9501
+      "size": 10345
     },
     {
       "path": "routes/console.php",
@@ -1666,7 +1672,7 @@
     },
     {
       "path": "routes/web.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 14571
     },
@@ -1828,9 +1834,9 @@
     },
     {
       "path": "tests/Feature/Database/CashShiftSeederTest.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 2640
+      "size": 3452
     },
     {
       "path": "tests/Feature/Database/MemberModelTest.php",
@@ -1984,7 +1990,7 @@
     },
     {
       "path": "tests/Feature/Kasir/CouponInputTest.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 6317
     },
@@ -2200,9 +2206,9 @@
     },
     {
       "path": "tests/Feature/Transaksi/DiscountDisplayTest.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 2412
+      "size": 4774
     },
     {
       "path": "tests/Feature/Transaksi/IndexTest.php",

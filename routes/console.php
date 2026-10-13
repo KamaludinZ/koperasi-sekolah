@@ -20,3 +20,11 @@ Schedule::command('notifikasi:stok')->dailyAt('06:30');
 
 // Bersihkan ekspor laporan lama (baris & berkas CSV di disk privat), lihat ReportExport::KEEP_DAYS.
 Schedule::command('model:prune', ['--model' => [\App\Models\ReportExport::class]])->dailyAt('02:00');
+
+Artisan::command('kupon:hitung-ulang', function () {
+    $changed = app(\App\Services\CouponService::class)->recount();
+    foreach ($changed as $code => $c) {
+        $this->line("{$code}: {$c['from']} → {$c['to']}");
+    }
+    $this->info($changed ? count($changed).' kupon diselaraskan.' : 'Semua penghitung kupon sudah sesuai.');
+})->purpose('Selaraskan penghitung pemakaian kupon dengan riwayat transaksi');

@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\Coupon;
 use App\Models\TransactionDiscount;
+use Illuminate\Support\Facades\DB;
 use App\Support\CouponValidator;
 use Illuminate\Validation\ValidationException;
 
@@ -11,8 +12,9 @@ use Illuminate\Validation\ValidationException;
  * Kupon/voucher dari database: periksa kode (CouponValidator memberi umpan balik: tidak
  * dikenal, nonaktif, belum berlaku, kedaluwarsa, kuota habis, kurang minimal belanja),
  * batas pemakaian per anggota bila anggotanya diketahui, dan hitung potongannya.
- * redeem() dipakai CheckoutService di dalam transaksi database dengan kunci baris kupon
- * agar kuota tidak terlampaui saat dua kasir memakai kupon bersamaan.
+ * redeem() dipakai CheckoutService di dalam transaksi database: kunci baris kupon lalu
+ * menaikkan used_count secara atomik (hanya bila masih ada sisa kuota), sehingga kuota tidak
+ * terlampaui saat dua kasir memakai kupon bersamaan. release() mengembalikan kuota.
  */
 class CouponService
 {
@@ -54,7 +56,42 @@ class CouponService
             throw ValidationException::withMessages(['coupon' => $result['message']]);
         }
 
+        // Kurangi kuota secara atomik: hanya berhasil bila masih ada sisa kuota.
+        $taken = DB::table('coupons')->where('id', $result['coupon']['id'])
+            ->where(fn ($q) => $q->whereNull('quota')->orWhereColumn('used_count', '<', 'quota'))
+            ->increment('used_count');
+        if ($taken === 0) {
+            throw ValidationException::withMessages(['coupon' => "Kuota kupon {$result['coupon']['code']} sudah habis."]);
+        }
+
         return ['coupon_id' => $result['coupon']['id'], 'code' => $result['coupon']['code'], 'amount' => $result['amount']];
+    }
+
+    /**
+     * Kembalikan satu kuota kupon (mis. transaksi dibatalkan/diretur); tidak pernah di bawah 0.
+     * Panggil di dalam transaksi database yang membatalkan pemakaiannya.
+     */
+    public function release(int $couponId): void
+    {
+        DB::table('coupons')->where('id', $couponId)->where('used_count', '>', 0)->decrement('used_count');
+    }
+
+    /**
+     * Selaraskan penghitung pemakaian dengan riwayat transaction_discounts (perintah kupon:hitung-ulang).
+     *
+     * @return array<string, array{from: int, to: int}> kupon yang penghitungnya berubah
+     */
+    public function recount(): array
+    {
+        $changed = [];
+        foreach (Coupon::withCount('redemptions')->get() as $coupon) {
+            if ($coupon->used_count !== $coupon->redemptions_count) {
+                $changed[$coupon->code] = ['from' => $coupon->used_count, 'to' => $coupon->redemptions_count];
+                $coupon->forceFill(['used_count' => $coupon->redemptions_count])->saveQuietly();
+            }
+        }
+
+        return $changed;
     }
 
     /** Bentuk array kupon (sama dengan data tahap frontend), dengan jumlah pemakaian & status. */
@@ -70,6 +107,7 @@ class CouponService
             'min_purchase' => (int) round((float) $c->min_purchase),
             'quota' => $c->quota,
             'used' => $c->usedCount(),
+            'remaining' => $c->remaining(),
             'per_member' => $c->per_member,
             'starts_at' => $c->starts_on->toDateString(),
             'ends_at' => $c->ends_on->toDateString(),
