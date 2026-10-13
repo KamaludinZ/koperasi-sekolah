@@ -1,6 +1,6 @@
 {
   "repo": "Koperasi Sekolah",
-  "generatedForCommit": "5465a663f8e1be9309611609f9b2f75d4219928d",
+  "generatedForCommit": "f2bba13aa54a1699fa0178d8ae825469c1d9d51e",
   "files": [
     {
       "path": ".claude/skills/ngodingpakeai/SKILL.md",
@@ -148,9 +148,9 @@
     },
     {
       "path": "app/Http/Controllers/BerandaController.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 2619
+      "size": 2716
     },
     {
       "path": "app/Http/Controllers/Controller.php",
@@ -982,9 +982,9 @@
     },
     {
       "path": "app/Services/AnnouncementService.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 6440
+      "size": 6596
     },
     {
       "path": "app/Services/AuditChangeQuery.php",
@@ -1294,7 +1294,7 @@
     },
     {
       "path": "app/Support/AccessDenied.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 1451
     },
@@ -1396,7 +1396,7 @@
     },
     {
       "path": "bootstrap/app.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 1880
     },
@@ -1978,9 +1978,9 @@
     },
     {
       "path": "resources/views/beranda.blade.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 14656
+      "size": 15173
     },
     {
       "path": "resources/views/components/anggota/nav.blade.php",
@@ -2685,6 +2685,12 @@
       "size": 7462
     },
     {
+      "path": "resources/views/pengumuman.blade.php",
+      "reason": "new",
+      "language": "php",
+      "size": 2049
+    },
+    {
       "path": "routes/console.php",
       "reason": "needs_summary",
       "language": "php",
@@ -2692,9 +2698,9 @@
     },
     {
       "path": "routes/web.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 29633
+      "size": 29859
     },
     {
       "path": "tests/Concerns/MakesProductImports.php",
@@ -2842,7 +2848,7 @@
     },
     {
       "path": "tests/Feature/Auth/AccessDeniedAuditTest.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 1359
     },
@@ -3415,6 +3421,12 @@
       "reason": "needs_summary",
       "language": "php",
       "size": 3505
+    },
+    {
+      "path": "tests/Feature/Notifikasi/PublicAnnouncementsPageTest.php",
+      "reason": "new",
+      "language": "php",
+      "size": 1309
     },
     {
       "path": "tests/Feature/Notifikasi/StockAlertAutomationTest.php",

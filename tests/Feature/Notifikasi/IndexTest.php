@@ -31,7 +31,7 @@ class IndexTest extends TestCase
             ->assertSee('Tandai semua dibaca');
 
         $counts = Livewire::test(Index::class)->instance()->counts;
-        $this->assertSame(['semua' => 9, 'belum' => 9, 'stok' => 4, 'pengumuman' => 3], $counts);
+        $this->assertSame(['semua' => 9, 'belum' => 9, 'stok' => 4, 'pengumuman' => 3, 'sistem' => 2], $counts);
     }
 
     public function test_filters_and_read_state(): void
@@ -77,5 +77,17 @@ class IndexTest extends TestCase
     {
         auth()->logout();
         $this->get('/notifikasi')->assertRedirect(route('login'));
+    }
+
+    public function test_empty_states_per_filter(): void
+    {
+        \App\Models\Notification::query()->delete();
+        $c = \Livewire\Livewire::test(\App\Livewire\Notifikasi\Index::class);
+        $c->assertSeeHtml('data-empty="semua"')->assertSee('Belum ada notifikasi');
+        $c->call('setFilter', 'stok')->assertSee('Tidak ada peringatan stok')->assertSee('Lihat saran restok');
+        $c->call('setFilter', 'pengumuman')->assertSee('Kelola pengumuman');
+        $c->call('setFilter', 'sistem')->assertSee('Tidak ada pemberitahuan sistem');
+        $c->call('setFilter', 'belum')->assertSee('Semua notifikasi sudah dibaca');
+        $this->get('/notifikasi/pengumuman')->assertOk()->assertSee('Tulis pengumuman dengan form di samping');
     }
 }

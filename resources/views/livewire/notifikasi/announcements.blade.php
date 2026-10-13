@@ -84,7 +84,10 @@
                             @endif
                         </li>
                     @empty
-                        <li class="px-3 py-6 text-center text-sm text-stone-500">Belum ada pengumuman.</li>
+                        <li class="px-3 py-8 text-center text-sm text-stone-500" data-empty="pengumuman">
+                            <p class="font-medium text-stone-600">Belum ada pengumuman.</p>
+                            <p class="mt-1 text-xs text-stone-400">Tulis pengumuman dengan form di samping — bisa untuk petugas saja atau juga tampil di beranda publik.</p>
+                        </li>
                     @endforelse
                 </ul>
             </section>

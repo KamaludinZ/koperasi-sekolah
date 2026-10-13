@@ -25,6 +25,7 @@ class Index extends Component
         'belum' => 'Belum dibaca',
         'stok' => 'Stok',
         'pengumuman' => 'Pengumuman',
+        'sistem' => 'Sistem',
     ];
 
     public const TYPES = ['stok' => 'Stok', 'pengumuman' => 'Pengumuman', 'sistem' => 'Sistem'];
@@ -71,6 +72,7 @@ class Index extends Component
             'belum' => $all->where('is_read', false)->count(),
             'stok' => $all->where('type', 'stok')->count(),
             'pengumuman' => $all->where('type', 'pengumuman')->count(),
+            'sistem' => $all->where('type', 'sistem')->count(),
         ];
     }
 

@@ -85,8 +85,23 @@
                 </ul>
             </section>
         @empty
-            <div class="rounded-xl border border-dashed border-stone-300 bg-white px-6 py-14 text-center">
-                <p class="text-sm font-medium text-stone-600">{{ $filter === 'belum' ? 'Semua notifikasi sudah dibaca. Alhamdulillah!' : 'Belum ada notifikasi.' }}</p>
+            @php
+                [$emptyTitle, $emptyHint] = match ($filter) {
+                    'belum' => ['Semua notifikasi sudah dibaca. Alhamdulillah!', 'Notifikasi baru akan muncul di sini.'],
+                    'stok' => ['Tidak ada peringatan stok', 'Semua barang aktif di atas batas minimum.'],
+                    'pengumuman' => ['Belum ada pengumuman', 'Pengumuman dari pengurus akan tampil di sini.'],
+                    'sistem' => ['Tidak ada pemberitahuan sistem', 'Keputusan retur, pengingat hutang, dan info sistem lain muncul di sini.'],
+                    default => ['Belum ada notifikasi', 'Peringatan stok, pengumuman, dan info sistem akan muncul di sini.'],
+                };
+            @endphp
+            <div class="rounded-xl border border-dashed border-stone-300 bg-white px-6 py-14 text-center" data-empty="{{ $filter }}">
+                <p class="text-sm font-medium text-stone-600">{{ $emptyTitle }}</p>
+                <p class="mt-1 text-xs text-stone-400">{{ $emptyHint }}</p>
+                @if ($filter === 'stok' && \Illuminate\Support\Facades\Route::has('barang.saran-restok') && auth()->user()->canOpen('barang'))
+                    <a href="{{ route('barang.saran-restok') }}" wire:navigate class="mt-3 inline-block text-sm font-semibold text-emerald-800 hover:underline">Lihat saran restok →</a>
+                @elseif ($filter === 'pengumuman' && auth()->user()->hasRole(\App\Models\Role::ADMIN, \App\Models\Role::PENGURUS))
+                    <a href="{{ route('notifikasi.pengumuman') }}" wire:navigate class="mt-3 inline-block text-sm font-semibold text-emerald-800 hover:underline">Kelola pengumuman →</a>
+                @endif
             </div>
         @endforelse
     </div>
