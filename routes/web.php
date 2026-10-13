@@ -149,6 +149,7 @@ Route::middleware('menu:promo')->group(function () {
 
 Route::middleware('menu:barang')->group(function () {
     Route::get('/barang', Barang\Index::class)->name('barang');
+    Route::get('/barang/kategori', Barang\Catalog::class)->name('barang.kategori');
     Route::get('/barang/daftar', ProductListController::class)
         ->middleware('throttle:120,1')
         ->name('barang.list');

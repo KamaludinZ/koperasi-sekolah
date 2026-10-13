@@ -356,4 +356,53 @@ class MockData
             ['id' => 14, 'code' => 'SRG003', 'name' => 'Ikat Pinggang', 'category' => 'Seragam', 'price' => 18000, 'cost_price' => 14400, 'stock' => 14, 'min_stock' => 5, 'unit' => 'pcs'],
         ];
     }
+
+    /**
+     * Ringkasan kategori tiruan untuk halaman Kategori & Impor. Kontrak yang diasumsikan untuk
+     * backend: GET /barang/kategori/data → {id, name, color, position, products, active_products,
+     * low_stock, stock_value, updated_at}, urut `position`.
+     *
+     * @return list<array{id: int, name: string, color: string, position: int, products: int, active_products: int, low_stock: int, stock_value: int, updated_at: string}>
+     */
+    public static function categoryOverview(): array
+    {
+        $rows = [
+            [1, 'Alat Tulis', 'emerald', 5, 5, 2, 1_284_000, 3],
+            [2, 'Makanan', 'amber', 3, 3, 1, 302_400, 6],
+            [3, 'Minuman', 'sky', 3, 3, 0, 504_000, 12],
+            [4, 'Seragam', 'violet', 3, 3, 1, 638_400, 20],
+            [5, 'Perlengkapan Ibadah', 'teal', 0, 0, 0, 0, 1],
+        ];
+
+        return array_map(fn ($r, $i) => [
+            'id' => $r[0], 'name' => $r[1], 'color' => $r[2], 'position' => $i + 1,
+            'products' => $r[3], 'active_products' => $r[4], 'low_stock' => $r[5], 'stock_value' => $r[6],
+            'updated_at' => now()->subDays($r[7])->toDateTimeString(),
+        ], $rows, array_keys($rows));
+    }
+
+    /**
+     * Riwayat impor barang tiruan. Kontrak: GET /barang/impor/riwayat → {id, file_name, format,
+     * status (selesai|sebagian|gagal|pratinjau), total_rows, created, updated, skipped, failed,
+     * user, created_at, finished_at}, terbaru dulu.
+     *
+     * @return list<array{id: int, file_name: string, format: string, status: string, total_rows: int, created: int, updated: int, skipped: int, failed: int, user: string, created_at: string, finished_at: ?string}>
+     */
+    public static function importHistory(): array
+    {
+        $rows = [
+            ['barang-semester-ganjil.xlsx', 'xlsx', 'pratinjau', 64, 0, 0, 0, 3, 'Pak Dedi', 0, null],
+            ['harga-baru-oktober.csv', 'csv', 'selesai', 12, 0, 12, 0, 0, 'Admin Koperasi', 2, 1],
+            ['seragam-baru.csv', 'csv', 'sebagian', 18, 14, 0, 1, 3, 'Pak Dedi', 6, 1],
+            ['data-awal-koperasi.xlsx', 'xlsx', 'selesai', 14, 14, 0, 0, 0, 'Admin Koperasi', 29, 2],
+            ['salah-format.csv', 'csv', 'gagal', 0, 0, 0, 0, 0, 'Bu Rina', 31, 0],
+        ];
+
+        return array_map(fn ($r, $i) => [
+            'id' => 50 - $i, 'file_name' => $r[0], 'format' => $r[1], 'status' => $r[2], 'total_rows' => $r[3],
+            'created' => $r[4], 'updated' => $r[5], 'skipped' => $r[6], 'failed' => $r[7], 'user' => $r[8],
+            'created_at' => $at = now()->subDays($r[9])->setTime(9 + $i, 15)->toDateTimeString(),
+            'finished_at' => $r[10] === null ? null : \Illuminate\Support\Carbon::parse($at)->addMinutes($r[10])->toDateTimeString(),
+        ], $rows, array_keys($rows));
+    }
 }
