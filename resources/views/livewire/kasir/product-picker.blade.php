@@ -13,6 +13,15 @@
                    class="w-full rounded-xl border border-stone-300 bg-white py-3 pr-16 pl-11 text-base shadow-sm outline-none focus:border-emerald-600 focus:ring-4 focus:ring-emerald-600/15">
             <kbd class="pointer-events-none absolute top-1/2 right-3.5 hidden -translate-y-1/2 rounded border border-stone-300 bg-stone-50 px-1.5 py-0.5 font-mono text-[11px] text-stone-500 sm:block">F2</kbd>
         </label>
+        {{-- Umpan balik scan: bunyi pendek (berhasil/gagal) + pesan yang hilang sendiri. --}}
+        <div x-data="{ beep(type) { try { const a = new (window.AudioContext || window.webkitAudioContext)(); const o = a.createOscillator(); const g = a.createGain(); o.frequency.value = type === 'success' ? 880 : 220; g.gain.value = .05; o.connect(g); g.connect(a.destination); o.start(); o.stop(a.currentTime + (type === 'success' ? .08 : .25)); } catch (e) {} } }"
+             x-on:scan-feedback.window="beep($event.detail.type)" aria-live="polite">
+            @if ($scan)
+                <p wire:key="scan-{{ md5($scan['text']) }}" x-data x-init="setTimeout(() => $el.remove(), 4000)"
+                   @class(['rounded-lg px-3 py-1.5 text-sm', 'bg-emerald-50 text-emerald-900' => $scan['type'] === 'success', 'bg-red-50 text-red-800' => $scan['type'] === 'error', 'bg-amber-50 text-amber-900' => $scan['type'] === 'info'])
+                   data-scan="{{ $scan['type'] }}">{{ $scan['text'] }}</p>
+            @endif
+        </div>
         <div class="flex gap-2 overflow-x-auto pb-1">
             <button type="button" wire:click="$set('category', '')"
                     @class(['shrink-0 rounded-full px-3.5 py-1.5 text-sm font-medium transition',

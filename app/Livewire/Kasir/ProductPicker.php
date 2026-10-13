@@ -20,6 +20,9 @@ class ProductPicker extends Component
 
     public ?int $lastPicked = null;
 
+    /** Umpan balik pencarian/scan terakhir: ['type' => success|error|info, 'text' => ...] */
+    public ?array $scan = null;
+
     public function setCategory(string $category): void
     {
         $this->category = $this->category === $category ? '' : $category;
@@ -54,10 +57,13 @@ class ProductPicker extends Component
     /**
      * Enter di kolom cari: kode yang cocok persis (scan barcode) atau
      * satu-satunya hasil langsung dipilih, lalu kolom cari dikosongkan.
+     * Selalu memberi umpan balik (ditambahkan / tidak ditemukan / stok habis / beberapa hasil)
+     * agar scan yang gagal tidak lewat tanpa disadari.
      */
     public function pickFromSearch(): void
     {
-        $term = mb_strtolower(trim($this->search));
+        $raw = trim($this->search);
+        $term = mb_strtolower($raw);
         if ($term === '') {
             return;
         }
@@ -66,10 +72,33 @@ class ProductPicker extends Component
         $match = app(ProductCatalog::class)->findByCode($term)
             ?? (count($results) === 1 ? $results[0] : null);
 
-        if ($match) {
-            $this->pick($match['id']);
-            $this->search = '';
-            unset($this->products);
+        if (! $match) {
+            $this->scan = count($results) > 1
+                ? ['type' => 'info', 'text' => count($results).' barang cocok dengan “'.$raw.'” — pilih salah satu.']
+                : ['type' => 'error', 'text' => 'Kode “'.$raw.'” tidak ditemukan. Periksa label atau cari dengan nama.'];
+            $this->dispatch('scan-feedback', type: $this->scan['type']);
+
+            return;
+        }
+        if ($match['stock'] < 1) {
+            $this->scan = ['type' => 'error', 'text' => "{$match['name']} stoknya habis."];
+            $this->dispatch('scan-feedback', type: 'error');
+
+            return;
+        }
+
+        $this->pick($match['id']);
+        $this->scan = ['type' => 'success', 'text' => "Ditambahkan: {$match['name']}"];
+        $this->dispatch('scan-feedback', type: 'success');
+        $this->search = '';
+        unset($this->products);
+    }
+
+    /** Ketikan baru menghapus umpan balik scan sebelumnya. */
+    public function updatedSearch(): void
+    {
+        if ($this->search !== '') {
+            $this->scan = null;
         }
     }
 
