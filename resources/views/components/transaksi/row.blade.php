@@ -5,6 +5,7 @@
     $url = route('transaksi.show', $tx['id']);
     $time = substr($tx['created_at'], 11, 5);
     $total = 'Rp'.number_format($tx['total'], 0, ',', '.');
+    $discount = 'Rp'.number_format($tx['discount'] ?? 0, 0, ',', '.');
 @endphp
 
 @if ($variant === 'table')
@@ -20,7 +21,12 @@
         <td class="px-4 py-2.5 text-stone-600">{{ $tx['member'] ?? '—' }}</td>
         <td class="px-4 py-2.5 text-right tabular-nums">{{ $tx['item_count'] }}</td>
         <td class="px-4 py-2.5"><x-transaksi.method-badge :method="$tx['payment_method']" /></td>
-        <td class="px-4 py-2.5 text-right font-semibold tabular-nums">{{ $total }}</td>
+        <td class="px-4 py-2.5 text-right font-semibold tabular-nums">
+            {{ $total }}
+            @if (($tx['discount'] ?? 0) > 0)
+                <span class="block text-[11px] font-medium text-emerald-700" title="Diskon {{ $discount }}">diskon −{{ $discount }}</span>
+            @endif
+        </td>
         <td class="w-8 pr-3 text-stone-300 group-hover:text-emerald-700" aria-hidden="true">
             <svg class="size-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></svg>
         </td>
@@ -37,6 +43,7 @@
             <span class="flex shrink-0 items-center gap-2">
                 <span class="text-right">
                     <span class="block font-semibold tabular-nums">{{ $total }}</span>
+                    @if (($tx['discount'] ?? 0) > 0)<span class="block text-[11px] font-medium text-emerald-700 tabular-nums">diskon −{{ $discount }}</span>@endif
                     <x-transaksi.method-badge :method="$tx['payment_method']" />
                 </span>
                 <svg class="size-4 text-stone-300" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg>

@@ -1,6 +1,6 @@
 {
   "repo": "Koperasi Sekolah",
-  "generatedForCommit": "e4ba5d480ad9d3648ca948cf8381335ad08db5c3",
+  "generatedForCommit": "095eae1e1dcc76389116b8b6cb8b79596fc1ec35",
   "files": [
     {
       "path": ".claude/skills/ngodingpakeai/SKILL.md",
@@ -306,7 +306,7 @@
       "path": "app/Livewire/Kasir/Cart.php",
       "reason": "changed",
       "language": "php",
-      "size": 11750
+      "size": 13544
     },
     {
       "path": "app/Livewire/Kasir/Index.php",
@@ -621,6 +621,12 @@
       "size": 9231
     },
     {
+      "path": "app/Support/CouponValidator.php",
+      "reason": "new",
+      "language": "php",
+      "size": 3062
+    },
+    {
       "path": "app/Support/Menu.php",
       "reason": "needs_summary",
       "language": "php",
@@ -652,7 +658,7 @@
     },
     {
       "path": "app/Support/PromoMatcher.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 5361
     },
@@ -1284,13 +1290,19 @@
       "path": "resources/views/livewire/kasir/cart.blade.php",
       "reason": "changed",
       "language": "php",
-      "size": 7660
+      "size": 7711
     },
     {
       "path": "resources/views/livewire/kasir/index.blade.php",
       "reason": "needs_summary",
       "language": "php",
       "size": 1164
+    },
+    {
+      "path": "resources/views/livewire/kasir/partials/coupon.blade.php",
+      "reason": "new",
+      "language": "php",
+      "size": 4326
     },
     {
       "path": "resources/views/livewire/kasir/partials/discount.blade.php",
@@ -1306,7 +1318,7 @@
     },
     {
       "path": "resources/views/livewire/kasir/partials/promo-panel.blade.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 2913
     },
@@ -1701,6 +1713,12 @@
       "size": 5141
     },
     {
+      "path": "tests/Feature/Kasir/CouponInputTest.php",
+      "reason": "new",
+      "language": "php",
+      "size": 3573
+    },
+    {
       "path": "tests/Feature/Kasir/ManualDiscountTest.php",
       "reason": "needs_summary",
       "language": "php",
@@ -1726,7 +1744,7 @@
     },
     {
       "path": "tests/Feature/Kasir/PromoPanelTest.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 3811
     },

@@ -61,4 +61,12 @@
             </div>
         </div>
     @endif
+
+    @if (($s['discount'] ?? 0) > 0)
+        <p class="flex flex-wrap items-center gap-x-1.5 rounded-xl border border-emerald-200 bg-emerald-50/60 px-4 py-2 text-xs text-emerald-900">
+            <svg class="size-4 shrink-0 text-emerald-700" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 15l6-6M9.5 9.5h.01M14.5 14.5h.01M7 3h10l4 4v10l-4 4H7l-4-4V7z"/></svg>
+            Diskon diberikan <strong class="tabular-nums">{{ $rp($s['discount']) }}</strong>
+            <span class="text-emerald-800/80">pada {{ number_format($s['discounted'], 0, ',', '.') }} transaksi ({{ $s['count'] ? round($s['discounted'] / $s['count'] * 100) : 0 }}%) · total penjualan sudah setelah diskon</span>
+        </p>
+    @endif
 </div>

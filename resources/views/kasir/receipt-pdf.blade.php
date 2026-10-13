@@ -53,7 +53,7 @@
     <table>
         <tr><td>Subtotal</td><td class="r">Rp{{ $n($tx['subtotal']) }}</td></tr>
         @if ($tx['discount'] > 0)
-            <tr><td>Diskon</td><td class="r">-Rp{{ $n($tx['discount']) }}</td></tr>
+            <tr><td>Diskon{{ ($tx['discount_reason'] ?? null) ? ' ('.$tx['discount_reason'].')' : '' }}</td><td class="r">-Rp{{ $n($tx['discount']) }}</td></tr>
         @endif
         @php $taxName = ($tx['tax_label'] ?? null ?: 'Pajak').(($tx['tax_rate'] ?? 0) > 0 ? ' '.str_replace('.', ',', (string) ($tx['tax_rate'] + 0)).'%' : ''); @endphp
         @if ($tx['tax'] > 0)
@@ -69,6 +69,9 @@
         <tr><td>Bayar ({{ $tx['payment_method_label'] }})</td><td class="r">Rp{{ $n($tx['paid']) }}</td></tr>
         <tr><td>Kembali</td><td class="r">Rp{{ $n($tx['change']) }}</td></tr>
     </table>
+    @if ($tx['discount'] > 0)
+        <div class="c b" style="margin-top: 3pt;">Anda hemat Rp{{ $n($tx['discount']) }}</div>
+    @endif
 
     <div class="hr"></div>
 

@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Models\ActivityLog;
 use App\Models\Transaction;
 
 /**
@@ -38,10 +39,26 @@ class ReceiptPresenter
             'tax_included' => (int) $transaction->tax_included,
             'rounding' => (int) $transaction->rounding,
             'discount' => (int) $transaction->discount,
+            'discount_reason' => $transaction->discount > 0 ? self::discountReason($transaction) : null,
             'total' => (int) $transaction->total,
             'paid' => (int) $transaction->paid,
             'change' => (int) $transaction->change,
         ];
+    }
+
+    /**
+     * Alasan diskon manual dari jejak audit penjualan (`sale.created`); null bila tidak dicatat.
+     * Tahap ini belum ada kolom alasan di tabel transaksi.
+     */
+    public static function discountReason(Transaction $transaction): ?string
+    {
+        $properties = ActivityLog::where('subject_type', 'transaction')
+            ->where('subject_id', $transaction->id)
+            ->where('event', 'sale.created')
+            ->latest('id')
+            ->first()?->properties;
+
+        return filled($properties['discount_reason'] ?? null) ? $properties['discount_reason'] : null;
     }
 
     /**

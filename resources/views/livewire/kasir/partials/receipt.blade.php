@@ -39,7 +39,7 @@
     <div class="space-y-0.5">
         <div class="flex justify-between"><span>Subtotal</span><span>{{ $rp($tx['subtotal']) }}</span></div>
         @if (($tx['discount'] ?? 0) > 0)
-            <div class="flex justify-between"><span>Diskon</span><span>-{{ $rp($tx['discount']) }}</span></div>
+            <div class="flex justify-between gap-2"><span class="min-w-0">Diskon{{ ($tx['discount_reason'] ?? null) ? ' ('.$tx['discount_reason'].')' : '' }}</span><span class="shrink-0">-{{ $rp($tx['discount']) }}</span></div>
         @endif
         @php $taxName = ($tx['tax_label'] ?? null ?: 'Pajak').(($tx['tax_rate'] ?? 0) > 0 ? ' '.str_replace('.', ',', (string) ($tx['tax_rate'] + 0)).'%' : ''); @endphp
         @if ($tx['tax'] > 0)
@@ -54,6 +54,9 @@
         @endif
         <div class="flex justify-between"><span>Bayar ({{ $tx['payment_method_label'] }})</span><span>{{ $rp($tx['paid']) }}</span></div>
         <div class="flex justify-between"><span>Kembali</span><span>{{ $rp($tx['change']) }}</span></div>
+        @if (($tx['discount'] ?? 0) > 0)
+            <p class="pt-1 text-center font-bold">Anda hemat {{ $rp($tx['discount']) }}</p>
+        @endif
     </div>
 
     <div class="my-2 border-t border-dashed border-black"></div>

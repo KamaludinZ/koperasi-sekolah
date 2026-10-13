@@ -196,7 +196,7 @@ class TransactionHistory
             ->betweenDates($start, $end)
             ->paymentMethod($method)
             ->groupBy('payment_method')
-            ->selectRaw('payment_method, COUNT(*) AS tx_count, COALESCE(SUM(total), 0) AS total, COALESCE(SUM(item_count), 0) AS items')
+            ->selectRaw('payment_method, COUNT(*) AS tx_count, COALESCE(SUM(total), 0) AS total, COALESCE(SUM(item_count), 0) AS items, COALESCE(SUM(discount), 0) AS discount, SUM(CASE WHEN discount > 0 THEN 1 ELSE 0 END) AS discounted')
             ->get()
             ->keyBy('payment_method');
 
@@ -207,6 +207,8 @@ class TransactionHistory
             'count' => $count,
             'total' => $total,
             'items' => (int) $rows->sum('items'),
+            'discount' => (int) round((float) $rows->sum('discount')),
+            'discounted' => (int) $rows->sum('discounted'),
             'average' => $count ? (int) round($total / $count) : 0,
             'by_method' => collect(CheckoutService::PAYMENT_METHODS)
                 ->map(function ($label, $key) use ($rows, $total) {
