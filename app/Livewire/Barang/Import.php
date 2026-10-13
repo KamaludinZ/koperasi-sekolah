@@ -4,9 +4,8 @@ namespace App\Livewire\Barang;
 
 use App\Livewire\Concerns\NotifiesSave;
 use App\Services\UploadPolicy;
-use App\Support\MockData;
+use App\Services\ProductImportService;
 use App\Support\ProductImportFormat;
-use Illuminate\Support\Facades\Route;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
@@ -17,7 +16,7 @@ use Livewire\WithFileUploads;
  * Barang → Impor barang (Admin & Pengurus): unggah berkas CSV/XLSX sesuai templat, pilih cara
  * menyimpan (tambah & perbarui, hanya tambah, hanya perbarui) dan apakah stok barang lama ikut
  * diperbarui. Berkas diperiksa UploadPolicy (jenis, ukuran, isi) lalu diteruskan ke pratinjau.
- * Tahap ini mencatat impor tiruan lewat MockData::createImport().
+ * Berkas disimpan & dibaca oleh ProductImportService; berkas yang gagal dibaca menuju rinciannya.
  */
 #[Layout('components.layouts.app')]
 #[Title('Impor Barang')]
@@ -69,17 +68,20 @@ class Import extends Component
     {
         $this->validate($this->rules(), $this->messages());
 
-        $import = MockData::createImport(
-            $this->file->getClientOriginalName(), strtolower($this->file->getClientOriginalExtension()),
-            $this->mode, $this->mode !== 'tambah' && $this->updateStock, auth()->user()->name,
-        );
-        $this->file->delete();
+        try {
+            $import = app(ProductImportService::class)->upload($this->file, $this->mode, $this->updateStock, auth()->user());
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            throw \Illuminate\Validation\ValidationException::withMessages(['file' => collect($e->errors())->flatten()->first()]);
+        }
         $this->reset('file');
 
-        if (Route::has('barang.impor.pratinjau')) {
-            return $this->redirectRoute('barang.impor.pratinjau', ['import' => $import['id']], navigate: true);
+        if ($import->status === 'gagal') {
+            session()->flash('toast', ['type' => 'error', 'message' => "{$import->file_name} tidak dapat dibaca."]);
+
+            return $this->redirectRoute('barang.impor.detail', ['import' => $import->id], navigate: true);
         }
-        $this->toast('success', "{$import['file_name']} diterima dan menunggu diperiksa.");
+
+        return $this->redirectRoute('barang.impor.pratinjau', ['import' => $import->id], navigate: true);
     }
 
     public function render()

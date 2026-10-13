@@ -293,4 +293,149 @@ class ProductImportService
 
         return $changes;
     }
+
+    /** Perbaiki nilai satu baris (hanya selama impor masih pratinjau). */
+    public function updateRow(ProductImport $import, int $line, array $values): ProductImportRow
+    {
+        $row = $this->openRow($import, $line);
+        $clean = array_map(fn ($v) => Str::limit(trim((string) $v), 200, ''), array_intersect_key($values, array_flip(ProductImportFormat::headers())));
+        $row->update(['values' => array_merge($row->values, $clean)]);
+
+        return $row;
+    }
+
+    /** Tandai satu baris dilewati / disertakan kembali. */
+    public function setSkipped(ProductImport $import, int $line, bool $skipped): ProductImportRow
+    {
+        $row = $this->openRow($import, $line);
+        $row->update(['skipped' => $skipped]);
+
+        return $row;
+    }
+
+    /** Lewati semua baris yang masih bermasalah. Mengembalikan jumlahnya. */
+    public function skipProblems(ProductImport $import): int
+    {
+        $this->assertOpen($import);
+        $ids = collect($this->evaluate($import)['rows'])->where('action', 'masalah')->pluck('id');
+        ProductImportRow::whereIn('id', $ids)->update(['skipped' => true]);
+
+        return $ids->count();
+    }
+
+    /**
+     * Simpan impor ke data barang: baris baru → barang baru (stok awal lewat riwayat stok),
+     * baris perbarui → barang diubah (stok hanya bila opsi perbarui stok), sisanya dilewati.
+     * Ditolak bila masih ada baris bermasalah. Semua perubahan tercatat di audit dengan alasan impor.
+     *
+     * @throws ValidationException
+     */
+    public function commit(ProductImport $import, ?User $by = null): ProductImport
+    {
+        $by ??= auth()->user();
+
+        return DB::transaction(function () use ($import, $by) {
+            $import = ProductImport::whereKey($import->id)->lockForUpdate()->firstOrFail();
+            $this->assertOpen($import);
+            $evaluated = $this->evaluate($import);
+            if ($evaluated['counts']['masalah'] > 0) {
+                throw ValidationException::withMessages(['baris' => "Masih ada {$evaluated['counts']['masalah']} baris bermasalah. Perbaiki atau lewati dulu."]);
+            }
+            if ($evaluated['counts']['baru'] + $evaluated['counts']['perbarui'] === 0) {
+                throw ValidationException::withMessages(['baris' => 'Tidak ada baris yang perlu disimpan.']);
+            }
+
+            $import->update(['status' => 'diproses']);
+            $products = app(ProductService::class);
+            $minDefault = app(MinStockService::class)->defaultMinStock();
+            $counts = ['created' => 0, 'updated' => 0, 'skipped' => 0];
+
+            AuditLog::withReason("Impor {$import->file_name}", function () use ($evaluated, $import, $products, $minDefault, $by, &$counts) {
+                foreach ($evaluated['rows'] as $r) {
+                    $v = $r['values'];
+                    $row = ProductImportRow::find($r['id']);
+                    if ($r['action'] === 'baru') {
+                        $p = $products->create([
+                            'code' => $v['kode'], 'name' => $v['nama'], 'category' => $this->categoryName($v['kategori']),
+                            'price' => (int) $v['harga_jual'], 'cost_price' => (int) ($v['harga_modal'] ?: 0),
+                            'stock' => (int) ($v['stok'] ?: 0), 'min_stock' => $v['batas_minimum'] === '' ? $minDefault : (int) $v['batas_minimum'],
+                            'unit' => $v['satuan'] ?: 'pcs', 'is_active' => ProductImportFormat::isActive($v['aktif']),
+                        ], $by?->id);
+                        $row->update(['result' => 'baru', 'product_id' => $p->id, 'message' => null]);
+                        $counts['created']++;
+                    } elseif ($r['action'] === 'perbarui') {
+                        $p = Product::with('category')->findOrFail($r['product_id']);
+                        $products->update($p, [
+                            'code' => $p->code,
+                            'name' => $v['nama'] ?: $p->name,
+                            'category' => $this->categoryName($v['kategori']) ?? $p->category?->name,
+                            'price' => $v['harga_jual'] === '' ? (int) $p->price : (int) $v['harga_jual'],
+                            'cost_price' => $v['harga_modal'] === '' ? (int) $p->cost_price : (int) $v['harga_modal'],
+                            'stock' => $import->update_stock && $v['stok'] !== '' ? (int) $v['stok'] : $p->stock,
+                            'min_stock' => $v['batas_minimum'] === '' ? $p->min_stock : (int) $v['batas_minimum'],
+                            'unit' => $v['satuan'] ?: $p->unit,
+                            'is_active' => ProductImportFormat::isActive($v['aktif']),
+                        ], $by?->id);
+                        $row->update(['result' => 'diperbarui', 'product_id' => $p->id, 'message' => null]);
+                        $counts['updated']++;
+                    } else {
+                        $row->update(['result' => 'dilewati', 'product_id' => $r['product_id'], 'message' => $r['reason']]);
+                        $counts['skipped']++;
+                    }
+                }
+            });
+
+            $import->update([...$counts, 'failed' => 0, 'status' => $counts['skipped'] > 0 ? 'sebagian' : 'selesai', 'finished_at' => now()]);
+            AuditLog::record('import.completed', 'barang',
+                "Impor {$import->file_name}: {$counts['created']} baru, {$counts['updated']} diperbarui, {$counts['skipped']} dilewati",
+                ['type' => 'product_import', 'id' => $import->id, 'label' => $import->file_name], $counts);
+            $this->deleteFile($import);
+
+            return $import->refresh();
+        });
+    }
+
+    /** Nama kategori sesuai penulisan di data (pencocokan tanpa memperhatikan huruf besar). */
+    private function categoryName(string $name): ?string
+    {
+        return $name === '' ? null : Category::whereRaw('LOWER(name) = ?', [mb_strtolower($name)])->value('name');
+    }
+
+    private function openRow(ProductImport $import, int $line): ProductImportRow
+    {
+        $this->assertOpen($import);
+
+        return $import->rows()->where('line', $line)->firstOr(fn () => abort(404, 'Baris impor tidak ditemukan.'));
+    }
+
+    /** @throws ValidationException */
+    private function assertOpen(ProductImport $import): void
+    {
+        if ($import->status !== 'pratinjau') {
+            throw ValidationException::withMessages(['impor' => 'Impor ini sudah '.($import->status === 'gagal' ? 'gagal dibaca' : 'disimpan').' dan tidak bisa diubah.']);
+        }
+    }
+
+    /** @return list<array<string, mixed>> semua impor, terbaru dulu */
+    public function history(?int $limit = null): array
+    {
+        return ProductImport::with('user')->latest('created_at')->latest('id')->when($limit, fn ($q) => $q->limit($limit))->get()
+            ->map(fn (ProductImport $i) => self::toArray($i))->all();
+    }
+
+    /**
+     * Rincian hasil: kesalahan berkas & baris yang tidak tersimpan (dilewati/gagal) beserta alasannya.
+     *
+     * @return array{file_error: ?string, problems: list<array{line: int, kode: string, nama: string, status: string, message: string}>}
+     */
+    public function detail(ProductImport $import): array
+    {
+        $problems = $import->rows()->where(fn ($q) => $q->whereIn('result', ['dilewati', 'gagal']))->get()
+            ->map(fn (ProductImportRow $r) => [
+                'line' => $r->line, 'kode' => mb_strtoupper(trim((string) ($r->values['kode'] ?? ''))), 'nama' => trim((string) ($r->values['nama'] ?? '')),
+                'status' => $r->result, 'message' => $r->message ?? '',
+            ])->all();
+
+        return ['file_error' => $import->file_error, 'problems' => $problems];
+    }
 }

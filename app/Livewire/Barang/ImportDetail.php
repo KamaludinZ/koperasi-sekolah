@@ -2,7 +2,8 @@
 
 namespace App\Livewire\Barang;
 
-use App\Support\MockData;
+use App\Models\ProductImport;
+use App\Services\ProductImportService;
 use App\Support\ProductImportFormat;
 use App\Support\SimpleXlsx;
 use Livewire\Attributes\Computed;
@@ -14,7 +15,7 @@ use Livewire\Component;
  * Rincian satu impor barang: hasil (baru/diperbarui/dilewati/gagal), cara menyimpan, pengunggah &
  * waktu, kesalahan berkas, daftar baris gagal/dilewati beserta alasannya. Aksi: unduh laporan
  * hasil (CSV/Excel), salin ringkasan untuk dikirim ke pengurus, dan salin baris bermasalah
- * (dipisah tab, siap ditempel ke Excel). Tahap ini memakai MockData.
+ * (dipisah tab, siap ditempel ke Excel). Data dari ProductImportService.
  */
 #[Layout('components.layouts.app')]
 #[Title('Rincian Impor')]
@@ -31,13 +32,15 @@ class ImportDetail extends Component
     #[Computed]
     public function import(): ?array
     {
-        return collect(MockData::importHistory())->firstWhere('id', $this->importId);
+        $import = ProductImport::with('user')->find($this->importId);
+
+        return $import ? ProductImportService::toArray($import) : null;
     }
 
     #[Computed]
     public function detail(): array
     {
-        return MockData::importDetail($this->importId);
+        return app(ProductImportService::class)->detail(ProductImport::findOrFail($this->importId));
     }
 
     /** Ringkasan satu paragraf untuk disalin (mis. dikirim lewat pesan ke pengurus). */

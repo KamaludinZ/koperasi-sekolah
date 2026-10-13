@@ -22,7 +22,6 @@
                 <h1 class="truncate text-lg font-semibold">{{ $imp['file_name'] }}</h1>
                 <p class="text-xs text-stone-500">{{ ProductImportFormat::MODES[$imp['mode'] ?? 'semua'][0] }}@if ($imp['update_stock'] ?? false) · stok barang lama ikut diperbarui @endif · diunggah {{ $imp['user'] }}, {{ \Illuminate\Support\Carbon::parse($imp['created_at'])->translatedFormat('d M Y H:i') }}</p>
             </div>
-            <span class="rounded-full bg-amber-100 px-3 py-1 text-xs font-medium text-amber-900">Data contoh</span>
         </div>
         <x-barang.nav active="barang.kategori" />
     </header>

@@ -2,7 +2,7 @@
 
 namespace App\Livewire\Barang;
 
-use App\Support\MockData;
+use App\Services\ProductImportService;
 use Illuminate\Support\Carbon;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
@@ -13,7 +13,7 @@ use Livewire\Component;
 /**
  * Barang → Impor → Riwayat (Admin & Pengurus): semua proses impor barang dengan status, jumlah
  * baris baru/diperbarui/dilewati/gagal, pengunggah, dan lama proses; saring status & cari nama
- * berkas/pengunggah. Tahap ini memakai MockData::importHistory().
+ * berkas/pengunggah. Data dari ProductImportService::history().
  */
 #[Layout('components.layouts.app')]
 #[Title('Riwayat Impor')]
@@ -33,7 +33,7 @@ class ImportHistory extends Component
     #[Computed]
     public function all(): array
     {
-        return MockData::importHistory();
+        return app(ProductImportService::class)->history();
     }
 
     #[Computed]

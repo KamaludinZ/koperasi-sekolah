@@ -3,11 +3,9 @@
 namespace App\Livewire\Barang;
 
 use App\Livewire\Concerns\NotifiesSave;
-use App\Models\Category;
-use App\Models\Product;
-use App\Support\MockData;
-use App\Support\ProductImportFormat;
-use Illuminate\Support\Facades\Route;
+use App\Models\ProductImport;
+use App\Services\ProductImportService;
+use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
@@ -17,7 +15,7 @@ use Livewire\Component;
  * Barang → Impor → Pratinjau (Admin & Pengurus): setiap baris berkas diperiksa dengan aturan
  * ProductImportFormat terhadap kategori & barang yang ada. Ditandai baru / perbarui (dengan
  * perbandingan nilai lama → baru) / dilewati / bermasalah; baris bermasalah bisa diperbaiki
- * langsung atau dilewati, lalu disimpan. Tahap ini membaca baris & menyimpan hasil lewat MockData.
+ * langsung atau dilewati, lalu disimpan ke data barang lewat ProductImportService.
  */
 #[Layout('components.layouts.app')]
 #[Title('Pratinjau Impor')]
@@ -26,9 +24,6 @@ class ImportPreview extends Component
     use NotifiesSave;
 
     public const FILTERS = ['semua' => 'Semua', 'masalah' => 'Bermasalah', 'baru' => 'Baru', 'perbarui' => 'Diperbarui', 'lewati' => 'Dilewati'];
-
-    /** Kolom barang yang dibandingkan saat memperbarui. */
-    private const COMPARE = ['nama' => 'name', 'harga_jual' => 'price', 'harga_modal' => 'cost_price', 'batas_minimum' => 'min_stock', 'satuan' => 'unit'];
 
     public int $importId;
 
@@ -42,100 +37,56 @@ class ImportPreview extends Component
     public function mount(int $import): void
     {
         $this->importId = $import;
-        abort_unless($this->import !== null, 404);
+        abort_unless($this->model !== null, 404);
     }
 
     #[Computed]
-    public function import(): ?array
+    public function model(): ?ProductImport
     {
-        return collect(MockData::importHistory())->firstWhere('id', $this->importId);
+        return ProductImport::with('user')->find($this->importId);
+    }
+
+    /** @return array<string, mixed> bentuk ringkas impor (ProductImportService::toArray) */
+    #[Computed]
+    public function import(): array
+    {
+        return ProductImportService::toArray($this->model);
     }
 
     #[Computed]
     public function finished(): bool
     {
-        return ($this->import['status'] ?? null) !== 'pratinjau';
+        return $this->model->status !== 'pratinjau';
     }
 
-    /** @return list<array{line: int, values: array, action: string, reason: ?string, errors: array, changes: array, skipped: bool}> */
+    #[Computed]
+    public function evaluated(): array
+    {
+        return app(ProductImportService::class)->evaluate($this->model);
+    }
+
+    /** @return list<array{id: int, line: int, values: array, action: string, reason: ?string, errors: array, changes: array, skipped: bool}> */
     #[Computed]
     public function rows(): array
     {
-        $raw = MockData::importRows($this->importId);
-        $categories = Category::ordered()->pluck('name')->all();
-        $cleaned = array_map(fn ($r) => [...$r, 'values' => ProductImportFormat::clean($r['values'])], $raw);
-
-        $seen = [];
-        foreach ($cleaned as $r) {
-            if (! $r['skipped'] && $r['values']['kode'] !== '') {
-                $seen[$r['values']['kode']] ??= $r['line'];
-            }
-        }
-        $existing = Product::whereIn('code', array_keys($seen))->with('category')->get()->keyBy('code');
-        $mode = $this->import['mode'] ?? 'semua';
-        $updateStock = (bool) ($this->import['update_stock'] ?? false);
-
-        return array_map(function ($r) use ($categories, $seen, $existing, $mode, $updateStock) {
-            $v = $r['values'];
-            $product = $existing[$v['kode']] ?? null;
-            $errors = $r['skipped'] ? [] : ProductImportFormat::validateRow($v, $categories, $seen, $r['line']);
-            $action = $product ? 'perbarui' : 'baru';
-            $reason = null;
-            if ($r['skipped']) {
-                [$action, $reason] = ['lewati', 'Dilewati petugas'];
-            } elseif ($mode === 'tambah' && $product) {
-                [$action, $reason] = ['lewati', 'Kode sudah ada (mode hanya tambah)'];
-            } elseif ($mode === 'perbarui' && ! $product) {
-                [$action, $reason] = ['lewati', 'Kode baru (mode hanya perbarui)'];
-            }
-            if ($action === 'lewati') {
-                $errors = [];
-            }
-
-            $changes = [];
-            if ($product && $action === 'perbarui' && $errors === []) {
-                foreach (self::COMPARE as $col => $field) {
-                    if ($v[$col] !== '' && (string) $v[$col] !== (string) (is_numeric($product->{$field}) ? (int) $product->{$field} : $product->{$field})) {
-                        $changes[$col] = [$product->{$field}, $v[$col]];
-                    }
-                }
-                if (mb_strtolower($v['kategori']) !== mb_strtolower((string) $product->category?->name)) {
-                    $changes['kategori'] = [$product->category?->name, $v['kategori']];
-                }
-                if (ProductImportFormat::isActive($v['aktif']) !== (bool) $product->is_active) {
-                    $changes['aktif'] = [$product->is_active ? 'ya' : 'tidak', ProductImportFormat::isActive($v['aktif']) ? 'ya' : 'tidak'];
-                }
-                if ($updateStock && $v['stok'] !== '' && (int) $v['stok'] !== (int) $product->stock) {
-                    $changes['stok'] = [$product->stock, $v['stok']];
-                }
-                if ($changes === []) {
-                    [$action, $reason] = ['lewati', 'Tidak ada perubahan'];
-                }
-            }
-
-            return ['line' => $r['line'], 'values' => $v, 'action' => $errors ? 'masalah' : $action, 'reason' => $reason,
-                'errors' => $errors, 'changes' => $changes, 'skipped' => $r['skipped']];
-        }, $cleaned);
+        return $this->evaluated['rows'];
     }
 
     #[Computed]
     public function counts(): array
     {
-        $rows = collect($this->rows);
-
-        return [
-            'semua' => $rows->count(),
-            'masalah' => $rows->where('action', 'masalah')->count(),
-            'baru' => $rows->where('action', 'baru')->count(),
-            'perbarui' => $rows->where('action', 'perbarui')->count(),
-            'lewati' => $rows->where('action', 'lewati')->count(),
-        ];
+        return $this->evaluated['counts'];
     }
 
     #[Computed]
     public function visible(): array
     {
         return $this->filter === 'semua' ? $this->rows : array_values(array_filter($this->rows, fn ($r) => $r['action'] === $this->filter));
+    }
+
+    private function refreshRows(): void
+    {
+        unset($this->model, $this->import, $this->finished, $this->evaluated, $this->rows, $this->counts, $this->visible);
     }
 
     public function setFilter(string $filter): void
@@ -145,12 +96,12 @@ class ImportPreview extends Component
 
     public function edit(int $line): void
     {
-        $row = collect($this->rows)->firstWhere('line', $line);
+        $row = $this->model->rows()->where('line', $line)->first();
         if (! $row || $this->finished) {
             return;
         }
         $this->editing = $line;
-        $this->draft = collect(MockData::importRows($this->importId))->firstWhere('line', $line)['values'];
+        $this->draft = array_map('strval', $row->values);
     }
 
     public function cancelEdit(): void
@@ -163,11 +114,10 @@ class ImportPreview extends Component
         if ($this->editing === null || $this->finished) {
             return;
         }
-        $values = array_intersect_key(array_map(fn ($v) => (string) $v, $this->draft), array_flip(ProductImportFormat::headers()));
-        MockData::updateImportRow($this->importId, $this->editing, values: $values + array_fill_keys(ProductImportFormat::headers(), ''));
         $line = $this->editing;
+        app(ProductImportService::class)->updateRow($this->model, $line, array_map(fn ($v) => (string) $v, $this->draft));
         $this->cancelEdit();
-        unset($this->rows, $this->counts, $this->visible);
+        $this->refreshRows();
 
         $row = collect($this->rows)->firstWhere('line', $line);
         $this->toast($row['errors'] ? 'error' : 'success', $row['errors'] ? "Baris {$line} masih bermasalah." : "Baris {$line} sudah benar.");
@@ -175,23 +125,22 @@ class ImportPreview extends Component
 
     public function toggleSkip(int $line): void
     {
-        $row = collect(MockData::importRows($this->importId))->firstWhere('line', $line);
+        $row = $this->model->rows()->where('line', $line)->first();
         if (! $row || $this->finished) {
             return;
         }
-        MockData::updateImportRow($this->importId, $line, skipped: ! $row['skipped']);
-        unset($this->rows, $this->counts, $this->visible);
+        app(ProductImportService::class)->setSkipped($this->model, $line, ! $row->skipped);
+        $this->refreshRows();
     }
 
     public function skipProblems(): void
     {
-        foreach ($this->rows as $r) {
-            if ($r['action'] === 'masalah') {
-                MockData::updateImportRow($this->importId, $r['line'], skipped: true);
-            }
+        if ($this->finished) {
+            return;
         }
-        unset($this->rows, $this->counts, $this->visible);
-        $this->toast('success', 'Baris bermasalah dilewati.');
+        $n = app(ProductImportService::class)->skipProblems($this->model);
+        $this->refreshRows();
+        $this->toast('success', "{$n} baris bermasalah dilewati.");
     }
 
     public function commit()
@@ -206,18 +155,18 @@ class ImportPreview extends Component
 
             return null;
         }
-        if ($c['baru'] + $c['perbarui'] === 0) {
-            $this->toast('error', 'Tidak ada baris yang perlu disimpan.');
+
+        try {
+            $import = app(ProductImportService::class)->commit($this->model, auth()->user());
+        } catch (ValidationException $e) {
+            $this->refreshRows();
+            $this->toast('error', collect($e->errors())->flatten()->first());
 
             return null;
         }
+        session()->flash('toast', ['type' => 'success', 'message' => "{$import->created} barang baru ditambahkan, {$import->updated} diperbarui."]);
 
-        MockData::finishImport($this->importId, [
-            'total_rows' => $c['semua'], 'created' => $c['baru'], 'updated' => $c['perbarui'], 'skipped' => $c['lewati'], 'failed' => 0,
-        ]);
-        session()->flash('toast', ['type' => 'success', 'message' => "{$c['baru']} barang baru ditambahkan, {$c['perbarui']} diperbarui."]);
-
-        return $this->redirectRoute(Route::has('barang.impor.riwayat') ? 'barang.impor.riwayat' : 'barang.kategori', navigate: true);
+        return $this->redirectRoute('barang.impor.detail', ['import' => $import->id], navigate: true);
     }
 
     public function render()

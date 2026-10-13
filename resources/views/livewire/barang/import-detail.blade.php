@@ -14,7 +14,6 @@
                     <span class="rounded-md px-2 py-0.5 text-xs font-semibold {{ $tone }}">{{ $label }}</span></h1>
             </div>
             <div class="flex flex-wrap items-center gap-2">
-                <span class="rounded-full bg-amber-100 px-3 py-1 text-xs font-medium text-amber-900">Data contoh</span>
                 <button type="button" x-data x-on:click="$copy(@js($this->summaryText), 'Ringkasan impor disalin.')"
                         class="inline-flex items-center gap-1.5 rounded-xl border border-stone-300 bg-white px-3 py-2 text-sm font-medium text-stone-700 hover:bg-stone-50">
                     <svg class="size-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 012-2h10"/></svg>

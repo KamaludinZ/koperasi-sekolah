@@ -35,7 +35,7 @@ class CashAuthorizationTest extends TestCase
 
         $this->assertTrue($shift->fresh()->isOpen());
         $this->assertSame(0, CashMovement::count());
-        $denied = ActivityLog::where('event', 'shift.denied')->get();
+        $denied = ActivityLog::where('event', 'shift.denied')->orderBy('id')->get();
         $this->assertSame(['close', 'recordMovement'], $denied->pluck('properties.ability')->all());
         $this->assertSame('kas', $denied->first()->category);
     }

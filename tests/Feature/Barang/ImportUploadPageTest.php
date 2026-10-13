@@ -3,7 +3,8 @@
 namespace Tests\Feature\Barang;
 
 use App\Livewire\Barang\Import;
-use App\Support\MockData;
+use App\Models\ProductImport;
+use Illuminate\Support\Facades\Storage;
 use App\Support\ProductImportFormat;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
@@ -14,6 +15,12 @@ use ZipArchive;
 class ImportUploadPageTest extends TestCase
 {
     use RefreshDatabase;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+        Storage::fake('local');
+    }
 
     private function csv(string $name = 'barang.csv'): UploadedFile
     {
@@ -36,17 +43,26 @@ class ImportUploadPageTest extends TestCase
         Livewire::test(Import::class)
             ->set('file', $this->csv())->assertHasNoErrors()->assertSee('barang.csv')
             ->set('mode', 'perbarui')->set('updateStock', true)
-            ->call('upload')->assertHasNoErrors()->assertSet('file', null);
+            ->call('upload')->assertHasNoErrors()->assertSet('file', null)
+            ->assertRedirect(route('barang.impor.pratinjau', ProductImport::latest('id')->value('id')));
 
-        $import = MockData::importHistory()[0];
-        $this->assertSame(['barang.csv', 'csv', 'pratinjau', 'perbarui', true, 'Admin Koperasi'],
-            [$import['file_name'], $import['format'], $import['status'], $import['mode'], $import['update_stock'], $import['user']]);
+        $import = ProductImport::latest('id')->first();
+        $this->assertSame(['barang.csv', 'csv', 'pratinjau', 'perbarui', true, 'Admin Koperasi', 1],
+            [$import->file_name, $import->format, $import->status, $import->mode, $import->update_stock, $import->user->name, $import->total_rows]);
     }
 
     public function test_update_stock_is_ignored_when_only_adding(): void
     {
         Livewire::test(Import::class)->set('file', $this->csv())->set('updateStock', true)->set('mode', 'tambah')->call('upload');
-        $this->assertFalse(MockData::importHistory()[0]['update_stock']);
+        $this->assertFalse(ProductImport::latest('id')->value('update_stock'));
+    }
+
+    public function test_unreadable_file_goes_to_detail_with_reason(): void
+    {
+        Livewire::test(Import::class)->set('file', UploadedFile::fake()->createWithContent('salah.csv', "kode barang;harga\nA;1\n"))
+            ->call('upload')->assertRedirect(route('barang.impor.detail', ProductImport::latest('id')->value('id')));
+        $this->assertSame('gagal', ProductImport::latest('id')->value('status'));
+        $this->get(route('barang.impor.detail', ProductImport::latest('id')->value('id')))->assertSee('Kolom wajib tidak ditemukan');
     }
 
     public function test_rejects_missing_wrong_or_dangerous_files(): void

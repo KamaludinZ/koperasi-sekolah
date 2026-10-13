@@ -187,6 +187,12 @@ Route::middleware('menu:barang')->group(function () {
         ->middleware(['can:kelola-katalog', 'throttle:10,1'])->name('barang.impor.store');
     Route::get('/barang/impor/{import}/baris', [ProductImportController::class, 'rows'])->whereNumber('import')
         ->middleware('can:kelola-katalog')->name('barang.impor.rows');
+    Route::middleware(['can:kelola-katalog', 'throttle:120,1'])->whereNumber(['import', 'line'])->group(function () {
+        Route::put('/barang/impor/{import}/baris/{line}', [ProductImportController::class, 'updateRow'])->name('barang.impor.rows.update');
+        Route::post('/barang/impor/{import}/baris/{line}/lewati', [ProductImportController::class, 'skipRow'])->name('barang.impor.rows.skip');
+        Route::post('/barang/impor/{import}/lewati-masalah', [ProductImportController::class, 'skipProblems'])->name('barang.impor.skip-problems');
+        Route::post('/barang/impor/{import}/simpan', [ProductImportController::class, 'commit'])->name('barang.impor.commit');
+    });
     Route::get('/barang/impor/templat/{format}', ImportTemplateController::class)->whereIn('format', ['csv', 'xlsx'])->name('barang.impor.templat');
     Route::get('/barang/impor', Barang\Import::class)->middleware('peran:admin,pengurus')->name('barang.impor');
     Route::get('/barang/impor/{import}/pratinjau', Barang\ImportPreview::class)->whereNumber('import')

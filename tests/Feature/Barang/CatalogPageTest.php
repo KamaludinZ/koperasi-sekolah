@@ -33,7 +33,7 @@ class CatalogPageTest extends TestCase
         $this->get('/barang')->assertOk()->assertSee(route('barang.kategori'));
         $this->get('/barang/kategori')->assertOk()
             ->assertSee('Kategori barang')->assertSee('Perlengkapan Ibadah')->assertSee('Impor barang dari berkas')
-            ->assertSee('harga-baru-oktober.csv')->assertSee(route('barang', ['category' => 'Alat Tulis']), false);
+            ->assertSee('Belum pernah mengimpor barang.')->assertSee(route('barang', ['category' => 'Alat Tulis']), false);
 
         $this->loginAs('pengurus@koperasi.test');
         $this->get('/barang/kategori')->assertOk();
@@ -41,18 +41,16 @@ class CatalogPageTest extends TestCase
         $this->get('/barang/kategori')->assertOk()->assertDontSee('Tambah kategori');
     }
 
-    public function test_summary_from_real_categories_and_pending_import(): void
+    public function test_summary_from_real_categories(): void
     {
         $c = Livewire::test(Catalog::class);
         $s = $c->instance()->summary;
         $this->assertSame([5, 1, 14], [$s['categories'], $s['empty'], $s['products']]);
-        $this->assertSame(4, $s['imports_30d']);
-        $this->assertSame('barang-semester-ganjil.xlsx', $s['pending']['file_name']);
+        $this->assertSame([0, null], [$s['imports_30d'], $s['pending']]);
 
         $atk = collect($c->instance()->categories)->firstWhere('name', 'Alat Tulis');
         $this->assertSame([5, 5, 2], [$atk['products'], $atk['active_products'], $atk['low_stock']]);
         $this->assertSame((int) Product::where('category_id', $atk['id'])->get()->sum(fn ($p) => $p->stock * $p->cost_price), $atk['stock_value']);
-        $c->assertSee('menunggu diperiksa')->assertSee('Sebagian tersimpan');
     }
 
     public function test_links_to_pages_not_yet_built_are_marked_soon(): void

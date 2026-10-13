@@ -7,7 +7,6 @@ use App\Models\Category;
 use App\Services\CategoryService;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Validation\ValidationException;
-use App\Support\MockData;
 use Illuminate\Support\Facades\Route;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
@@ -18,8 +17,8 @@ use Livewire\Component;
  * Barang → Kategori & impor: halaman utama pengelolaan katalog. Daftar kategori (urutan, jumlah
  * barang, stok menipis, nilai stok) dan pintu masuk impor massal barang dari CSV/Excel beserta
  * riwayat impor terbaru. Admin & Pengurus mengelola kategori: tambah/ubah (nama & warna),
- * hapus (barangnya dipindah ke kategori lain), dan atur urutan lewat CategoryService. Riwayat impor
- * masih memakai MockData sampai backend impor tersedia.
+ * hapus (barangnya dipindah ke kategori lain), dan atur urutan lewat CategoryService; impor terbaru
+ * dari ProductImportService.
  */
 #[Layout('components.layouts.app')]
 #[Title('Kategori & Impor')]
@@ -29,7 +28,9 @@ class Catalog extends Component
 
     /** Status impor → [label, kelas lencana]. */
     public const IMPORT_STATUSES = [
+        'diunggah' => ['Sedang dibaca', 'bg-stone-200 text-stone-700'],
         'pratinjau' => ['Menunggu diperiksa', 'bg-sky-100 text-sky-800'],
+        'diproses' => ['Sedang disimpan', 'bg-stone-200 text-stone-700'],
         'selesai' => ['Selesai', 'bg-emerald-100 text-emerald-800'],
         'sebagian' => ['Sebagian tersimpan', 'bg-amber-100 text-amber-900'],
         'gagal' => ['Gagal', 'bg-red-100 text-red-800'],
@@ -219,7 +220,7 @@ class Catalog extends Component
     #[Computed]
     public function imports(): array
     {
-        return MockData::importHistory();
+        return app(\App\Services\ProductImportService::class)->history(10);
     }
 
     #[Computed]

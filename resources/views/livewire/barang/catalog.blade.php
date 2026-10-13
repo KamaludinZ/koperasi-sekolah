@@ -14,7 +14,6 @@
                 <p class="text-xs text-stone-500">Kelompokkan barang per kategori dan tambahkan banyak barang sekaligus dari berkas.</p>
             </div>
             <div class="flex items-center gap-2">
-                <span class="rounded-full bg-amber-100 px-3 py-1 text-xs font-medium text-amber-900">Data contoh</span>
                 @if ($importUrl)
                     <a href="{{ $importUrl }}" wire:navigate class="inline-flex items-center gap-2 rounded-xl bg-emerald-700 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-emerald-800">
                         <svg class="size-4" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 16V4m0 0-4 4m4-4 4 4M4 20h16"/></svg>

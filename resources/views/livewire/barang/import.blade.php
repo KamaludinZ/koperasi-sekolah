@@ -12,7 +12,6 @@
                 <p class="text-xs text-stone-500"><a href="{{ route('barang.kategori') }}" wire:navigate class="hover:text-emerald-800 hover:underline">Kategori & impor</a> / Impor barang</p>
                 <h1 class="text-lg font-semibold">Impor Barang dari Berkas</h1>
             </div>
-            <span class="rounded-full bg-amber-100 px-3 py-1 text-xs font-medium text-amber-900">Data contoh</span>
         </div>
         <x-barang.nav active="barang.kategori" />
     </header>

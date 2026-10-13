@@ -9,7 +9,6 @@
                 <h1 class="text-lg font-semibold">Riwayat Impor Barang</h1>
             </div>
             <div class="flex items-center gap-2">
-                <span class="rounded-full bg-amber-100 px-3 py-1 text-xs font-medium text-amber-900">Data contoh</span>
                 <a href="{{ route('barang.impor') }}" wire:navigate class="rounded-xl bg-emerald-700 px-4 py-2.5 text-sm font-semibold text-white hover:bg-emerald-800">Impor baru</a>
             </div>
         </div>
