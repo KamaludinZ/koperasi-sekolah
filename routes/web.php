@@ -8,6 +8,7 @@ use App\Http\Controllers\Audit\AuditLogController;
 use App\Http\Controllers\Audit\TrashController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\LogoutController;
+use App\Http\Controllers\Barang\CategoryController;
 use App\Http\Controllers\Barang\ImportTemplateController;
 use App\Http\Controllers\Barang\ProductController;
 use App\Http\Controllers\BerandaController;
@@ -174,6 +175,13 @@ Route::middleware('menu:pengadaan')->group(function () {
 Route::middleware('menu:barang')->group(function () {
     Route::get('/barang', Barang\Index::class)->name('barang');
     Route::get('/barang/kategori', Barang\Catalog::class)->name('barang.kategori');
+    Route::get('/barang/kategori/data', [CategoryController::class, 'index'])->name('barang.kategori.data');
+    Route::middleware(['can:kelola-katalog', 'throttle:60,1'])->group(function () {
+        Route::post('/barang/kategori', [CategoryController::class, 'store'])->name('barang.kategori.store');
+        Route::put('/barang/kategori/urutan', [CategoryController::class, 'reorder'])->name('barang.kategori.reorder');
+        Route::put('/barang/kategori/{category}', [CategoryController::class, 'update'])->whereNumber('category')->name('barang.kategori.update');
+        Route::delete('/barang/kategori/{category}', [CategoryController::class, 'destroy'])->whereNumber('category')->name('barang.kategori.destroy');
+    });
     Route::get('/barang/impor/templat/{format}', ImportTemplateController::class)->whereIn('format', ['csv', 'xlsx'])->name('barang.impor.templat');
     Route::get('/barang/impor', Barang\Import::class)->middleware('peran:admin,pengurus')->name('barang.impor');
     Route::get('/barang/impor/{import}/pratinjau', Barang\ImportPreview::class)->whereNumber('import')

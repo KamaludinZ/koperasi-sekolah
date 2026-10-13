@@ -56,6 +56,9 @@ class AppServiceProvider extends ServiceProvider
 
         Gate::define('ubah-pengaturan', fn (User $user) => $user->hasRole(Role::ADMIN) && $user->canOpen('pengaturan'));
 
+        // Kategori barang & impor barang dikelola Admin dan Pengurus (kasir hanya melihat).
+        Gate::define('kelola-katalog', fn (User $user) => $user->hasRole(Role::ADMIN, Role::PENGURUS) && $user->canOpen('barang'));
+
         // Data terhapus lunak bisa dilihat siapa pun yang punya menu Audit; memulihkannya khusus Admin.
         Gate::define('pulihkan-data', fn (User $user) => $user->hasRole(Role::ADMIN) && $user->canOpen('audit'));
     }

@@ -3,6 +3,10 @@
 namespace Tests\Feature\Barang;
 
 use App\Livewire\Barang\Catalog;
+use App\Models\ActivityLog;
+use App\Models\Category;
+use App\Models\Product;
+use Database\Seeders\ProductSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
 use Tests\TestCase;
@@ -14,7 +18,14 @@ class CatalogPageTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
+        $this->seed(ProductSeeder::class);
         $this->travelTo('2026-10-14 15:00:00');
+        Category::create(['name' => 'Perlengkapan Ibadah', 'color' => 'teal']);
+    }
+
+    private function cat(string $name): Category
+    {
+        return Category::where('name', $name)->firstOrFail();
     }
 
     public function test_page_is_reachable_from_barang_nav_for_menu_holders(): void
@@ -27,21 +38,21 @@ class CatalogPageTest extends TestCase
         $this->loginAs('pengurus@koperasi.test');
         $this->get('/barang/kategori')->assertOk();
         $this->loginAs('kasir@koperasi.test'); // kasir punya menu Barang: boleh melihat
-        $this->get('/barang/kategori')->assertOk();
+        $this->get('/barang/kategori')->assertOk()->assertDontSee('Tambah kategori');
     }
 
-    public function test_summary_and_pending_import(): void
+    public function test_summary_from_real_categories_and_pending_import(): void
     {
-        $s = Livewire::test(Catalog::class)->instance()->summary;
-        $this->assertSame(5, $s['categories']);
-        $this->assertSame(1, $s['empty']);
-        $this->assertSame(14, $s['products']);
-        $this->assertSame(4, $s['imports_30d']);   // satu impor 31 hari lalu
-        $this->assertSame(40, $s['imported_rows_30d']);
-        $this->assertSame(6, $s['failed_rows_30d']);
+        $c = Livewire::test(Catalog::class);
+        $s = $c->instance()->summary;
+        $this->assertSame([5, 1, 14], [$s['categories'], $s['empty'], $s['products']]);
+        $this->assertSame(4, $s['imports_30d']);
         $this->assertSame('barang-semester-ganjil.xlsx', $s['pending']['file_name']);
 
-        Livewire::test(Catalog::class)->assertSee('menunggu diperiksa')->assertSee('Sebagian tersimpan')->assertSee('berkas tidak terbaca');
+        $atk = collect($c->instance()->categories)->firstWhere('name', 'Alat Tulis');
+        $this->assertSame([5, 5, 2], [$atk['products'], $atk['active_products'], $atk['low_stock']]);
+        $this->assertSame((int) Product::where('category_id', $atk['id'])->get()->sum(fn ($p) => $p->stock * $p->cost_price), $atk['stock_value']);
+        $c->assertSee('menunggu diperiksa')->assertSee('Sebagian tersimpan');
     }
 
     public function test_links_to_pages_not_yet_built_are_marked_soon(): void
@@ -59,46 +70,48 @@ class CatalogPageTest extends TestCase
             ->set('name', 'Aksesoris  Sekolah')->call('save')->assertHasNoErrors()
             ->assertSet('formOpen', false)
             ->assertDispatched('toast', type: 'success', message: 'Kategori Aksesoris Sekolah ditambahkan.');
-        $new = collect($c->instance()->categories)->firstWhere('name', 'Aksesoris Sekolah');
-        $this->assertSame(6, $new['position']);
+        $new = $this->cat('Aksesoris Sekolah');
+        $this->assertSame([6, 'rose'], [$new->position, $new->color]);
 
-        $c->call('edit', $new['id'])->assertSet('name', 'Aksesoris Sekolah')
+        $c->call('edit', $new->id)->assertSet('name', 'Aksesoris Sekolah')
             ->set('name', 'Aksesoris')->set('color', 'stone')->call('save')->assertHasNoErrors();
-        $this->assertSame('stone', collect($c->instance()->categories)->firstWhere('id', $new['id'])['color']);
-        $c->assertSee('Aksesoris');
+        $this->assertSame(['Aksesoris', 'stone'], [$new->fresh()->name, $new->fresh()->color]);
+        $this->assertNotNull(ActivityLog::where('event', 'category.updated')->first());
     }
 
     public function test_delete_moves_products_to_chosen_category(): void
     {
-        $c = Livewire::test(Catalog::class)->call('confirmDelete', 2)->assertSee('Hapus kategori Makanan?')->assertSee('3 barang')
+        $makanan = $this->cat('Makanan');
+        $minuman = $this->cat('Minuman');
+        $c = Livewire::test(Catalog::class)->call('confirmDelete', $makanan->id)->assertSee('Hapus kategori Makanan?')->assertSee('3 barang')
             ->call('delete')->assertHasErrors('moveTo')
-            ->set('moveTo', 2)->call('delete')->assertHasErrors('moveTo')
-            ->set('moveTo', 3)->call('delete')->assertHasNoErrors()
+            ->set('moveTo', $makanan->id)->call('delete')->assertHasErrors('moveTo')
+            ->set('moveTo', $minuman->id)->call('delete')->assertHasNoErrors()
             ->assertDispatched('toast', type: 'success', message: 'Kategori Makanan dihapus, barangnya dipindah ke Minuman.');
 
-        $cats = collect($c->instance()->categories);
-        $this->assertNull($cats->firstWhere('id', 2));
-        $this->assertSame(6, $cats->firstWhere('id', 3)['products']);
-        $this->assertSame([1, 2, 3, 4], $cats->pluck('position')->all());
+        $this->assertSoftDeleted($makanan);
+        $this->assertSame(6, Product::where('category_id', $minuman->id)->count());
+        $this->assertSame('Dipindah dari kategori Makanan', ActivityLog::where('event', 'product.updated')->value('reason'));
 
-        // Kategori kosong langsung dihapus tanpa memilih tujuan.
-        $c->call('confirmDelete', 5)->call('delete')->assertHasNoErrors();
+        $ibadah = $this->cat('Perlengkapan Ibadah');
+        $c->call('confirmDelete', $ibadah->id)->call('delete')->assertHasNoErrors();
         $this->assertCount(3, $c->instance()->categories);
     }
 
     public function test_reorder_and_permissions(): void
     {
+        $ibadah = $this->cat('Perlengkapan Ibadah');
         $c = Livewire::test(Catalog::class)->call('startReorder')->assertSet('reordering', true)
-            ->call('move', 5, -1)->call('move', 5, -1)->call('move', 1, -1)
+            ->call('move', $ibadah->id, -1)->call('move', $ibadah->id, -1)->call('move', $this->cat('Alat Tulis')->id, -1)
             ->call('saveOrder')->assertSet('reordering', false)->assertDispatched('toast', type: 'success');
-        $this->assertSame(['Alat Tulis', 'Makanan', 'Perlengkapan Ibadah', 'Minuman', 'Seragam'], collect($c->instance()->categories)->pluck('name')->all());
+        $this->assertSame(['Alat Tulis', 'Makanan', 'Perlengkapan Ibadah', 'Minuman', 'Seragam'], Category::ordered()->pluck('name')->all());
+        $this->assertSame(1, ActivityLog::where('event', 'category.reordered')->count());
 
-        $c->call('startReorder')->call('move', 1, 1)->call('cancelReorder');
-        $this->assertSame('Alat Tulis', $c->instance()->categories[0]['name']);
+        $c->call('startReorder')->call('move', $this->cat('Alat Tulis')->id, 1)->call('cancelReorder');
+        $this->assertSame('Alat Tulis', Category::ordered()->first()->name);
 
         $this->loginAs('kasir@koperasi.test');
-        Livewire::test(Catalog::class)->assertDontSee('Tambah kategori')
-            ->call('create')->assertSet('formOpen', false)->assertDispatched('toast', type: 'error')
-            ->call('confirmDelete', 1)->assertSet('deleteId', null);
+        Livewire::test(Catalog::class)->call('create')->assertSet('formOpen', false)->assertDispatched('toast', type: 'error')
+            ->call('confirmDelete', $ibadah->id)->assertSet('deleteId', null);
     }
 }

@@ -3,7 +3,10 @@
 namespace App\Livewire\Barang;
 
 use App\Livewire\Concerns\NotifiesSave;
-use App\Models\Role;
+use App\Models\Category;
+use App\Services\CategoryService;
+use Illuminate\Support\Facades\Gate;
+use Illuminate\Validation\ValidationException;
 use App\Support\MockData;
 use Illuminate\Support\Facades\Route;
 use Livewire\Attributes\Computed;
@@ -15,8 +18,8 @@ use Livewire\Component;
  * Barang → Kategori & impor: halaman utama pengelolaan katalog. Daftar kategori (urutan, jumlah
  * barang, stok menipis, nilai stok) dan pintu masuk impor massal barang dari CSV/Excel beserta
  * riwayat impor terbaru. Admin & Pengurus mengelola kategori: tambah/ubah (nama & warna),
- * hapus (barangnya dipindah ke kategori lain), dan atur urutan. Tahap ini memakai
- * MockData (session) — backend menyusul dengan kontrak yang sama.
+ * hapus (barangnya dipindah ke kategori lain), dan atur urutan lewat CategoryService. Riwayat impor
+ * masih memakai MockData sampai backend impor tersedia.
  */
 #[Layout('components.layouts.app')]
 #[Title('Kategori & Impor')]
@@ -58,7 +61,7 @@ class Catalog extends Component
     #[Computed]
     public function canManage(): bool
     {
-        return (bool) auth()->user()?->hasRole(Role::ADMIN, Role::PENGURUS);
+        return Gate::allows('kelola-katalog');
     }
 
     public function create(): void
@@ -67,7 +70,7 @@ class Catalog extends Component
             return;
         }
         $this->reset('editId', 'name');
-        $this->color = collect(array_keys(self::COLORS))->first(fn ($c) => ! collect($this->categories)->contains('color', $c)) ?? 'stone';
+        $this->color = collect(Category::COLORS)->first(fn ($c) => ! collect($this->categories)->contains('color', $c)) ?? 'stone';
         $this->resetValidation();
         $this->formOpen = true;
     }
@@ -89,21 +92,13 @@ class Catalog extends Component
         }
         $this->name = preg_replace('/\s+/', ' ', trim($this->name));
         $this->saveWithToast(function () {
-            $this->validate([
-                'name' => ['required', 'string', 'min:2', 'max:50', function ($attr, $value, $fail) {
-                    $taken = collect($this->categories)->first(fn ($c) => $c['id'] !== $this->editId && mb_strtolower($c['name']) === mb_strtolower($value));
-                    if ($taken) {
-                        $fail('Nama kategori sudah dipakai.');
-                    }
-                }],
-                'color' => ['required', 'in:'.implode(',', array_keys(self::COLORS))],
-            ], [
-                'name.required' => 'Isi nama kategori.',
-                'name.min' => 'Nama kategori minimal 2 huruf.',
-                'name.max' => 'Nama kategori maksimal 50 huruf.',
-            ]);
-            MockData::saveCategory(['id' => $this->editId, 'name' => $this->name, 'color' => $this->color]);
-            unset($this->categories, $this->summary);
+            $rules = CategoryService::rules($this->editId);
+            $this->validate(['name' => $rules['name'], 'color' => $rules['color']], CategoryService::messages());
+            $service = app(CategoryService::class);
+            $this->editId
+                ? $service->update(Category::findOrFail($this->editId), ['name' => $this->name, 'color' => $this->color])
+                : $service->create(['name' => $this->name, 'color' => $this->color]);
+            unset($this->categories, $this->summary, $this->rows);
             $this->formOpen = false;
         }, $this->editId ? "Kategori {$this->name} diperbarui." : "Kategori {$this->name} ditambahkan.");
     }
@@ -138,13 +133,15 @@ class Catalog extends Component
 
             return;
         }
-        if ($c['products'] > 0) {
-            $this->validate(['moveTo' => ['required', 'integer', 'not_in:'.$c['id'], 'in:'.collect($this->categories)->pluck('id')->implode(',')]],
-                ['moveTo.required' => 'Pilih kategori tujuan untuk '.$c['products'].' barang di dalamnya.', 'moveTo.*' => 'Pilih kategori tujuan yang lain.']);
+        try {
+            $target = app(CategoryService::class)->delete(Category::findOrFail($c['id']), $this->moveTo ? (int) $this->moveTo : null);
+        } catch (ValidationException $e) {
+            $this->addError('moveTo', $e->errors()['pindah_ke'][0] ?? 'Pilih kategori tujuan.');
+
+            return;
         }
-        MockData::deleteCategory($c['id'], $c['products'] > 0 ? (int) $this->moveTo : null);
-        unset($this->categories, $this->summary);
-        $target = collect($this->categories)->firstWhere('id', $this->moveTo)['name'] ?? null;
+        unset($this->categories, $this->summary, $this->rows, $this->deleting);
+        $target = $target?->name;
         $this->cancelDelete();
         $this->toast('success', "Kategori {$c['name']} dihapus".($target ? ", barangnya dipindah ke {$target}." : '.'));
     }
@@ -179,8 +176,8 @@ class Catalog extends Component
         if (! $this->guard()) {
             return;
         }
-        MockData::reorderCategories($this->order);
-        unset($this->categories);
+        app(CategoryService::class)->reorder($this->order);
+        unset($this->categories, $this->rows);
         $this->reordering = false;
         $this->toast('success', 'Urutan kategori disimpan.');
     }
@@ -216,7 +213,7 @@ class Catalog extends Component
     #[Computed]
     public function categories(): array
     {
-        return MockData::categoryOverview();
+        return app(CategoryService::class)->list();
     }
 
     #[Computed]
