@@ -78,13 +78,13 @@ class ReceiptSettingsIntegrationTest extends TestCase
         $this->get($url())->assertDontSee('/logo/logo-', false); // belum ada logo
 
         app(LogoService::class)->store(UploadedFile::fake()->image('logo.png', 100, 100));
-        $this->get($url())->assertSee('/logo/logo-', false);
+        $this->get($url())->assertSee('<img src="'.url('/logo'), false);
 
         $pdf = app(ReceiptPdfService::class)->render($tx);
         $this->assertStringContainsString('/Subtype /Image', $pdf);
 
         $this->settings('receipt', ['show_logo' => false]);
-        $this->get($url())->assertDontSee('/logo/logo-', false);
+        $this->get($url())->assertDontSee('<img src="'.url('/logo'), false); // logo hanya tetap jadi ikon tab
         $this->assertStringNotContainsString('/Subtype /Image', app(ReceiptPdfService::class)->render($tx));
     }
 

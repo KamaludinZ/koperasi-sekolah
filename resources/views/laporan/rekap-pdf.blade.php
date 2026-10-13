@@ -22,7 +22,9 @@
     </style>
 </head>
 <body>
+    @php $logoData = \App\Services\LogoService::dataUri(app(\App\Services\SettingsService::class)->section('profile')['logo']); @endphp
     <div class="head">
+        @if ($logoData)<img src="{{ $logoData }}" alt="" style="float: right; width: 40pt; height: 40pt;">@endif
         <h1>Rekap Penjualan</h1>
         <div>{{ $profile['name'] }} · {{ $profile['school'] }}</div>
         <div class="muted">Periode {{ $period }} · dibuat {{ $generated_at }}</div>

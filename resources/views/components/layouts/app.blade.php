@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="theme-color" content="#022c22">
     <title>{{ isset($title) ? $title.' · ' : '' }}{{ \App\Support\MockData::profile()['app_name'] }}</title>
+    <x-brand.favicon />
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=instrument-sans:400,500,600,700|amiri:400,700" rel="stylesheet" />
     @vite(['resources/css/app.css', 'resources/js/app.js'])
@@ -95,7 +96,11 @@
                     class="grid size-10 place-items-center rounded-lg hover:bg-emerald-900">
                 <svg class="size-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
             </button>
-            <x-brand.mark class="size-7 shrink-0" />
+            @if ($topLogo = \App\Support\MockData::profile()['logo'] ?? null)
+                <img src="{{ $topLogo }}" alt="" class="size-7 shrink-0 rounded-md object-cover">
+            @else
+                <x-brand.mark class="size-7 shrink-0" />
+            @endif
             <span class="flex-1 truncate text-sm font-semibold">{{ $title ?? \App\Support\MockData::profile()['app_name'] }}</span>
             @if ($user)
                 <livewire:notifikasi.bell :compact="true" />

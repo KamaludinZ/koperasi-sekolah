@@ -53,6 +53,16 @@ use Illuminate\Support\Facades\Route;
 
 // Halaman petugas dijaga per menu: `menu:<kunci>` = wajib masuk + peran boleh membuka menu
 // itu (App\Support\Menu, tabel roles.permissions); `peran:<nama>` = pembatas tambahan.
+// Ikon tab: logo koperasi yang diunggah, atau lambang bawaan (SVG) bila belum ada logo.
+Route::get('/favicon.ico', function () {
+    $logo = \App\Support\MockData::profile()['logo'] ?? null;
+
+    return $logo ? redirect($logo, 302)->header('Cache-Control', 'public, max-age=3600') : redirect()->route('favicon');
+})->name('favicon.ico');
+Route::get('/favicon.svg', fn () => response(view('components.brand.mark', ['attributes' => new \Illuminate\View\ComponentAttributeBag(['xmlns' => 'http://www.w3.org/2000/svg'])])->render(), 200, [
+    'Content-Type' => 'image/svg+xml', 'Cache-Control' => 'public, max-age=86400',
+]))->name('favicon');
+
 Route::get('/', BerandaController::class)->name('beranda');
 Route::get('/logo/{file}', [LogoController::class, 'show'])->where('file', LogoService::FILE_PATTERN)->name('logo');
 

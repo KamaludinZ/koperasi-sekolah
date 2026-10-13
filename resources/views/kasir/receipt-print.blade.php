@@ -4,7 +4,8 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Struk {{ $tx['invoice_number'] }} · {{ config('app.name') }}</title>
+    <title>Struk {{ $tx['invoice_number'] }} · {{ \App\Support\MockData::profile()['app_name'] }}</title>
+    <x-brand.favicon />
     @vite(['resources/css/app.css'])
     @php $mm = \App\Services\ReceiptPresenter::paperWidth($profile); @endphp
     <style>@media print { @page { size: {{ $mm }}mm auto; } .print-area { width: {{ $mm }}mm; } }</style>

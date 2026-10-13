@@ -27,8 +27,7 @@
 
         <div class="mx-auto grid max-w-6xl gap-10 px-4 pt-10 pb-20 sm:px-6 lg:grid-cols-[minmax(0,1fr)_22rem] lg:items-center lg:pt-16 lg:pb-28">
             <div>
-                <p class="text-sm font-medium tracking-wide text-amber-300">Assalamu'alaikum warahmatullah</p>
-                <h1 class="mt-3 font-display text-4xl leading-[1.15] font-bold text-balance text-white sm:text-5xl lg:text-[3.4rem]">
+                <h1 class="font-display text-4xl leading-[1.15] font-bold text-balance text-white sm:text-5xl lg:text-[3.4rem]">
                     Kebutuhan sekolah lengkap, menabung jadi kebiasaan.
                 </h1>
                 <p class="mt-5 max-w-xl text-base leading-relaxed text-emerald-100">
