@@ -53,9 +53,14 @@ class ReceiptPresenter
         ] + $this->savingsInfo($transaction);
     }
 
-    /** Saldo awal & akhir untuk transaksi bermetode tabungan. */
+    /** Saldo awal & akhir (tabungan) atau nomor & jatuh tempo bon (bon). */
     private function savingsInfo(Transaction $transaction): array
     {
+        if ($transaction->payment_method === 'bon') {
+            $credit = $transaction->credit;
+
+            return $credit ? ['credit_due_at' => $credit->due_at->toDateString(), 'credit_number' => $credit->number, 'credit_note' => $credit->note] : [];
+        }
         $entry = $transaction->payment_method === 'tabungan' ? app(SavingsPaymentService::class)->forTransaction($transaction->id) : null;
 
         return $entry ? ['balance_before' => (int) round((float) $entry->balance_before), 'balance_after' => (int) round((float) $entry->balance_after)] : [];

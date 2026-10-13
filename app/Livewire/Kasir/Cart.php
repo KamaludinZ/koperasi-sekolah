@@ -5,6 +5,7 @@ namespace App\Livewire\Kasir;
 use App\Services\CheckoutService;
 use App\Models\Member;
 use App\Services\CouponService;
+use App\Services\MemberCreditService;
 use App\Services\MemberService;
 use App\Services\ManualDiscountService;
 use App\Services\PromoEngine;
@@ -12,7 +13,6 @@ use App\Services\ProductCatalog;
 use App\Services\ReceiptPdfService;
 use App\Services\ReceiptPresenter;
 use App\Services\SettingsService;
-use App\Support\MockData;
 use App\Support\PriceCalculator;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\On;
@@ -26,7 +26,7 @@ use Livewire\Component;
  * Diskon manual (nominal/persen + alasan) dibatasi aturan diskon kasir
  * (pengaturan `discount`, lihat ManualDiscountService; admin boleh melewati batas) dan dipotong sebelum pajak.
  * Metode bayar: tunai, QRIS/transfer, saldo tabungan anggota, atau bon (bayar nanti) — dua terakhir
- * wajib memilih anggota; saldo dibaca dari data anggota, batas bon tahap ini dari MockData::memberCredit().
+ * wajib memilih anggota; saldo dibaca dari data anggota, batas & sisa bon dari MemberCreditService.
  */
 class Cart extends Component
 {
@@ -71,8 +71,6 @@ class Cart extends Component
     /** Anggota berjanji melunasi bon sebelum jatuh tempo (wajib untuk metode bon). */
     public bool $bonConsent = false;
 
-    /** Rentang jatuh tempo bon yang boleh dipilih (hari). */
-    public const BON_MAX_DAYS = 60;
 
     /** Anggota menyetujui saldo tabungannya dipotong (wajib untuk metode tabungan). */
     public bool $savingsConsent = false;
@@ -317,7 +315,7 @@ class Cart extends Component
     {
         $m = $this->memberId ? Member::active()->find($this->memberId) : null;
 
-        return $m ? MemberService::toArray($m) + ['credit' => MockData::memberCredit($m->id, $m->type)] : null;
+        return $m ? MemberService::toArray($m) + ['credit' => app(MemberCreditService::class)->summary($m)] : null;
     }
 
     public function selectMember(int $id): void
@@ -401,25 +399,19 @@ class Cart extends Component
             if ($this->paymentMethod === 'bon') {
                 $this->validate([
                     'bonDays' => ['required', 'integer', 'in:0,'.implode(',', array_keys(self::BON_TERMS))],
-                    'bonDueAt' => ['exclude_unless:bonDays,0', 'required', 'date_format:Y-m-d', 'after:today', 'before_or_equal:'.now()->addDays(self::BON_MAX_DAYS)->toDateString()],
+                    'bonDueAt' => ['exclude_unless:bonDays,0', 'required', 'date_format:Y-m-d', 'after:today', 'before_or_equal:'.now()->addDays(MemberCreditService::maxDays())->toDateString()],
                     'bonNote' => ['nullable', 'string', 'max:100'],
                     'bonConsent' => ['accepted'],
                 ], [
                     'bonDueAt.required' => 'Pilih tanggal jatuh tempo bon.',
                     'bonDueAt.after' => 'Jatuh tempo paling cepat besok.',
-                    'bonDueAt.before_or_equal' => 'Jatuh tempo paling lama '.self::BON_MAX_DAYS.' hari dari hari ini.',
+                    'bonDueAt.before_or_equal' => 'Jatuh tempo paling lama '.MemberCreditService::maxDays().' hari dari hari ini.',
                     'bonNote.max' => 'Keterangan maksimal 100 karakter.',
                     'bonConsent.accepted' => 'Pastikan anggota sudah menyetujui bon dan jatuh temponya.',
                 ]);
             }
             if ($this->paymentMethod === 'tabungan' && ! $this->savingsConsent) {
                 $this->addError('savingsConsent', 'Pastikan anggota menyetujui pemotongan saldo tabungannya.');
-
-                return;
-            }
-            if ($this->paymentMethod === 'bon') {
-                // Bon disimpan setelah service bon tersedia.
-                $this->addError('paymentMethod', 'Pembayaran '.mb_strtolower(self::PAYMENT_METHODS[$this->paymentMethod]).' belum dapat disimpan (fitur sedang disiapkan).');
 
                 return;
             }
@@ -436,12 +428,14 @@ class Cart extends Component
         try {
             // Diskon dicek ulang di server (isi keranjang bisa berubah setelah diskon persen diterapkan).
             $memberId = in_array($this->paymentMethod, self::MEMBER_METHODS, true) ? $this->memberId : null;
-            $transaction = $checkout->checkout($this->items, $this->paymentMethod, $this->paid, auth()->id(), $memberId, $this->discount, $this->appliedCoupon);
+            $credit = $this->paymentMethod === 'bon' ? ['due_at' => $this->bonDueDate(), 'note' => trim($this->bonNote) ?: null] : null;
+            $transaction = $checkout->checkout($this->items, $this->paymentMethod, $this->paid, auth()->id(), $memberId, $this->discount, $this->appliedCoupon, $credit);
         } catch (ValidationException $e) {
             foreach ($e->errors() as $field => $messages) {
                 $this->addError(match ($field) {
                     'payment_method' => 'paymentMethod',
                     'member_id' => 'memberId',
+                    'credit_due_at' => 'bonDueAt',
                     'discount', 'coupon' => 'paid', // tampil di panel bayar
                     default => $field,
                 }, (['discount' => 'Diskon: ', 'coupon' => 'Kupon: '][$field] ?? '').implode(' ', $messages));

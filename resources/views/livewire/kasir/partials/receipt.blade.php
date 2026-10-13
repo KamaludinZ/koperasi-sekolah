@@ -67,6 +67,7 @@
                 @break
             @case ('bon')
                 <div class="flex justify-between"><span>Dicatat bon</span><span>{{ $rp($tx['total']) }}</span></div>
+                @isset ($tx['credit_number'])<div class="flex justify-between"><span>No. bon</span><span>{{ $tx['credit_number'] }}</span></div>@endisset
                 @isset ($tx['credit_due_at'])<div class="flex justify-between"><span>Jatuh tempo</span><span>{{ \Illuminate\Support\Carbon::parse($tx['credit_due_at'])->format('d/m/Y') }}</span></div>@endisset
                 @break
             @case ('tunai')

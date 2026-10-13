@@ -84,7 +84,7 @@ class SavingsPaymentServiceTest extends TestCase
         $this->assertSame(0, Transaction::count());
     }
 
-    public function test_bon_not_yet_accepted_by_checkout(): void
+    public function test_bon_requires_due_date(): void
     {
         $m = Member::factory()->create();
         $this->expectException(ValidationException::class);

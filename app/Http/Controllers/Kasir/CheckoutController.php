@@ -24,7 +24,9 @@ class CheckoutController extends Controller
             'items.*.product_id' => ['required', 'integer', 'distinct'],
             'items.*.quantity' => ['required', 'integer', 'min:1', 'max:10000'],
             'payment_method' => ['required', Rule::in(CheckoutService::CHECKOUT_METHODS)],
-            'member_id' => ['nullable', 'integer', 'required_if:payment_method,tabungan'],
+            'member_id' => ['nullable', 'integer', 'required_if:payment_method,tabungan,bon'],
+            'credit_due_at' => ['nullable', 'date_format:Y-m-d', 'required_if:payment_method,bon'],
+            'credit_note' => ['nullable', 'string', 'max:100'],
             'paid' => ['nullable', 'integer', 'min:0', 'required_if:payment_method,tunai'],
             'discount' => ['nullable', 'array:type,value,reason'],
             'discount.type' => ['required_with:discount', Rule::in(['persen', 'nominal'])],
@@ -41,6 +43,7 @@ class CheckoutController extends Controller
             $data['member_id'] ?? null,
             $data['discount'] ?? null,
             $data['coupon'] ?? null,
+            ($data['payment_method'] === 'bon') ? ['due_at' => $data['credit_due_at'] ?? null, 'note' => $data['credit_note'] ?? null] : null,
         );
 
         return response()->json(['data' => $transaction], 201);

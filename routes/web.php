@@ -126,6 +126,10 @@ Route::middleware('menu:kasir')->group(function () {
         ->whereNumber('member')
         ->middleware('throttle:120,1')
         ->name('kasir.members.savings');
+    Route::get('/kasir/anggota/{member}/bon', [MemberPaymentController::class, 'credit'])
+        ->whereNumber('member')
+        ->middleware('throttle:120,1')
+        ->name('kasir.members.credit');
     Route::post('/kasir/transaksi', CheckoutController::class)
         ->middleware('throttle:60,1')
         ->name('kasir.checkout');

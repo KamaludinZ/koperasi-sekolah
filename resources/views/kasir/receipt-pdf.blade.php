@@ -80,6 +80,7 @@
                 @break
             @case ('bon')
                 <tr><td>Dicatat bon</td><td class="r">Rp{{ $n($tx['total']) }}</td></tr>
+                @isset ($tx['credit_number'])<tr><td>No. bon</td><td class="r">{{ $tx['credit_number'] }}</td></tr>@endisset
                 @isset ($tx['credit_due_at'])<tr><td>Jatuh tempo</td><td class="r">{{ \Illuminate\Support\Carbon::parse($tx['credit_due_at'])->format('d/m/Y') }}</td></tr>@endisset
                 @break
             @case ('tunai')

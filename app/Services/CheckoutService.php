@@ -28,6 +28,7 @@ class CheckoutService
         private PromoEngine $promos,
         private CouponService $coupons,
         private SavingsPaymentService $savings,
+        private MemberCreditService $credits,
     ) {}
 
     public const PAYMENT_METHODS = ['tunai' => 'Tunai', 'qris' => 'QRIS / Transfer'];
@@ -38,8 +39,8 @@ class CheckoutService
     /** Label semua metode bayar untuk struk, riwayat, dan lencana. */
     public const PAYMENT_LABELS = self::PAYMENT_METHODS + self::MEMBER_PAYMENT_METHODS;
 
-    /** Metode yang bisa disimpan lewat checkout (bon menyusul bersama service bon). */
-    public const CHECKOUT_METHODS = ['tunai', 'qris', 'tabungan'];
+    /** Metode yang bisa disimpan lewat checkout. */
+    public const CHECKOUT_METHODS = ['tunai', 'qris', 'tabungan', 'bon'];
 
     /**
      * @param  array<int, int>  $items  [productId => quantity]
@@ -47,10 +48,11 @@ class CheckoutService
      * @param  array{type: string, value: int, reason?: ?string}|null  $manualDiscount  diskon manual kasir (persen/rupiah)
      *                                                                                   atas subtotal, sebelum pajak — dicek batasnya
      * @param  string|null  $couponCode  kode kupon/voucher (dipotong setelah promo, sebelum diskon manual)
+     * @param  array{due_at?: ?string, note?: ?string}|null  $credit  jatuh tempo & keterangan untuk metode bon
      *
      * @throws ValidationException bila keranjang kosong, stok kurang, atau bayar kurang
      */
-    public function checkout(array $items, string $paymentMethod, ?int $paid, ?int $userId = null, ?int $memberId = null, ?array $manualDiscount = null, ?string $couponCode = null): Transaction
+    public function checkout(array $items, string $paymentMethod, ?int $paid, ?int $userId = null, ?int $memberId = null, ?array $manualDiscount = null, ?string $couponCode = null, ?array $credit = null): Transaction
     {
         $items = array_filter(array_map('intval', $items), fn ($qty) => $qty > 0);
 
@@ -64,7 +66,11 @@ class CheckoutService
             throw ValidationException::withMessages(['member_id' => 'Pilih anggota yang membayar dengan '.mb_strtolower(self::PAYMENT_LABELS[$paymentMethod]).'.']);
         }
 
-        return DB::transaction(function () use ($items, $paymentMethod, $paid, $userId, $memberId, $manualDiscount, $couponCode) {
+        if ($paymentMethod === 'bon') {
+            MemberCreditService::validDueDate($credit['due_at'] ?? null); // gagal cepat sebelum mengunci stok
+        }
+
+        return DB::transaction(function () use ($items, $paymentMethod, $paid, $userId, $memberId, $manualDiscount, $couponCode, $credit) {
             // Kunci baris barang (urut id agar tidak deadlock) supaya stok tidak terjual ganda.
             $products = Product::active()
                 ->with('category:id,name')
@@ -138,6 +144,10 @@ class CheckoutService
             if ($paymentMethod === 'tabungan') {
                 // Saldo dipotong di transaksi DB yang sama: saldo kurang → seluruh penjualan dibatalkan.
                 $this->savings->charge($memberId, $total, $transaction, $userId);
+            }
+            if ($paymentMethod === 'bon') {
+                // Bon dicek batasnya & dicatat di transaksi DB yang sama.
+                $this->credits->record($memberId, $total, $transaction, $credit['due_at'] ?? null, $credit['note'] ?? null, $userId);
             }
 
             foreach ($promo['applied'] as $applied) {
