@@ -5,16 +5,19 @@
     $me = $this->currentUserId();
 @endphp
 <div class="flex min-h-0 flex-1 flex-col overflow-y-auto">
-    <header class="flex flex-wrap items-center justify-between gap-3 border-b border-stone-200 bg-white px-4 py-4 sm:px-6">
-        <div>
-            <h1 class="text-lg font-semibold">Kelola Pengguna</h1>
-            <p class="text-xs text-stone-500">Akun petugas koperasi, peran, dan status masuknya.</p>
+    <header class="border-b border-stone-200 bg-white px-4 pt-4 sm:px-6">
+        <div class="flex flex-wrap items-center justify-between gap-3">
+            <div>
+                <h1 class="text-lg font-semibold">Kelola Pengguna</h1>
+                <p class="text-xs text-stone-500">Akun petugas koperasi, peran, dan status masuknya.</p>
+            </div>
+            <button type="button" wire:click="create"
+                    class="inline-flex items-center gap-2 rounded-xl bg-emerald-700 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-emerald-800">
+                <svg class="size-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+                Tambah pengguna
+            </button>
         </div>
-        <button type="button" wire:click="create"
-                class="inline-flex items-center gap-2 rounded-xl bg-emerald-700 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-emerald-800">
-            <svg class="size-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
-            Tambah pengguna
-        </button>
+        <x-pengguna.nav active="pengguna" />
     </header>
 
     <div class="grid gap-5 px-4 py-5 sm:px-6 xl:grid-cols-[minmax(0,1fr)_18rem]">

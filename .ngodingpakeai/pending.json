@@ -1,6 +1,6 @@
 {
   "repo": "Koperasi Sekolah",
-  "generatedForCommit": "082b54094e7552b55d5816b4d9833ccace488d95",
+  "generatedForCommit": "c8a9f8dc6bced73ac085c1fe873ef565f25ad16f",
   "files": [
     {
       "path": ".claude/skills/ngodingpakeai/SKILL.md",
@@ -280,7 +280,7 @@
     },
     {
       "path": "app/Livewire/Audit/Changes.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 7609
     },
@@ -289,6 +289,12 @@
       "reason": "needs_summary",
       "language": "php",
       "size": 5985
+    },
+    {
+      "path": "app/Livewire/Audit/Trash.php",
+      "reason": "new",
+      "language": "php",
+      "size": 4576
     },
     {
       "path": "app/Livewire/Auth/Login.php",
@@ -804,7 +810,7 @@
       "path": "app/Support/MockData.php",
       "reason": "changed",
       "language": "php",
-      "size": 20475
+      "size": 24295
     },
     {
       "path": "app/Support/OpeningHours.php",
@@ -1270,9 +1276,9 @@
     },
     {
       "path": "resources/views/components/audit/nav.blade.php",
-      "reason": "new",
+      "reason": "changed",
       "language": "php",
-      "size": 675
+      "size": 712
     },
     {
       "path": "resources/views/components/brand/logo.blade.php",
@@ -1468,13 +1474,13 @@
     },
     {
       "path": "resources/views/livewire/audit/changes.blade.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 17446
     },
     {
       "path": "resources/views/livewire/audit/index.blade.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 14878
     },
@@ -1483,6 +1489,12 @@
       "reason": "needs_summary",
       "language": "php",
       "size": 6690
+    },
+    {
+      "path": "resources/views/livewire/audit/trash.blade.php",
+      "reason": "new",
+      "language": "php",
+      "size": 12538
     },
     {
       "path": "resources/views/livewire/auth/login.blade.php",
@@ -1722,7 +1734,7 @@
       "path": "routes/web.php",
       "reason": "changed",
       "language": "php",
-      "size": 15241
+      "size": 15320
     },
     {
       "path": "tests/Feature/Anggota/IndexTest.php",
@@ -1792,9 +1804,15 @@
     },
     {
       "path": "tests/Feature/Audit/ChangesPageTest.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 3593
+    },
+    {
+      "path": "tests/Feature/Audit/TrashPageTest.php",
+      "reason": "new",
+      "language": "php",
+      "size": 3961
     },
     {
       "path": "tests/Feature/Auth/ChangePasswordTest.php",
