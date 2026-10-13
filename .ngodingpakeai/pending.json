@@ -1,6 +1,6 @@
 {
   "repo": "Koperasi Sekolah",
-  "generatedForCommit": "beeb9b50cbeb21a17caddab59992c4e7a0f8cefc",
+  "generatedForCommit": "526c4e34befb74d773fc1e976c815deb5f92fe3e",
   "files": [
     {
       "path": ".claude/skills/ngodingpakeai/SKILL.md",
@@ -346,9 +346,15 @@
     },
     {
       "path": "app/Jobs/ExportSalesReport.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 2367
+    },
+    {
+      "path": "app/Jobs/SyncStockAlerts.php",
+      "reason": "new",
+      "language": "php",
+      "size": 858
     },
     {
       "path": "app/Livewire/Akun/Password.php",
@@ -526,7 +532,7 @@
     },
     {
       "path": "app/Livewire/Laporan/Index.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 10155
     },
@@ -1132,9 +1138,9 @@
     },
     {
       "path": "app/Services/NotificationService.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 7297
+      "size": 7318
     },
     {
       "path": "app/Services/PasswordService.php",
@@ -1204,7 +1210,7 @@
     },
     {
       "path": "app/Services/ReportExportService.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 2942
     },
@@ -1234,7 +1240,7 @@
     },
     {
       "path": "app/Services/SalesExport.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 9359
     },
@@ -2488,7 +2494,7 @@
     },
     {
       "path": "resources/views/livewire/laporan/partials/export-panel.blade.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 5176
     },
@@ -2746,7 +2752,7 @@
     },
     {
       "path": "routes/web.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 30494
     },
@@ -3412,9 +3418,9 @@
     },
     {
       "path": "tests/Feature/Laporan/QueuedSalesExportTest.php",
-      "reason": "new",
+      "reason": "changed",
       "language": "php",
-      "size": 2573
+      "size": 2589
     },
     {
       "path": "tests/Feature/Laporan/SalesExportEndpointTest.php",
@@ -3493,6 +3499,12 @@
       "reason": "needs_summary",
       "language": "php",
       "size": 5284
+    },
+    {
+      "path": "tests/Feature/Notifikasi/StockAlertQueueTest.php",
+      "reason": "new",
+      "language": "php",
+      "size": 1923
     },
     {
       "path": "tests/Feature/Pengadaan/OrderFormTest.php",
