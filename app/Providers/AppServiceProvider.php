@@ -63,6 +63,9 @@ class AppServiceProvider extends ServiceProvider
         // Pengadaan (supplier, pesanan, penerimaan, hutang): Admin & Pengurus pemegang menu Pengadaan.
         Gate::define('kelola-pengadaan', fn (User $user) => $user->hasRole(Role::ADMIN, Role::PENGURUS) && $user->canOpen('pengadaan'));
 
+        // Retur & pembatalan transaksi disetujui/ditolak oleh Admin & Pengurus pemegang menu Transaksi.
+        Gate::define('setujui-retur', fn (User $user) => $user->hasRole(Role::ADMIN, Role::PENGURUS) && $user->canOpen('transaksi'));
+
         // Data terhapus lunak bisa dilihat siapa pun yang punya menu Audit; memulihkannya khusus Admin.
         Gate::define('pulihkan-data', fn (User $user) => $user->hasRole(Role::ADMIN) && $user->canOpen('audit'));
     }

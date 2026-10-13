@@ -2,9 +2,11 @@
 
 namespace App\Livewire\Transaksi;
 
+use App\Livewire\Concerns\NotifiesSave;
 use App\Models\Transaction;
 use App\Support\MockData;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Route;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
@@ -15,12 +17,16 @@ use Livewire\Component;
 /**
  * Transaksi → Retur & pembatalan: daftar pengajuan retur barang dan pembatalan transaksi
  * (status menunggu/disetujui/ditolak) dengan ringkasan & rincian, serta pencarian transaksi
- * untuk memulai pengajuan baru. Tahap ini daftar dari MockData::transactionReturns().
+ * untuk memulai pengajuan baru. Admin/Pengurus (gate `setujui-retur`) menyetujui atau menolak
+ * pengajuan yang menunggu dari panel rincian; tidak boleh memutus pengajuan sendiri.
+ * Tahap ini daftar dari MockData::transactionReturns() dan keputusan disimulasikan di layar.
  */
 #[Layout('components.layouts.app')]
 #[Title('Retur & Pembatalan')]
 class Returns extends Component
 {
+    use NotifiesSave;
+
     public const STATUSES = ['semua' => 'Semua', 'menunggu' => 'Menunggu', 'disetujui' => 'Disetujui', 'ditolak' => 'Ditolak'];
 
     public const KINDS = ['' => 'Retur & pembatalan', 'retur' => 'Retur barang', 'batal' => 'Pembatalan'];
@@ -46,6 +52,12 @@ class Returns extends Component
     /** Pencarian transaksi untuk pengajuan baru. */
     public string $lookup = '';
 
+    /** Catatan keputusan persetujuan (wajib saat menolak). */
+    public string $decisionNote = '';
+
+    /** @var array<int, array{status: string, by: string, at: string, note: ?string}> keputusan yang dibuat di layar (simulasi) */
+    public array $decisions = [];
+
     public function setStatus(string $status): void
     {
         $this->status = array_key_exists($status, self::STATUSES) ? $status : 'semua';
@@ -54,7 +66,72 @@ class Returns extends Component
     #[Computed]
     public function all(): array
     {
-        return MockData::transactionReturns();
+        return array_map(function ($r) {
+            $d = $this->decisions[$r['id']] ?? null;
+
+            return $d ? [...$r, 'status' => $d['status'], 'decided_by' => $d['by'], 'decided_at' => $d['at'], 'decision_note' => $d['note']] : $r;
+        }, MockData::transactionReturns());
+    }
+
+    #[Computed]
+    public function canApprove(): bool
+    {
+        return Gate::allows('setujui-retur');
+    }
+
+    /** Alasan pengguna ini tidak boleh memutus pengajuan, atau null bila boleh. */
+    public function decisionBlock(array $r): ?string
+    {
+        return match (true) {
+            ! $this->canApprove => 'Menunggu persetujuan Admin/Pengurus. Stok dan uang belum berubah sampai disetujui.',
+            $r['requested_by'] === auth()->user()->name => 'Pengajuan ini Anda buat sendiri — minta Admin/Pengurus lain untuk memutuskan.',
+            default => null,
+        };
+    }
+
+    public function approve(int $id): void
+    {
+        $this->decide($id, 'disetujui');
+    }
+
+    public function reject(int $id): void
+    {
+        $this->decide($id, 'ditolak');
+    }
+
+    private function decide(int $id, string $status): void
+    {
+        $r = collect($this->all)->firstWhere('id', $id);
+        abort_unless($r && $this->canApprove, 403);
+        if ($r['status'] !== 'menunggu') {
+            $this->toast('error', "Pengajuan {$r['number']} sudah diputuskan.");
+
+            return;
+        }
+        if ($msg = $this->decisionBlock($r)) {
+            $this->addError('decisionNote', $msg);
+
+            return;
+        }
+        $this->validate(['decisionNote' => [$status === 'ditolak' ? 'required' : 'nullable', 'string', 'min:'.($status === 'ditolak' ? 5 : 0), 'max:200']], [
+            'decisionNote.required' => 'Tulis alasan penolakan.',
+            'decisionNote.min' => 'Alasan penolakan minimal 5 karakter.',
+            'decisionNote.max' => 'Catatan maksimal 200 karakter.',
+        ]);
+
+        // Simulasi: backend menyusul akan mengembalikan stok & dana saat disetujui.
+        $this->decisions[$id] = ['status' => $status, 'by' => auth()->user()->name, 'at' => now()->toDateTimeString(), 'note' => trim($this->decisionNote) ?: null];
+        $this->decisionNote = '';
+        unset($this->all, $this->rows, $this->counts, $this->stats, $this->selected);
+        $what = $r['kind'] === 'batal' ? 'Pembatalan' : 'Retur';
+        $this->toast('success', $status === 'disetujui'
+            ? "{$what} {$r['number']} disetujui. ".($r['kind'] === 'batal' || $r['restock'] ? 'Barang kembali ke stok dan ' : '')."dana {$this->rupiah($r['amount'])} dikembalikan. (simulasi)"
+            : "{$what} {$r['number']} ditolak. (simulasi)");
+    }
+
+    private function rupiah(int $n): string
+    {
+        return 'Rp'.number_format($n, 0, ',', '.');
     }
 
     #[Computed]
@@ -105,11 +182,20 @@ class Returns extends Component
     public function show(int $id): void
     {
         $this->selectedId = collect($this->all)->contains('id', $id) ? $id : null;
+        $this->decisionNote = '';
+        $this->resetValidation();
     }
 
     public function closeDetail(): void
     {
         $this->selectedId = null;
+    }
+
+    /** Buka pengajuan menunggu tertua berikutnya (antrean persetujuan). */
+    public function nextPending(): void
+    {
+        $next = collect($this->all)->where('status', 'menunggu')->sortBy('requested_at')->first();
+        $next ? $this->show($next['id']) : $this->closeDetail();
     }
 
     /** @return list<array<string, mixed>> transaksi yang cocok dengan nomor yang diketik (maks. 5) */

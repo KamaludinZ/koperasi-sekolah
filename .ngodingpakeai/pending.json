@@ -1,6 +1,6 @@
 {
   "repo": "Koperasi Sekolah",
-  "generatedForCommit": "5b29916a10a1a4417fb7d17cb0f4b7701743b128",
+  "generatedForCommit": "4e5c5ecaf3b44a71c755c0757b87fc233e51d026",
   "files": [
     {
       "path": ".claude/skills/ngodingpakeai/SKILL.md",
@@ -622,7 +622,7 @@
     },
     {
       "path": "app/Livewire/Transaksi/ReturnForm.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 6398
     },
@@ -637,6 +637,12 @@
       "reason": "needs_summary",
       "language": "php",
       "size": 874
+    },
+    {
+      "path": "app/Livewire/Transaksi/VoidForm.php",
+      "reason": "new",
+      "language": "php",
+      "size": 3764
     },
     {
       "path": "app/Models/ActivityLog.php",
@@ -2356,7 +2362,7 @@
     },
     {
       "path": "resources/views/livewire/transaksi/return-form.blade.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 9407
     },
@@ -2370,7 +2376,13 @@
       "path": "resources/views/livewire/transaksi/show.blade.php",
       "reason": "changed",
       "language": "php",
-      "size": 10771
+      "size": 10985
+    },
+    {
+      "path": "resources/views/livewire/transaksi/void-form.blade.php",
+      "reason": "new",
+      "language": "php",
+      "size": 7068
     },
     {
       "path": "routes/console.php",
@@ -2382,7 +2394,7 @@
       "path": "routes/web.php",
       "reason": "changed",
       "language": "php",
-      "size": 24873
+      "size": 25027
     },
     {
       "path": "tests/Concerns/MakesProductImports.php",
@@ -3232,7 +3244,7 @@
     },
     {
       "path": "tests/Feature/Transaksi/ReturnFormTest.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 5049
     },
@@ -3259,6 +3271,12 @@
       "reason": "needs_summary",
       "language": "php",
       "size": 3585
+    },
+    {
+      "path": "tests/Feature/Transaksi/VoidFormTest.php",
+      "reason": "new",
+      "language": "php",
+      "size": 3685
     },
     {
       "path": "tests/TestCase.php",

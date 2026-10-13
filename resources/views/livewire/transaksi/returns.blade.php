@@ -39,6 +39,13 @@
                 </div>
             </div>
 
+            @if ($this->canApprove && $s['pending'])
+                <div class="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900" role="status">
+                    <span><strong>{{ $s['pending'] }} pengajuan</strong> menunggu persetujuan Anda.</span>
+                    <button type="button" wire:click="nextPending" class="rounded-lg bg-amber-600 px-3 py-1.5 text-sm font-semibold text-white hover:bg-amber-700">Tinjau sekarang</button>
+                </div>
+            @endif
+
             <div class="flex gap-1 overflow-x-auto rounded-xl bg-stone-200/60 p-1" role="tablist" aria-label="Status pengajuan">
                 @foreach (Returns::STATUSES as $key => $label)
                     <button type="button" role="tab" wire:click="setStatus('{{ $key }}')" aria-selected="{{ $status === $key ? 'true' : 'false' }}"
@@ -176,10 +183,29 @@
                             </tbody>
                         </table>
                     </section>
-                    @if ($sel['status'] === 'menunggu')
-                        <p class="rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-900">Menunggu persetujuan Admin/Pengurus. Stok dan uang belum berubah sampai disetujui.</p>
+                    @if ($sel['status'] === 'menunggu' && ($block = $this->decisionBlock($sel)))
+                        <p class="rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-900">{{ $block }}</p>
                     @endif
                 </div>
+                @if ($sel['status'] === 'menunggu' && ! $this->decisionBlock($sel))
+                    <div class="space-y-2 border-t border-stone-200 px-5 py-4" aria-label="Persetujuan">
+                        <p class="text-sm font-semibold">Keputusan</p>
+                        <p class="text-xs text-stone-600">
+                            Bila disetujui: {{ $sel['kind'] === 'batal' || $sel['restock'] ? $sel['qty'].' barang kembali ke stok, ' : 'stok tidak berubah, ' }}dana {{ $rp($sel['amount']) }} dikembalikan ({{ mb_strtolower(Returns::REFUND_METHODS[$sel['refund_method']]) }}).
+                        </p>
+                        <label class="block text-xs"><span class="font-medium text-stone-700">Catatan <span class="font-normal text-stone-500">(wajib bila menolak)</span></span>
+                            <textarea wire:model="decisionNote" rows="2" maxlength="200" class="mt-1 w-full rounded-lg border border-stone-300 px-2.5 py-1.5 text-sm outline-none focus:border-emerald-600"></textarea></label>
+                        @error('decisionNote') <p class="text-xs text-red-600" role="alert">{{ $message }}</p> @enderror
+                        <div class="grid grid-cols-2 gap-2">
+                            <button type="button" wire:click="reject({{ $sel['id'] }})" wire:loading.attr="disabled" class="rounded-xl border border-red-300 px-4 py-2 text-sm font-semibold text-red-700 hover:bg-red-50">Tolak</button>
+                            <button type="button" wire:click="approve({{ $sel['id'] }})" wire:loading.attr="disabled" class="rounded-xl bg-emerald-700 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-800">Setujui</button>
+                        </div>
+                    </div>
+                @elseif ($sel['status'] !== 'menunggu' && $this->canApprove && $this->counts['menunggu'])
+                    <div class="border-t border-stone-200 px-5 py-3">
+                        <button type="button" wire:click="nextPending" class="w-full rounded-xl border border-stone-300 px-4 py-2 text-sm font-medium text-stone-700 hover:bg-stone-50">Pengajuan menunggu berikutnya →</button>
+                    </div>
+                @endif
             </div>
         </div>
     @endif
