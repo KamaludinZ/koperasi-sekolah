@@ -1,6 +1,7 @@
 <?php
 
 use App\Services\SettingsService;
+use App\Support\AuditGuard;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Support\Facades\DB;
 
@@ -13,13 +14,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        $pgsql = DB::getDriverName() === 'pgsql';
-        if ($pgsql) {
-            DB::statement('ALTER TABLE activity_logs DISABLE TRIGGER activity_logs_no_update_delete');
-        }
-
-        try {
-            DB::table('activity_logs')->whereIn('event', ['setting.updated', 'setting.reset'])->whereNull('subject_type')
+        AuditGuard::suspend(fn () => DB::table('activity_logs')->whereIn('event', ['setting.updated', 'setting.reset'])->whereNull('subject_type')
                 ->orderBy('id')->lazyById(200)->each(function ($row) {
                     $section = json_decode((string) $row->properties, true)['section'] ?? null;
                     if (! in_array($section, SettingsService::SECTIONS, true)) {
@@ -36,12 +31,7 @@ return new class extends Migration
                         'old_values' => $prefix($row->old_values),
                         'new_values' => $prefix($row->new_values),
                     ]);
-                });
-        } finally {
-            if ($pgsql) {
-                DB::statement('ALTER TABLE activity_logs ENABLE TRIGGER activity_logs_no_update_delete');
-            }
-        }
+                }));
     }
 
     public function down(): void

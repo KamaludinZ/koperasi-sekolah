@@ -1,5 +1,6 @@
 <?php
 
+use App\Support\AuditGuard;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\DB;
@@ -11,7 +12,7 @@ return new class extends Migration
      * Perluasan jejak audit untuk perubahan data master (barang, kategori, anggota, pengaturan,
      * pengguna): jenis aksi (dibuat/diubah/dihapus/dipulihkan), nilai sebelum & sesudah per kolom,
      * dan alasan perubahan. Baris lama yang sudah menyimpan `properties.changes` diisi ulang;
-     * di PostgreSQL trigger anti-ubah dimatikan sebentar khusus untuk pengisian ini.
+     * penjaga anti-ubah dimatikan sebentar khusus untuk pengisian ini (AuditGuard::suspend).
      */
     private const ACTIONS = ['dibuat', 'diubah', 'dihapus', 'dipulihkan'];
 
@@ -27,19 +28,11 @@ return new class extends Migration
             $table->index(['subject_type', 'subject_id', 'created_at']);
         });
 
-        $pgsql = DB::getDriverName() === 'pgsql';
-        if ($pgsql) {
+        if (DB::getDriverName() === 'pgsql') {
             DB::statement("ALTER TABLE activity_logs ADD CONSTRAINT activity_logs_action_check CHECK (action IS NULL OR action IN ('".implode("','", self::ACTIONS)."'))");
-            DB::statement('ALTER TABLE activity_logs DISABLE TRIGGER activity_logs_no_update_delete');
         }
 
-        try {
-            $this->backfill();
-        } finally {
-            if ($pgsql) {
-                DB::statement('ALTER TABLE activity_logs ENABLE TRIGGER activity_logs_no_update_delete');
-            }
-        }
+        AuditGuard::suspend(fn () => $this->backfill());
     }
 
     private function backfill(): void

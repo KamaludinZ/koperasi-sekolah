@@ -28,3 +28,6 @@ Artisan::command('kupon:hitung-ulang', function () {
     }
     $this->info($changed ? count($changed).' kupon diselaraskan.' : 'Semua penghitung kupon sudah sesuai.');
 })->purpose('Selaraskan penghitung pemakaian kupon dengan riwayat transaksi');
+
+// Periksa keaslian jejak audit setiap malam; baris yang diubah langsung di database memicu notifikasi Admin.
+Schedule::command('audit:verifikasi')->dailyAt('02:30');

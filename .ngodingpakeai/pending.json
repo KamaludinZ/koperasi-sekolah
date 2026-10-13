@@ -1,6 +1,6 @@
 {
   "repo": "Koperasi Sekolah",
-  "generatedForCommit": "5d4c3a30af1798c8b73150d10699ff97c9f1e479",
+  "generatedForCommit": "a0f1a913633d6c63040647db3bab5e3c2cd81ee4",
   "files": [
     {
       "path": ".claude/skills/ngodingpakeai/SKILL.md",
@@ -73,6 +73,12 @@
       "reason": "needs_summary",
       "language": "php",
       "size": 3260
+    },
+    {
+      "path": "app/Http/Controllers/Audit/AuditLogController.php",
+      "reason": "new",
+      "language": "php",
+      "size": 5726
     },
     {
       "path": "app/Http/Controllers/Auth/LoginController.php",
@@ -280,9 +286,9 @@
     },
     {
       "path": "app/Livewire/Audit/Changes.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 7609
+      "size": 8347
     },
     {
       "path": "app/Livewire/Audit/Index.php",
@@ -490,13 +496,13 @@
     },
     {
       "path": "app/Models/Category.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 540
     },
     {
       "path": "app/Models/Concerns/Auditable.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 1376
     },
@@ -508,7 +514,7 @@
     },
     {
       "path": "app/Models/Member.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 3062
     },
@@ -520,7 +526,7 @@
     },
     {
       "path": "app/Models/Product.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 2401
     },
@@ -592,7 +598,7 @@
     },
     {
       "path": "app/Observers/MasterDataObserver.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 3958
     },
@@ -621,8 +627,14 @@
       "size": 6440
     },
     {
+      "path": "app/Services/AuditChangeQuery.php",
+      "reason": "new",
+      "language": "php",
+      "size": 6254
+    },
+    {
       "path": "app/Services/AuditLog.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 4416
     },
@@ -694,7 +706,7 @@
     },
     {
       "path": "app/Services/MemberService.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 7140
     },
@@ -730,7 +742,7 @@
     },
     {
       "path": "app/Services/ProductService.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 4426
     },
@@ -790,7 +802,7 @@
     },
     {
       "path": "app/Services/SettingsService.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 16478
     },
@@ -832,9 +844,9 @@
     },
     {
       "path": "app/Support/MockData.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 28186
+      "size": 23070
     },
     {
       "path": "app/Support/OpeningHours.php",
@@ -1179,6 +1191,12 @@
       "size": 3780
     },
     {
+      "path": "database/migrations/2026_10_13_000010_backfill_setting_subjects_in_activity_logs.php",
+      "reason": "new",
+      "language": "php",
+      "size": 2178
+    },
+    {
       "path": "database/seeders/ActivityLogSeeder.php",
       "reason": "needs_summary",
       "language": "php",
@@ -1198,7 +1216,7 @@
     },
     {
       "path": "database/seeders/MemberSeeder.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 1771
     },
@@ -1210,7 +1228,7 @@
     },
     {
       "path": "database/seeders/ProductSeeder.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 1489
     },
@@ -1510,9 +1528,9 @@
     },
     {
       "path": "resources/views/livewire/audit/changes.blade.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 17446
+      "size": 17877
     },
     {
       "path": "resources/views/livewire/audit/index.blade.php",
@@ -1780,9 +1798,9 @@
     },
     {
       "path": "routes/web.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 15506
+      "size": 15757
     },
     {
       "path": "tests/Feature/Anggota/IndexTest.php",
@@ -1840,9 +1858,15 @@
     },
     {
       "path": "tests/Feature/Audit/AuditChangeColumnsTest.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 3408
+      "size": 4401
+    },
+    {
+      "path": "tests/Feature/Audit/AuditEndpointTest.php",
+      "reason": "new",
+      "language": "php",
+      "size": 3389
     },
     {
       "path": "tests/Feature/Audit/AuditLogTest.php",
@@ -1858,13 +1882,13 @@
     },
     {
       "path": "tests/Feature/Audit/ChangesPageTest.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 3593
+      "size": 5442
     },
     {
       "path": "tests/Feature/Audit/MasterDataObserverTest.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 6248
     },

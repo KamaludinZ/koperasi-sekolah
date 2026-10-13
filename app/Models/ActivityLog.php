@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Services\AuditIntegrity;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Carbon;
@@ -9,6 +10,7 @@ use Illuminate\Support\Carbon;
 /**
  * Satu baris jejak audit. Tambahkan lewat App\Services\AuditLog; tidak pernah diubah/dihapus.
  * Perubahan data master menyimpan `action`, `old_values`, `new_values`, dan `reason`.
+ * Setiap baris ditandai `checksum` (AuditIntegrity) saat dibuat; database menolak ubah/hapus (AuditGuard).
  */
 class ActivityLog extends Model
 {
@@ -44,6 +46,14 @@ class ActivityLog extends Model
         'actor_id', 'actor_name', 'actor_role', 'amount', 'properties', 'ip_address', 'user_agent', 'created_at',
         'action', 'old_values', 'new_values', 'reason',
     ];
+
+    protected static function booted(): void
+    {
+        static::creating(function (ActivityLog $log) {
+            $log->created_at ??= now();
+            $log->checksum = AuditIntegrity::checksum($log->getAttributes());
+        });
+    }
 
     protected function casts(): array
     {

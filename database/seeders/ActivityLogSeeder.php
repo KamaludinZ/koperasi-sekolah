@@ -6,6 +6,7 @@ use App\Models\ActivityLog;
 use App\Models\SavingsTransaction;
 use App\Models\Transaction;
 use App\Models\User;
+use App\Services\AuditIntegrity;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 
@@ -66,6 +67,7 @@ class ActivityLogSeeder extends Seeder
         }
 
         usort($rows, fn ($a, $b) => $a['created_at'] <=> $b['created_at']);
+        $rows = array_map(fn ($r) => [...$r, 'checksum' => AuditIntegrity::checksum($r)], $rows);
         foreach (array_chunk($rows, 500) as $chunk) {
             DB::table('activity_logs')->insert($chunk);
         }
