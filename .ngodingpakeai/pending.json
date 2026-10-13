@@ -1,6 +1,6 @@
 {
   "repo": "Koperasi Sekolah",
-  "generatedForCommit": "2613b363f6fd82b546aa883e9bcf7a9fe16a2fbe",
+  "generatedForCommit": "83c916de360806e32d6bad4d7929c7c010640bd0",
   "files": [
     {
       "path": ".claude/skills/ngodingpakeai/SKILL.md",
@@ -213,6 +213,12 @@
       "size": 2890
     },
     {
+      "path": "app/Http/Controllers/Promo/PromoController.php",
+      "reason": "new",
+      "language": "php",
+      "size": 3378
+    },
+    {
       "path": "app/Http/Controllers/Transaksi/TransactionDetailController.php",
       "reason": "needs_summary",
       "language": "php",
@@ -418,15 +424,15 @@
     },
     {
       "path": "app/Livewire/Promo/Index.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 5537
+      "size": 5061
     },
     {
       "path": "app/Livewire/Promo/Schedule.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 5298
+      "size": 2768
     },
     {
       "path": "app/Livewire/Transaksi/Index.php",
@@ -466,7 +472,7 @@
     },
     {
       "path": "app/Models/Coupon.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 2511
     },
@@ -622,7 +628,7 @@
     },
     {
       "path": "app/Services/CouponService.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 4991
     },
@@ -691,6 +697,12 @@
       "reason": "needs_summary",
       "language": "php",
       "size": 2912
+    },
+    {
+      "path": "app/Services/PromoService.php",
+      "reason": "new",
+      "language": "php",
+      "size": 8440
     },
     {
       "path": "app/Services/ReceiptPdfService.php",
@@ -766,9 +778,9 @@
     },
     {
       "path": "app/Support/CouponValidator.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 3062
+      "size": 3067
     },
     {
       "path": "app/Support/Menu.php",
@@ -778,9 +790,9 @@
     },
     {
       "path": "app/Support/MockData.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 25489
+      "size": 15359
     },
     {
       "path": "app/Support/OpeningHours.php",
@@ -802,9 +814,9 @@
     },
     {
       "path": "app/Support/PromoMatcher.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 5541
+      "size": 5545
     },
     {
       "path": "artisan",
@@ -1114,7 +1126,7 @@
     },
     {
       "path": "database/migrations/2026_10_13_000008_add_used_count_to_coupons_table.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 1420
     },
@@ -1636,15 +1648,15 @@
     },
     {
       "path": "resources/views/livewire/promo/index.blade.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 13342
+      "size": 13120
     },
     {
       "path": "resources/views/livewire/promo/schedule.blade.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 12335
+      "size": 12154
     },
     {
       "path": "resources/views/livewire/transaksi/index.blade.php",
@@ -1672,15 +1684,15 @@
     },
     {
       "path": "routes/console.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 1451
     },
     {
       "path": "routes/web.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 14571
+      "size": 15012
     },
     {
       "path": "tests/Feature/Anggota/IndexTest.php",
@@ -1870,7 +1882,7 @@
     },
     {
       "path": "tests/Feature/Database/PromoSchemaTest.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 4756
     },
@@ -1996,13 +2008,13 @@
     },
     {
       "path": "tests/Feature/Kasir/CouponInputTest.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 6317
+      "size": 6436
     },
     {
       "path": "tests/Feature/Kasir/CouponQuotaTest.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 4071
     },
@@ -2032,9 +2044,9 @@
     },
     {
       "path": "tests/Feature/Kasir/PromoPanelTest.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 6134
+      "size": 6459
     },
     {
       "path": "tests/Feature/Kasir/ReceiptPdfTest.php",
@@ -2200,15 +2212,15 @@
     },
     {
       "path": "tests/Feature/Promo/IndexTest.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 3484
+      "size": 5017
     },
     {
       "path": "tests/Feature/Promo/ScheduleTest.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 3017
+      "size": 4433
     },
     {
       "path": "tests/Feature/Transaksi/DateFilterTest.php",

@@ -86,6 +86,8 @@
             </section>
         </div>
 
+        @include('livewire.laporan.partials.discount-report')
+
         @include('livewire.laporan.partials.export-panel')
     </div>
 </div>

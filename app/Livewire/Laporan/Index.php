@@ -95,7 +95,7 @@ class Index extends Component
     {
         if (array_key_exists($period, self::PERIODS)) {
             $this->period = $period;
-            unset($this->range, $this->previousRange, $this->periodReport, $this->summary, $this->comparison, $this->topProducts);
+            unset($this->range, $this->previousRange, $this->periodReport, $this->summary, $this->comparison, $this->topProducts, $this->discountReport);
             $this->syncExportRange();
         }
     }
@@ -115,6 +115,15 @@ class Index extends Component
     }
 
     /** @return array{0: Carbon, 1: Carbon} */
+    /** Dampak diskon & promo pada periode yang dilihat (DiscountReport). */
+    #[Computed]
+    public function discountReport(): array
+    {
+        [$start, $end] = $this->range;
+
+        return app(\App\Services\DiscountReport::class)->report($start, $end);
+    }
+
     #[Computed]
     public function range(): array
     {

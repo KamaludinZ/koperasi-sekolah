@@ -76,6 +76,33 @@
         </table>
     @endif
 
+    @if ($discounts ?? null)
+        @php $ds = $discounts['summary']; @endphp
+        <h2>Diskon & promo</h2>
+        <table>
+            <tbody>
+                <tr><td>Penjualan kotor (sebelum diskon)</td><td class="r">{{ $rp($ds['gross_sales']) }}</td></tr>
+                <tr><td>Total potongan ({{ str_replace('.', ',', (string) $ds['discount_rate']) }}%)</td><td class="r">{{ $rp($ds['total_discount']) }}</td></tr>
+                <tr><td>Penjualan bersih</td><td class="r">{{ $rp($ds['net_sales']) }}</td></tr>
+                <tr><td>Transaksi berdiskon</td><td class="r">{{ $num($ds['discounted_transactions']) }} ({{ $ds['discounted_share'] }}%)</td></tr>
+                <tr><td>Rata-rata belanja berdiskon / tanpa diskon</td><td class="r">{{ $rp($ds['avg_discounted']) }} / {{ $rp($ds['avg_plain']) }}</td></tr>
+            </tbody>
+        </table>
+        <table>
+            <thead><tr><th>Sumber</th><th class="r">Pemakaian</th><th class="r">Potongan</th></tr></thead>
+            <tbody>
+                @foreach ($discounts['by_source'] as $src)
+                    <tr><td>{{ $src['label'] }}</td><td class="r">{{ $num($src['count']) }}</td><td class="r">{{ $rp($src['amount']) }}</td></tr>
+                @endforeach
+                @foreach (['promos' => 'Promo', 'coupons' => 'Kupon'] as $key => $title)
+                    @foreach ($discounts[$key] as $r)
+                        <tr><td class="muted">{{ $title }}: {{ $r['label'] }}</td><td class="r">{{ $num($r['uses']) }}</td><td class="r">{{ $rp($r['amount']) }}</td></tr>
+                    @endforeach
+                @endforeach
+            </tbody>
+        </table>
+    @endif
+
     @if ($transactions !== null)
         <h2>Rincian transaksi</h2>
         <table>

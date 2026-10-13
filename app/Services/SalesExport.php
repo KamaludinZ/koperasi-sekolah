@@ -20,6 +20,7 @@ class SalesExport
         'daily' => 'Rekap per hari',
         'transactions' => 'Rincian transaksi',
         'products' => 'Barang terjual',
+        'discounts' => 'Diskon & promo',
     ];
 
     public const DEFAULT_SECTIONS = ['summary', 'daily', 'products'];
@@ -35,6 +36,7 @@ class SalesExport
         private SalesReport $report,
         private TransactionHistory $history,
         private ReceiptPresenter $receipt,
+        private DiscountReport $discounts,
     ) {}
 
     /**
@@ -87,6 +89,7 @@ class SalesExport
             'daily' => $has('daily') ? $this->report->daily($start, $end) : null,
             'transactions' => $has('transactions') ? $this->transactions($start, $end) : null,
             'products' => $has('products') ? $this->report->topProducts($start, $end, null) : null,
+            'discounts' => $has('discounts') ? $this->discounts->report($start, $end) : null,
         ];
     }
 
@@ -135,6 +138,26 @@ class SalesExport
             $rows[] = ['Barang', 'Jumlah', 'Penjualan', 'Laba kotor'];
             foreach ($d['products'] as $p) {
                 $rows[] = [$p['name'], $p['quantity'], $p['revenue'], $p['profit']];
+            }
+            $rows[] = [];
+        }
+
+        if ($x = $d['discounts']) {
+            $s = $x['summary'];
+            $rows[] = ['DISKON & PROMO'];
+            $rows[] = ['Penjualan kotor (sebelum diskon)', $s['gross_sales']];
+            $rows[] = ['Total potongan', $s['total_discount']];
+            $rows[] = ['Penjualan bersih', $s['net_sales']];
+            $rows[] = ['Transaksi berdiskon', $s['discounted_transactions'], $s['discounted_share'].'%'];
+            $rows[] = ['Rata-rata belanja berdiskon / tanpa diskon', $s['avg_discounted'], $s['avg_plain']];
+            $rows[] = ['Sumber', 'Pemakaian', 'Potongan'];
+            foreach ($x['by_source'] as $src) {
+                $rows[] = [$src['label'], $src['count'], $src['amount']];
+            }
+            foreach (['promos' => 'Promo', 'coupons' => 'Kupon'] as $key => $title) {
+                foreach ($x[$key] as $r) {
+                    $rows[] = [$title.': '.$r['label'], $r['uses'], $r['amount']];
+                }
             }
         }
 

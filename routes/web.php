@@ -219,6 +219,7 @@ Route::middleware('menu:laporan')->group(function () {
         Route::get('/laporan/hari-ini', [SalesReportController::class, 'today'])->name('laporan.today');
         Route::get('/laporan/ringkasan', [SalesReportController::class, 'summary'])->name('laporan.summary');
         Route::get('/laporan/grafik', [SalesReportController::class, 'chart'])->name('laporan.chart');
+        Route::get('/laporan/diskon', [SalesReportController::class, 'discounts'])->name('laporan.discounts');
     });
     Route::get('/laporan/unduh', SalesExportController::class)
         ->middleware('throttle:20,1')

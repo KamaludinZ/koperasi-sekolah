@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Laporan;
 
 use App\Http\Controllers\Controller;
+use App\Services\DiscountReport;
 use App\Services\SalesReport;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -35,6 +36,32 @@ class SalesReportController extends Controller
                 'date' => $now->toDateString(),
                 'generated_at' => $now->toDateTimeString(),
             ],
+        ]);
+    }
+
+    /**
+     * GET /laporan/diskon?periode=  (atau dari=&sampai=, maks. 1 tahun)
+     * Dampak diskon & promo: potongan per sumber, penjualan kotor vs bersih, transaksi berdiskon,
+     * rincian per promo/kupon, dan potongan per hari.
+     */
+    public function discounts(Request $request, DiscountReport $report): JsonResponse
+    {
+        $data = $request->validate([
+            'periode' => ['nullable', Rule::in(array_keys(SalesReport::PERIODS))],
+            'dari' => ['nullable', 'required_with:sampai', 'date_format:Y-m-d'],
+            'sampai' => ['nullable', 'required_with:dari', 'date_format:Y-m-d', 'after_or_equal:dari'],
+        ], ['sampai.after_or_equal' => 'Tanggal akhir tidak boleh sebelum tanggal awal.']);
+
+        [$start, $end] = isset($data['dari'])
+            ? [\Illuminate\Support\Carbon::parse($data['dari'])->startOfDay(), \Illuminate\Support\Carbon::parse($data['sampai'])->endOfDay()]
+            : SalesReport::range($data['periode'] ?? 'hari-ini');
+        if ($start->diffInDays($end) > 366) {
+            return response()->json(['message' => 'Rentang maksimal 1 tahun.', 'errors' => ['sampai' => ['Rentang maksimal 1 tahun.']]], 422);
+        }
+
+        return response()->json([
+            'data' => $report->report($start, $end),
+            'meta' => ['from' => $start->toDateString(), 'to' => $end->toDateString()],
         ]);
     }
 
