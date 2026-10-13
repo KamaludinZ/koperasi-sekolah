@@ -1,6 +1,6 @@
 {
   "repo": "Koperasi Sekolah",
-  "generatedForCommit": "6167d57b671600c7272cb93d54f4ef32b9fde2a3",
+  "generatedForCommit": "3bbd7852dcc83d5080ed80de85f7784202817080",
   "files": [
     {
       "path": ".claude/skills/ngodingpakeai/SKILL.md",
@@ -858,7 +858,7 @@
       "path": "app/Models/Transaction.php",
       "reason": "changed",
       "language": "php",
-      "size": 3870
+      "size": 4755
     },
     {
       "path": "app/Models/TransactionDiscount.php",
@@ -868,19 +868,19 @@
     },
     {
       "path": "app/Models/TransactionItem.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 835
+      "size": 1321
     },
     {
       "path": "app/Models/TransactionReturn.php",
-      "reason": "new",
+      "reason": "changed",
       "language": "php",
-      "size": 2426
+      "size": 3419
     },
     {
       "path": "app/Models/TransactionReturnItem.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 919
     },
@@ -1455,6 +1455,12 @@
       "size": 3005
     },
     {
+      "path": "database/factories/TransactionReturnFactory.php",
+      "reason": "new",
+      "language": "php",
+      "size": 2591
+    },
+    {
       "path": "database/factories/UserFactory.php",
       "reason": "needs_summary",
       "language": "php",
@@ -1702,7 +1708,7 @@
     },
     {
       "path": "database/migrations/2026_10_13_000025_create_transaction_returns_tables.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 5840
     },
@@ -3399,8 +3405,14 @@
       "size": 2897
     },
     {
-      "path": "tests/Feature/Transaksi/ReturnSchemaTest.php",
+      "path": "tests/Feature/Transaksi/ReturnModelTest.php",
       "reason": "new",
+      "language": "php",
+      "size": 3327
+    },
+    {
+      "path": "tests/Feature/Transaksi/ReturnSchemaTest.php",
+      "reason": "needs_summary",
       "language": "php",
       "size": 4023
     },
