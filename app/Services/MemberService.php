@@ -36,12 +36,16 @@ class MemberService
             'class' => ['nullable', 'required_if:type,siswa', 'string', 'max:20'],
             'phone' => ['nullable', 'string', 'max:20', 'regex:/^[0-9+\-\s]{8,20}$/'],
             'is_active' => ['boolean'],
+            'credit_limit' => ['nullable', 'integer', 'min:0', 'max:10000000'],
         ];
     }
 
     public static function messages(): array
     {
         return [
+            'credit_limit.integer' => 'Batas bon harus berupa angka.',
+            'credit_limit.max' => 'Batas bon terlalu besar.',
+            'credit_limit.min' => 'Batas bon tidak boleh negatif.',
             'required' => 'Wajib diisi.',
             'class.required_if' => 'Kelas wajib diisi untuk siswa.',
             'member_code.regex' => 'Hanya huruf, angka, dan tanda -.',
@@ -169,6 +173,7 @@ class MemberService
             'phone' => $m->phone,
             'balance' => (int) round((float) $m->balance),
             'is_active' => $m->is_active,
+            'credit_limit' => $m->credit_limit,
             'joined_at' => $m->joined_at?->toDateString(),
             'display_name' => $m->display_name,
         ];
@@ -176,10 +181,13 @@ class MemberService
 
     private function normalize(array $data): array
     {
-        $out = collect($data)->only(['member_code', 'name', 'type', 'class', 'phone', 'is_active'])->all();
+        $out = collect($data)->only(['member_code', 'name', 'type', 'class', 'phone', 'is_active', 'credit_limit'])->all();
         $out['name'] = trim($out['name']);
         $out['class'] = ($out['type'] ?? 'siswa') === 'guru' ? null : mb_strtoupper(trim((string) ($out['class'] ?? '')));
         $out['phone'] = filled($out['phone'] ?? null) ? trim($out['phone']) : null;
+        if (array_key_exists('credit_limit', $out)) {
+            $out['credit_limit'] = filled($out['credit_limit']) ? (int) $out['credit_limit'] : null; // kosong = ikut batas bawaan
+        }
         if (blank($out['member_code'] ?? null)) {
             unset($out['member_code']);
         }

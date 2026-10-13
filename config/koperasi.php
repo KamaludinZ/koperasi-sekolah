@@ -24,16 +24,4 @@ return [
     // Proxy tepercaya (mis. Nginx/Cloudflare) agar skema asli dibaca dari X-Forwarded-Proto.
     // "*" = semua, atau daftar IP dipisah koma. Kosong = tidak ada.
     'trusted_proxies' => env('TRUSTED_PROXIES'),
-
-    /*
-     | Bon (bayar nanti) anggota: batas bawaan per jenis anggota (rupiah; bisa diganti per anggota lewat
-     | members.credit_limit) dan jatuh tempo terlama (hari).
-     */
-    'credit' => [
-        'limits' => [
-            'siswa' => (int) env('KOPERASI_CREDIT_LIMIT_SISWA', 50000),
-            'guru' => (int) env('KOPERASI_CREDIT_LIMIT_GURU', 300000),
-        ],
-        'max_days' => (int) env('KOPERASI_CREDIT_MAX_DAYS', 60),
-    ],
 ];

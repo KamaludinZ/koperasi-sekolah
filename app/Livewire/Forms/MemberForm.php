@@ -26,6 +26,9 @@ class MemberForm extends Form
 
     public bool $is_active = true;
 
+    /** Batas bon khusus anggota ini (kosong = ikut batas bawaan jenis anggota). */
+    public int|string|null $credit_limit = '';
+
     protected function rules(): array
     {
         return MemberService::rules($this->id);

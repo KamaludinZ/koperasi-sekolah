@@ -293,7 +293,8 @@ class Cart extends Component
         $this->paymentMethod = 'tunai';
         $this->paid = null;
         $this->savingsConsent = false;
-        $this->reset('bonDays', 'bonDueAt', 'bonNote', 'bonConsent');
+        $this->reset('bonNote', 'bonConsent');
+        $this->applyDefaultBonTerm();
         $this->paying = true;
     }
 
@@ -332,6 +333,27 @@ class Cart extends Component
     {
         $this->reset('memberId', 'memberSearch', 'savingsConsent', 'bonConsent');
         unset($this->member);
+    }
+
+    /** Jatuh tempo bawaan dari pengaturan: pilihan cepat bila cocok, selain itu tanggal sendiri. */
+    private function applyDefaultBonTerm(): void
+    {
+        $days = MemberCreditService::defaultDays();
+        $this->bonDays = array_key_exists($days, $this->bonTerms()) ? $days : 0;
+        $this->bonDueAt = $this->bonDays === 0 ? now()->addDays($days)->toDateString() : '';
+    }
+
+    /** @return array<int, string> pilihan cepat jatuh tempo yang tidak melebihi batas pengaturan */
+    public function bonTerms(): array
+    {
+        return array_filter(self::BON_TERMS, fn ($label, $days) => $days <= MemberCreditService::maxDays(), ARRAY_FILTER_USE_BOTH);
+    }
+
+    /** @return array<string, string> metode bayar yang tersedia (bon disembunyikan bila dimatikan di pengaturan) */
+    #[Computed]
+    public function methods(): array
+    {
+        return MemberCreditService::enabled() ? self::PAYMENT_METHODS : array_diff_key(self::PAYMENT_METHODS, ['bon' => 1]);
     }
 
     /** Tanggal jatuh tempo bon yang berlaku (Y-m-d), atau null bila tanggal sendiri belum diisi. */
@@ -398,7 +420,7 @@ class Cart extends Component
             }
             if ($this->paymentMethod === 'bon') {
                 $this->validate([
-                    'bonDays' => ['required', 'integer', 'in:0,'.implode(',', array_keys(self::BON_TERMS))],
+                    'bonDays' => ['required', 'integer', 'in:0,'.implode(',', array_keys($this->bonTerms()))],
                     'bonDueAt' => ['exclude_unless:bonDays,0', 'required', 'date_format:Y-m-d', 'after:today', 'before_or_equal:'.now()->addDays(MemberCreditService::maxDays())->toDateString()],
                     'bonNote' => ['nullable', 'string', 'max:100'],
                     'bonConsent' => ['accepted'],

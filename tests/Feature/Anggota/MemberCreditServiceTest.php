@@ -42,14 +42,14 @@ class MemberCreditServiceTest extends TestCase
         $this->fail('Seharusnya gagal validasi.');
     }
 
-    public function test_limits_from_config_or_member(): void
+    public function test_limits_from_settings_or_member(): void
     {
         $siswa = Member::factory()->create(['type' => 'siswa']);
         $guru = Member::factory()->create(['type' => 'guru']);
         $this->assertSame([50000, 300000], [MemberCreditService::limitFor($siswa), MemberCreditService::limitFor($guru)]);
         $siswa->update(['credit_limit' => 20000]);
         $this->assertSame(20000, MemberCreditService::limitFor($siswa->fresh()));
-        config(['koperasi.credit.limits.guru' => 100000]);
+        app(\App\Services\SettingsService::class)->save('credit', ['limit_guru' => 100000]);
         $this->assertSame(100000, MemberCreditService::limitFor($guru));
     }
 

@@ -17,23 +17,42 @@ use Illuminate\Validation\ValidationException;
 /**
  * Bon (piutang) anggota: batas, ringkasan, pemeriksaan sebelum bayar, dan pencatatan bon dari
  * transaksi kasir bermetode `bon`.
- * - Batas = members.credit_limit, atau bawaan per jenis anggota (config koperasi.credit.limits).
- * - Bon baru ditolak bila anggota nonaktif, masih punya bon lewat jatuh tempo, atau melebihi sisa batas.
- * - Jatuh tempo: besok s.d. config koperasi.credit.max_days hari.
+ * - Pengaturan bagian `credit` (SettingsService): aktif/tidak, batas bawaan siswa/guru, jatuh tempo
+ *   bawaan & terlama, blokir bila ada bon lewat jatuh tempo.
+ * - Batas = members.credit_limit (khusus anggota), atau batas bawaan jenis anggotanya.
+ * - Bon baru ditolak bila bon dimatikan, anggota nonaktif, (opsional) masih punya bon lewat jatuh
+ *   tempo, atau melebihi sisa batas. Jatuh tempo: besok s.d. max_days hari.
  * Nomor bon BON-YYYYMMDD-NNNN berurutan per hari.
  * Pelunasan (repay): tunai atau potong tabungan, boleh sebagian, dibagi ke bon jatuh tempo terlama
  * dulu; pelunasan tunai masuk laci shift yang sedang buka (kas masuk). Nomor PLN-YYYYMMDD-NNNN.
  */
 class MemberCreditService
 {
+    public static function settings(): array
+    {
+        return app(SettingsService::class)->credit();
+    }
+
     public static function limitFor(Member $member): int
     {
-        return $member->credit_limit ?? (int) (config('koperasi.credit.limits')[$member->type] ?? config('koperasi.credit.limits.siswa', 0));
+        $s = self::settings();
+
+        return $member->credit_limit ?? (int) ($s['limit_'.$member->type] ?? $s['limit_siswa']);
+    }
+
+    public static function enabled(): bool
+    {
+        return (bool) self::settings()['enabled'];
     }
 
     public static function maxDays(): int
     {
-        return (int) config('koperasi.credit.max_days', 60);
+        return (int) self::settings()['max_days'];
+    }
+
+    public static function defaultDays(): int
+    {
+        return min((int) self::settings()['default_days'], self::maxDays());
     }
 
     /**
@@ -62,15 +81,16 @@ class MemberCreditService
      * Pemeriksaan sebelum bayar (tanpa mengubah data).
      *
      * @return array{can_pay: bool, reason: string, amount: int, shortfall: int}&array<string, mixed>
-     *                                                                                                 reason: ok | inactive | overdue | over_limit
+     *                                                                                                 reason: ok | disabled | inactive | overdue | over_limit
      */
     public function check(Member $member, int $amount): array
     {
         $s = $this->summary($member);
         $short = max(0, $amount - $s['available']);
         $reason = match (true) {
+            ! self::enabled() => 'disabled',
             ! $member->is_active || $member->trashed() => 'inactive',
-            $s['overdue'] => 'overdue',
+            $s['overdue'] && self::settings()['block_overdue'] => 'overdue',
             $short > 0 => 'over_limit',
             default => 'ok',
         };
@@ -113,6 +133,7 @@ class MemberCreditService
             $check = $this->check($member, $amount);
             if (! $check['can_pay']) {
                 throw ValidationException::withMessages(['member_id' => match ($check['reason']) {
+                    'disabled' => 'Pembayaran bon sedang dimatikan di pengaturan.',
                     'inactive' => 'Anggota nonaktif tidak bisa berbelanja dengan bon.',
                     'overdue' => 'Anggota masih punya bon yang lewat jatuh tempo. Minta dilunasi dulu.',
                     default => 'Melebihi sisa batas bon sebesar Rp'.number_format($check['shortfall'], 0, ',', '.')

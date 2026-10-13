@@ -43,7 +43,7 @@
                 <fieldset>
                     <legend class="mb-2 text-sm font-medium">Metode bayar</legend>
                     <div class="grid grid-cols-2 gap-2">
-                        @foreach (\App\Livewire\Kasir\Cart::PAYMENT_METHODS as $value => $label)
+                        @foreach ($this->methods as $value => $label)
                             <label class="flex cursor-pointer items-center justify-center rounded-lg border px-3 py-2.5 text-sm font-medium transition has-checked:border-emerald-600 has-checked:bg-emerald-50 has-checked:text-emerald-900 border-stone-300 text-stone-700">
                                 <input type="radio" value="{{ $value }}" x-model="method" class="sr-only">
                                 {{ $label }}
@@ -144,7 +144,7 @@
                                 <fieldset>
                                     <legend class="mb-1.5 text-sm font-medium">Jatuh tempo bon</legend>
                                     <div class="flex flex-wrap gap-2">
-                                        @foreach (\App\Livewire\Kasir\Cart::BON_TERMS + [0 => 'Tanggal lain'] as $days => $label)
+                                        @foreach ($this->bonTerms() + [0 => 'Tanggal lain'] as $days => $label)
                                             <label class="cursor-pointer rounded-full border border-stone-300 px-3 py-1 text-sm has-checked:border-emerald-700 has-checked:bg-emerald-900 has-checked:text-white">
                                                 <input type="radio" wire:model.live="bonDays" value="{{ $days }}" class="sr-only" @checked($bonDays === $days)> {{ $label }}
                                             </label>

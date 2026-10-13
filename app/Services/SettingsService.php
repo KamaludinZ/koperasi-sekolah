@@ -19,9 +19,9 @@ use Throwable;
  */
 class SettingsService
 {
-    public const SECTIONS = ['profile', 'receipt', 'tax', 'discount', 'security'];
+    public const SECTIONS = ['profile', 'receipt', 'tax', 'discount', 'security', 'credit'];
 
-    public const SECTION_LABELS = ['profile' => 'Profil koperasi', 'receipt' => 'Pengaturan struk', 'tax' => 'Pajak & pembulatan', 'discount' => 'Diskon manual kasir', 'security' => 'Keamanan & retensi'];
+    public const SECTION_LABELS = ['profile' => 'Profil koperasi', 'receipt' => 'Pengaturan struk', 'tax' => 'Pajak & pembulatan', 'discount' => 'Diskon manual kasir', 'security' => 'Keamanan & retensi', 'credit' => 'Bon anggota'];
 
     public const CACHE_KEY = 'settings:all';
 
@@ -76,6 +76,22 @@ class SettingsService
             'import_max_kb' => 5120,
             'import_types' => ['csv', 'xlsx'],
         ],
+        'credit' => [
+            'enabled' => true,           // kasir boleh menerima bon (bayar nanti)
+            'limit_siswa' => 50000,      // batas bon bawaan siswa (rupiah)
+            'limit_guru' => 300000,      // batas bon bawaan guru (rupiah)
+            'default_days' => 14,        // jatuh tempo yang dipilih otomatis di kasir
+            'max_days' => 60,            // jatuh tempo terlama
+            'block_overdue' => true,     // tolak bon baru bila masih ada bon lewat jatuh tempo
+        ],
+    ];
+
+    /** Batas aman angka pengaturan bon: [min, max]. */
+    public const CREDIT_LIMITS = [
+        'limit_siswa' => [0, 5_000_000],
+        'limit_guru' => [0, 10_000_000],
+        'default_days' => [1, 180],
+        'max_days' => [7, 180],
     ];
 
     /** Batas aman angka pengaturan keamanan & retensi: [min, max]. */
@@ -101,7 +117,7 @@ class SettingsService
     /**
      * Semua pengaturan + kapan & oleh siapa terakhir diubah.
      *
-     * @return array{profile: array, receipt: array, tax: array, discount: array, security: array, updated_at: ?string, updated_by: ?string}
+     * @return array{profile: array, receipt: array, tax: array, discount: array, security: array, credit: array, updated_at: ?string, updated_by: ?string}
      */
     public function all(): array
     {
@@ -153,6 +169,12 @@ class SettingsService
     public function security(): array
     {
         return $this->section('security');
+    }
+
+    /** Bon anggota: enabled, limit_siswa, limit_guru, default_days, max_days, block_overdue. */
+    public function credit(): array
+    {
+        return $this->section('credit');
     }
 
     /** Tarif pajak efektif dalam persen (0 bila pajak dimatikan). */
@@ -262,13 +284,18 @@ class SettingsService
                     'import_types' => ['sometimes', 'required', 'array', 'min:1'],
                     'import_types.*' => ['in:'.implode(',', array_keys(self::UPLOAD_TYPES['import']))],
                 ],
+            'credit' => collect(self::CREDIT_LIMITS)
+                ->map(fn ($l) => ['sometimes', 'required', 'integer', 'min:'.$l[0], 'max:'.$l[1]])->all() + [
+                    'enabled' => ['sometimes', 'boolean'],
+                    'block_overdue' => ['sometimes', 'boolean'],
+                ],
             default => abort(404),
         };
     }
 
     /**
      * Pemeriksaan lintas kunci memakai isian + nilai tersimpan, untuk Validator::after():
-     * pajak yang aktif wajib bertarif > 0.
+     * pajak yang aktif wajib bertarif > 0; jatuh tempo bon bawaan ≤ jatuh tempo terlama.
      *
      * @return array<string, string> [kunci => pesan]
      */
@@ -279,6 +306,13 @@ class SettingsService
             $rate = $input['rate'] ?? $current['rate'] ?? 0;
             if ($enabled && is_numeric($rate) && (float) $rate <= 0) {
                 return ['rate' => 'Isi tarif pajak lebih dari 0, atau matikan pajak.'];
+            }
+        }
+        if ($section === 'credit') {
+            $default = $input['default_days'] ?? $current['default_days'] ?? 14;
+            $max = $input['max_days'] ?? $current['max_days'] ?? 60;
+            if (is_numeric($default) && is_numeric($max) && (int) $default > (int) $max) {
+                return ['default_days' => 'Jatuh tempo bawaan tidak boleh melebihi jatuh tempo terlama.'];
             }
         }
 
