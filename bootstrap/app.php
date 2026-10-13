@@ -26,5 +26,13 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
-        //
+        // Catat percobaan akses yang ditolak (403) oleh petugas yang masuk — menu, peran, atau izin.
+        $exceptions->render(function (Symfony\Component\HttpKernel\Exception\HttpExceptionInterface|Illuminate\Auth\Access\AuthorizationException $e, Illuminate\Http\Request $request) {
+            $status = $e instanceof Illuminate\Auth\Access\AuthorizationException ? 403 : $e->getStatusCode();
+            if ($status === 403 && $request->user()) {
+                App\Support\AccessDenied::record($request, $e->getMessage());
+            }
+
+            return null; // tampilan bawaan (errors/403) tetap dipakai
+        });
     })->create();
