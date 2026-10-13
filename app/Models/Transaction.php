@@ -45,6 +45,12 @@ class Transaction extends Model
         return $this->belongsTo(User::class);
     }
 
+    /** Rincian potongan (manual / promo / kupon); jumlahnya = kolom discount. */
+    public function discounts(): HasMany
+    {
+        return $this->hasMany(TransactionDiscount::class);
+    }
+
     /** Shift kasir saat transaksi dibuat (null = sebelum fitur shift / tanpa shift). */
     public function shift(): BelongsTo
     {
