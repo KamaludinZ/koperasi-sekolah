@@ -441,4 +441,58 @@ class MockData
 
         return $events;
     }
+
+    /** Alasan retur barang & pembatalan transaksi (tiruan; dipakai form & daftar). */
+    public const RETURN_REASONS = ['rusak' => 'Barang rusak/cacat', 'salah_ambil' => 'Salah ambil barang', 'kedaluwarsa' => 'Kedaluwarsa', 'lainnya' => 'Lainnya'];
+
+    public const VOID_REASONS = ['salah_input' => 'Salah input kasir', 'batal_beli' => 'Pembeli batal membeli', 'ganda' => 'Transaksi tercatat ganda', 'lainnya' => 'Lainnya'];
+
+    /**
+     * Pengajuan retur & pembatalan (tiruan) yang merujuk ke transaksi asli terbaru, terbaru dulu.
+     * Kontrak backend: GET /transaksi/retur/daftar → rows[].
+     *
+     * @return list<array<string, mixed>>
+     */
+    public static function transactionReturns(): array
+    {
+        $txs = \App\Models\Transaction::with(['items', 'user:id,name'])->latest('id')->skip(1)->take(12)->get();
+        $rows = [];
+        foreach ($txs as $i => $t) {
+            if ($i % 4 === 3 || $t->items->isEmpty()) {
+                continue; // tidak semua transaksi diretur
+            }
+            $void = $i % 3 === 0;
+            $item = $t->items->first();
+            $qty = $void ? $t->items->sum('quantity') : 1;
+            $amount = $void ? (int) $t->total : (int) $item->price;
+            $status = match (true) { $i < 3 => 'menunggu', $i % 5 === 4 => 'ditolak', default => 'disetujui' };
+            $at = $t->created_at->copy()->addMinutes(20 + $i * 7);
+            $reasonKey = $void ? array_keys(self::VOID_REASONS)[$i % 3] : array_keys(self::RETURN_REASONS)[$i % 3];
+            $rows[] = [
+                'id' => $t->id * 10 + ($void ? 1 : 2),
+                'number' => ($void ? 'BTL-' : 'RTR-').$at->format('Ymd').'-'.str_pad((string) ($t->id % 10000), 4, '0', STR_PAD_LEFT),
+                'kind' => $void ? 'batal' : 'retur',
+                'status' => $status,
+                'transaction' => ['id' => $t->id, 'invoice' => $t->invoice_number, 'total' => (int) $t->total, 'method' => $t->payment_method, 'created_at' => $t->created_at->toDateTimeString(), 'cashier' => $t->user?->name ?? 'Kasir'],
+                'items' => $void
+                    ? $t->items->map(fn ($it) => ['name' => $it->product_name, 'qty' => $it->quantity, 'amount' => (int) $it->subtotal])->all()
+                    : [['name' => $item->product_name, 'qty' => 1, 'amount' => (int) $item->price]],
+                'qty' => $qty,
+                'amount' => $amount,
+                'refund_method' => $t->payment_method === 'qris' ? 'qris' : 'tunai',
+                'restock' => $reasonKey !== 'rusak' && $reasonKey !== 'kedaluwarsa',
+                'reason_key' => $reasonKey,
+                'reason' => $void ? self::VOID_REASONS[$reasonKey] : self::RETURN_REASONS[$reasonKey],
+                'note' => $i % 2 === 0 ? null : ($void ? 'Pembeli minta dibatalkan di kasir' : 'Kemasan sobek saat dibuka'),
+                'requested_by' => $t->user?->name ?? 'Kasir',
+                'requested_at' => $at->toDateTimeString(),
+                'decided_by' => $status === 'menunggu' ? null : 'Admin Koperasi',
+                'decided_at' => $status === 'menunggu' ? null : $at->copy()->addHour()->toDateTimeString(),
+                'decision_note' => $status === 'ditolak' ? 'Lewat batas 3 hari sejak pembelian' : null,
+            ];
+        }
+        usort($rows, fn ($a, $b) => [$b['requested_at'], $b['id']] <=> [$a['requested_at'], $a['id']]);
+
+        return $rows;
+    }
 }

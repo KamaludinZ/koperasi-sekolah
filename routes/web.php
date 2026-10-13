@@ -257,6 +257,7 @@ Route::middleware('menu:transaksi')->group(function () {
     Route::get('/transaksi/ringkasan', [TransactionListController::class, 'summary'])
         ->middleware('throttle:120,1')
         ->name('transaksi.summary');
+    Route::get('/transaksi/retur', Transaksi\Returns::class)->name('transaksi.retur');
     Route::get('/transaksi/{transaction}', Transaksi\Show::class)
         ->whereNumber('transaction')
         ->name('transaksi.show');
