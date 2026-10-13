@@ -1,6 +1,6 @@
 {
   "repo": "Koperasi Sekolah",
-  "generatedForCommit": "0e95d2b8e544f64d95bfca0e46470583f398973a",
+  "generatedForCommit": "d40222e789a31c36f365c3a2894f45f4b31be53a",
   "files": [
     {
       "path": ".claude/skills/ngodingpakeai/SKILL.md",
@@ -375,6 +375,12 @@
       "size": 4296
     },
     {
+      "path": "app/Livewire/Promo/Index.php",
+      "reason": "new",
+      "language": "php",
+      "size": 5537
+    },
+    {
       "path": "app/Livewire/Transaksi/Index.php",
       "reason": "needs_summary",
       "language": "php",
@@ -616,15 +622,15 @@
     },
     {
       "path": "app/Support/Menu.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 6603
+      "size": 6902
     },
     {
       "path": "app/Support/MockData.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 27773
+      "size": 36196
     },
     {
       "path": "app/Support/OpeningHours.php",
@@ -891,6 +897,12 @@
       "size": 1248
     },
     {
+      "path": "database/migrations/2026_10_13_000002_add_promo_menu_to_roles.php",
+      "reason": "new",
+      "language": "php",
+      "size": 1249
+    },
+    {
       "path": "database/seeders/ActivityLogSeeder.php",
       "reason": "needs_summary",
       "language": "php",
@@ -1018,7 +1030,7 @@
     },
     {
       "path": "resources/views/components/kas/difference-badge.blade.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 1974
     },
@@ -1240,7 +1252,7 @@
     },
     {
       "path": "resources/views/livewire/kas/index.blade.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 19238
     },
@@ -1252,13 +1264,13 @@
     },
     {
       "path": "resources/views/livewire/kas/recap.blade.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 10434
     },
     {
       "path": "resources/views/livewire/kas/shifts.blade.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 8515
     },
@@ -1371,6 +1383,12 @@
       "size": 6537
     },
     {
+      "path": "resources/views/livewire/promo/index.blade.php",
+      "reason": "new",
+      "language": "php",
+      "size": 13226
+    },
+    {
       "path": "resources/views/livewire/transaksi/index.blade.php",
       "reason": "needs_summary",
       "language": "php",
@@ -1402,9 +1420,9 @@
     },
     {
       "path": "routes/web.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 12269
+      "size": 12412
     },
     {
       "path": "tests/Feature/Anggota/IndexTest.php",
@@ -1486,9 +1504,9 @@
     },
     {
       "path": "tests/Feature/Auth/RoleMenuTest.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 3278
+      "size": 3306
     },
     {
       "path": "tests/Feature/Auth/RoleMiddlewareTest.php",
@@ -1630,7 +1648,7 @@
     },
     {
       "path": "tests/Feature/Kas/DifferenceBadgeTest.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 1582
     },
@@ -1648,7 +1666,7 @@
     },
     {
       "path": "tests/Feature/Kas/ShiftsTest.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 2828
     },
@@ -1843,6 +1861,12 @@
       "reason": "needs_summary",
       "language": "php",
       "size": 7595
+    },
+    {
+      "path": "tests/Feature/Promo/IndexTest.php",
+      "reason": "new",
+      "language": "php",
+      "size": 3484
     },
     {
       "path": "tests/Feature/Transaksi/DateFilterTest.php",

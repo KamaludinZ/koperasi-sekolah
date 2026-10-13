@@ -7,6 +7,7 @@ use App\Services\ProductCatalog;
 use App\Services\ReceiptPdfService;
 use App\Services\ReceiptPresenter;
 use App\Services\SettingsService;
+use App\Support\MockData;
 use App\Support\PriceCalculator;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\On;
@@ -15,8 +16,10 @@ use Livewire\Component;
 
 /**
  * Keranjang belanja kasir. Menerima event `product-picked` dari
- * ProductPicker dan menghitung subtotal, pajak, pembulatan, dan total (PriceCalculator).
+ * ProductPicker dan menghitung subtotal, diskon manual, pajak, pembulatan, dan total (PriceCalculator).
  * Isi keranjang: [productId => qty]; harga diambil ulang dari data barang.
+ * Diskon manual (nominal/persen + alasan) dibatasi aturan diskon kasir
+ * (tahap ini dari MockData::manualDiscountRules) dan dipotong sebelum pajak.
  */
 class Cart extends Component
 {
@@ -38,6 +41,20 @@ class Cart extends Component
     public ?array $lastTransaction = null;
 
     public const PAYMENT_METHODS = CheckoutService::PAYMENT_METHODS;
+
+    /** Diskon manual yang diterapkan: ['type' => 'nominal'|'persen', 'value' => int, 'reason' => string]. */
+    public ?array $discount = null;
+
+    /** Isian form diskon (sebelum diterapkan). */
+    public bool $editingDiscount = false;
+
+    public string $discountType = 'persen';
+
+    public ?int $discountValue = null;
+
+    public string $discountReason = '';
+
+    public const DISCOUNT_REASONS = ['Barang cacat/kemasan rusak', 'Pelanggan tetap', 'Kegiatan sekolah', 'Penyesuaian harga'];
 
     #[On('product-picked')]
     public function add(int $productId): void
@@ -102,6 +119,84 @@ class Cart extends Component
         $this->items = [];
         $this->notice = null;
         $this->lastRemoved = null;
+        $this->removeDiscount();
+    }
+
+    public function editDiscount(): void
+    {
+        if ($this->summary['count'] === 0) {
+            return;
+        }
+        $this->resetValidation(['discountValue', 'discountReason']);
+        $this->discountType = $this->discount['type'] ?? 'persen';
+        $this->discountValue = $this->discount['value'] ?? null;
+        $this->discountReason = $this->discount['reason'] ?? '';
+        $this->editingDiscount = true;
+    }
+
+    public function cancelDiscount(): void
+    {
+        $this->editingDiscount = false;
+        $this->resetValidation(['discountValue', 'discountReason']);
+    }
+
+    /** Terapkan diskon manual setelah dicek terhadap batas diskon kasir. */
+    public function applyDiscount(): void
+    {
+        $rules = MockData::manualDiscountRules();
+        $isPercent = $this->discountType === 'persen';
+
+        $this->validate([
+            'discountType' => ['required', 'in:nominal,persen'],
+            'discountValue' => ['required', 'integer', 'min:1', $isPercent ? 'max:100' : 'max:10000000'],
+            'discountReason' => [$rules['reason_required'] ? 'required' : 'nullable', 'string', 'max:100'],
+        ], [
+            'discountValue.required' => 'Isi besar diskon.',
+            'discountValue.min' => 'Diskon minimal 1.',
+            'discountValue.max' => $isPercent ? 'Diskon maksimal 100%.' : 'Diskon terlalu besar.',
+            'discountReason.required' => 'Tulis alasan diskon.',
+        ]);
+
+        if (! $rules['enabled']) {
+            $this->addError('discountValue', 'Diskon manual sedang dimatikan oleh admin.');
+
+            return;
+        }
+        $amount = self::discountAmount(['type' => $this->discountType, 'value' => $this->discountValue], $this->summary['subtotal']);
+        if (($isPercent && $this->discountValue > $rules['max_percent']) || $amount > $rules['max_amount']) {
+            $this->addError('discountValue', 'Melebihi batas diskon kasir ('.$rules['max_percent'].'% · maks. Rp'.number_format($rules['max_amount'], 0, ',', '.').'). Minta persetujuan admin.');
+
+            return;
+        }
+        if (! $isPercent && $this->discountValue > $this->summary['subtotal']) {
+            $this->addError('discountValue', 'Diskon tidak boleh melebihi subtotal belanja.');
+
+            return;
+        }
+
+        $this->discount = ['type' => $this->discountType, 'value' => $this->discountValue, 'reason' => trim($this->discountReason)];
+        $this->editingDiscount = false;
+        unset($this->summary);
+    }
+
+    public function removeDiscount(): void
+    {
+        $this->discount = null;
+        $this->editingDiscount = false;
+        $this->discountValue = null;
+        $this->discountReason = '';
+        unset($this->summary);
+    }
+
+    /** Rupiah potongan dari diskon (persen dibulatkan ke rupiah), tidak melebihi subtotal. */
+    public static function discountAmount(?array $discount, int $subtotal): int
+    {
+        if (! $discount || $subtotal <= 0) {
+            return 0;
+        }
+        $amount = $discount['type'] === 'persen' ? (int) round($subtotal * $discount['value'] / 100) : (int) $discount['value'];
+
+        return max(0, min($amount, $subtotal));
     }
 
     public function openPayment(): void
@@ -136,6 +231,13 @@ class Cart extends Component
             $this->paid = $summary['total'];
         }
 
+        // Isi keranjang bisa berubah setelah diskon persen diterapkan: cek ulang batasnya.
+        if ($summary['discount'] > MockData::manualDiscountRules()['max_amount']) {
+            $this->addError('paid', 'Diskon melebihi batas kasir setelah keranjang berubah. Ubah diskonnya dulu.');
+
+            return;
+        }
+
         $this->validate([
             'paymentMethod' => ['required', 'in:'.implode(',', array_keys(self::PAYMENT_METHODS))],
             'paid' => ['required', 'integer', 'min:'.$summary['total']],
@@ -145,7 +247,7 @@ class Cart extends Component
         ]);
 
         try {
-            $transaction = $checkout->checkout($this->items, $this->paymentMethod, $this->paid, auth()->id());
+            $transaction = $checkout->checkout($this->items, $this->paymentMethod, $this->paid, auth()->id(), null, $summary['discount'], $this->discount['reason'] ?? null);
         } catch (ValidationException $e) {
             foreach ($e->errors() as $field => $messages) {
                 $this->addError($field === 'payment_method' ? 'paymentMethod' : $field, implode(' ', $messages));
@@ -194,12 +296,15 @@ class Cart extends Component
     public function summary(): array
     {
         $subtotal = array_sum(array_column($this->lines, 'subtotal'));
+        $discount = self::discountAmount($this->discount, $subtotal);
+        $net = $subtotal - $discount;
         $tax = app(SettingsService::class)->tax();
-        $price = PriceCalculator::compute($subtotal, $tax, $this->paymentMethod);
+        $price = PriceCalculator::compute($net, $tax, $this->paymentMethod);
 
         return [
             'count' => array_sum(array_column($this->lines, 'quantity')),
             'subtotal' => $subtotal,
+            'discount' => $discount,
             'tax_enabled' => (bool) $tax['enabled'],
             'tax_label' => $tax['label'],
             'tax_rate' => $tax['enabled'] ? (float) $tax['rate'] : 0.0,
@@ -210,7 +315,7 @@ class Cart extends Component
             // Total & pembulatan per metode bayar (pembulatan bisa khusus tunai) untuk panel bayar.
             'totals' => collect(self::PAYMENT_METHODS)->map(fn ($label, $method) => $method === $this->paymentMethod
                 ? ['payable' => $price['payable'], 'rounding' => $price['rounding']]
-                : ['payable' => ($p = PriceCalculator::compute($subtotal, $tax, $method))['payable'], 'rounding' => $p['rounding']])->all(),
+                : ['payable' => ($p = PriceCalculator::compute($net, $tax, $method))['payable'], 'rounding' => $p['rounding']])->all(),
         ];
     }
 

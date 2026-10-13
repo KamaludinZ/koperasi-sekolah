@@ -11,8 +11,8 @@ use Illuminate\Validation\ValidationException;
 
 /**
  * Menyimpan transaksi penjualan kasir secara atomik:
- * kunci baris barang → validasi stok → hitung total di server (pajak & pembulatan
- * dari pengaturan, lihat PriceCalculator) →
+ * kunci baris barang → validasi stok → hitung total di server (diskon manual dipotong
+ * dari subtotal, lalu pajak & pembulatan dari pengaturan, lihat PriceCalculator) →
  * simpan transaksi + item (snapshot nama & harga) → kurangi stok → catat mutasi stok.
  */
 class CheckoutService
@@ -24,10 +24,11 @@ class CheckoutService
     /**
      * @param  array<int, int>  $items  [productId => quantity]
      * @param  int|null  $paid  uang dibayar; untuk non-tunai otomatis sama dengan total
+     * @param  int  $discount  potongan manual (rupiah) atas subtotal, sebelum pajak; dibatasi 0..subtotal
      *
      * @throws ValidationException bila keranjang kosong, stok kurang, atau bayar kurang
      */
-    public function checkout(array $items, string $paymentMethod, ?int $paid, ?int $userId = null, ?int $memberId = null): Transaction
+    public function checkout(array $items, string $paymentMethod, ?int $paid, ?int $userId = null, ?int $memberId = null, int $discount = 0, ?string $discountReason = null): Transaction
     {
         $items = array_filter(array_map('intval', $items), fn ($qty) => $qty > 0);
 
@@ -38,7 +39,7 @@ class CheckoutService
             throw ValidationException::withMessages(['payment_method' => 'Metode bayar tidak dikenal.']);
         }
 
-        return DB::transaction(function () use ($items, $paymentMethod, $paid, $userId, $memberId) {
+        return DB::transaction(function () use ($items, $paymentMethod, $paid, $userId, $memberId, $discount, $discountReason) {
             // Kunci baris barang (urut id agar tidak deadlock) supaya stok tidak terjual ganda.
             $products = Product::active()
                 ->whereKey(array_keys($items))
@@ -72,7 +73,8 @@ class CheckoutService
 
             $subtotal = array_sum(array_column($lines, 'subtotal'));
             $taxSettings = $this->settings->tax();
-            $price = PriceCalculator::compute($subtotal, $taxSettings, $paymentMethod);
+            $discount = max(0, min($discount, $subtotal));
+            $price = PriceCalculator::compute($subtotal - $discount, $taxSettings, $paymentMethod);
             $total = $price['payable'];
             $paid = $paymentMethod === 'tunai' ? $paid : $total;
 
@@ -88,7 +90,7 @@ class CheckoutService
                 'tax_label' => $taxSettings['enabled'] ? $taxSettings['label'] : null,
                 'tax_rate' => $taxSettings['enabled'] ? (float) $taxSettings['rate'] : 0,
                 'tax_included' => $price['tax_included'],
-                'discount' => 0,
+                'discount' => $discount,
                 'rounding' => $price['rounding'],
                 'total' => $total,
                 'paid' => $paid,
@@ -123,6 +125,8 @@ class CheckoutService
                     'change' => $paid - $total,
                     'member_id' => $memberId,
                     'subtotal' => $subtotal,
+                    'discount' => $discount ?: null,
+                    'discount_reason' => $discount ? $discountReason : null,
                     'tax' => $price['tax'] ?: null,
                     'tax_included' => $price['tax_included'] ?: null,
                     'rounding' => $price['rounding'] ?: null,
