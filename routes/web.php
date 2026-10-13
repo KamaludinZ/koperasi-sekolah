@@ -11,6 +11,7 @@ use App\Http\Controllers\Auth\LogoutController;
 use App\Http\Controllers\Barang\CategoryController;
 use App\Http\Controllers\Barang\ImportTemplateController;
 use App\Http\Controllers\Barang\ProductController;
+use App\Http\Controllers\Barang\ProductImportController;
 use App\Http\Controllers\BerandaController;
 use App\Http\Controllers\Barang\ProductListController;
 use App\Http\Controllers\Barang\StockAlertController;
@@ -182,6 +183,8 @@ Route::middleware('menu:barang')->group(function () {
         Route::put('/barang/kategori/{category}', [CategoryController::class, 'update'])->whereNumber('category')->name('barang.kategori.update');
         Route::delete('/barang/kategori/{category}', [CategoryController::class, 'destroy'])->whereNumber('category')->name('barang.kategori.destroy');
     });
+    Route::post('/barang/impor', [ProductImportController::class, 'store'])
+        ->middleware(['can:kelola-katalog', 'throttle:10,1'])->name('barang.impor.store');
     Route::get('/barang/impor/templat/{format}', ImportTemplateController::class)->whereIn('format', ['csv', 'xlsx'])->name('barang.impor.templat');
     Route::get('/barang/impor', Barang\Import::class)->middleware('peran:admin,pengurus')->name('barang.impor');
     Route::get('/barang/impor/{import}/pratinjau', Barang\ImportPreview::class)->whereNumber('import')
