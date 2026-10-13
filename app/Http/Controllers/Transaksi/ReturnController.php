@@ -5,7 +5,11 @@ namespace App\Http\Controllers\Transaksi;
 use App\Http\Controllers\Controller;
 use App\Models\Transaction;
 use App\Models\TransactionReturn;
+use App\Services\ReturnHistoryExport;
+use App\Services\TransactionHistory;
 use App\Services\TransactionReturnService;
+use Illuminate\Support\Carbon;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -23,6 +27,8 @@ use Illuminate\Validation\Rule;
  *
  * GET  /transaksi/retur/daftar?status=&jenis=&q=&saya=1 → {data, counts, stats}
  * GET  /transaksi/retur/menunggu         (gate setujui-retur) → {data: antrean terlama dulu}
+ * GET  /transaksi/retur/riwayat/data?dari=&sampai=&jenis=&hasil= → {data: diputus, summary}
+ * GET  /transaksi/retur/riwayat/unduh?…  → CSV riwayat (filter sama)
  * GET  /transaksi/retur/{return}          → {data}
  * POST /transaksi/retur/{return}/setujui  {note?}  (gate setujui-retur; bukan pengaju) → {data}
  * POST /transaksi/retur/{return}/tolak    {note}   (gate setujui-retur; min. 5 karakter) → {data}
@@ -81,6 +87,34 @@ class ReturnController extends Controller
             'counts' => $returns->counts($filters),
             'stats' => $returns->stats(),
         ]);
+    }
+
+    public function history(Request $request, TransactionReturnService $returns): JsonResponse
+    {
+        $result = $returns->history($this->historyFilters($request));
+
+        return response()->json(['data' => $result['rows'], 'summary' => $result['summary']]);
+    }
+
+    public function export(Request $request, ReturnHistoryExport $export): StreamedResponse
+    {
+        $f = $this->historyFilters($request);
+
+        return $export->download($f, TransactionHistory::rangeLabel($f['from'], $f['to']) ?? 'semua periode');
+    }
+
+    /** @return array{from: ?Carbon, to: ?Carbon, kind: ?string, outcome: ?string} */
+    private function historyFilters(Request $request): array
+    {
+        $data = $request->validate([
+            'dari' => ['nullable', 'date_format:Y-m-d'],
+            'sampai' => ['nullable', 'date_format:Y-m-d', 'after_or_equal:dari'],
+            'jenis' => ['nullable', Rule::in(array_keys(TransactionReturn::KINDS))],
+            'hasil' => ['nullable', Rule::in(['disetujui', 'ditolak'])],
+        ], ['sampai.after_or_equal' => 'Tanggal akhir tidak boleh sebelum tanggal awal.']);
+        [$from, $to] = TransactionHistory::range('semua', $data['dari'] ?? null, $data['sampai'] ?? null);
+
+        return ['from' => $from, 'to' => $to, 'kind' => $data['jenis'] ?? null, 'outcome' => $data['hasil'] ?? null];
     }
 
     public function queue(TransactionReturnService $returns): JsonResponse

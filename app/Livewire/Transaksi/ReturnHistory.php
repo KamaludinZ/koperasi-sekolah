@@ -3,7 +3,7 @@
 namespace App\Livewire\Transaksi;
 
 use App\Services\TransactionHistory;
-use App\Support\MockData;
+use App\Services\TransactionReturnService;
 use Illuminate\Support\Carbon;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
@@ -14,8 +14,8 @@ use Livewire\Component;
 /**
  * Transaksi → Riwayat retur & pembatalan: pengajuan yang sudah diputus (disetujui/ditolak),
  * dikelompokkan per tanggal keputusan, dengan filter periode/jenis/hasil, ringkasan nilai
- * dikembalikan & unit kembali ke stok, serta rekap per alasan. Tahap ini dari
- * MockData::transactionReturns(); backend riwayat menyusul dengan bentuk data yang sama.
+ * dikembalikan & unit kembali ke stok, serta rekap per alasan, dan unduhan CSV. Data dari
+ * TransactionReturnService::history (sama dengan GET /transaksi/retur/riwayat/data).
  */
 #[Layout('components.layouts.app')]
 #[Title('Riwayat Retur & Pembatalan')]
@@ -72,20 +72,28 @@ class ReturnHistory extends Component
             : TransactionHistory::range($this->preset);
     }
 
+    #[Computed]
+    public function result(): array
+    {
+        [$start, $end] = $this->range;
+
+        return app(TransactionReturnService::class)->history(['from' => $start, 'to' => $end, 'kind' => $this->kind ?: null, 'outcome' => $this->outcome ?: null]);
+    }
+
     /** Pengajuan yang sudah diputus sesuai filter, terbaru dulu. */
     #[Computed]
     public function rows(): array
     {
+        return $this->result['rows'];
+    }
+
+    /** Tautan unduh CSV dengan filter yang sedang dipakai. */
+    #[Computed]
+    public function exportUrl(): string
+    {
         [$start, $end] = $this->range;
 
-        return array_values(array_filter(MockData::transactionReturns(), function ($r) use ($start, $end) {
-            if ($r['status'] === 'menunggu' || ($this->kind !== '' && $r['kind'] !== $this->kind) || ($this->outcome !== '' && $r['status'] !== $this->outcome)) {
-                return false;
-            }
-            $at = Carbon::parse($r['decided_at']);
-
-            return (! $start || $at->gte($start)) && (! $end || $at->lte($end));
-        }));
+        return route('transaksi.retur.export', array_filter(['dari' => $start?->toDateString(), 'sampai' => $end?->toDateString(), 'jenis' => $this->kind, 'hasil' => $this->outcome]));
     }
 
     /** @return array<string, list<array>> tanggal (Y-m-d) → pengajuan, terbaru dulu */
@@ -101,18 +109,7 @@ class ReturnHistory extends Component
     #[Computed]
     public function summary(): array
     {
-        $ok = collect($this->rows)->where('status', 'disetujui');
-        $reasons = $ok->groupBy('reason')->map(fn ($g, $reason) => ['reason' => $reason, 'count' => $g->count(), 'amount' => $g->sum('amount')])
-            ->sortByDesc('amount')->values()->all();
-
-        return [
-            'approved' => $ok->count(),
-            'rejected' => collect($this->rows)->where('status', 'ditolak')->count(),
-            'refunded' => $ok->sum('amount'),
-            'restocked' => $ok->where('restock', true)->sum('qty'),
-            'written_off' => $ok->where('restock', false)->sum('qty'),
-            'reasons' => $reasons,
-        ];
+        return $this->result['summary'];
     }
 
     #[Computed]

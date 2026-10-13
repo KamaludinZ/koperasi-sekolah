@@ -291,6 +291,8 @@ Route::middleware('menu:transaksi')->group(function () {
         ->middleware('throttle:30,1')
         ->name('transaksi.retur.void');
     Route::get('/transaksi/retur/daftar', [ReturnController::class, 'index'])->middleware('throttle:120,1')->name('transaksi.retur.list');
+    Route::get('/transaksi/retur/riwayat/data', [ReturnController::class, 'history'])->middleware('throttle:120,1')->name('transaksi.retur.history');
+    Route::get('/transaksi/retur/riwayat/unduh', [ReturnController::class, 'export'])->middleware('throttle:20,1')->name('transaksi.retur.export');
     Route::get('/transaksi/retur/menunggu', [ReturnController::class, 'queue'])->middleware(['can:setujui-retur', 'throttle:120,1'])->name('transaksi.retur.queue');
     Route::get('/transaksi/retur/{return}', [ReturnController::class, 'show'])
         ->whereNumber('return')

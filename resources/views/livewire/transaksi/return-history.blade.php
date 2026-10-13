@@ -11,7 +11,10 @@
                 <h1 class="text-lg font-semibold">Riwayat Transaksi</h1>
                 <p class="text-xs text-stone-500">Retur dan pembatalan yang sudah disetujui atau ditolak.</p>
             </div>
-            <span class="rounded bg-stone-100 px-2 py-1 text-xs font-medium text-stone-500" title="Menunggu backend retur">Data contoh</span>
+            <a href="{{ $this->exportUrl }}" class="inline-flex items-center gap-2 rounded-xl border border-stone-300 bg-white px-4 py-2 text-sm font-medium text-stone-700 hover:bg-stone-50">
+                <svg class="size-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v12m0 0-4-4m4 4 4-4M4 20h16"/></svg>
+                Unduh CSV
+            </a>
         </div>
         <x-transaksi.nav active="transaksi.retur.riwayat" />
     </header>
@@ -82,12 +85,12 @@
                                         <span class="block text-stone-700">{{ $r['reason'] }} · {{ collect($r['items'])->map(fn ($i) => $i['qty'].'× '.$i['name'])->join(', ') }}</span>
                                         <span class="block text-xs text-stone-500">
                                             <a href="{{ route('transaksi.show', $r['transaction']['id']) }}" wire:navigate class="font-mono hover:text-emerald-800 hover:underline">{{ $r['transaction']['invoice'] }}</a>
-                                            · diajukan {{ $r['requested_by'] }} · diputus {{ $r['decided_by'] }} {{ \Illuminate\Support\Carbon::parse($r['decided_at'])->format('H:i') }}
+                                            · diajukan {{ $r['requested_by'] ?? '—' }} · diputus {{ $r['decided_by'] ?? 'otomatis' }} {{ \Illuminate\Support\Carbon::parse($r['decided_at'])->format('H:i') }}
                                         </span>
                                         @if ($r['decision_note'])<span class="block text-xs text-red-700">{{ $r['decision_note'] }}</span>@endif
                                     </span>
                                     <span @class(['shrink-0 text-right font-semibold tabular-nums', 'text-stone-400 line-through' => $r['status'] === 'ditolak'])>{{ $rp($r['amount']) }}
-                                        @if ($r['status'] === 'disetujui')<span class="block text-xs font-normal text-stone-500">{{ Returns::REFUND_METHODS[$r['refund_method']] }}</span>@endif
+                                        @if ($r['status'] === 'disetujui')<span class="block text-xs font-normal text-stone-500">{{ $r['refund_label'] }}</span>@endif
                                     </span>
                                 </li>
                             @endforeach

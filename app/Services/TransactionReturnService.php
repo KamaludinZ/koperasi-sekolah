@@ -298,6 +298,33 @@ class TransactionReturnService
             ->map(fn (TransactionReturn $r) => self::toArray($r))->all();
     }
 
+    /**
+     * Riwayat pengajuan yang sudah diputus (disetujui/ditolak) menurut tanggal keputusan, terbaru dulu,
+     * beserta ringkasan nilai dikembalikan, unit kembali ke stok/rusak, dan rekap alasan (disetujui).
+     *
+     * @param  array{from?: mixed, to?: mixed, kind?: ?string, outcome?: ?string}  $filters
+     * @return array{rows: list<array<string, mixed>>, summary: array<string, mixed>}
+     */
+    public function history(array $filters = [], int $limit = 2000): array
+    {
+        $rows = $this->query(['decided' => true, 'status' => ($filters['outcome'] ?? '') ?: null, 'kind' => $filters['kind'] ?? null,
+            'from' => $filters['from'] ?? null, 'to' => $filters['to'] ?? null])
+            ->latest('decided_at')->latest('id')->limit($limit)->get()
+            ->map(fn (TransactionReturn $r) => self::toArray($r))->all();
+
+        $ok = collect($rows)->where('status', 'disetujui');
+
+        return ['rows' => $rows, 'summary' => [
+            'approved' => $ok->count(),
+            'rejected' => collect($rows)->where('status', 'ditolak')->count(),
+            'refunded' => (int) $ok->sum('amount'),
+            'restocked' => (int) $ok->where('restock', true)->sum('qty'),
+            'written_off' => (int) $ok->where('restock', false)->sum('qty'),
+            'reasons' => $ok->groupBy('reason')->map(fn ($g, $reason) => ['reason' => $reason, 'count' => $g->count(), 'amount' => (int) $g->sum('amount')])
+                ->sortByDesc('amount')->values()->all(),
+        ]];
+    }
+
     /** Antrean persetujuan: pengajuan menunggu, terlama dulu. */
     public function queue(int $limit = 100): array
     {
