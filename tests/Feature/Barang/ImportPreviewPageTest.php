@@ -76,7 +76,7 @@ class ImportPreviewPageTest extends TestCase
         $c->call('toggleSkip', 13); // disertakan lagi → kembali bermasalah (kode dobel)
         $this->assertSame('masalah', $this->row($c->instance()->rows, 13)['action']);
 
-        $c->call('toggleSkip', 13)->call('commit')->assertRedirect(route('barang.kategori'));
+        $c->call('toggleSkip', 13)->call('commit')->assertRedirect(route('barang.impor.riwayat'));
         $done = collect(MockData::importHistory())->firstWhere('id', 50);
         $this->assertSame('sebagian', $done['status']);
         $this->assertSame([6, 2], [$done['created'], $done['updated']]);

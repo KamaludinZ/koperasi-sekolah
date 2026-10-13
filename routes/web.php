@@ -155,6 +155,9 @@ Route::middleware('menu:barang')->group(function () {
     Route::get('/barang/impor', Barang\Import::class)->middleware('peran:admin,pengurus')->name('barang.impor');
     Route::get('/barang/impor/{import}/pratinjau', Barang\ImportPreview::class)->whereNumber('import')
         ->middleware('peran:admin,pengurus')->name('barang.impor.pratinjau');
+    Route::get('/barang/impor/riwayat', Barang\ImportHistory::class)->middleware('peran:admin,pengurus')->name('barang.impor.riwayat');
+    Route::get('/barang/impor/{import}', Barang\ImportDetail::class)->whereNumber('import')
+        ->middleware('peran:admin,pengurus')->name('barang.impor.detail');
     Route::get('/barang/daftar', ProductListController::class)
         ->middleware('throttle:120,1')
         ->name('barang.list');

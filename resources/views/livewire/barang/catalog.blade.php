@@ -178,7 +178,8 @@
                             @php [$label, $tone] = Catalog::IMPORT_STATUSES[$imp['status']]; @endphp
                             <li class="px-4 py-3" wire:key="imp-{{ $imp['id'] }}">
                                 <div class="flex items-start justify-between gap-2">
-                                    <p class="min-w-0 truncate text-sm font-medium" title="{{ $imp['file_name'] }}">{{ $imp['file_name'] }}</p>
+                                    <a href="{{ $imp['status'] === 'pratinjau' ? route('barang.impor.pratinjau', $imp['id']) : route('barang.impor.detail', $imp['id']) }}" wire:navigate
+                                       class="min-w-0 truncate text-sm font-medium hover:text-emerald-800 hover:underline" title="{{ $imp['file_name'] }}">{{ $imp['file_name'] }}</a>
                                     <span class="shrink-0 rounded-md px-2 py-0.5 text-[11px] font-semibold {{ $tone }}">{{ $label }}</span>
                                 </div>
                                 <p class="text-xs text-stone-500">

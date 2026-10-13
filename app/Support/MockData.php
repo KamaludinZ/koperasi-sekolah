@@ -458,7 +458,7 @@ class MockData
 
         return array_map(fn ($r, $i) => [
             'id' => 50 - $i, 'file_name' => $r[0], 'format' => $r[1], 'status' => $r[2], 'total_rows' => $r[3],
-            'created' => $r[4], 'updated' => $r[5], 'skipped' => $r[6], 'failed' => $r[7], 'user' => $r[8],
+            'created' => $r[4], 'updated' => $r[5], 'skipped' => $r[6], 'failed' => $r[7], 'user' => $r[8], 'mode' => $r[0] === 'seragam-baru.csv' ? 'tambah' : 'semua', 'update_stock' => false,
             'created_at' => $at = now()->subDays($r[9])->setTime(9 + $i, 15)->toDateTimeString(),
             'finished_at' => $r[10] === null ? null : \Illuminate\Support\Carbon::parse($at)->addMinutes($r[10])->toDateTimeString(),
         ], $rows, array_keys($rows));
@@ -539,5 +539,34 @@ class MockData
         $status = $counts['failed'] > 0 || $counts['skipped'] > 0 ? 'sebagian' : 'selesai';
         $done = [...$import, ...$counts, 'status' => $status, 'finished_at' => now()->toDateTimeString()];
         session(['mock.imports' => collect(session('mock.imports', []))->reject(fn ($i) => $i['id'] === $importId)->prepend($done)->values()->all()]);
+    }
+
+    /**
+     * Rincian hasil impor tiruan: kesalahan berkas (bila gagal dibaca) dan baris yang gagal/dilewati.
+     * Kontrak backend: GET /barang/impor/{id}/data → {..., file_error, problems: [{line, kode, nama, status, message}]}.
+     *
+     * @return array{file_error: ?string, problems: list<array{line: int, kode: string, nama: string, status: string, message: string}>}
+     */
+    public static function importDetail(int $importId): array
+    {
+        $seeded = [
+            46 => ['file_error' => 'Judul kolom tidak dikenali: "kode barang", "harga". Gunakan templat impor terbaru.', 'problems' => []],
+            48 => ['file_error' => null, 'problems' => [
+                ['line' => 6, 'kode' => 'SRG010', 'nama' => 'Sabuk Pramuka', 'status' => 'gagal', 'message' => 'Kategori "Pramuka" belum ada.'],
+                ['line' => 11, 'kode' => 'SRG015', 'nama' => '', 'status' => 'gagal', 'message' => 'Nama wajib diisi.'],
+                ['line' => 14, 'kode' => 'SRG016', 'nama' => 'Kaos Olahraga', 'status' => 'gagal', 'message' => 'Harga jual harus angka bulat.'],
+                ['line' => 19, 'kode' => 'SRG001', 'nama' => 'Dasi Sekolah', 'status' => 'dilewati', 'message' => 'Kode sudah ada (mode hanya tambah).'],
+            ]],
+        ];
+        if (isset($seeded[$importId])) {
+            return $seeded[$importId];
+        }
+
+        $rows = session("mock.import_rows.{$importId}");
+
+        return ['file_error' => null, 'problems' => collect($rows ?? [])->where('skipped', true)->map(fn ($r) => [
+            'line' => $r['line'], 'kode' => mb_strtoupper(trim($r['values']['kode'])), 'nama' => trim($r['values']['nama']),
+            'status' => 'dilewati', 'message' => 'Dilewati petugas saat pratinjau.',
+        ])->values()->all()];
     }
 }
