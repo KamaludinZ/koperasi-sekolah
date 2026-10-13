@@ -29,6 +29,11 @@ class Menu
             'description' => 'Riwayat penjualan',
             'icon' => 'M9 5h10M9 12h10M9 19h10M5 5h.01M5 12h.01M5 19h.01',
         ],
+        'kas' => [
+            'label' => 'Kas Harian', 'route' => 'kas', 'group' => 'harian',
+            'description' => 'Shift kasir, uang laci & selisih kas',
+            'icon' => 'M3 7h18v12H3zM3 7l3-3h12l3 3M16 13h2M7 11v4',
+        ],
         'barang' => [
             'label' => 'Barang & Stok', 'route' => 'barang', 'group' => 'data',
             'description' => 'Daftar barang, harga & stok',
@@ -62,13 +67,13 @@ class Menu
     ];
 
     /**
-     * Admin: semua. Kasir: layanan harian + lihat barang & anggota (setor/tarik).
-     * Pengurus: memantau data & laporan, tanpa layar kasir.
+     * Admin: semua. Kasir: layanan harian (termasuk shift & kas laci) + lihat barang & anggota (setor/tarik).
+     * Pengurus: memantau data, laporan & rekap kas, tanpa layar kasir.
      */
     public const DEFAULT_PERMISSIONS = [
-        'admin' => ['kasir', 'transaksi', 'barang', 'anggota', 'laporan', 'audit', 'pengguna', 'pengaturan'],
-        'kasir' => ['kasir', 'transaksi', 'barang', 'anggota'],
-        'pengurus' => ['laporan', 'transaksi', 'barang', 'anggota', 'audit'], // urutan pertama = halaman awal setelah masuk
+        'admin' => ['kasir', 'transaksi', 'kas', 'barang', 'anggota', 'laporan', 'audit', 'pengguna', 'pengaturan'],
+        'kasir' => ['kasir', 'transaksi', 'kas', 'barang', 'anggota'],
+        'pengurus' => ['laporan', 'transaksi', 'kas', 'barang', 'anggota', 'audit'], // urutan pertama = halaman awal setelah masuk
     ];
 
     public static function allows(?string $role, string $menu): bool

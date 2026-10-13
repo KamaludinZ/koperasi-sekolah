@@ -27,6 +27,7 @@ use App\Livewire\Anggota;
 use App\Livewire\Audit;
 use App\Livewire\Auth\Login;
 use App\Livewire\Barang;
+use App\Livewire\Kas;
 use App\Livewire\Kasir;
 use App\Livewire\Laporan;
 use App\Livewire\Notifikasi;
@@ -96,6 +97,10 @@ Route::middleware('menu:kasir')->group(function () {
         ->whereNumber('transaction')
         ->middleware('throttle:60,1')
         ->name('kasir.transactions.receipt.pdf');
+});
+
+Route::middleware('menu:kas')->group(function () {
+    Route::get('/kas', Kas\Index::class)->name('kas');
 });
 
 Route::middleware('menu:barang')->group(function () {

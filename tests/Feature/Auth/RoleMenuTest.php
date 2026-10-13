@@ -25,10 +25,10 @@ class RoleMenuTest extends TestCase
     {
         $keys = fn (?string $role) => collect(Menu::for($role))->flatMap(fn ($g) => array_keys($g['items']))->all();
 
-        $this->assertSame(['kasir', 'transaksi', 'barang', 'anggota', 'laporan', 'audit', 'pengguna', 'pengaturan'], $keys('admin'));
-        $this->assertSame(['kasir', 'transaksi', 'barang', 'anggota'], $keys('kasir'));
-        $this->assertSame(['transaksi', 'barang', 'anggota', 'laporan', 'audit'], $keys('pengurus'));
-        $this->assertCount(8, $keys(null)); // mode demo
+        $this->assertSame(['kasir', 'transaksi', 'kas', 'barang', 'anggota', 'laporan', 'audit', 'pengguna', 'pengaturan'], $keys('admin'));
+        $this->assertSame(['kasir', 'transaksi', 'kas', 'barang', 'anggota'], $keys('kasir'));
+        $this->assertSame(['transaksi', 'kas', 'barang', 'anggota', 'laporan', 'audit'], $keys('pengurus'));
+        $this->assertCount(9, $keys(null)); // mode demo
         $this->assertSame('laporan', Menu::homeRoute('pengurus'));
     }
 

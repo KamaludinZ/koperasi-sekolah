@@ -184,6 +184,136 @@ class MockData
         return collect(self::transactions())->firstWhere('id', $id);
     }
 
+    /**
+     * Rekap kas laci tiruan satu hari untuk halaman Kas Harian tahap frontend: shift kasir,
+     * setoran/penarikan kas, penjualan per metode, dan selisih kas. Deterministik per tanggal;
+     * Minggu libur (tanpa shift). Hari ini: shift terakhir masih dibuka (belum dihitung).
+     * Kas seharusnya = modal awal + penjualan tunai + kas masuk − kas keluar.
+     *
+     * @return array{date: string, is_today: bool, closed_day: bool, shifts: list<array>, movements: list<array>, sales: array, summary: array}
+     */
+    public static function cashDay(string $date): array
+    {
+        $day = \Illuminate\Support\Carbon::parse($date)->startOfDay();
+        $isToday = $day->isToday();
+        $empty = ['tunai' => 0, 'qris' => 0, 'transfer' => 0, 'count' => 0];
+        $result = ['date' => $day->toDateString(), 'is_today' => $isToday, 'closed_day' => $day->isSunday(), 'shifts' => [], 'movements' => [], 'sales' => $empty];
+
+        if ($day->isSunday() || $day->isFuture()) {
+            return $result + ['summary' => self::cashSummary([], $empty)];
+        }
+
+        mt_srand((int) $day->format('Ymd'));
+        $plans = [
+            ['name' => 'Shift pagi', 'open' => [6, 45], 'close' => [10, 30]],
+            ['name' => 'Shift siang', 'open' => [10, 30], 'close' => [14, 15]],
+        ];
+        $cashiers = ['Bu Rina', 'Pak Dedi', 'Kasir Demo'];
+        $reasonsIn = ['Tambah uang kembalian', 'Tukar pecahan dari bendahara', 'Setoran iuran kegiatan'];
+        $reasonsOut = ['Beli plastik & kantong', 'Setor ke bendahara', 'Bayar galon air', 'Ongkos angkut barang'];
+        $differences = [0, 0, 0, -500, -2000, 1000, 0, -1000];
+        $movementId = (int) $day->format('ymd') * 10;
+
+        foreach ($plans as $i => $plan) {
+            $opened = $day->copy()->setTime(...$plan['open'])->addMinutes(mt_rand(0, 10));
+            if ($opened->isFuture()) {
+                break;
+            }
+            $closed = $day->copy()->setTime(...$plan['close'])->addMinutes(mt_rand(0, 15));
+            $isOpen = $closed->isFuture();
+            $cashier = $cashiers[($i + (int) $day->format('j')) % count($cashiers)];
+            $count = mt_rand(18, 45);
+            $tunai = mt_rand(30, 90) * 5000;
+            $qris = mt_rand(0, 12) * 5000;
+            $transfer = mt_rand(0, 3) === 0 ? mt_rand(1, 4) * 10000 : 0;
+            if ($isOpen) {
+                // Shift berjalan: penjualan sebanding dengan waktu yang sudah lewat.
+                $share = max(0.1, $opened->diffInMinutes(now()) / max(1, $opened->diffInMinutes($closed)));
+                [$count, $tunai, $qris, $transfer] = [(int) ceil($count * $share), (int) round($tunai * $share / 500) * 500, (int) round($qris * $share / 500) * 500, 0];
+            }
+
+            $in = $out = 0;
+            for ($n = mt_rand(0, 2); $n > 0; $n--) {
+                $type = mt_rand(0, 2) === 0 ? 'in' : 'out';
+                $amount = $type === 'in' ? mt_rand(1, 4) * 25000 : mt_rand(1, 8) * 5000;
+                $at = $opened->copy()->addMinutes(mt_rand(15, 200));
+                if ($at->isFuture() || (! $isOpen && $at->gt($closed))) {
+                    continue;
+                }
+                $type === 'in' ? $in += $amount : $out += $amount;
+                $result['movements'][] = [
+                    'id' => ++$movementId, 'shift_id' => $i + 1, 'type' => $type, 'amount' => $amount,
+                    'reason' => $type === 'in' ? $reasonsIn[array_rand($reasonsIn)] : $reasonsOut[array_rand($reasonsOut)],
+                    'cashier' => $cashier, 'created_at' => $at->toDateTimeString(),
+                ];
+            }
+
+            $opening = $i === 0 ? 200000 : 150000;
+            $expected = $opening + $tunai + $in - $out;
+            $counted = $isOpen ? null : $expected + $differences[array_rand($differences)];
+
+            $result['shifts'][] = [
+                'id' => $i + 1, 'name' => $plan['name'], 'cashier' => $cashier, 'status' => $isOpen ? 'open' : 'closed',
+                'opened_at' => $opened->toDateTimeString(), 'closed_at' => $isOpen ? null : $closed->toDateTimeString(),
+                'opening_cash' => $opening, 'transactions' => $count,
+                'cash_sales' => $tunai, 'qris_sales' => $qris, 'transfer_sales' => $transfer,
+                'cash_in' => $in, 'cash_out' => $out, 'expected' => $expected,
+                'counted' => $counted, 'difference' => $counted === null ? null : $counted - $expected,
+                'note' => $counted !== null && $counted < $expected ? 'Kemungkinan salah kembalian.' : null,
+            ];
+            $result['sales']['tunai'] += $tunai;
+            $result['sales']['qris'] += $qris;
+            $result['sales']['transfer'] += $transfer;
+            $result['sales']['count'] += $count;
+        }
+        mt_srand();
+
+        usort($result['movements'], fn ($a, $b) => strcmp($b['created_at'], $a['created_at']));
+
+        return $result + ['summary' => self::cashSummary($result['shifts'], $result['sales'])];
+    }
+
+    /** Ringkasan kas sehari dari daftar shift (lihat cashDay). */
+    private static function cashSummary(array $shifts, array $sales): array
+    {
+        $sum = fn (string $key) => array_sum(array_column($shifts, $key));
+        $closed = array_filter($shifts, fn ($s) => $s['status'] === 'closed');
+
+        return [
+            'opening_cash' => $sum('opening_cash'),
+            'cash_sales' => $sum('cash_sales'),
+            'cash_in' => $sum('cash_in'),
+            'cash_out' => $sum('cash_out'),
+            'expected' => $sum('expected'),
+            'counted' => array_sum(array_column($closed, 'counted')),
+            'difference' => array_sum(array_column($closed, 'difference')),
+            'non_cash' => $sales['qris'] + $sales['transfer'],
+            'revenue' => $sales['tunai'] + $sales['qris'] + $sales['transfer'],
+            'open_shifts' => count($shifts) - count($closed),
+            'closed_shifts' => count($closed),
+        ];
+    }
+
+    /**
+     * Rekap kas beberapa hari terakhir sampai $date (lama → baru) untuk tren selisih.
+     *
+     * @return list<array{date: string, closed_day: bool, revenue: int, cash_sales: int, difference: int, shifts: int, open_shifts: int}>
+     */
+    public static function cashWeek(string $date, int $days = 7): array
+    {
+        $end = \Illuminate\Support\Carbon::parse($date);
+
+        return collect(range($days - 1, 0))->map(function ($ago) use ($end) {
+            $d = self::cashDay($end->copy()->subDays($ago)->toDateString());
+
+            return [
+                'date' => $d['date'], 'closed_day' => $d['closed_day'], 'revenue' => $d['summary']['revenue'],
+                'cash_sales' => $d['summary']['cash_sales'], 'difference' => $d['summary']['difference'],
+                'shifts' => count($d['shifts']), 'open_shifts' => $d['summary']['open_shifts'],
+            ];
+        })->all();
+    }
+
     /** Anggota koperasi tiruan (siswa & guru) dengan saldo tabungan, untuk tahap frontend. */
     public static function members(): array
     {
