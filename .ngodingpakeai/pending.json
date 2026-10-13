@@ -1,6 +1,6 @@
 {
   "repo": "Koperasi Sekolah",
-  "generatedForCommit": "9b02d1a8c10823270a7c8edcf27568e2b555d819",
+  "generatedForCommit": "ddd7fc2ae87804ca6caaa8fcbc7a6d95f364257b",
   "files": [
     {
       "path": ".claude/skills/ngodingpakeai/SKILL.md",
@@ -477,8 +477,14 @@
       "size": 3972
     },
     {
-      "path": "app/Livewire/Pengadaan/Orders.php",
+      "path": "app/Livewire/Pengadaan/OrderForm.php",
       "reason": "new",
+      "language": "php",
+      "size": 6221
+    },
+    {
+      "path": "app/Livewire/Pengadaan/Orders.php",
+      "reason": "needs_summary",
       "language": "php",
       "size": 3372
     },
@@ -984,7 +990,7 @@
       "path": "app/Support/MockData.php",
       "reason": "changed",
       "language": "php",
-      "size": 32954
+      "size": 34405
     },
     {
       "path": "app/Support/OpeningHours.php",
@@ -1959,8 +1965,14 @@
       "size": 12114
     },
     {
-      "path": "resources/views/livewire/pengadaan/orders.blade.php",
+      "path": "resources/views/livewire/pengadaan/order-form.blade.php",
       "reason": "new",
+      "language": "php",
+      "size": 9845
+    },
+    {
+      "path": "resources/views/livewire/pengadaan/orders.blade.php",
+      "reason": "needs_summary",
       "language": "php",
       "size": 10798
     },
@@ -2070,7 +2082,7 @@
       "path": "routes/web.php",
       "reason": "changed",
       "language": "php",
-      "size": 18820
+      "size": 18923
     },
     {
       "path": "tests/Feature/Anggota/IndexTest.php",
@@ -2631,8 +2643,14 @@
       "size": 5284
     },
     {
-      "path": "tests/Feature/Pengadaan/OrderListTest.php",
+      "path": "tests/Feature/Pengadaan/OrderFormTest.php",
       "reason": "new",
+      "language": "php",
+      "size": 3282
+    },
+    {
+      "path": "tests/Feature/Pengadaan/OrderListTest.php",
+      "reason": "needs_summary",
       "language": "php",
       "size": 2103
     },

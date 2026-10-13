@@ -608,13 +608,16 @@ class MockData
         ];
         $suppliers = collect(self::suppliers())->keyBy('id');
 
-        return [...session('mock.orders', []), ...array_map(fn ($r) => [
+        $session = collect(session('mock.orders', []));
+        $seeded = array_map(fn ($r) => [
             'id' => $r[0], 'number' => 'PO-'.now()->subDays($r[3])->format('Ym').'-'.str_pad((string) $r[0], 4, '0', STR_PAD_LEFT),
             'supplier_id' => $r[1], 'supplier' => $suppliers[$r[1]]['name'] ?? '—', 'status' => $r[2],
             'ordered_at' => now()->subDays($r[3])->toDateString(), 'expected_at' => now()->addDays($r[4])->toDateString(),
             'items' => $r[5], 'qty' => $r[6], 'received_qty' => $r[7], 'total' => $r[8],
             'created_by' => $r[0] % 2 ? 'Pak Dedi' : 'Admin Koperasi',
-        ], $rows)];
+        ], $rows);
+
+        return $session->concat(collect($seeded)->whereNotIn('id', $session->pluck('id')))->values()->all();
     }
 
     /**
@@ -703,5 +706,54 @@ class MockData
             "mock.order_items.{$id}" => array_map(fn ($l) => [...$l, 'received_qty' => 0], $lines)]);
 
         return $order;
+    }
+
+    /**
+     * Catat penerimaan barang untuk satu pesanan (session): tambah jumlah diterima per barang,
+     * perbarui status pesanan (sebagian/diterima), dan simpan catatan penerimaan.
+     * Kontrak backend: POST /pengadaan/pesanan/{id}/penerimaan {received_at, delivery_note, note, items: {product_id: qty}}.
+     *
+     * @param  array<int, int>  $qtyByProduct
+     */
+    public static function receiveOrder(int $orderId, array $qtyByProduct, array $meta, string $user): array
+    {
+        $order = collect(self::purchaseOrders())->firstWhere('id', $orderId);
+        $lines = array_map(function ($l) use ($qtyByProduct) {
+            $add = max(0, min((int) ($qtyByProduct[$l['product_id']] ?? 0), $l['qty'] - $l['received_qty']));
+
+            return [...$l, 'received_qty' => $l['received_qty'] + $add];
+        }, self::purchaseOrderItems($orderId));
+        $received = array_sum(array_column($lines, 'received_qty'));
+        $qty = array_sum(array_column($lines, 'qty'));
+        $updated = [...$order, 'received_qty' => $received, 'status' => $received >= $qty ? 'diterima' : 'sebagian'];
+        $receipt = [
+            'id' => count(session('mock.receipts', [])) + 1, 'order_id' => $orderId, 'number' => $order['number'], 'supplier' => $order['supplier'],
+            'received_at' => $meta['received_at'], 'delivery_note' => $meta['delivery_note'] ?? null, 'note' => $meta['note'] ?? null,
+            'qty' => $received - $order['received_qty'], 'value' => array_sum(array_map(fn ($l) => ($qtyByProduct[$l['product_id']] ?? 0) * $l['cost'], self::purchaseOrderItems($orderId))),
+            'user' => $user, 'created_at' => now()->toDateTimeString(),
+        ];
+        session([
+            'mock.orders' => collect(session('mock.orders', []))->reject(fn ($o) => $o['id'] === $orderId)->prepend($updated)->values()->all(),
+            "mock.order_items.{$orderId}" => $lines,
+            'mock.receipts' => [$receipt, ...session('mock.receipts', [])],
+        ]);
+
+        return $receipt;
+    }
+
+    /** Riwayat penerimaan barang (tiruan), terbaru dulu. */
+    public static function receipts(): array
+    {
+        $orders = collect(self::purchaseOrders())->keyBy('id');
+
+        return [...session('mock.receipts', []), ...array_map(fn ($r) => [
+            'id' => 100 + $r[0], 'order_id' => $r[1], 'number' => $orders[$r[1]]['number'] ?? '—', 'supplier' => $orders[$r[1]]['supplier'] ?? '—',
+            'received_at' => now()->subDays($r[2])->toDateString(), 'delivery_note' => $r[3], 'note' => $r[4], 'qty' => $r[5], 'value' => $r[6],
+            'user' => $r[7], 'created_at' => now()->subDays($r[2])->setTime(10, 0)->toDateTimeString(),
+        ], [
+            [3, 6, 2, 'SJ-0912', 'Penggaris belum dikirim, menyusul.', 180, 775_000, 'Bu Rina'],
+            [2, 4, 6, 'BP-2210', null, 96, 640_000, 'Pak Dedi'],
+            [1, 3, 12, 'SJ-0871', null, 300, 1_330_000, 'Bu Rina'],
+        ])];
     }
 }

@@ -163,6 +163,7 @@ Route::middleware('menu:pengadaan')->group(function () {
     Route::get('/pengadaan', Pengadaan\Index::class)->name('pengadaan');
     Route::get('/pengadaan/pesanan', Pengadaan\Orders::class)->name('pengadaan.pesanan');
     Route::get('/pengadaan/pesanan/baru', Pengadaan\OrderForm::class)->name('pengadaan.pesanan.buat');
+    Route::get('/pengadaan/penerimaan', Pengadaan\Receiving::class)->name('pengadaan.penerimaan');
     Route::get('/pengadaan/supplier', Pengadaan\Suppliers::class)->name('pengadaan.supplier');
     Route::get('/pengadaan/supplier/baru', Pengadaan\SupplierForm::class)->name('pengadaan.supplier.buat');
     Route::get('/pengadaan/supplier/{supplier}/ubah', Pengadaan\SupplierForm::class)->whereNumber('supplier')->name('pengadaan.supplier.ubah');
