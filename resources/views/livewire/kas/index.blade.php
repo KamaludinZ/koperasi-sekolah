@@ -21,27 +21,30 @@
     $soon = 'inline-flex cursor-not-allowed items-center gap-1.5 rounded-xl border border-stone-200 bg-white px-3 py-2 text-sm font-medium text-stone-400';
 @endphp
 <div class="flex min-h-0 flex-1 flex-col overflow-y-auto">
-    <header class="flex flex-wrap items-center justify-between gap-3 border-b border-stone-200 bg-white px-4 py-4 sm:px-6">
-        <div>
-            <h1 class="text-lg font-semibold">Kas Harian</h1>
-            <p class="text-xs text-stone-500">{{ $day->translatedFormat('l, d F Y') }}@if ($c['is_today']) · hari ini @endif</p>
-        </div>
-        <div class="flex items-center gap-2">
-            <div class="flex items-center rounded-xl border border-stone-200 bg-white" role="group" aria-label="Pilih tanggal">
-                <button type="button" wire:click="shiftDay(-1)" class="grid size-9 place-items-center rounded-l-xl text-stone-500 hover:bg-stone-50 hover:text-stone-800" aria-label="Hari sebelumnya">
-                    <svg class="size-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg>
-                </button>
-                <label for="kas-date" class="sr-only">Tanggal</label>
-                <input id="kas-date" type="date" wire:key="kas-date-{{ $day->toDateString() }}" x-on:change="$wire.set('date', $event.target.value)" value="{{ $day->toDateString() }}" max="{{ today()->toDateString() }}"
-                       class="h-9 border-x border-stone-200 px-2 text-sm tabular-nums outline-none focus:bg-emerald-50">
-                <button type="button" wire:click="shiftDay(1)" @disabled($c['is_today']) class="grid size-9 place-items-center rounded-r-xl text-stone-500 hover:bg-stone-50 hover:text-stone-800 disabled:cursor-not-allowed disabled:opacity-40" aria-label="Hari berikutnya">
-                    <svg class="size-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>
-                </button>
+    <header class="border-b border-stone-200 bg-white px-4 pt-4 sm:px-6">
+        <div class="flex flex-wrap items-center justify-between gap-3">
+            <div>
+                <h1 class="text-lg font-semibold">Kas Harian</h1>
+                <p class="text-xs text-stone-500">{{ $day->translatedFormat('l, d F Y') }}@if ($c['is_today']) · hari ini @endif</p>
             </div>
-            @unless ($c['is_today'])
-                <button type="button" wire:click="goToday" class="rounded-xl px-3 py-2 text-sm font-semibold text-emerald-800 hover:bg-emerald-50">Hari ini</button>
-            @endunless
+            <div class="flex items-center gap-2">
+                <div class="flex items-center rounded-xl border border-stone-200 bg-white" role="group" aria-label="Pilih tanggal">
+                    <button type="button" wire:click="shiftDay(-1)" class="grid size-9 place-items-center rounded-l-xl text-stone-500 hover:bg-stone-50 hover:text-stone-800" aria-label="Hari sebelumnya">
+                        <svg class="size-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg>
+                    </button>
+                    <label for="kas-date" class="sr-only">Tanggal</label>
+                    <input id="kas-date" type="date" wire:key="kas-date-{{ $day->toDateString() }}" x-on:change="$wire.set('date', $event.target.value)" value="{{ $day->toDateString() }}" max="{{ today()->toDateString() }}"
+                           class="h-9 border-x border-stone-200 px-2 text-sm tabular-nums outline-none focus:bg-emerald-50">
+                    <button type="button" wire:click="shiftDay(1)" @disabled($c['is_today']) class="grid size-9 place-items-center rounded-r-xl text-stone-500 hover:bg-stone-50 hover:text-stone-800 disabled:cursor-not-allowed disabled:opacity-40" aria-label="Hari berikutnya">
+                        <svg class="size-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>
+                    </button>
+                </div>
+                @unless ($c['is_today'])
+                    <button type="button" wire:click="goToday" class="rounded-xl px-3 py-2 text-sm font-semibold text-emerald-800 hover:bg-emerald-50">Hari ini</button>
+                @endunless
+            </div>
         </div>
+        <x-kas.nav active="kas" />
     </header>
 
     <div class="space-y-5 px-4 py-5 sm:px-6" wire:loading.class="opacity-60" wire:target="shiftDay,goToday,date">
@@ -208,7 +211,10 @@
 
         {{-- 7 hari terakhir --}}
         <section class="overflow-hidden rounded-xl border border-stone-200 bg-white" aria-labelledby="kas-week">
-            <h2 id="kas-week" class="px-4 pt-4 text-sm font-semibold">7 hari terakhir</h2>
+            <div class="flex items-baseline justify-between gap-2 px-4 pt-4">
+                <h2 id="kas-week" class="text-sm font-semibold">7 hari terakhir</h2>
+                <a href="{{ route('kas.rekap') }}" wire:navigate class="text-sm font-semibold text-emerald-800 hover:underline">Rekap lengkap →</a>
+            </div>
             <div class="overflow-x-auto">
                 <table class="mt-2 w-full min-w-[32rem] text-sm">
                     <thead class="bg-stone-50 text-left text-xs text-stone-500">

@@ -367,6 +367,29 @@ class MockData
         })->all();
     }
 
+    /**
+     * Rekap kas tiruan per hari untuk rentang tanggal (lama → baru), tanpa hari di masa depan.
+     *
+     * @return list<array{date: string, closed_day: bool, shifts: int, open_shifts: int, transactions: int, opening_cash: int, cash_sales: int, non_cash: int, revenue: int, cash_in: int, cash_out: int, expected: int, counted: int, difference: int, cashiers: list<string>}>
+     */
+    public static function cashRecap(string $from, string $to): array
+    {
+        $rows = [];
+        $end = min(\Illuminate\Support\Carbon::parse($to)->startOfDay(), today());
+        for ($d = \Illuminate\Support\Carbon::parse($from)->startOfDay(); $d->lte($end); $d->addDay()) {
+            $day = self::cashDay($d->toDateString());
+            $s = $day['summary'];
+            $rows[] = [
+                'date' => $day['date'], 'closed_day' => $day['closed_day'], 'shifts' => count($day['shifts']),
+                'open_shifts' => $s['open_shifts'], 'transactions' => $day['sales']['count'],
+                ...collect($s)->only(['opening_cash', 'cash_sales', 'non_cash', 'revenue', 'cash_in', 'cash_out', 'expected', 'counted', 'difference'])->all(),
+                'cashiers' => array_values(array_unique(array_column($day['shifts'], 'cashier'))),
+            ];
+        }
+
+        return $rows;
+    }
+
     /** Anggota koperasi tiruan (siswa & guru) dengan saldo tabungan, untuk tahap frontend. */
     public static function members(): array
     {
