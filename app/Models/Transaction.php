@@ -16,6 +16,7 @@ class Transaction extends Model
     protected $fillable = [
         'invoice_number', 'user_id', 'cash_shift_id', 'member_id', 'subtotal', 'tax', 'tax_label', 'tax_rate', 'tax_included',
         'discount', 'rounding', 'total', 'paid', 'change', 'payment_method', 'item_count',
+        'voided_at', 'voided_by', 'void_reason', 'returned_amount',
     ];
 
     protected function casts(): array
@@ -31,7 +32,31 @@ class Transaction extends Model
             'paid' => 'decimal:2',
             'change' => 'decimal:2',
             'item_count' => 'integer',
+            'voided_at' => 'datetime',
+            'returned_amount' => 'integer',
         ];
+    }
+
+    /** Pengajuan retur/pembatalan transaksi ini. */
+    public function returns(): HasMany
+    {
+        return $this->hasMany(TransactionReturn::class);
+    }
+
+    public function voider(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'voided_by');
+    }
+
+    public function isVoided(): bool
+    {
+        return $this->voided_at !== null;
+    }
+
+    /** Transaksi yang tidak dibatalkan (untuk laporan penjualan). */
+    public function scopeNotVoided(Builder $query): void
+    {
+        $query->whereNull('voided_at');
     }
 
     /** Mutasi pemotongan tabungan untuk transaksi bermetode tabungan. */

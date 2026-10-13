@@ -1,6 +1,6 @@
 {
   "repo": "Koperasi Sekolah",
-  "generatedForCommit": "78e00bdcfde4a297742d6f29d465644b5e710499",
+  "generatedForCommit": "8ca76473af7fbfad8fc178fb63e3c6b17ff7f70e",
   "files": [
     {
       "path": ".claude/skills/ngodingpakeai/SKILL.md",
@@ -448,7 +448,7 @@
     },
     {
       "path": "app/Livewire/Forms/MemberForm.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 1975
     },
@@ -484,7 +484,7 @@
     },
     {
       "path": "app/Livewire/Kasir/Cart.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 20546
     },
@@ -574,7 +574,7 @@
     },
     {
       "path": "app/Livewire/Pengaturan/Credit.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 3734
     },
@@ -856,9 +856,9 @@
     },
     {
       "path": "app/Models/Transaction.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 2844
+      "size": 3173
     },
     {
       "path": "app/Models/TransactionDiscount.php",
@@ -1018,13 +1018,13 @@
     },
     {
       "path": "app/Services/MemberCreditService.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 19911
     },
     {
       "path": "app/Services/MemberService.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 7829
     },
@@ -1096,9 +1096,9 @@
     },
     {
       "path": "app/Services/ReceiptPresenter.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 5502
+      "size": 6693
     },
     {
       "path": "app/Services/ReportExportService.php",
@@ -1144,7 +1144,7 @@
     },
     {
       "path": "app/Services/SettingsService.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 20470
     },
@@ -1174,9 +1174,9 @@
     },
     {
       "path": "app/Services/TransactionHistory.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 10209
+      "size": 10937
     },
     {
       "path": "app/Services/TrashService.php",
@@ -1324,7 +1324,7 @@
     },
     {
       "path": "config/koperasi.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 1183
     },
@@ -1912,7 +1912,7 @@
     },
     {
       "path": "resources/views/components/pengaturan/nav.blade.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 1182
     },
@@ -2056,7 +2056,7 @@
     },
     {
       "path": "resources/views/livewire/anggota/partials/member-form.blade.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 6791
     },
@@ -2230,7 +2230,7 @@
     },
     {
       "path": "resources/views/livewire/kasir/partials/payment-panel.blade.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 24312
     },
@@ -2350,7 +2350,7 @@
     },
     {
       "path": "resources/views/livewire/pengaturan/credit.blade.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 6323
     },
@@ -2458,9 +2458,9 @@
     },
     {
       "path": "resources/views/livewire/transaksi/show.blade.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 10985
+      "size": 11874
     },
     {
       "path": "resources/views/livewire/transaksi/void-form.blade.php",
@@ -2476,7 +2476,7 @@
     },
     {
       "path": "routes/web.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 26600
     },
@@ -2512,7 +2512,7 @@
     },
     {
       "path": "tests/Feature/Anggota/MemberCreditServiceTest.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 7617
     },
@@ -3238,7 +3238,7 @@
     },
     {
       "path": "tests/Feature/Pengaturan/CreditSettingsTest.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 5730
     },
@@ -3355,6 +3355,12 @@
       "reason": "needs_summary",
       "language": "php",
       "size": 2142
+    },
+    {
+      "path": "tests/Feature/Transaksi/PaymentInfoApiTest.php",
+      "reason": "new",
+      "language": "php",
+      "size": 3783
     },
     {
       "path": "tests/Feature/Transaksi/ReturnApprovalTest.php",
