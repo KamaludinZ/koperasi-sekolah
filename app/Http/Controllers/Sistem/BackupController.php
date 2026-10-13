@@ -24,6 +24,8 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
  * - GET  /sistem/cadangan/{backup}/unduh      → arsip zip (tercatat di audit)
  * - GET  /sistem/uji-pemulihan/data           → {data: riwayat uji}
  * - POST /sistem/uji-pemulihan {backup_id}    → 202 (uji dijalankan di antrean cadangan)
+ * - GET  /sistem/antrean/data, POST /sistem/antrean/{uuid}/ulangi, DELETE /sistem/antrean/{uuid}
+ * - GET  /sistem/kesehatan/riwayat?jam=24
  */
 class BackupController extends Controller
 {
@@ -63,6 +65,36 @@ class BackupController extends Controller
         AuditLog::record('backup.downloaded', 'pengaturan', "Mengunduh arsip cadangan {$backup->name}", null, ['backup_id' => $backup->id]);
 
         return Storage::disk($backup->disk)->download($backup->path, $backup->name, ['Content-Type' => 'application/zip']);
+    }
+
+    // ---- Antrean & monitoring ----
+
+    /** GET /sistem/antrean/data → {worker, pending, failed, recent} */
+    public function queue(\App\Services\QueueService $queue): JsonResponse
+    {
+        return response()->json(['worker' => $queue->worker(), 'pending' => $queue->pending(), 'failed' => $queue->failed(), 'recent' => $queue->recent()]);
+    }
+
+    /** POST /sistem/antrean/{uuid}/ulangi ('all' = semua) */
+    public function retryJob(string $uuid, \App\Services\QueueService $queue): JsonResponse
+    {
+        $n = $queue->retry($uuid);
+
+        return $n ? response()->json(['retried' => $n]) : response()->json(['message' => 'Tugas gagal tidak ditemukan.'], 404);
+    }
+
+    /** DELETE /sistem/antrean/{uuid} */
+    public function forgetJob(string $uuid, \App\Services\QueueService $queue): JsonResponse
+    {
+        return $queue->forget($uuid) ? response()->json(['forgotten' => true]) : response()->json(['message' => 'Tugas gagal tidak ditemukan.'], 404);
+    }
+
+    /** GET /sistem/kesehatan/riwayat?jam=24 → strip per komponen + gangguan */
+    public function healthHistory(Request $request): JsonResponse
+    {
+        $hours = min(168, max(1, (int) $request->query('jam', 24)));
+
+        return response()->json(['history' => HealthCheckService::history($hours), 'incidents' => HealthCheckService::report()['incidents']]);
     }
 
     public function tests(): JsonResponse

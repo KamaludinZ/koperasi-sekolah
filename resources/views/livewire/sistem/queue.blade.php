@@ -21,7 +21,7 @@
             <div @class(['rounded-xl border px-4 py-3', 'border-emerald-200 bg-emerald-50' => $w['running'], 'border-red-200 bg-red-50' => ! $w['running']])>
                 <p class="text-xs text-stone-600">Pekerja antrean</p>
                 <p class="flex items-center gap-2 text-lg font-bold"><span @class(['size-2.5 rounded-full', 'bg-emerald-600' => $w['running'], 'bg-red-600' => ! $w['running']])></span>{{ $w['running'] ? 'Berjalan' : 'Berhenti' }}</p>
-                <p class="text-xs text-stone-500">aktif {{ \Illuminate\Support\Carbon::parse($w['last_seen'])->diffForHumans() }} · data contoh</p>
+                <p class="text-xs text-stone-500">{{ $w['sync'] ? 'mode sinkron (tanpa pekerja)' : ($w['last_seen'] ? 'aktif '.\Illuminate\Support\Carbon::parse($w['last_seen'])->diffForHumans() : 'belum terlihat') }}</p>
             </div>
             <div class="rounded-xl border border-stone-200 bg-white px-4 py-3">
                 <p class="text-xs text-stone-500">Menunggu</p>
@@ -39,7 +39,7 @@
         </div>
 
         @unless ($w['running'])
-            <p class="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-900" role="alert">Pekerja antrean berhenti — ekspor & notifikasi tidak diproses. Jalankan ulang layanan <code class="font-mono">queue:work</code> di server.</p>
+            <p class="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-900" role="alert">Pekerja antrean tidak aktif — ekspor, notifikasi, dan cadangan tidak diproses. Jalankan di server: <code class="font-mono">{{ $w['command'] }}</code></p>
         @endunless
 
         <section class="overflow-hidden rounded-xl border border-stone-200 bg-white" aria-labelledby="q-failed">
@@ -80,14 +80,16 @@
                 </ul>
             </section>
             <section class="overflow-hidden rounded-xl border border-stone-200 bg-white" aria-labelledby="q-done">
-                <h2 id="q-done" class="px-4 pt-4 font-semibold">Selesai terbaru <span class="text-xs font-normal text-stone-400">data contoh</span></h2>
+                <h2 id="q-done" class="px-4 pt-4 font-semibold">Selesai terbaru</h2>
                 <ul class="mt-2 divide-y divide-stone-100">
-                    @foreach ($this->recent as $j)
+                    @forelse ($this->recent as $j)
                         <li class="flex justify-between gap-3 px-4 py-2.5 text-sm">
                             <span>{{ $j['name'] }} <span class="text-xs text-stone-500">· {{ $j['queue'] }}@if ($j['by']) · {{ $j['by'] }}@endif</span></span>
-                            <span class="shrink-0 text-xs text-stone-500 tabular-nums">{{ $j['duration_s'] }} dtk · {{ \Illuminate\Support\Carbon::parse($j['finished_at'])->format('H:i') }}</span>
+                            <span class="shrink-0 text-xs text-stone-500 tabular-nums">{{ $j['duration_s'] !== null ? $j['duration_s'].' dtk · ' : '' }}{{ \Illuminate\Support\Carbon::parse($j['finished_at'])->format('d/m H:i') }}</span>
                         </li>
-                    @endforeach
+                    @empty
+                        <li class="px-4 py-6 text-center text-sm text-stone-400">Belum ada pekerjaan selesai yang tercatat.</li>
+                    @endforelse
                 </ul>
             </section>
         </div>

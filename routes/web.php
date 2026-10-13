@@ -430,6 +430,10 @@ Route::middleware('menu:sistem')->group(function () {
     Route::post('/sistem/uji-pemulihan', [\App\Http\Controllers\Sistem\BackupController::class, 'runTest'])->middleware('throttle:6,1')->name('sistem.restore.run');
     Route::get('/sistem/uji-pemulihan', Sistem\RestoreTest::class)->name('sistem.restore');
     Route::get('/sistem/antrean', Sistem\Queue::class)->name('sistem.antrean');
+    Route::get('/sistem/antrean/data', [\App\Http\Controllers\Sistem\BackupController::class, 'queue'])->middleware('throttle:60,1')->name('sistem.antrean.data');
+    Route::post('/sistem/antrean/{uuid}/ulangi', [\App\Http\Controllers\Sistem\BackupController::class, 'retryJob'])->middleware('throttle:20,1')->name('sistem.antrean.retry');
+    Route::delete('/sistem/antrean/{uuid}', [\App\Http\Controllers\Sistem\BackupController::class, 'forgetJob'])->middleware('throttle:20,1')->name('sistem.antrean.forget');
+    Route::get('/sistem/kesehatan/riwayat', [\App\Http\Controllers\Sistem\BackupController::class, 'healthHistory'])->middleware('throttle:60,1')->name('sistem.kesehatan.riwayat');
     Route::get('/sistem/performa', Sistem\Performance::class)->name('sistem.performa');
 });
 

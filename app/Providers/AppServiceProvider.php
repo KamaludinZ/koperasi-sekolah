@@ -40,6 +40,9 @@ class AppServiceProvider extends ServiceProvider
                 \Illuminate\Support\Facades\Cache::put('health:worker_heartbeat', now()->toDateTimeString(), now()->addHour());
             }
         });
+        // Catat pekerjaan latar yang selesai (jumlah harian & 20 terakhir) untuk Sistem → Antrean.
+        \Illuminate\Support\Facades\Queue::before(fn ($e) => \App\Services\QueueService::jobStarted($e->job));
+        \Illuminate\Support\Facades\Queue::after(fn ($e) => \App\Services\QueueService::jobFinished($e->job));
         // /up (pemantau eksternal) ikut memastikan basis data terjangkau; gagal → 500.
         \Illuminate\Support\Facades\Event::listen(\Illuminate\Foundation\Events\DiagnosingHealth::class, fn () => \Illuminate\Support\Facades\DB::select('SELECT 1'));
 
