@@ -1,6 +1,6 @@
 {
   "repo": "Koperasi Sekolah",
-  "generatedForCommit": "1200a3d381f717297900bde7eaf5f66f878fa8ba",
+  "generatedForCommit": "bf941c00bf90216482f845b6d86380d4d1a9d4e4",
   "files": [
     {
       "path": ".claude/skills/ngodingpakeai/SKILL.md",
@@ -190,7 +190,7 @@
     },
     {
       "path": "app/Http/Controllers/Kasir/CheckoutController.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 3243
     },
@@ -874,9 +874,9 @@
     },
     {
       "path": "app/Models/Product.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 2555
+      "size": 3270
     },
     {
       "path": "app/Models/ProductImport.php",
@@ -970,7 +970,7 @@
     },
     {
       "path": "app/Models/Transaction.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 5050
     },
@@ -1102,7 +1102,7 @@
     },
     {
       "path": "app/Services/CheckoutService.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 12423
     },
@@ -1240,9 +1240,9 @@
     },
     {
       "path": "app/Services/ReceiptPdfService.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 3761
+      "size": 3760
     },
     {
       "path": "app/Services/ReceiptPresenter.php",
@@ -1954,7 +1954,7 @@
     },
     {
       "path": "database/migrations/2026_10_14_000005_add_client_ref_to_transactions_table.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 846
     },
@@ -3201,6 +3201,12 @@
       "size": 2324
     },
     {
+      "path": "tests/Feature/Database/ProductRelationsTest.php",
+      "reason": "new",
+      "language": "php",
+      "size": 1374
+    },
+    {
       "path": "tests/Feature/Database/ProductTransactionSchemaTest.php",
       "reason": "needs_summary",
       "language": "php",
@@ -3364,7 +3370,7 @@
     },
     {
       "path": "tests/Feature/Kasir/CheckoutIdempotencyTest.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 2295
     },
@@ -3442,9 +3448,9 @@
     },
     {
       "path": "tests/Feature/Kasir/ReceiptPdfTest.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 2405
+      "size": 3115
     },
     {
       "path": "tests/Feature/Kasir/ReceiptSettingsIntegrationTest.php",

@@ -267,6 +267,8 @@ Route::middleware('menu:barang')->group(function () {
     Route::post('/barang', [ProductController::class, 'store'])
         ->middleware('throttle:60,1')
         ->name('barang.store');
+    Route::get('/barang/{product}', [ProductController::class, 'show'])->whereNumber('product')->middleware('throttle:120,1')->name('barang.show');
+    Route::get('/barang/{product}/riwayat-stok', [ProductController::class, 'movements'])->whereNumber('product')->middleware('throttle:120,1')->name('barang.movements');
     Route::put('/barang/{product}', [ProductController::class, 'update'])
         ->whereNumber('product')
         ->middleware('throttle:60,1')

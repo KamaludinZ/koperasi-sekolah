@@ -61,4 +61,18 @@ class ProductEndpointTest extends TestCase
 
         $this->putJson('/barang/9999', $this->payload())->assertNotFound();
     }
+
+    public function test_detail_and_stock_history_endpoints(): void
+    {
+        $p = \App\Models\Product::where('code', 'ATK001')->first();
+        app(\App\Services\StockService::class)->increase($p, 3, 'Restok');
+        app(\App\Services\CheckoutService::class)->checkout([$p->id => 2], 'tunai', 10000);
+
+        $this->getJson(route('barang.show', $p))->assertOk()
+            ->assertJsonPath('data.code', 'ATK001')->assertJsonPath('data.sales_30d.quantity', 2)
+            ->assertJsonPath('data.movements.0.type', 'keluar')->assertJsonPath('data.movements.0.change', -2)
+            ->assertJsonStructure(['data' => ['restock' => ['level', 'per_day', 'days_left', 'suggested']]]);
+        $this->getJson(route('barang.movements', $p))->assertOk()->assertJsonPath('meta.total', 2)->assertJsonCount(2, 'data');
+        $this->getJson(route('barang.show', 999999))->assertNotFound();
+    }
 }
