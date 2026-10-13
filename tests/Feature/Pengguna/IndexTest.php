@@ -158,4 +158,13 @@ class IndexTest extends TestCase
         $this->loginAs('kasir');
         $this->get('/laporan')->assertOk();
     }
+
+    public function test_user_form_shows_permission_matrix_for_selected_role(): void
+    {
+        $c = \Livewire\Livewire::test(\App\Livewire\Pengguna\Index::class)->call('create')
+            ->assertSeeHtml('data-permission-matrix')->assertSee('Menu yang bisa dibuka tiap peran')->assertSee('Kas Harian');
+        $c->set('form.role', 'pengurus')->assertSeeHtml('bg-emerald-50');
+        $html = $c->html();
+        $this->assertGreaterThan(5, substr_count($html, '✓'));
+    }
 }
