@@ -1,6 +1,6 @@
 {
   "repo": "Koperasi Sekolah",
-  "generatedForCommit": "6fcac647098887807d5ca9298e1d8d766cbd113b",
+  "generatedForCommit": "9fae38cdb717a0144733c7e7cb04d367284a445e",
   "files": [
     {
       "path": ".claude/skills/ngodingpakeai/SKILL.md",
@@ -639,6 +639,18 @@
       "size": 2511
     },
     {
+      "path": "app/Models/GoodsReceipt.php",
+      "reason": "new",
+      "language": "php",
+      "size": 1530
+    },
+    {
+      "path": "app/Models/GoodsReceiptItem.php",
+      "reason": "new",
+      "language": "php",
+      "size": 1013
+    },
+    {
       "path": "app/Models/LoginLockout.php",
       "reason": "needs_summary",
       "language": "php",
@@ -688,13 +700,13 @@
     },
     {
       "path": "app/Models/PurchaseOrder.php",
-      "reason": "new",
+      "reason": "changed",
       "language": "php",
-      "size": 2648
+      "size": 2792
     },
     {
       "path": "app/Models/PurchaseOrderItem.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 1026
     },
@@ -1264,7 +1276,7 @@
     },
     {
       "path": "database/factories/PurchaseOrderFactory.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 701
     },
@@ -1504,9 +1516,15 @@
     },
     {
       "path": "database/migrations/2026_10_13_000020_create_purchase_orders_tables.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 3450
+    },
+    {
+      "path": "database/migrations/2026_10_13_000021_create_goods_receipts_tables.php",
+      "reason": "new",
+      "language": "php",
+      "size": 2608
     },
     {
       "path": "database/seeders/ActivityLogSeeder.php",
@@ -1522,7 +1540,7 @@
     },
     {
       "path": "database/seeders/DatabaseSeeder.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 846
     },
@@ -1552,9 +1570,9 @@
     },
     {
       "path": "database/seeders/PurchaseOrderSeeder.php",
-      "reason": "new",
+      "reason": "changed",
       "language": "php",
-      "size": 2749
+      "size": 3836
     },
     {
       "path": "database/seeders/SupplierSeeder.php",
@@ -2566,9 +2584,9 @@
     },
     {
       "path": "tests/Feature/Database/PurchaseOrderSchemaTest.php",
-      "reason": "new",
+      "reason": "changed",
       "language": "php",
-      "size": 2570
+      "size": 3632
     },
     {
       "path": "tests/Feature/Database/RetentionCleanupTest.php",

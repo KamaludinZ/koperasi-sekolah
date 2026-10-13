@@ -10,7 +10,8 @@ use Illuminate\Database\Seeder;
 
 /**
  * Pesanan pembelian contoh (berbagai status) dengan barang dari kategori yang dipasok supplier.
- * Barang yang sudah diterima dicatat sebagai penerimaan (tanpa mengubah stok contoh).
+ * Barang yang sudah diterima dicatat sebagai penerimaan (tanpa mengubah stok contoh) beserta
+ * tagihannya; sebagian tagihan sudah dibayar.
  */
 class PurchaseOrderSeeder extends Seeder
 {
@@ -66,6 +67,22 @@ class PurchaseOrderSeeder extends Seeder
                 ]);
                 foreach ($received as $i) {
                     $receipt->items()->create(['purchase_order_item_id' => $i->id, 'product_id' => $i->product_id, 'quantity' => $i->received_quantity, 'cost' => $i->cost]);
+                }
+                $bill = \App\Models\SupplierBill::create([
+                    'supplier_id' => $supplier->id, 'purchase_order_id' => $order->id, 'goods_receipt_id' => $receipt->id,
+                    'amount' => $receipt->total_value, 'due_at' => $receipt->received_at->copy()->addDays($supplier->terms_days)->toDateString(),
+                ]);
+                // Pesanan lama dari Sinar Ilmu sudah lunas; pesanan sebagian dicicil sekali.
+                $pay = match (true) {
+                    $status === 'diterima' && $supplier->name === 'CV Sinar Ilmu' => $bill->amount,
+                    $status === 'sebagian' => 260_000,
+                    default => 0,
+                };
+                if ($pay > 0) {
+                    $bill->payments()->create(['amount' => min($pay, $bill->amount), 'paid_at' => now()->subDays($pay === $bill->amount ? 5 : 1)->toDateString(),
+                        'method' => $pay === $bill->amount ? 'tunai' : 'transfer', 'reference' => $pay === $bill->amount ? null : 'TRF-55120',
+                        'note' => $pay === $bill->amount ? null : 'Cicilan pertama', 'paid_by' => $admin]);
+                    $bill->syncPaid();
                 }
             }
         }
