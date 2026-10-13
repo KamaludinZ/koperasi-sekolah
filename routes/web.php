@@ -240,6 +240,7 @@ Route::middleware(['menu:pengguna', 'peran:admin'])->group(function () {
 Route::middleware(['menu:audit', 'peran:admin,pengurus'])->group(function () {
     Route::get('/audit', Audit\Index::class)->name('audit');
     Route::get('/audit/perubahan', Audit\Changes::class)->name('audit.perubahan');
+    Route::get('/audit/terhapus', Audit\Trash::class)->name('audit.terhapus');
 });
 
 Route::middleware('menu:pengaturan')->group(function () {

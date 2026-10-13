@@ -1,7 +1,7 @@
 {{-- Navigasi bagian Audit & Riwayat. `active` = nama route halaman ini. --}}
 @props(['active'])
 @php
-    $items = ['audit' => 'Semua aktivitas', 'audit.perubahan' => 'Perubahan data'];
+    $items = ['audit' => 'Semua aktivitas', 'audit.perubahan' => 'Perubahan data', 'audit.terhapus' => 'Data terhapus'];
 @endphp
 <nav class="mt-3 -mb-px flex gap-1 overflow-x-auto" aria-label="Bagian audit">
     @foreach ($items as $route => $label)

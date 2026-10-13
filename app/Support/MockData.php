@@ -410,4 +410,73 @@ class MockData
             'ip_address' => '192.168.1.'.(10 + $i % 4),
         ], $rows, array_keys($rows));
     }
+
+    /** Lama data terhapus disimpan sebelum dibersihkan permanen (kebijakan retensi tiruan). */
+    public const TRASH_KEEP_DAYS = 30;
+
+    /**
+     * Data terhapus lunak tiruan (barang, kategori, anggota) yang masih bisa dipulihkan. Kontrak
+     * yang diasumsikan untuk backend: GET /audit/terhapus/data → {id, entity, subject_id, label,
+     * detail, deleted_at, deleted_by, reason, purge_at, conflict}; POST /audit/terhapus/{id}/pulihkan.
+     * `conflict` = alasan data belum bisa dipulihkan (mis. kode sudah dipakai data lain).
+     * Pemulihan disimpan di session (`mock.restored`).
+     *
+     * @return list<array{id: int, entity: string, subject_id: int, label: string, detail: string, deleted_at: string, deleted_by: string, reason: ?string, purge_at: string, conflict: ?string}>
+     */
+    public static function trashed(): array
+    {
+        $restored = session('mock.restored', []);
+        // [hari lalu, jam, entitas, id objek, label, rincian, penghapus, alasan, konflik]
+        $rows = [
+            [1, '15:30', 'barang', 15, 'MKN004 · Wafer Stroberi', 'Makanan · Rp2.500 · stok 0', 'Pak Dedi', 'Tidak dijual lagi', null],
+            [3, '09:12', 'barang', 17, 'ATK006 · Spidol Papan Tulis', 'Alat Tulis · Rp8.000 · stok 6', 'Admin Koperasi', 'Salah input, dobel', 'Kode ATK006 sudah dipakai barang aktif "Spidol Whiteboard Hitam". Ubah kode barang itu dahulu.'],
+            [5, '11:40', 'anggota', 22, 'S-2026-022 · Rafi Ahmad', 'Siswa 7C · saldo tabungan Rp0', 'Bu Rina', 'Pendaftaran ganda', null],
+            [8, '10:00', 'anggota', 19, 'S-2023-019 · Rahmat Hidayat', 'Siswa 9A · saldo tabungan Rp0', 'Admin Koperasi', 'Lulus, saldo sudah dikembalikan', null],
+            [12, '13:20', 'barang', 18, 'MNM004 · Jus Jeruk Kotak', 'Minuman · Rp5.000 · stok 0', 'Pak Dedi', null, null],
+            [19, '08:45', 'anggota', 23, 'G-2025-004 · Bu Sari Wulandari', 'Guru · saldo tabungan Rp15.000', 'Admin Koperasi', 'Mutasi ke sekolah lain', null],
+            [25, '10:30', 'kategori', 6, 'Aksesoris', '0 barang', 'Admin Koperasi', 'Digabung ke Seragam', null],
+            [27, '14:05', 'barang', 19, 'SRG004 · Bet Lokasi', 'Seragam · Rp6.000 · stok 0', 'Admin Koperasi', 'Ganti model', null],
+        ];
+
+        return collect($rows)->map(fn (array $r, int $i) => [
+            'id' => 700 + $i,
+            'entity' => $r[2],
+            'subject_id' => $r[3],
+            'label' => $r[4],
+            'detail' => $r[5],
+            'deleted_at' => $at = now()->subDays($r[0])->setTimeFromTimeString($r[1])->toDateTimeString(),
+            'deleted_by' => $r[6],
+            'reason' => $r[7],
+            'purge_at' => \Illuminate\Support\Carbon::parse($at)->addDays(self::TRASH_KEEP_DAYS)->toDateTimeString(),
+            'conflict' => $r[8],
+        ])->reject(fn ($r) => in_array($r['id'], $restored, true))->values()->all();
+    }
+
+    /**
+     * Pulihkan data terhapus (tiruan). Gagal bila tidak ditemukan atau ada konflik.
+     *
+     * @param  list<int>  $ids
+     * @return array{restored: list<array>, failed: list<array{label: string, reason: string}>}
+     */
+    public static function restoreTrashed(array $ids): array
+    {
+        $rows = collect(self::trashed())->keyBy('id');
+        $done = [];
+        $failed = [];
+        foreach (array_unique($ids) as $id) {
+            $row = $rows[$id] ?? null;
+            if ($row === null) {
+                continue;
+            }
+            if ($row['conflict']) {
+                $failed[] = ['label' => $row['label'], 'reason' => $row['conflict']];
+
+                continue;
+            }
+            $done[] = $row;
+        }
+        session(['mock.restored' => array_merge(session('mock.restored', []), array_column($done, 'id'))]);
+
+        return ['restored' => $done, 'failed' => $failed];
+    }
 }
