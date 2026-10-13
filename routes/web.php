@@ -10,6 +10,7 @@ use App\Http\Controllers\Barang\ProductController;
 use App\Http\Controllers\BerandaController;
 use App\Http\Controllers\Barang\ProductListController;
 use App\Http\Controllers\Barang\StockAlertController;
+use App\Http\Controllers\Kas\CashExportController;
 use App\Http\Controllers\Kas\CashMovementController;
 use App\Http\Controllers\Kas\CashReportController;
 use App\Http\Controllers\Kas\ShiftHistoryController;
@@ -115,7 +116,10 @@ Route::middleware('menu:kas')->group(function () {
         Route::get('/kas/rekap/periode', [CashReportController::class, 'period'])->name('kas.report.period');
         Route::get('/kas/shift/riwayat', [ShiftHistoryController::class, 'index'])->name('kas.shift.history');
         Route::get('/kas/shift/{shift}/rincian', [ShiftHistoryController::class, 'show'])->whereNumber('shift')->name('kas.shift.detail');
+        Route::get('/kas/rekap/ekspor/{export}', [CashExportController::class, 'show'])->whereNumber('export')->name('kas.export.show');
     });
+    Route::post('/kas/rekap/ekspor', [CashExportController::class, 'store'])->middleware('throttle:10,1')->name('kas.export.store');
+    Route::get('/kas/rekap/ekspor/{export}/unduh', [CashExportController::class, 'download'])->whereNumber('export')->middleware('throttle:30,1')->name('kas.export.download');
     Route::middleware(['can:kelola-shift', 'throttle:30,1'])->group(function () {
         Route::post('/kas/shift/buka', [ShiftController::class, 'open'])->name('kas.shift.open');
         Route::post('/kas/shift/{shift}/tutup', [ShiftController::class, 'close'])->whereNumber('shift')->name('kas.shift.close');

@@ -17,3 +17,6 @@ Artisan::command('notifikasi:stok', function () {
 })->purpose('Selaraskan notifikasi stok menipis/habis dengan stok barang saat ini');
 
 Schedule::command('notifikasi:stok')->dailyAt('06:30');
+
+// Bersihkan ekspor laporan lama (baris & berkas CSV di disk privat), lihat ReportExport::KEEP_DAYS.
+Schedule::command('model:prune', ['--model' => [\App\Models\ReportExport::class]])->dailyAt('02:00');

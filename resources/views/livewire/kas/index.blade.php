@@ -4,7 +4,9 @@
     $c = $this->cash;
     $s = $c['summary'];
     $day = $this->day;
-    $open = collect($c['shifts'])->firstWhere('status', 'open');
+    // Shift terbuka (hari ini: shift yang sedang berjalan, walau dibuka hari sebelumnya).
+    $open = $c['is_today'] ? $this->openShiftRow : collect($c['shifts'])->firstWhere('status', 'open');
+    $openEarlier = $open && \Illuminate\Support\Carbon::parse($open['opened_at'])->lt($day->copy()->startOfDay());
     $primary = 'inline-flex items-center gap-1.5 rounded-xl px-3.5 py-2 text-sm font-semibold bg-emerald-800 text-white hover:bg-emerald-900';
 @endphp
 <div class="flex min-h-0 flex-1 flex-col overflow-y-auto">
@@ -35,15 +37,26 @@
     </header>
 
     <div class="space-y-5 px-4 py-5 sm:px-6" wire:loading.class="opacity-60" wire:target="shiftDay,goToday,date">
-        <p class="rounded-xl border border-dashed border-amber-300 bg-amber-50/60 px-4 py-2 text-xs text-amber-900">Tahap pengembangan: angka di halaman ini masih data tiruan, belum dari transaksi sungguhan.</p>
+        @if ($openEarlier)
+            <p class="flex items-start gap-2 rounded-xl border border-amber-300 bg-amber-50 px-4 py-2.5 text-sm text-amber-900" role="alert">
+                <svg class="mt-0.5 size-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 9v4m0 4h.01M10.3 3.9 1.8 18a2 2 0 001.7 3h17a2 2 0 001.7-3L13.7 3.9a2 2 0 00-3.4 0z"/></svg>
+                <span>{{ $open['name'] }} sejak {{ \Illuminate\Support\Carbon::parse($open['opened_at'])->translatedFormat('l, d M · H:i') }} belum ditutup. Hitung uang laci lalu tutup shift sebelum memulai shift baru.</span>
+            </p>
+        @endif
+        @if (($c['unassigned_cash_sales'] ?? 0) > 0)
+            <p class="flex items-start gap-2 rounded-xl border border-amber-300 bg-amber-50 px-4 py-2.5 text-sm text-amber-900">
+                <svg class="mt-0.5 size-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 9v4m0 4h.01M12 21a9 9 0 100-18 9 9 0 000 18z"/></svg>
+                <span>Ada penjualan tunai {{ $rp($c['unassigned_cash_sales']) }} saat tidak ada shift terbuka — belum masuk hitungan kas laci mana pun.</span>
+            </p>
+        @endif
 
         {{-- Status shift --}}
         @if ($c['closed_day'])
             <section class="rounded-2xl border border-stone-200 bg-white px-5 py-8 text-center">
                 <p class="font-semibold">Koperasi tutup</p>
-                <p class="mt-1 text-sm text-stone-500">Hari Minggu tidak ada shift kasir maupun penjualan.</p>
+                <p class="mt-1 text-sm text-stone-500">Hari ini koperasi tidak buka menurut jadwal, jadi tidak ada shift kasir.</p>
             </section>
-        @elseif ($c['shifts'] === [])
+        @elseif ($c['shifts'] === [] && ! $open)
             <section class="rounded-2xl border border-stone-200 bg-white px-5 py-8 text-center">
                 <p class="font-semibold">Belum ada shift dibuka</p>
                 <p class="mt-1 text-sm text-stone-500">Kas laci mulai tercatat setelah kasir membuka shift dengan modal awal.</p>
@@ -71,7 +84,7 @@
                             <p class="text-sm text-stone-600">Uang laci terhitung {{ $rp($s['counted']) }} dari seharusnya {{ $rp($s['expected']) }}.</p>
                         @endif
                     </div>
-                    @if ($c['is_today'] && $this->canOperate)
+                    @if ($c['is_today'] && $this->canOperate && (! $open || $this->canHandleShift))
                         <div class="flex flex-wrap gap-2">
                             @if ($open)
                                 <button type="button" wire:click="openDialog('kas')" class="inline-flex items-center gap-1.5 rounded-xl border border-emerald-700 px-3.5 py-2 text-sm font-semibold text-emerald-50 hover:bg-emerald-900">Setor / tarik kas</button>
@@ -174,7 +187,7 @@
                 <section class="rounded-xl border border-stone-200 bg-white" aria-labelledby="kas-moves">
                     <div class="flex items-baseline justify-between gap-2 px-4 pt-4">
                         <h2 id="kas-moves" class="text-sm font-semibold">Setoran & penarikan kas</h2>
-                        @if ($open && $c['is_today'] && $this->canOperate)
+                        @if ($open && $c['is_today'] && $this->canHandleShift)
                             <button type="button" wire:click="openDialog('kas')" class="text-sm font-semibold text-emerald-800 hover:underline">+ Catat</button>
                         @endif
                     </div>
@@ -186,7 +199,7 @@
                                 <li class="flex items-start justify-between gap-3 px-4 py-2.5 text-sm" wire:key="mv-{{ $m['id'] }}">
                                     <div class="min-w-0">
                                         <p class="truncate">{{ $m['reason'] }}</p>
-                                        <p class="text-xs text-stone-500 tabular-nums">{{ \Illuminate\Support\Carbon::parse($m['created_at'])->format('H:i') }} · {{ $m['cashier'] }}</p>
+                                        <p class="text-xs text-stone-500 tabular-nums">{{ \Illuminate\Support\Carbon::parse($m['created_at'])->format('H:i') }} · {{ $m['category_label'] ?? '' }} · {{ $m['cashier'] }}</p>
                                     </div>
                                     <span @class(['shrink-0 font-semibold tabular-nums', 'text-emerald-800' => $m['type'] === 'in', 'text-red-700' => $m['type'] === 'out'])>
                                         <span class="sr-only">{{ $m['type'] === 'in' ? 'Masuk' : 'Keluar' }}</span>{{ $m['type'] === 'in' ? '+' : '−' }}{{ $rp($m['amount']) }}

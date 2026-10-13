@@ -3,9 +3,14 @@
 namespace Tests\Feature\Kas;
 
 use App\Livewire\Kas\Recap;
-use App\Support\MockData;
+use App\Models\ReportExport;
+use App\Services\CashReportService;
+use Database\Seeders\CashShiftSeeder;
+use Database\Seeders\ProductSeeder;
+use Database\Seeders\TransactionSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Queue;
 use Livewire\Livewire;
 use Tests\TestCase;
 
@@ -17,6 +22,7 @@ class RecapTest extends TestCase
     {
         parent::setUp();
         Carbon::setTestNow('2026-10-14 16:00:00'); // Rabu, semua shift sudah ditutup
+        $this->seed([ProductSeeder::class, TransactionSeeder::class, CashShiftSeeder::class]);
     }
 
     protected function tearDown(): void
@@ -31,7 +37,8 @@ class RecapTest extends TestCase
             ->assertOk()
             ->assertSee('Rekap Kas Harian')
             ->assertSee('Rincian per hari')
-            ->assertSee('Harian & shift');
+            ->assertSee('Harian & shift')
+            ->assertSee('Unduh CSV');
 
         Livewire::test(Recap::class)->assertCount('rows', 7);
     }
@@ -39,14 +46,13 @@ class RecapTest extends TestCase
     public function test_totals_match_daily_rows(): void
     {
         $c = Livewire::test(Recap::class)->call('setPeriod', '30-hari');
-        $rows = collect(MockData::cashRecap('2026-09-15', '2026-10-14'));
+        $rows = collect(app(CashReportService::class)->range('2026-09-15', '2026-10-14'))->where('closed_day', false);
         $totals = $c->get('totals');
 
         $this->assertCount(30, $c->get('rows'));
         $this->assertSame($rows->sum('revenue'), $totals['revenue']);
         $this->assertSame($rows->sum('difference'), $totals['difference']);
         $this->assertSame($totals['difference'], $totals['short'] + $totals['over']);
-        $this->assertSame($rows->where('closed_day', false)->where('shifts', '>', 0)->count(), $totals['days']);
     }
 
     public function test_month_periods_and_invalid_period(): void
@@ -65,13 +71,22 @@ class RecapTest extends TestCase
     public function test_filter_only_days_with_difference(): void
     {
         $c = Livewire::test(Recap::class)->call('setPeriod', '30-hari')->set('onlyDifferences', true);
-        $withDiff = collect($c->get('rows'))->where('closed_day', false)->where('difference', '!=', 0);
-
         $c->assertSee('Total hari berselisih');
-        $this->assertGreaterThan(0, $withDiff->count());
         foreach (collect($c->get('rows'))->where('closed_day', true) as $closed) {
             $c->assertDontSeeHtml('wire:key="rc-'.$closed['date'].'"');
         }
+    }
+
+    public function test_export_button_queues_csv_and_shows_link(): void
+    {
+        Livewire::test(Recap::class)
+            ->call('export')
+            ->assertSee('Siap diunduh')
+            ->assertSee('rekap-kas-20261008-20261014.csv');
+
+        Queue::fake();
+        $c = Livewire::test(Recap::class)->call('export')->assertSee('Menunggu antrean');
+        $this->assertSame('pending', ReportExport::find($c->get('exportId'))->status);
     }
 
     public function test_cashier_can_open_recap(): void

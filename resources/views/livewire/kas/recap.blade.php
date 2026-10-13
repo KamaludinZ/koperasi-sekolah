@@ -22,6 +22,10 @@
                                         'text-stone-600 hover:text-stone-900' => $period !== $key])>{{ $label }}</button>
                     @endforeach
                 </div>
+                <button type="button" wire:click="export" wire:loading.attr="disabled" wire:target="export" class="inline-flex items-center gap-1.5 rounded-xl border border-stone-300 bg-white px-3 py-2 text-sm font-medium text-stone-700 hover:bg-stone-50 disabled:opacity-60">
+                    <svg class="size-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12m0 0-4-4m4 4 4-4M4 17v3h16v-3"/></svg>
+                    Unduh CSV
+                </button>
                 <button type="button" x-on:click="window.print()" class="inline-flex items-center gap-1.5 rounded-xl border border-stone-300 bg-white px-2 py-2 text-sm font-medium text-stone-700 hover:bg-stone-50">
                     <svg class="size-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9V3h12v6M6 18H4a1 1 0 01-1-1v-6a2 2 0 012-2h14a2 2 0 012 2v6a1 1 0 01-1 1h-2M6 14h12v7H6z"/></svg>
                     Cetak
@@ -32,7 +36,24 @@
     </header>
 
     <div class="space-y-5 px-4 py-5 sm:px-6" wire:loading.class="opacity-60" wire:target="setPeriod,onlyDifferences">
-        <p class="rounded-xl border border-dashed border-amber-300 bg-amber-50/60 px-4 py-2 text-xs text-amber-900 print:hidden">Tahap pengembangan: angka di halaman ini masih data tiruan, belum dari transaksi sungguhan.</p>
+        @if ($ex = $this->exportStatus)
+            <div @class(['flex flex-wrap items-center justify-between gap-2 rounded-xl border px-4 py-2.5 text-sm print:hidden',
+                         'border-emerald-200 bg-emerald-50 text-emerald-900' => $ex['status'] === 'done',
+                         'border-red-200 bg-red-50 text-red-800' => $ex['status'] === 'failed',
+                         'border-stone-200 bg-white text-stone-700' => ! in_array($ex['status'], ['done', 'failed'], true)])
+                 @if (! in_array($ex['status'], ['done', 'failed'], true)) wire:poll.2s @endif aria-live="polite">
+                <span class="flex items-center gap-2">
+                    @if (! in_array($ex['status'], ['done', 'failed'], true))
+                        <svg class="size-4 animate-spin" fill="none" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-opacity=".3" stroke-width="3"/><path d="M21 12a9 9 0 00-9-9" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg>
+                    @endif
+                    Ekspor CSV {{ \Illuminate\Support\Carbon::parse($ex['from'])->translatedFormat('d M') }} – {{ \Illuminate\Support\Carbon::parse($ex['to'])->translatedFormat('d M Y') }}: <strong>{{ $ex['status_label'] }}</strong>
+                    @if ($ex['status'] === 'failed') · {{ $ex['error'] }} @endif
+                </span>
+                @if ($ex['download_url'])
+                    <a href="{{ $ex['download_url'] }}" class="rounded-lg bg-emerald-700 px-3 py-1.5 text-sm font-semibold text-white hover:bg-emerald-800">Unduh {{ $ex['file_name'] }}</a>
+                @endif
+            </div>
+        @endif
 
         {{-- Total periode --}}
         <section class="grid grid-cols-2 gap-3 lg:grid-cols-4" aria-label="Total periode">

@@ -2,9 +2,16 @@
 
 namespace App\Livewire\Kas;
 
+use App\Http\Controllers\Kas\ShiftController;
 use App\Livewire\Concerns\NotifiesSave;
-use App\Support\MockData;
+use App\Models\CashMovement;
+use App\Models\CashShift;
+use App\Services\CashMovementService;
+use App\Services\CashReportService;
+use App\Services\ShiftService;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Gate;
+use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
@@ -13,10 +20,10 @@ use Livewire\Component;
 
 /**
  * Kas Harian: rekap uang laci kasir per hari — modal awal, penjualan tunai/non-tunai,
- * setoran & penarikan kas, kas seharusnya vs hitungan akhir, dan selisih tiap shift.
- * Kasir/admin dapat membuka shift (modal awal) dan menutupnya (hitung uang laci, selisih
- * wajib diberi catatan). Tahap frontend: data tiruan MockData::cashDay/openShift/closeShift
- * (disimpan di session, belum dari database).
+ * setoran & penarikan kas, kas seharusnya vs hitungan akhir, dan selisih tiap shift
+ * (CashReportService). Kasir/admin membuka shift (modal awal), mencatat uang masuk/keluar
+ * laci, dan menutup shift (hitung uang laci, selisih wajib diberi catatan) lewat
+ * ShiftService & CashMovementService; menutup/mencatat hanya kasir pembuka shift atau admin.
  */
 #[Layout('components.layouts.app')]
 #[Title('Kas Harian')]
@@ -24,18 +31,18 @@ class Index extends Component
 {
     use NotifiesSave;
 
-    public const SHIFT_NAMES = ['Shift pagi', 'Shift siang', 'Shift sore'];
+    public const SHIFT_NAMES = CashShift::NAMES;
 
     /** Batas wajar uang laci (modal awal / hitungan akhir). */
-    public const MAX_CASH = 50_000_000;
+    public const MAX_CASH = ShiftService::MAX_CASH;
 
     /** Pecahan uang untuk alat bantu hitung laci saat tutup shift. */
     public const DENOMINATIONS = [100000, 50000, 20000, 10000, 5000, 2000, 1000, 500, 200, 100];
 
-    /** Alasan cepat setoran (in) / penarikan (out) kas laci. */
+    /** Alasan cepat setoran (in) / penarikan (out) kas laci, beserta kategorinya. */
     public const MOVEMENT_REASONS = [
-        'in' => ['Tambah uang kembalian', 'Tukar pecahan dari bendahara', 'Titipan iuran kegiatan'],
-        'out' => ['Setor ke bendahara', 'Beli plastik & perlengkapan', 'Bayar galon air', 'Ongkos angkut barang'],
+        'in' => ['Tambah uang kembalian' => 'kembalian', 'Tukar pecahan dari bendahara' => 'bendahara', 'Titipan iuran kegiatan' => 'lainnya'],
+        'out' => ['Setor ke bendahara' => 'bendahara', 'Beli plastik & perlengkapan' => 'operasional', 'Bayar galon air' => 'operasional', 'Ongkos angkut barang' => 'operasional'],
     ];
 
     /** Dialog yang terbuka: 'buka' | 'tutup' | 'kas' | null. */
@@ -51,6 +58,8 @@ class Index extends Component
 
     /** Setoran/penarikan kas: 'in' (uang masuk laci) | 'out' (uang keluar laci). */
     public string $movementType = 'in';
+
+    public string $movementCategory = 'kembalian';
 
     public ?int $movementAmount = null;
 
@@ -92,6 +101,11 @@ class Index extends Component
 
             return;
         }
+        if ($dialog !== 'buka' && ! $this->canHandleShift) {
+            $this->toast('error', 'Shift ini hanya dapat dikelola kasir yang membukanya atau admin.');
+
+            return;
+        }
         $this->resetValidation();
         $this->dialog = $dialog;
         if ($dialog === 'buka') {
@@ -101,7 +115,7 @@ class Index extends Component
             $this->countedCash = null;
             $this->closeNote = '';
         } else {
-            $this->movementType = 'in';
+            $this->setMovementType('in');
             $this->movementAmount = null;
             $this->movementReason = '';
         }
@@ -113,92 +127,74 @@ class Index extends Component
         $this->resetValidation();
     }
 
-    public function openShift(): void
+    public function openShift(ShiftService $shifts): void
     {
         abort_unless($this->canOperate, 403);
 
-        $this->saveWithToast(function () {
+        $this->saveWithToast(function () use ($shifts) {
             $this->validate([
-                'shiftName' => ['required', 'in:'.implode(',', self::SHIFT_NAMES)],
-                'openingCash' => ['required', 'integer', 'min:0', 'max:'.self::MAX_CASH],
-            ], [
-                'openingCash.required' => 'Isi modal awal uang laci (boleh Rp0).',
-                'openingCash.max' => 'Modal awal terlalu besar (maks. Rp50.000.000).',
-            ]);
-            if (! $this->cash['is_today'] || $this->openShiftRow) {
-                throw \Illuminate\Validation\ValidationException::withMessages(['shiftName' => 'Masih ada shift berjalan. Tutup dulu sebelum membuka shift baru.']);
-            }
-            MockData::openShift(['name' => $this->shiftName, 'cashier' => auth()->user()->name, 'opening_cash' => $this->openingCash]);
+                'shiftName' => ShiftService::rules()['open']['name'],
+                'openingCash' => ShiftService::rules()['open']['opening_cash'],
+            ], self::rename(ShiftService::messages(), ['name' => 'shiftName', 'opening_cash' => 'openingCash']));
+            $this->mapErrors(fn () => $shifts->open($this->shiftName, (int) $this->openingCash, auth()->user()), ['name' => 'shiftName', 'opening_cash' => 'openingCash']);
         }, $this->shiftName.' dibuka dengan modal Rp'.number_format((int) $this->openingCash, 0, ',', '.').'.');
 
-        $this->dialog = null;
-        unset($this->cash, $this->week, $this->openShiftRow);
+        $this->afterChange();
     }
 
-    public function closeShift(): void
+    public function closeShift(ShiftService $shifts): void
     {
-        abort_unless($this->canOperate, 403);
-        $shift = $this->openShiftRow;
+        $shift = $this->runningShift;
+        abort_unless($this->canOperate && $shift, 403);
+        ShiftController::authorizeOrAudit('close', $shift);
 
-        $this->saveWithToast(function () use ($shift) {
+        $this->saveWithToast(function () use ($shifts, $shift) {
             $this->validate([
-                'countedCash' => ['required', 'integer', 'min:0', 'max:'.self::MAX_CASH],
-                'closeNote' => ['nullable', 'string', 'max:200'],
-            ], [
-                'countedCash.required' => 'Hitung lalu isi jumlah uang di laci.',
-                'countedCash.max' => 'Jumlah uang terlalu besar (maks. Rp50.000.000).',
-            ]);
-            if (! $shift) {
-                throw \Illuminate\Validation\ValidationException::withMessages(['countedCash' => 'Tidak ada shift yang sedang berjalan.']);
-            }
-            if ($this->countedCash !== $shift['expected'] && trim($this->closeNote) === '') {
-                throw \Illuminate\Validation\ValidationException::withMessages(['closeNote' => 'Ada selisih kas — tulis penyebabnya, mis. salah kembalian.']);
-            }
-            MockData::closeShift($shift['id'], $this->countedCash, trim($this->closeNote) ?: null);
-        }, ($shift['name'] ?? 'Shift').' ditutup.');
+                'countedCash' => ShiftService::rules()['close']['counted_cash'],
+                'closeNote' => ShiftService::rules()['close']['note'],
+            ], self::rename(ShiftService::messages(), ['counted_cash' => 'countedCash']));
+            $this->mapErrors(fn () => $shifts->close($shift, (int) $this->countedCash, $this->closeNote, auth()->user()), ['counted_cash' => 'countedCash', 'note' => 'closeNote']);
+        }, $shift->name.' ditutup.');
 
-        $this->dialog = null;
-        unset($this->cash, $this->week, $this->openShiftRow);
+        $this->afterChange();
     }
 
     public function setMovementType(string $type): void
     {
-        if (in_array($type, ['in', 'out'], true)) {
+        if (array_key_exists($type, CashMovement::TYPES)) {
             $this->movementType = $type;
+            $this->movementCategory = CashMovement::CATEGORIES_BY_TYPE[$type][0];
             $this->resetValidation();
         }
     }
 
-    /** Catat uang masuk/keluar laci di luar penjualan pada shift yang sedang berjalan. */
-    public function saveMovement(): void
+    /** Pilih alasan cepat sekaligus kategorinya. */
+    public function pickReason(string $reason): void
     {
-        abort_unless($this->canOperate, 403);
-        $shift = $this->openShiftRow;
-        $isIn = $this->movementType === 'in';
+        if ($category = self::MOVEMENT_REASONS[$this->movementType][$reason] ?? null) {
+            $this->movementReason = $reason;
+            $this->movementCategory = $category;
+        }
+    }
 
-        $this->saveWithToast(function () use ($shift, $isIn) {
-            $this->validate([
-                'movementType' => ['required', 'in:in,out'],
-                'movementAmount' => ['required', 'integer', 'min:500', 'max:'.self::MAX_CASH],
-                'movementReason' => ['required', 'string', 'min:3', 'max:150'],
-            ], [
-                'movementAmount.required' => 'Isi jumlah uang.',
-                'movementAmount.min' => 'Jumlah minimal Rp500.',
-                'movementAmount.max' => 'Jumlah terlalu besar (maks. Rp50.000.000).',
-                'movementReason.required' => 'Tulis alasannya agar bisa dipertanggungjawabkan.',
-                'movementReason.min' => 'Alasan terlalu singkat.',
-            ]);
-            if (! $shift) {
-                throw \Illuminate\Validation\ValidationException::withMessages(['movementAmount' => 'Buka shift dulu sebelum mencatat uang masuk/keluar laci.']);
-            }
-            if (! $isIn && $this->movementAmount > $shift['expected']) {
-                throw \Illuminate\Validation\ValidationException::withMessages(['movementAmount' => 'Uang di laci tidak cukup (seharusnya Rp'.number_format($shift['expected'], 0, ',', '.').').']);
-            }
-            MockData::recordCashMovement($this->movementType, $this->movementAmount, trim($this->movementReason), auth()->user()->name);
+    /** Catat uang masuk/keluar laci di luar penjualan pada shift yang sedang berjalan. */
+    public function saveMovement(CashMovementService $movements): void
+    {
+        $shift = $this->runningShift;
+        abort_unless($this->canOperate, 403);
+        if ($shift) {
+            ShiftController::authorizeOrAudit('recordMovement', $shift);
+        }
+        $isIn = $this->movementType === CashMovement::TYPE_IN;
+        $map = ['type' => 'movementType', 'category' => 'movementCategory', 'amount' => 'movementAmount', 'reason' => 'movementReason'];
+
+        $this->saveWithToast(function () use ($movements, $map) {
+            $rules = CashMovementService::rules();
+            $this->validate(array_combine(array_values($map), array_values($rules)), self::rename(CashMovementService::messages(), $map));
+            $this->mapErrors(fn () => $movements->record($this->movementType, $this->movementCategory, (int) $this->movementAmount, $this->movementReason, auth()->user()), $map);
         }, ($isIn ? 'Setoran' : 'Penarikan').' kas Rp'.number_format((int) $this->movementAmount, 0, ',', '.').' dicatat.');
 
-        $this->dialog = null;
-        unset($this->cash, $this->week, $this->openShiftRow);
+        $this->afterChange();
     }
 
     /** Hanya petugas yang boleh membuka layar kasir (kasir & admin) yang mengelola shift. */
@@ -208,11 +204,24 @@ class Index extends Component
         return (bool) auth()->user()?->canOpen('kasir');
     }
 
-    /** Shift yang sedang berjalan hari ini, bila ada. */
+    /** Boleh menutup / mencatat kas shift yang sedang berjalan (kasir pembukanya atau admin). */
+    #[Computed]
+    public function canHandleShift(): bool
+    {
+        return $this->runningShift !== null && Gate::allows('close', $this->runningShift);
+    }
+
+    /** Shift yang sedang terbuka (bisa dari hari sebelumnya bila lupa ditutup). */
+    #[Computed]
+    public function runningShift(): ?CashShift
+    {
+        return app(ShiftService::class)->current();
+    }
+
     #[Computed]
     public function openShiftRow(): ?array
     {
-        return collect(MockData::cashDay(today()->toDateString())['shifts'])->firstWhere('status', 'open');
+        return $this->runningShift ? ShiftService::toArray($this->runningShift) : null;
     }
 
     #[Computed]
@@ -224,14 +233,40 @@ class Index extends Component
     #[Computed]
     public function cash(): array
     {
-        return MockData::cashDay($this->day->toDateString());
+        return app(CashReportService::class)->day($this->day);
     }
 
-    /** Tren 7 hari sampai tanggal yang dilihat. */
+    /** Tren 7 hari sampai tanggal yang dilihat (lama → baru). */
     #[Computed]
     public function week(): array
     {
-        return MockData::cashWeek($this->day->toDateString());
+        return app(CashReportService::class)->range($this->day->copy()->subDays(6), $this->day);
+    }
+
+    private function afterChange(): void
+    {
+        $this->dialog = null;
+        unset($this->cash, $this->week, $this->runningShift, $this->openShiftRow, $this->canHandleShift);
+    }
+
+    /** Jalankan aksi layanan; galat validasinya dipindah ke nama properti form. */
+    private function mapErrors(callable $action, array $map): mixed
+    {
+        try {
+            return $action();
+        } catch (ValidationException $e) {
+            throw ValidationException::withMessages(collect($e->errors())->mapWithKeys(fn ($m, $k) => [$map[$k] ?? $k => $m])->all());
+        }
+    }
+
+    /** Ganti awalan kunci pesan validasi (mis. `opening_cash.max` → `openingCash.max`). */
+    private static function rename(array $messages, array $map): array
+    {
+        return collect($messages)->mapWithKeys(function ($m, $key) use ($map) {
+            [$field, $rule] = explode('.', $key, 2) + [1 => null];
+
+            return [($map[$field] ?? $field).($rule ? '.'.$rule : '') => $m];
+        })->all();
     }
 
     /** Tanggal tidak valid atau di masa depan → hari ini (string kosong). */

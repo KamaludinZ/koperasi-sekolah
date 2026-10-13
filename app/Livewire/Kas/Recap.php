@@ -2,7 +2,11 @@
 
 namespace App\Livewire\Kas;
 
-use App\Support\MockData;
+use App\Http\Controllers\Kas\CashExportController;
+use App\Models\ReportExport;
+use App\Services\CashReportService;
+use App\Services\ReportExportService;
+use Illuminate\Validation\ValidationException;
 use Illuminate\Support\Carbon;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
@@ -13,7 +17,8 @@ use Livewire\Component;
 /**
  * Rekap kas harian per periode: tiap hari modal awal, penjualan tunai/non-tunai, kas masuk
  * & keluar, kas seharusnya vs hitungan, dan selisih; plus total periode dan hari bermasalah.
- * Tahap frontend: angka dari MockData::cashRecap (data tiruan).
+ * Angka dari CashReportService::range; unduhan CSV dibuat di antrean latar (ReportExportService)
+ * dan dipantau sampai siap diunduh.
  */
 #[Layout('components.layouts.app')]
 #[Title('Rekap Kas Harian')]
@@ -32,6 +37,9 @@ class Recap extends Component
     /** Tampilkan hanya hari yang ada selisih kas. */
     #[Url(as: 'selisih', except: false)]
     public bool $onlyDifferences = false;
+
+    /** Ekspor CSV terakhir yang diminta dari halaman ini. */
+    public ?int $exportId = null;
 
     public function mount(): void
     {
@@ -75,7 +83,7 @@ class Recap extends Component
     {
         [$from, $to] = $this->range;
 
-        return array_reverse(MockData::cashRecap($from->toDateString(), $to->toDateString()));
+        return array_reverse(app(CashReportService::class)->range($from, $to));
     }
 
     #[Computed]
@@ -98,6 +106,27 @@ class Recap extends Component
             'days_short' => $open->where('difference', '<', 0)->count(),
             'days_over' => $open->where('difference', '>', 0)->count(),
         ];
+    }
+
+    /** Minta ekspor CSV periode yang sedang dilihat ke antrean latar. */
+    public function export(ReportExportService $exports): void
+    {
+        [$from, $to] = $this->range;
+        try {
+            $this->exportId = $exports->requestCashRecap(auth()->user(), $from, $to)->id;
+            unset($this->exportStatus);
+        } catch (ValidationException $e) {
+            $this->dispatch('toast', type: 'error', message: collect($e->errors())->flatten()->first());
+        }
+    }
+
+    /** Status ekspor terakhir (milik petugas ini), untuk dipantau sampai siap. */
+    #[Computed]
+    public function exportStatus(): ?array
+    {
+        $export = $this->exportId ? ReportExport::where('user_id', auth()->id())->find($this->exportId) : null;
+
+        return $export ? CashExportController::toArray($export) : null;
     }
 
     public function render()

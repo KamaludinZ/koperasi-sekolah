@@ -183,11 +183,24 @@
                         <label for="movement-reason" class="mb-1 block text-sm font-medium">Alasan</label>
                         <input id="movement-reason" type="text" wire:model="movementReason" maxlength="150" placeholder="{{ $isIn ? 'mis. Tambah uang kembalian' : 'mis. Setor ke bendahara' }}" class="{{ $field }}" @error('movementReason') aria-invalid="true" @enderror>
                         <div class="mt-2 flex flex-wrap gap-1.5">
-                            @foreach (\App\Livewire\Kas\Index::MOVEMENT_REASONS[$movementType] as $reason)
-                                <button type="button" wire:click="$set('movementReason', @js($reason))" class="rounded-full bg-stone-100 px-2.5 py-1 text-xs text-stone-700 hover:bg-emerald-100 hover:text-emerald-900">{{ $reason }}</button>
+                            @foreach (array_keys(\App\Livewire\Kas\Index::MOVEMENT_REASONS[$movementType]) as $reason)
+                                <button type="button" wire:click="pickReason(@js($reason))" class="rounded-full bg-stone-100 px-2.5 py-1 text-xs text-stone-700 hover:bg-emerald-100 hover:text-emerald-900">{{ $reason }}</button>
                             @endforeach
                         </div>
                         @error('movementReason') <span class="mt-1 block text-xs text-red-600">{{ $message }}</span> @enderror
+                    </div>
+
+                    <div>
+                        <p class="mb-1.5 text-sm font-medium" id="movement-category">Kategori</p>
+                        <div class="flex flex-wrap gap-1.5" role="radiogroup" aria-labelledby="movement-category">
+                            @foreach (\App\Models\CashMovement::CATEGORIES_BY_TYPE[$movementType] as $cat)
+                                <button type="button" role="radio" aria-checked="{{ $movementCategory === $cat ? 'true' : 'false' }}" wire:click="$set('movementCategory', '{{ $cat }}')"
+                                        @class(['rounded-lg border px-2.5 py-1 text-xs font-medium',
+                                                'border-emerald-600 bg-emerald-50 text-emerald-900' => $movementCategory === $cat,
+                                                'border-stone-300 text-stone-600 hover:bg-stone-50' => $movementCategory !== $cat])>{{ \App\Models\CashMovement::CATEGORIES[$cat] }}</button>
+                            @endforeach
+                        </div>
+                        @error('movementCategory') <span class="mt-1 block text-xs text-red-600">{{ $message }}</span> @enderror
                     </div>
                 </div>
 

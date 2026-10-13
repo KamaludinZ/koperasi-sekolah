@@ -2,7 +2,9 @@
 
 namespace App\Livewire\Kas;
 
-use App\Support\MockData;
+use App\Models\CashShift;
+use App\Models\Role;
+use App\Services\CashReportService;
 use Illuminate\Support\Carbon;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
@@ -13,7 +15,7 @@ use Livewire\Component;
 /**
  * Riwayat & selisih shift: semua shift kasir per periode, disaring per petugas dan status
  * selisih (pas/kurang/lebih/berjalan), dengan ringkasan selisih tiap petugas.
- * Tahap frontend: data dari MockData::shiftHistory (data tiruan).
+ * Data dari CashReportService (shift dalam periode); kasir hanya melihat shift miliknya.
  */
 #[Layout('components.layouts.app')]
 #[Title('Riwayat Shift')]
@@ -79,8 +81,14 @@ class Shifts extends Component
     public function all(): array
     {
         [$from, $to] = $this->range;
+        $shifts = CashShift::whereBetween('opened_at', [$from->copy()->startOfDay(), $to->copy()->endOfDay()])
+            ->when(auth()->user()?->hasRole(Role::KASIR), fn ($q) => $q->where('user_id', auth()->id()))
+            ->with('user:id,name', 'closer:id,name')
+            ->orderByDesc('opened_at')->orderByDesc('id')
+            ->get();
 
-        return MockData::shiftHistory($from->toDateString(), $to->toDateString());
+        return array_map(fn (array $r) => ['date' => substr($r['opened_at'], 0, 10), 'key' => (string) $r['id'], ...$r],
+            app(CashReportService::class)->shiftRows($shifts));
     }
 
     /** Shift setelah disaring petugas & status selisih. */

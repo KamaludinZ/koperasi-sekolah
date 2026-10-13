@@ -3,6 +3,10 @@
 namespace Tests\Feature\Kas;
 
 use App\Livewire\Kas\Shifts;
+use App\Models\CashShift;
+use Database\Seeders\CashShiftSeeder;
+use Database\Seeders\ProductSeeder;
+use Database\Seeders\TransactionSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Carbon;
 use Livewire\Livewire;
@@ -16,6 +20,7 @@ class ShiftsTest extends TestCase
     {
         parent::setUp();
         Carbon::setTestNow('2026-10-14 12:00:00'); // shift siang hari ini masih berjalan
+        $this->seed([ProductSeeder::class, TransactionSeeder::class, CashShiftSeeder::class]);
     }
 
     protected function tearDown(): void
@@ -73,5 +78,15 @@ class ShiftsTest extends TestCase
         $this->get('/kas/shift?status=lebih&periode=30-hari')->assertOk()->assertSee('Lebih');
         $this->loginAs('kasir');
         $this->get('/kas/shift')->assertOk()->assertSee('Riwayat shift');
+    }
+
+    public function test_cashier_sees_only_own_shifts(): void
+    {
+        $this->loginAs('kasir');
+        $mine = CashShift::where('user_id', auth()->id())->where('opened_at', '>=', '2026-10-08')->count();
+
+        $all = Livewire::test(Shifts::class)->get('all');
+        $this->assertCount($mine, $all);
+        $this->assertSame([auth()->user()->name], array_values(array_unique(array_column($all, 'cashier'))));
     }
 }

@@ -24,7 +24,6 @@
     </header>
 
     <div class="space-y-5 px-4 py-5 sm:px-6" wire:loading.class="opacity-60" wire:target="setPeriod,setStatus,cashier,resetFilters">
-        <p class="rounded-xl border border-dashed border-amber-300 bg-amber-50/60 px-4 py-2 text-xs text-amber-900">Tahap pengembangan: angka di halaman ini masih data tiruan, belum dari transaksi sungguhan.</p>
 
         {{-- Selisih per petugas --}}
         <section aria-labelledby="per-cashier">
