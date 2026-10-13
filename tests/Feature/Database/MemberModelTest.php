@@ -56,7 +56,7 @@ class MemberModelTest extends TestCase
         $this->assertSame(0, Member::search('%')->count());
     }
 
-    public function test_transactions_link_to_member_and_detach_on_delete(): void
+    public function test_transactions_link_to_member_and_detach_on_force_delete(): void
     {
         $m = Member::factory()->create();
         $tx = Transaction::factory()->create(['member_id' => $m->id]);
@@ -64,7 +64,11 @@ class MemberModelTest extends TestCase
         $this->assertTrue($tx->member->is($m));
         $this->assertSame(1, $m->transactions()->count());
 
-        $m->delete();
+        $m->delete(); // hapus lunak: riwayat tetap terhubung & terbaca
+        $this->assertSame($m->id, $tx->fresh()->member_id);
+        $this->assertTrue($tx->fresh()->member->is($m));
+
+        $m->forceDelete();
         $this->assertNull($tx->fresh()->member_id);
     }
 

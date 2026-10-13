@@ -19,9 +19,9 @@ use Throwable;
  */
 class SettingsService
 {
-    public const SECTIONS = ['profile', 'receipt', 'tax', 'discount'];
+    public const SECTIONS = ['profile', 'receipt', 'tax', 'discount', 'security'];
 
-    public const SECTION_LABELS = ['profile' => 'Profil koperasi', 'receipt' => 'Pengaturan struk', 'tax' => 'Pajak & pembulatan', 'discount' => 'Diskon manual kasir'];
+    public const SECTION_LABELS = ['profile' => 'Profil koperasi', 'receipt' => 'Pengaturan struk', 'tax' => 'Pajak & pembulatan', 'discount' => 'Diskon manual kasir', 'security' => 'Keamanan & retensi'];
 
     public const CACHE_KEY = 'settings:all';
 
@@ -65,6 +65,34 @@ class SettingsService
             'max_amount' => 20000,      // batas rupiah per transaksi tanpa admin
             'reason_required' => true,  // alasan wajib diisi
         ],
+        'security' => [
+            'trash_days' => 30,          // data master terhapus disimpan sebelum dibersihkan permanen
+            'export_days' => 7,          // berkas ekspor laporan/rekap
+            'notification_days' => 90,   // notifikasi yang sudah dibaca
+            'idle_minutes' => 60,        // keluar otomatis bila tidak aktif
+            'max_attempts' => 5,         // gagal masuk sebelum dikunci (tingkat 1)
+            'logo_max_kb' => 512,
+            'logo_types' => ['png', 'jpg', 'webp'],
+            'import_max_kb' => 5120,
+            'import_types' => ['csv', 'xlsx'],
+        ],
+    ];
+
+    /** Batas aman angka pengaturan keamanan & retensi: [min, max]. */
+    public const SECURITY_LIMITS = [
+        'trash_days' => [7, 365],
+        'export_days' => [1, 30],
+        'notification_days' => [30, 365],
+        'idle_minutes' => [5, 480],
+        'max_attempts' => [3, 10],
+        'logo_max_kb' => [64, 2048],
+        'import_max_kb' => [256, 10240],
+    ];
+
+    /** Jenis berkas yang boleh dipilih untuk tiap unggahan. */
+    public const UPLOAD_TYPES = [
+        'logo' => ['png' => 'PNG', 'jpg' => 'JPG/JPEG', 'webp' => 'WEBP'],
+        'import' => ['csv' => 'CSV', 'xlsx' => 'Excel (.xlsx)'],
     ];
 
     /** Field yang tidak dicatat nilainya di audit (terlalu besar). */
@@ -73,7 +101,7 @@ class SettingsService
     /**
      * Semua pengaturan + kapan & oleh siapa terakhir diubah.
      *
-     * @return array{profile: array, receipt: array, tax: array, updated_at: ?string, updated_by: ?string}
+     * @return array{profile: array, receipt: array, tax: array, discount: array, security: array, updated_at: ?string, updated_by: ?string}
      */
     public function all(): array
     {
@@ -119,6 +147,12 @@ class SettingsService
     public function discount(): array
     {
         return $this->section('discount');
+    }
+
+    /** Masa retensi, batas sesi & login, serta batas berkas unggahan. */
+    public function security(): array
+    {
+        return $this->section('security');
     }
 
     /** Tarif pajak efektif dalam persen (0 bila pajak dimatikan). */
@@ -221,6 +255,13 @@ class SettingsService
                 'max_amount' => ['sometimes', 'required', 'integer', 'min:0', 'max:10000000'],
                 'reason_required' => ['sometimes', 'boolean'],
             ],
+            'security' => collect(self::SECURITY_LIMITS)
+                ->map(fn ($l) => ['sometimes', 'required', 'integer', 'min:'.$l[0], 'max:'.$l[1]])->all() + [
+                    'logo_types' => ['sometimes', 'required', 'array', 'min:1'],
+                    'logo_types.*' => ['in:'.implode(',', array_keys(self::UPLOAD_TYPES['logo']))],
+                    'import_types' => ['sometimes', 'required', 'array', 'min:1'],
+                    'import_types.*' => ['in:'.implode(',', array_keys(self::UPLOAD_TYPES['import']))],
+                ],
             default => abort(404),
         };
     }
@@ -275,6 +316,8 @@ class SettingsService
             $out[$key] = match (true) {
                 $key === 'schedule' => collect(range(1, 7))->mapWithKeys(fn ($d) => [$d => isset($value[$d]) ? ['open' => $value[$d]['open'], 'close' => $value[$d]['close']] : null])->all(),
                 $key === 'rate' => round((float) $value, 2),
+                str_ends_with($key, '_types') => array_values(array_intersect(
+                    array_keys(self::UPLOAD_TYPES[str_replace('_types', '', $key)] ?? []), (array) $value)),
                 is_bool($default) => filter_var($value, FILTER_VALIDATE_BOOL),
                 is_int($default) => (int) $value,
                 is_string($value) => trim($value) === '' && ! in_array($key, ['name', 'short_name', 'school', 'footer', 'label', 'paper', 'rounding'], true) ? null : trim($value),
@@ -285,13 +328,13 @@ class SettingsService
         return $out;
     }
 
-    /** Kembalikan satu bagian ke nilai bawaan (hapus baris yang tersimpan). */
     /** Subjek audit satu bagian pengaturan (id = urutan bagian, stabil untuk riwayat objek). */
     private static function subject(string $section): array
     {
         return ['type' => 'setting', 'id' => array_search($section, self::SECTIONS, true) + 1, 'label' => self::SECTION_LABELS[$section]];
     }
 
+    /** Kembalikan satu bagian ke nilai bawaan (hapus baris yang tersimpan). */
     public function reset(string $section, ?User $by = null): array
     {
         abort_unless(in_array($section, self::SECTIONS, true), 404);

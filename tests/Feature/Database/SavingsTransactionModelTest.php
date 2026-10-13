@@ -52,7 +52,7 @@ class SavingsTransactionModelTest extends TestCase
         $this->assertModelExists($m);
 
         $this->expectException(QueryException::class);
-        $m->delete(); // FK restrict
+        $m->forceDelete(); // FK restrict
     }
 
     public function test_database_constraints_on_pgsql(): void

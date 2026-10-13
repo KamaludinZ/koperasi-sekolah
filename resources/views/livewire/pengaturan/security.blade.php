@@ -25,7 +25,6 @@
                 <h1 class="text-lg font-semibold">Pengaturan Koperasi</h1>
                 <p class="text-xs text-stone-500">Masa simpan data, sesi login, dan batas berkas unggahan.</p>
             </div>
-            <span class="rounded-full bg-amber-100 px-3 py-1 text-xs font-medium text-amber-900">Data contoh</span>
         </div>
         <x-pengaturan.nav />
     </header>

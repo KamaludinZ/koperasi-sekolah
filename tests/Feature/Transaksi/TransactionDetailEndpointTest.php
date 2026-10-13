@@ -43,8 +43,11 @@ class TransactionDetailEndpointTest extends TestCase
     {
         $tx = Transaction::factory()->withItems([$this->pid('MNM001') => 1])->create();
         $name = $tx->items()->first()->product_name;
-        Product::whereKey($this->pid('MNM001'))->delete();
+        $pid = $this->pid('MNM001');
+        Product::whereKey($pid)->delete(); // hapus lunak: kode tetap terbaca
+        $this->getJson("/transaksi/{$tx->id}/rincian")->assertOk()->assertJsonPath('data.items.0.product_code', 'MNM001');
 
+        Product::withTrashed()->whereKey($pid)->forceDelete();
         $this->getJson("/transaksi/{$tx->id}/rincian")
             ->assertOk()
             ->assertJsonPath('data.items.0.product_name', $name)

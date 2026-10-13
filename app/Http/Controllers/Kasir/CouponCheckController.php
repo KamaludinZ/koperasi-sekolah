@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Services\CouponService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 
 /**
  * POST /kasir/kupon/cek  {code, subtotal, member_id?}
@@ -20,7 +21,7 @@ class CouponCheckController extends Controller
         $data = $request->validate([
             'code' => ['required', 'string', 'max:30'],
             'subtotal' => ['required', 'integer', 'min:0', 'max:100000000'],
-            'member_id' => ['nullable', 'integer', 'exists:members,id'],
+            'member_id' => ['nullable', 'integer', Rule::exists('members', 'id')->withoutTrashed()],
         ], ['code.required' => 'Masukkan kode kupon.']);
 
         $result = $coupons->check($data['code'], (int) $data['subtotal'], $data['member_id'] ?? null);

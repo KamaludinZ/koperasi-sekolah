@@ -4,7 +4,7 @@ namespace App\Livewire\Pengaturan;
 
 use App\Livewire\Concerns\GuardsSettings;
 use App\Livewire\Concerns\NotifiesSave;
-use App\Support\MockData;
+use App\Services\SettingsService;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
@@ -14,7 +14,7 @@ use Livewire\Component;
  * Form Keamanan & Retensi: lama simpan data terhapus, berkas ekspor, dan notifikasi; batas
  * waktu sesi menganggur & jumlah gagal masuk sebelum dikunci; ukuran & jenis berkas unggahan
  * (logo, impor barang). Menampilkan pemeriksaan kesiapan produksi (HTTPS, cookie aman) dari
- * konfigurasi server. Tahap ini disimpan lewat MockData::saveSecurity() (session).
+ * konfigurasi server. Disimpan ke tabel settings bagian `security` lewat SettingsService (tercatat di audit).
  */
 #[Layout('components.layouts.app')]
 #[Title('Keamanan & Retensi')]
@@ -23,20 +23,12 @@ class Security extends Component
     use GuardsSettings;
     use NotifiesSave;
 
-    public const LOGO_TYPES = ['png' => 'PNG', 'jpg' => 'JPG/JPEG', 'webp' => 'WEBP'];
+    public const LOGO_TYPES = SettingsService::UPLOAD_TYPES['logo'];
 
-    public const IMPORT_TYPES = ['csv' => 'CSV', 'xlsx' => 'Excel (.xlsx)'];
+    public const IMPORT_TYPES = SettingsService::UPLOAD_TYPES['import'];
 
     /** Batas aman tiap isian angka: [min, max]. */
-    public const LIMITS = [
-        'trash_days' => [7, 365],
-        'export_days' => [1, 30],
-        'notification_days' => [30, 365],
-        'idle_minutes' => [5, 480],
-        'max_attempts' => [3, 10],
-        'logo_max_kb' => [64, 2048],
-        'import_max_kb' => [256, 10240],
-    ];
+    public const LIMITS = SettingsService::SECURITY_LIMITS;
 
     public int|string|null $trash_days = 30;
 
@@ -60,7 +52,7 @@ class Security extends Component
 
     public function mount(): void
     {
-        $this->fill(MockData::security());
+        $this->fill(app(SettingsService::class)->security());
     }
 
     protected function rules(): array
@@ -147,7 +139,7 @@ class Security extends Component
         }
         $this->saveWithToast(function () {
             $this->validate();
-            $this->fill(MockData::saveSecurity($this->current()));
+            $this->fill(app(SettingsService::class)->save('security', $this->current())['security']);
         }, 'Pengaturan keamanan & retensi disimpan.');
     }
 
@@ -157,7 +149,7 @@ class Security extends Component
             return;
         }
         $this->resetValidation();
-        $this->fill(MockData::SECURITY_DEFAULTS);
+        $this->fill(SettingsService::DEFAULTS['security']);
         $this->toast('success', 'Isian dikembalikan ke bawaan. Tekan Simpan untuk menerapkan.');
     }
 

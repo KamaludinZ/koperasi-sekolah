@@ -50,7 +50,10 @@ class ProductTransactionSchemaTest extends TestCase
         $item = $tx->items()->create(['product_id' => $product->id, 'product_name' => 'Roti', 'price' => 5000, 'quantity' => 1, 'subtotal' => 5000]);
 
         $product->delete();
+        $this->assertSame($product->id, $item->fresh()->product_id);
+        $this->assertSame('Roti', $item->fresh()->product->name);
 
+        $product->forceDelete();
         $this->assertNull($item->fresh()->product_id);
         $this->assertSame('Roti', $item->fresh()->product_name);
     }

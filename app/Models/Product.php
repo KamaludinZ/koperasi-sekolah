@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Models\Concerns\Auditable;
+use App\Models\Concerns\SoftDeletesWithReason;
 use App\Observers\ProductObserver;
 use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Builder;
@@ -16,6 +17,7 @@ class Product extends Model
 {
     use Auditable;
     use HasFactory;
+    use SoftDeletesWithReason;
 
     /** Audit data master; stok dicatat terpisah lewat riwayat stok. */
     public const AUDIT = [
@@ -59,9 +61,10 @@ class Product extends Model
         return $values;
     }
 
+    /** Kategori tetap terbaca walau sudah dihapus lunak. */
     public function category(): BelongsTo
     {
-        return $this->belongsTo(Category::class);
+        return $this->belongsTo(Category::class)->withTrashed();
     }
 
     public function stockMovements(): HasMany

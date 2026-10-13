@@ -61,7 +61,7 @@ class Transaction extends Model
     /** Anggota pembeli (null = pembeli umum). */
     public function member(): BelongsTo
     {
-        return $this->belongsTo(Member::class);
+        return $this->belongsTo(Member::class)->withTrashed(); // riwayat tetap menampilkan data yang dihapus lunak
     }
 
     public function scopeLatestFirst(Builder $query): void

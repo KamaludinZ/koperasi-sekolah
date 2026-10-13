@@ -91,8 +91,17 @@ class MasterDataObserverTest extends TestCase
         $service->update($m->refresh(), ['member_code' => $m->member_code, 'name' => 'Andi', 'type' => 'siswa', 'class' => '8A', 'is_active' => false]);
         $this->assertNotNull($this->last('member.deactivated'));
 
-        $service->delete($m->refresh());
-        $this->assertSame('dihapus', $this->last('member.purged')->action);
+        $service->delete($m->refresh(), 'Pendaftaran ganda');
+        $deleted = $this->last('member.deleted');
+        $this->assertSame('dihapus', $deleted->action);
+        $this->assertSame('Pendaftaran ganda', $deleted->reason);
+        $this->assertFalse($deleted->properties['permanent']);
+
+        $m->restore();
+        $this->assertSame('dipulihkan', $this->last('member.restored')->action);
+        $this->assertNull($m->fresh()->delete_reason);
+
+        $m->forceDelete();
         $this->assertTrue($this->last('member.purged')->properties['permanent']);
     }
 

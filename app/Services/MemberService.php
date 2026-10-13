@@ -65,12 +65,13 @@ class MemberService
     }
 
     /**
-     * Hapus anggota yang belum pernah menabung. Transaksi belanjanya tetap ada (member_id dilepas).
+     * Hapus lunak anggota yang belum pernah menabung (dengan alasan opsional); transaksi belanjanya tetap
+     * terhubung dan data bisa dipulihkan selama masa retensi.
      * Anggota yang punya saldo atau riwayat tabungan dinonaktifkan saja.
      *
      * @throws ValidationException
      */
-    public function delete(Member $member): void
+    public function delete(Member $member, ?string $reason = null): void
     {
         if ((float) $member->balance > 0) {
             throw ValidationException::withMessages([
@@ -84,7 +85,7 @@ class MemberService
             ]);
         }
 
-        $member->delete(); // dicatat MasterDataObserver
+        $member->trash($reason); // hapus lunak; bisa dipulihkan selama masa retensi, dicatat MasterDataObserver
     }
 
     /**

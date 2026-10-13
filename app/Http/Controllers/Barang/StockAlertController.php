@@ -51,9 +51,9 @@ class StockAlertController extends Controller
     {
         $data = $request->validate([
             'items' => ['nullable', 'array', 'max:1000'],
-            'items.*.product_id' => ['required', 'integer', 'distinct', Rule::exists('products', 'id')],
+            'items.*.product_id' => ['required', 'integer', 'distinct', Rule::exists('products', 'id')->withoutTrashed()],
             'items.*.min_stock' => ['required', 'integer', 'min:0', 'max:100000'],
-            'kategori' => ['nullable', 'string', Rule::exists('categories', 'name')],
+            'kategori' => ['nullable', 'string', Rule::exists('categories', 'name')->withoutTrashed()],
             'nilai' => ['nullable', 'integer', 'min:0', 'max:100000', 'required_with:kategori'],
             'default_min_stock' => ['nullable', 'integer', 'min:0', 'max:100000'],
         ]);

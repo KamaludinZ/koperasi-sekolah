@@ -1,6 +1,6 @@
 {
   "repo": "Koperasi Sekolah",
-  "generatedForCommit": "a0f1a913633d6c63040647db3bab5e3c2cd81ee4",
+  "generatedForCommit": "2dd958b003191b2562059ffdb44f686f2ad508d7",
   "files": [
     {
       "path": ".claude/skills/ngodingpakeai/SKILL.md",
@@ -51,6 +51,12 @@
       "size": 2081
     },
     {
+      "path": "app/Console/Commands/VerifyAuditLog.php",
+      "reason": "new",
+      "language": "php",
+      "size": 1820
+    },
+    {
       "path": "app/Http/Controllers/Akun/PasswordController.php",
       "reason": "needs_summary",
       "language": "php",
@@ -76,7 +82,7 @@
     },
     {
       "path": "app/Http/Controllers/Audit/AuditLogController.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 5726
     },
@@ -286,7 +292,7 @@
     },
     {
       "path": "app/Livewire/Audit/Changes.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 8347
     },
@@ -478,9 +484,9 @@
     },
     {
       "path": "app/Models/ActivityLog.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 3162
+      "size": 3546
     },
     {
       "path": "app/Models/CashMovement.php",
@@ -628,9 +634,15 @@
     },
     {
       "path": "app/Services/AuditChangeQuery.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 6254
+    },
+    {
+      "path": "app/Services/AuditIntegrity.php",
+      "reason": "new",
+      "language": "php",
+      "size": 3121
     },
     {
       "path": "app/Services/AuditLog.php",
@@ -831,6 +843,12 @@
       "size": 9231
     },
     {
+      "path": "app/Support/AuditGuard.php",
+      "reason": "new",
+      "language": "php",
+      "size": 3471
+    },
+    {
       "path": "app/Support/CouponValidator.php",
       "reason": "needs_summary",
       "language": "php",
@@ -844,7 +862,7 @@
     },
     {
       "path": "app/Support/MockData.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 23070
     },
@@ -1186,21 +1204,27 @@
     },
     {
       "path": "database/migrations/2026_10_13_000009_add_change_columns_to_activity_logs_table.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 3780
+      "size": 3524
     },
     {
       "path": "database/migrations/2026_10_13_000010_backfill_setting_subjects_in_activity_logs.php",
+      "reason": "changed",
+      "language": "php",
+      "size": 1856
+    },
+    {
+      "path": "database/migrations/2026_10_13_000011_lock_activity_logs.php",
       "reason": "new",
       "language": "php",
-      "size": 2178
+      "size": 1241
     },
     {
       "path": "database/seeders/ActivityLogSeeder.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 4034
+      "size": 4165
     },
     {
       "path": "database/seeders/CashShiftSeeder.php",
@@ -1528,7 +1552,7 @@
     },
     {
       "path": "resources/views/livewire/audit/changes.blade.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 17877
     },
@@ -1792,13 +1816,13 @@
     },
     {
       "path": "routes/console.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 1451
+      "size": 1619
     },
     {
       "path": "routes/web.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 15757
     },
@@ -1858,15 +1882,21 @@
     },
     {
       "path": "tests/Feature/Audit/AuditChangeColumnsTest.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 4401
     },
     {
       "path": "tests/Feature/Audit/AuditEndpointTest.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 3389
+    },
+    {
+      "path": "tests/Feature/Audit/AuditLockTest.php",
+      "reason": "new",
+      "language": "php",
+      "size": 3818
     },
     {
       "path": "tests/Feature/Audit/AuditLogTest.php",
@@ -1882,7 +1912,7 @@
     },
     {
       "path": "tests/Feature/Audit/ChangesPageTest.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 5442
     },

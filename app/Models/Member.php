@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Models\Concerns\Auditable;
+use App\Models\Concerns\SoftDeletesWithReason;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -16,6 +17,7 @@ class Member extends Model
 {
     use Auditable;
     use HasFactory;
+    use SoftDeletesWithReason;
 
     /** Audit data master; saldo dicatat lewat mutasi tabungan. */
     public const AUDIT = [

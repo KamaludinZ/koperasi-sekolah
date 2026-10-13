@@ -4,7 +4,7 @@ namespace Tests\Feature\Pengaturan;
 
 use App\Livewire\Pengaturan\Security;
 use App\Models\ActivityLog;
-use App\Support\MockData;
+use App\Services\SettingsService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
 use Tests\TestCase;
@@ -15,7 +15,7 @@ class SecuritySettingsTest extends TestCase
 
     public function test_page_renders_with_defaults(): void
     {
-        $this->get('/pengaturan/keamanan')->assertOk()
+        $this->get('/pengaturan/keamanan')->assertOk()->assertDontSee('Data contoh')
             ->assertSee('Keamanan &amp; retensi', false)->assertSee('Data terhapus (barang, anggota, kategori)')->assertSee('Kesiapan server');
         $this->get('/pengaturan')->assertSee(route('pengaturan.keamanan'));
 
@@ -32,10 +32,12 @@ class SecuritySettingsTest extends TestCase
             ->assertHasNoErrors()
             ->assertDispatched('toast', type: 'success');
 
-        $s = MockData::security();
+        $s = app(SettingsService::class)->security();
         $this->assertSame(60, $s['trash_days']);
         $this->assertSame(30, $s['idle_minutes']);
         $this->assertSame(['csv'], $s['import_types']);
+        $log = \App\Models\ActivityLog::where('event', 'setting.updated')->latest('id')->first();
+        $this->assertSame(['security.trash_days' => 30, 'security.idle_minutes' => 60, 'security.import_types' => ['csv', 'xlsx']], $log->old_values);
         Livewire::test(Security::class)->assertSet('trash_days', 60);
     }
 
@@ -49,7 +51,7 @@ class SecuritySettingsTest extends TestCase
             ->set('import_types', ['exe'])->assertHasErrors(['import_types.0'])->assertSee('Jenis berkas tidak didukung.')
             ->call('save')->assertDispatched('toast', type: 'error');
 
-        $this->assertSame(MockData::SECURITY_DEFAULTS, MockData::security());
+        $this->assertSame(SettingsService::DEFAULTS['security'], app(SettingsService::class)->security());
     }
 
     public function test_restore_defaults_and_size_format(): void
@@ -67,7 +69,7 @@ class SecuritySettingsTest extends TestCase
         $this->loginAs('pengurus');
         $this->get('/pengaturan/keamanan')->assertOk()->assertSee('Mode baca saja');
         Livewire::test(Security::class)->set('trash_days', 60)->call('save')->assertDispatched('toast', type: 'error');
-        $this->assertSame(30, MockData::security()['trash_days']);
+        $this->assertSame(30, app(SettingsService::class)->security()['trash_days']);
         $this->assertTrue(ActivityLog::where('event', 'setting.denied')->exists());
     }
 

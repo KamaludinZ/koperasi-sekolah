@@ -30,7 +30,7 @@ class ProductService
                 }
             }],
             'name' => ['required', 'string', 'max:150'],
-            'category' => ['required', 'string', Rule::exists('categories', 'name')],
+            'category' => ['required', 'string', Rule::exists('categories', 'name')->withoutTrashed()],
             'price' => ['required', 'integer', 'min:0', 'max:1000000000'],
             'cost_price' => ['required', 'integer', 'min:0', 'max:1000000000'],
             'stock' => ['required', 'integer', 'min:0', 'max:1000000'],

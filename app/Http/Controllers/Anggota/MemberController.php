@@ -18,7 +18,7 @@ use Illuminate\Validation\Rule;
  * - POST   /anggota                   → anggota baru (201); kode kosong = dibuat otomatis
  * - GET    /anggota/{member}/data     → satu anggota
  * - PUT    /anggota/{member}          → perbarui data (saldo tidak berubah)
- * - DELETE /anggota/{member}          → hapus anggota tanpa saldo
+ * - DELETE /anggota/{member}          → hapus lunak anggota tanpa saldo (alasan= opsional)
  */
 class MemberController extends Controller
 {
@@ -91,10 +91,12 @@ class MemberController extends Controller
         return response()->json(['data' => MemberService::toArray($members->update($member, $data))]);
     }
 
-    public function destroy(Member $member, MemberService $members): JsonResponse
+    public function destroy(Request $request, Member $member, MemberService $members): JsonResponse
     {
-        $members->delete($member);
+        $data = $request->validate(['alasan' => ['nullable', 'string', 'max:200']], ['alasan.max' => 'Alasan maksimal 200 karakter.']);
+        $members->delete($member, $data['alasan'] ?? null);
 
-        return response()->json(['message' => "{$member->name} dihapus dari daftar anggota."]);
+        return response()->json(['message' => "{$member->name} dihapus dari daftar anggota. Data dapat dipulihkan Admin selama "
+            .Member::retentionDays().' hari.']);
     }
 }

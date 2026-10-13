@@ -74,9 +74,12 @@ class MemberEndpointTest extends TestCase
         $this->getJson("/anggota/{$m->id}/data")->assertJsonPath('data.name', 'Siti');
 
         $this->deleteJson("/anggota/{$rich->id}")->assertJsonValidationErrors('member');
-        $this->deleteJson("/anggota/{$m->id}")->assertOk();
-        $this->assertModelMissing($m);
-        $this->assertNull($tx->fresh()->member_id);
+        $this->deleteJson("/anggota/{$m->id}", ['alasan' => 'Pendaftaran ganda'])->assertOk()->assertJsonPath('message', fn ($msg) => str_contains($msg, 'dipulihkan'));
+        $this->assertSoftDeleted($m);
+        $this->assertSame('Pendaftaran ganda', Member::withTrashed()->find($m->id)->delete_reason);
+        $this->assertSame($m->id, $tx->fresh()->member_id); // riwayat belanja tetap terhubung
+        $this->getJson("/anggota/{$m->id}/data")->assertNotFound();
+        $this->deleteJson("/anggota/{$rich->id}", ['alasan' => str_repeat('x', 201)])->assertJsonValidationErrors('alasan');
     }
 
     public function test_list_filters_sorts_and_stats(): void
