@@ -1,6 +1,6 @@
 {
   "repo": "Koperasi Sekolah",
-  "generatedForCommit": "33624176dffdff8806d5e79b0b0116738e3cb689",
+  "generatedForCommit": "8851fdaa0bd2ee51bb60b316e40c2fd85c6967a6",
   "files": [
     {
       "path": ".claude/skills/ngodingpakeai/SKILL.md",
@@ -879,6 +879,12 @@
       "size": 1777
     },
     {
+      "path": "app/Models/RestoreTest.php",
+      "reason": "new",
+      "language": "php",
+      "size": 1590
+    },
+    {
       "path": "app/Models/Role.php",
       "reason": "needs_summary",
       "language": "php",
@@ -1024,7 +1030,7 @@
     },
     {
       "path": "app/Services/BackupService.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 9641
     },
@@ -1201,6 +1207,12 @@
       "reason": "needs_summary",
       "language": "php",
       "size": 3725
+    },
+    {
+      "path": "app/Services/RestoreTestService.php",
+      "reason": "new",
+      "language": "php",
+      "size": 6348
     },
     {
       "path": "app/Services/RetentionService.php",
@@ -1861,6 +1873,12 @@
       "reason": "needs_summary",
       "language": "php",
       "size": 2572
+    },
+    {
+      "path": "database/migrations/2026_10_14_000002_create_restore_tests_table.php",
+      "reason": "new",
+      "language": "php",
+      "size": 1751
     },
     {
       "path": "database/seeders/ActivityLogSeeder.php",
@@ -2716,7 +2734,7 @@
     },
     {
       "path": "routes/console.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 4324
     },
@@ -3640,7 +3658,7 @@
     },
     {
       "path": "tests/Feature/Sistem/BackupNotificationTest.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 2548
     },
@@ -3685,6 +3703,12 @@
       "reason": "needs_summary",
       "language": "php",
       "size": 2850
+    },
+    {
+      "path": "tests/Feature/Sistem/RestoreTestServiceTest.php",
+      "reason": "new",
+      "language": "php",
+      "size": 2942
     },
     {
       "path": "tests/Feature/Transaksi/DateFilterTest.php",

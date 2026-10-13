@@ -24,7 +24,13 @@ class ExportCashRecap implements ShouldQueue
 
     public int $timeout = 120;
 
-    public function __construct(public int $exportId) {}
+    /** Jeda sebelum percobaan ulang (detik). */
+    public array $backoff = [30];
+
+    public function __construct(public int $exportId)
+    {
+        $this->onQueue(config('koperasi.queues.ekspor', 'ekspor'));
+    }
 
     public function handle(CashRecapExport $builder): void
     {

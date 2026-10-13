@@ -32,4 +32,18 @@ return [
         'keep' => (int) env('KOPERASI_BACKUP_KEEP', 14),
         'pg_dump' => (bool) env('KOPERASI_BACKUP_PG_DUMP', true),
     ],
+
+    /*
+     | Nama antrean pekerjaan latar. Jalankan pekerja dengan urutan prioritas:
+     |   php artisan queue:work --queue=notifikasi,ekspor,default,cadangan --tries=3 --max-time=3600
+     */
+    'queues' => [
+        'notifikasi' => 'notifikasi',
+        'ekspor' => 'ekspor',
+        'default' => 'default',
+        'cadangan' => 'cadangan',
+    ],
+    'queue_worker' => '--queue=notifikasi,ekspor,default,cadangan',
+    // Catatan pekerjaan gagal disimpan sekian jam sebelum dibersihkan otomatis.
+    'failed_jobs_hours' => (int) env('KOPERASI_FAILED_JOBS_HOURS', 24 * 30),
 ];

@@ -80,3 +80,7 @@ Schedule::command('cadangan:periksa')->dailyAt('08:00');
 // Denyut penjadwal untuk pemantauan kesehatan (Sistem → Kesehatan).
 Schedule::call(fn () => \Illuminate\Support\Facades\Cache::put('health:scheduler_heartbeat', now()->toDateTimeString(), now()->addDay()))
     ->everyMinute()->name('health-heartbeat');
+
+// Pemeliharaan antrean: hapus catatan pekerjaan gagal & batch lama.
+Schedule::command('queue:prune-failed', ['--hours' => config('koperasi.failed_jobs_hours', 720)])->dailyAt('03:00');
+Schedule::command('queue:prune-batches', ['--hours' => 48])->dailyAt('03:05');
