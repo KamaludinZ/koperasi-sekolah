@@ -650,4 +650,33 @@ class MockData
 
         return $rows[$id];
     }
+
+    /**
+     * Baris barang satu pesanan pembelian tiruan: barang sungguhan dari kategori yang dipasok
+     * supplier. Kontrak: {product_id, code, name, unit, qty, received_qty, cost}; jumlah = qty pesanan.
+     */
+    public static function purchaseOrderItems(int $orderId): array
+    {
+        $order = collect(self::purchaseOrders())->firstWhere('id', $orderId);
+        $supplier = $order ? collect(self::suppliers())->firstWhere('id', $order['supplier_id']) : null;
+        if (! $supplier) {
+            return [];
+        }
+        $products = \App\Models\Product::query()->whereHas('category', fn ($q) => $q->whereIn('name', $supplier['categories']))
+            ->orderBy('code')->limit($order['items'])->get();
+        if ($products->isEmpty()) {
+            return [];
+        }
+        $per = intdiv($order['qty'], $products->count());
+        $receivedLeft = $order['received_qty'];
+
+        return $products->values()->map(function ($p, $i) use ($per, $order, $products, &$receivedLeft) {
+            $qty = $i === $products->count() - 1 ? $order['qty'] - $per * ($products->count() - 1) : $per;
+            $got = min($qty, $receivedLeft);
+            $receivedLeft -= $got;
+
+            return ['product_id' => $p->id, 'code' => $p->code, 'name' => $p->name, 'unit' => $p->unit,
+                'qty' => $qty, 'received_qty' => $got, 'cost' => (int) $p->cost_price];
+        })->all();
+    }
 }
