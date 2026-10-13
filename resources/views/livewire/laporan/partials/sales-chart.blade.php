@@ -26,6 +26,9 @@
 
     <div class="relative mt-4 h-60" wire:key="chart-{{ $chartPeriod }}" wire:ignore
          x-data="salesChart(@js($points))">
+        @if ($total === 0)
+            <p class="pointer-events-none absolute inset-0 z-10 grid place-items-center text-sm text-stone-400" data-empty="grafik">Belum ada penjualan pada rentang grafik ini.</p>
+        @endif
         <canvas x-ref="canvas" role="img"
                 aria-label="Grafik batang penjualan per {{ $unit }}, {{ count($points) }} {{ $unit }}, total {{ $rp($total) }}. Rincian ada di tabel data."></canvas>
     </div>

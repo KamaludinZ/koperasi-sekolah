@@ -214,4 +214,16 @@ class IndexTest extends TestCase
         $this->assertStringContainsString('periode=kustom', $c->instance()->transactionsUrl);
         $c->call('sortSold', 'aneh')->assertSet('soldSort', 'quantity');
     }
+
+    public function test_empty_states_and_rupiah_format(): void
+    {
+        \App\Models\TransactionItem::query()->delete();
+        \App\Models\TransactionDiscount::query()->delete();
+        Transaction::query()->delete();
+        Livewire::test(Index::class)
+            ->assertSeeHtml('data-empty="periode"')->assertSee('Belum ada penjualan pada periode ini.')
+            ->assertSeeHtml('data-empty="grafik"')->assertSeeHtml('data-empty="hari-ini"')
+            ->assertSee('Rp0')->assertDontSee('Rp 0')
+            ->call('setPeriod', '7-hari')->assertSee('Lihat 30 hari');
+    }
 }

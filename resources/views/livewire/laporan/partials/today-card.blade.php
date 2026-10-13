@@ -9,6 +9,9 @@
         <div>
             <h2 id="today-title" class="text-sm text-emerald-200">Penjualan hari ini · {{ now()->translatedFormat('l, d F') }}</h2>
             <p class="mt-1 text-4xl font-bold tracking-tight tabular-nums">{{ $rp($t['revenue']) }}</p>
+            @if ($t['count'] === 0)
+                <p class="mt-1 text-sm text-emerald-200" data-empty="hari-ini">Belum ada transaksi hari ini{{ now()->hour < \App\Services\SalesReport::OPEN_HOURS[0] ? ' — koperasi belum buka' : '' }}.</p>
+            @endif
             <p class="mt-1 text-sm">
                 @if ($t['change'] !== null)
                     <span @class(['font-semibold', 'text-emerald-300' => $t['change'] >= 0, 'text-red-300' => $t['change'] < 0])>

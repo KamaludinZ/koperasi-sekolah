@@ -4,7 +4,7 @@ import {
 
 Chart.register(BarController, BarElement, CategoryScale, LinearScale, Tooltip);
 
-const rupiah = (n) => 'Rp' + Math.round(n).toLocaleString('id-ID');
+const rupiah = (n) => (window.rupiah ? window.rupiah(n) : 'Rp' + Math.round(n).toLocaleString('id-ID'));
 const short = (n) => n >= 1_000_000 ? (n / 1_000_000).toLocaleString('id-ID', { maximumFractionDigits: 1 }) + ' jt'
     : n >= 1000 ? Math.round(n / 1000) + ' rb' : String(n);
 

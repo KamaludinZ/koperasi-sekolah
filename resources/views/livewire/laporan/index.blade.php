@@ -1,5 +1,5 @@
 @php
-    $rp = fn ($n) => 'Rp'.number_format($n, 0, ',', '.');
+    $rp = fn ($n) => \App\Support\Rupiah::format($n);
     [$start, $end] = $this->range;
     $s = $this->summary;
     $maxQty = max(array_column($this->topProducts, 'quantity') ?: [1]);
@@ -48,6 +48,13 @@
             <h2 class="text-sm font-semibold text-stone-700">Rekap periode: {{ \App\Livewire\Laporan\Index::PERIODS[$period] ?? ($start->translatedFormat('d M').' – '.$end->translatedFormat('d M Y')) }}</h2>
             <p class="text-xs text-stone-500">Dibandingkan dengan {{ $cmp['label'] }} ({{ $cmp['range_label'] }})</p>
         </div>
+
+        @if ($this->summary['count'] === 0)
+            <div class="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-dashed border-stone-300 bg-white px-4 py-4 text-sm" role="status" data-empty="periode">
+                <p><span class="font-semibold text-stone-700">Belum ada penjualan pada periode ini.</span> <span class="text-stone-500">Angka di bawah bernilai nol; coba periode yang lebih panjang.</span></p>
+                @if ($period !== '30-hari')<button type="button" wire:click="setPeriod('30-hari')" class="rounded-lg border border-stone-300 px-3 py-1.5 text-xs font-medium text-stone-700 hover:bg-stone-50">Lihat 30 hari</button>@endif
+            </div>
+        @endif
 
         {{-- Angka utama + perbandingan --}}
         <section class="grid grid-cols-2 gap-3 lg:grid-cols-4" aria-label="Ringkasan penjualan">
