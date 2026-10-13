@@ -79,7 +79,7 @@ class TransactionHistory
             'paid' => (int) $t->paid,
             'change' => (int) $t->change,
             'payment_method' => $t->payment_method,
-            'payment_method_label' => CheckoutService::PAYMENT_METHODS[$t->payment_method] ?? $t->payment_method,
+            'payment_method_label' => CheckoutService::PAYMENT_LABELS[$t->payment_method] ?? $t->payment_method,
         ];
     }
 

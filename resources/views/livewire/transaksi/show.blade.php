@@ -127,7 +127,7 @@
             <div class="rounded-xl bg-stone-200/70 p-3">
                 <div class="mx-auto w-[58mm] max-w-full rounded-sm bg-white p-3 shadow-sm">
                     @include('livewire.kasir.partials.receipt', [
-                        'tx' => [...$tx, 'payment_method_label' => \App\Services\CheckoutService::PAYMENT_METHODS[$tx['payment_method']] ?? $tx['payment_method']],
+                        'tx' => [...$tx, 'payment_method_label' => \App\Services\CheckoutService::PAYMENT_LABELS[$tx['payment_method']] ?? $tx['payment_method']],
                         'profile' => app(\App\Services\ReceiptPresenter::class)->profile(),
                     ])
                 </div>

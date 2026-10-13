@@ -47,7 +47,7 @@ class Cart extends Component
     /** Ringkasan transaksi terakhir yang berhasil dibayar (untuk dialog sukses & struk). */
     public ?array $lastTransaction = null;
 
-    public const PAYMENT_METHODS = CheckoutService::PAYMENT_METHODS + ['tabungan' => 'Saldo tabungan', 'bon' => 'Bon (bayar nanti)'];
+    public const PAYMENT_METHODS = CheckoutService::PAYMENT_LABELS;
 
     /** Metode yang memerlukan anggota. */
     public const MEMBER_METHODS = ['tabungan', 'bon'];

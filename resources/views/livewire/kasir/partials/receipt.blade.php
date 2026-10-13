@@ -16,8 +16,10 @@
     <div class="space-y-0.5">
         <div class="flex justify-between"><span>No</span><span>{{ $tx['invoice_number'] }}</span></div>
         <div class="flex justify-between"><span>Tgl</span><span>{{ \Illuminate\Support\Carbon::parse($tx['created_at'])->format('d/m/Y H:i') }}</span></div>
-        @if ($rc['show_cashier'])<div class="flex justify-between"><span>Kasir</span><span>{{ $tx['cashier'] }}</span></div>@endif
-        @if ($rc['show_member'] && ($tx['member'] ?? null))<div class="flex justify-between gap-2"><span>Anggota</span><span class="text-right">{{ $tx['member'] }}</span></div>@endif
+        @php $memberPay = in_array($tx['payment_method'] ?? null, ['tabungan', 'bon'], true); @endphp
+        {{-- Tabungan & bon selalu mencantumkan petugas & anggota sebagai bukti transaksi atas nama anggota. --}}
+        @if ($rc['show_cashier'] || $memberPay)<div class="flex justify-between gap-2"><span>Petugas</span><span class="text-right">{{ $tx['cashier'] }}</span></div>@endif
+        @if (($rc['show_member'] || $memberPay) && ($tx['member'] ?? null))<div class="flex justify-between gap-2"><span>Anggota</span><span class="text-right">{{ $tx['member'] }}@if ($tx['member_code'] ?? null) ({{ $tx['member_code'] }})@endif</span></div>@endif
     </div>
 
     <div class="my-2 border-t border-dashed border-black"></div>
@@ -56,14 +58,24 @@
         @if (($tx['tax_included'] ?? 0) > 0)
             <div class="flex justify-between text-[0.9em]"><span>Termasuk {{ $taxName }}</span><span>{{ $rp($tx['tax_included']) }}</span></div>
         @endif
-        <div class="flex justify-between"><span>Bayar ({{ $tx['payment_method_label'] }})</span><span>{{ $rp($tx['paid']) }}</span></div>
-        @if (isset($tx['balance_after']))
-            <div class="flex justify-between"><span>Sisa saldo</span><span>{{ $rp($tx['balance_after']) }}</span></div>
-        @elseif (isset($tx['credit_due_at']))
-            <div class="flex justify-between"><span>Jatuh tempo</span><span>{{ \Illuminate\Support\Carbon::parse($tx['credit_due_at'])->format('d/m/Y') }}</span></div>
-        @else
-            <div class="flex justify-between"><span>Kembali</span><span>{{ $rp($tx['change']) }}</span></div>
-        @endif
+        <div class="flex justify-between gap-2"><span>Metode</span><span class="text-right">{{ $tx['payment_method_label'] }}</span></div>
+        @switch ($tx['payment_method'] ?? 'tunai')
+            @case ('tabungan')
+                @isset ($tx['balance_before'])<div class="flex justify-between"><span>Saldo awal</span><span>{{ $rp($tx['balance_before']) }}</span></div>@endisset
+                <div class="flex justify-between"><span>Dipotong</span><span>-{{ $rp($tx['total']) }}</span></div>
+                @isset ($tx['balance_after'])<div class="flex justify-between"><span>Sisa saldo</span><span>{{ $rp($tx['balance_after']) }}</span></div>@endisset
+                @break
+            @case ('bon')
+                <div class="flex justify-between"><span>Dicatat bon</span><span>{{ $rp($tx['total']) }}</span></div>
+                @isset ($tx['credit_due_at'])<div class="flex justify-between"><span>Jatuh tempo</span><span>{{ \Illuminate\Support\Carbon::parse($tx['credit_due_at'])->format('d/m/Y') }}</span></div>@endisset
+                @break
+            @case ('tunai')
+                <div class="flex justify-between"><span>Bayar</span><span>{{ $rp($tx['paid']) }}</span></div>
+                <div class="flex justify-between"><span>Kembali</span><span>{{ $rp($tx['change']) }}</span></div>
+                @break
+            @default
+                <div class="flex justify-between"><span>Dibayar</span><span>{{ $rp($tx['paid']) }}</span></div>
+        @endswitch
         @if (($tx['discount'] ?? 0) > 0)
             <p class="pt-1 text-center font-bold">Anda hemat {{ $rp($tx['discount']) }}</p>
         @endif
@@ -71,6 +83,13 @@
 
     <div class="my-2 border-t border-dashed border-black"></div>
 
+    @if (($tx['payment_method'] ?? null) === 'bon')
+        <div class="mb-2 grid grid-cols-2 gap-2 text-center">
+            <div><p>Anggota</p><p class="mt-6 border-t border-black pt-0.5">{{ \Illuminate\Support\Str::limit($tx['member'] ?? '', 18) }}</p></div>
+            <div><p>Petugas</p><p class="mt-6 border-t border-black pt-0.5">{{ \Illuminate\Support\Str::limit($tx['cashier'], 18) }}</p></div>
+        </div>
+        <div class="my-2 border-t border-dashed border-black"></div>
+    @endif
     @if ($rc['note'])<p class="mb-1.5 text-center whitespace-pre-line">{{ $rc['note'] }}</p>@endif
     <p class="text-center whitespace-pre-line">{{ $rc['footer'] }}</p>
 </div>

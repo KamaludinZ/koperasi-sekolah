@@ -15,7 +15,7 @@ class ReceiptPresenter
 
     public function present(Transaction $transaction): array
     {
-        $transaction->loadMissing(['items', 'user:id,name', 'member:id,name,type,class']);
+        $transaction->loadMissing(['items', 'user:id,name', 'member:id,member_code,name,type,class']);
 
         return [
             'id' => $transaction->id,
@@ -23,8 +23,9 @@ class ReceiptPresenter
             'created_at' => $transaction->created_at->toDateTimeString(),
             'cashier' => $transaction->user?->name ?? 'Kasir',
             'member' => $transaction->member?->display_name,
+            'member_code' => $transaction->member?->member_code,
             'payment_method' => $transaction->payment_method,
-            'payment_method_label' => CheckoutService::PAYMENT_METHODS[$transaction->payment_method] ?? $transaction->payment_method,
+            'payment_method_label' => CheckoutService::PAYMENT_LABELS[$transaction->payment_method] ?? $transaction->payment_method,
             'items' => $transaction->items->map(fn ($item) => [
                 'product_id' => $item->product_id,
                 'product_name' => $item->product_name,

@@ -71,7 +71,7 @@ class MemberPaymentMethodsTest extends TestCase
     public function test_receipt_shows_remaining_balance_for_savings(): void
     {
         $tx = ['invoice_number' => 'INV-1', 'created_at' => now(), 'cashier' => 'Kasir', 'items' => [], 'subtotal' => 8000, 'tax' => 0, 'total' => 8000,
-            'payment_method_label' => 'Saldo tabungan', 'paid' => 8000, 'change' => 0, 'balance_after' => 42000];
+            'payment_method' => 'tabungan', 'payment_method_label' => 'Saldo tabungan', 'paid' => 8000, 'change' => 0, 'balance_after' => 42000];
         $profile = app(\App\Services\ReceiptPresenter::class)->profile();
         $html = view('livewire.kasir.partials.receipt', ['tx' => $tx, 'profile' => $profile, 'rp' => fn ($n) => 'Rp'.number_format($n, 0, ',', '.')])->render();
         $this->assertStringContainsString('Sisa saldo', $html);

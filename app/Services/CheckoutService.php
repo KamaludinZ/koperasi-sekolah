@@ -31,6 +31,12 @@ class CheckoutService
 
     public const PAYMENT_METHODS = ['tunai' => 'Tunai', 'qris' => 'QRIS / Transfer'];
 
+    /** Metode bayar atas nama anggota (saldo tabungan / bon). */
+    public const MEMBER_PAYMENT_METHODS = ['tabungan' => 'Saldo tabungan', 'bon' => 'Bon (bayar nanti)'];
+
+    /** Label semua metode bayar untuk struk, riwayat, dan lencana. */
+    public const PAYMENT_LABELS = self::PAYMENT_METHODS + self::MEMBER_PAYMENT_METHODS;
+
     /**
      * @param  array<int, int>  $items  [productId => quantity]
      * @param  int|null  $paid  uang dibayar; untuk non-tunai otomatis sama dengan total

@@ -32,8 +32,9 @@
     <table>
         <tr><td>No</td><td class="r">{{ $tx['invoice_number'] }}</td></tr>
         <tr><td>Tgl</td><td class="r">{{ \Illuminate\Support\Carbon::parse($tx['created_at'])->format('d/m/Y H:i') }}</td></tr>
-        @if ($rc['show_cashier'])<tr><td>Kasir</td><td class="r">{{ $tx['cashier'] }}</td></tr>@endif
-        @if ($rc['show_member'] && ($tx['member'] ?? null))<tr><td>Anggota</td><td class="r">{{ $tx['member'] }}</td></tr>@endif
+        @php $memberPay = in_array($tx['payment_method'] ?? null, ['tabungan', 'bon'], true); @endphp
+        @if ($rc['show_cashier'] || $memberPay)<tr><td>Petugas</td><td class="r">{{ $tx['cashier'] }}</td></tr>@endif
+        @if (($rc['show_member'] || $memberPay) && ($tx['member'] ?? null))<tr><td>Anggota</td><td class="r">{{ $tx['member'] }}@if ($tx['member_code'] ?? null) ({{ $tx['member_code'] }})@endif</td></tr>@endif
     </table>
 
     <div class="hr"></div>
@@ -70,8 +71,24 @@
         @if (($tx['tax_included'] ?? 0) > 0)
             <tr><td>Termasuk {{ $taxName }}</td><td class="r">Rp{{ $n($tx['tax_included']) }}</td></tr>
         @endif
-        <tr><td>Bayar ({{ $tx['payment_method_label'] }})</td><td class="r">Rp{{ $n($tx['paid']) }}</td></tr>
-        <tr><td>Kembali</td><td class="r">Rp{{ $n($tx['change']) }}</td></tr>
+        <tr><td>Metode</td><td class="r">{{ $tx['payment_method_label'] }}</td></tr>
+        @switch ($tx['payment_method'] ?? 'tunai')
+            @case ('tabungan')
+                @isset ($tx['balance_before'])<tr><td>Saldo awal</td><td class="r">Rp{{ $n($tx['balance_before']) }}</td></tr>@endisset
+                <tr><td>Dipotong</td><td class="r">-Rp{{ $n($tx['total']) }}</td></tr>
+                @isset ($tx['balance_after'])<tr><td>Sisa saldo</td><td class="r">Rp{{ $n($tx['balance_after']) }}</td></tr>@endisset
+                @break
+            @case ('bon')
+                <tr><td>Dicatat bon</td><td class="r">Rp{{ $n($tx['total']) }}</td></tr>
+                @isset ($tx['credit_due_at'])<tr><td>Jatuh tempo</td><td class="r">{{ \Illuminate\Support\Carbon::parse($tx['credit_due_at'])->format('d/m/Y') }}</td></tr>@endisset
+                @break
+            @case ('tunai')
+                <tr><td>Bayar</td><td class="r">Rp{{ $n($tx['paid']) }}</td></tr>
+                <tr><td>Kembali</td><td class="r">Rp{{ $n($tx['change']) }}</td></tr>
+                @break
+            @default
+                <tr><td>Dibayar</td><td class="r">Rp{{ $n($tx['paid']) }}</td></tr>
+        @endswitch
     </table>
     @if ($tx['discount'] > 0)
         <div class="c b" style="margin-top: 3pt;">Anda hemat Rp{{ $n($tx['discount']) }}</div>
@@ -79,6 +96,13 @@
 
     <div class="hr"></div>
 
+    @if (($tx['payment_method'] ?? null) === 'bon')
+        <table style="margin-bottom: 3pt;"><tr>
+            <td class="c" style="width: 50%;">Anggota<br><br><br>{{ \Illuminate\Support\Str::limit($tx['member'] ?? '', 18) }}</td>
+            <td class="c" style="width: 50%;">Petugas<br><br><br>{{ \Illuminate\Support\Str::limit($tx['cashier'], 18) }}</td>
+        </tr></table>
+        <div class="hr"></div>
+    @endif
     @if ($rc['note'])<div class="c" style="margin-bottom: 3pt;">{!! nl2br(e($rc['note'])) !!}</div>@endif
     <div class="c">{!! nl2br(e($rc['footer'])) !!}</div>
 </body>
