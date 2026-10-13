@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Kas;
 use App\Http\Controllers\Controller;
 use App\Livewire\Kas\Recap;
 use App\Models\CashShift;
+use App\Models\Role;
 use App\Models\User;
 use App\Services\CashReportService;
 use Illuminate\Http\JsonResponse;
@@ -15,7 +16,8 @@ use Illuminate\Validation\Rule;
 /**
  * GET /kas/shift/riwayat?periode=|dari=&sampai=&petugas={user_id}&status=kurang|lebih|pas|berjalan&page=
  *     Riwayat shift (terbaru dulu, 25 per halaman) + ringkasan selisih per petugas pada periode itu
- *     + daftar petugas untuk saringan. Rentang maks. 92 hari.
+ *     + daftar petugas untuk saringan. Rentang maks. 92 hari. Kasir hanya melihat shift miliknya.
+ *     Rincian shift lain ditolak untuk kasir (CashShiftPolicy::view).
  * GET /kas/shift/{shift}/rincian
  *     Satu shift lengkap: angka kas, setoran/penarikan, dan daftar penjualannya.
  */
@@ -39,12 +41,17 @@ class ShiftHistoryController extends Controller
             return response()->json(['message' => 'Rentang maksimal 92 hari.', 'errors' => ['dari' => ['Rentang maksimal 92 hari.']]], 422);
         }
 
-        $page = $report->history($from, $to, $data['petugas'] ?? null, $data['status'] ?? null)->withQueryString();
-        $cashierIds = CashShift::whereBetween('opened_at', [$from->copy()->startOfDay(), $to->copy()->endOfDay()])->distinct()->pluck('user_id');
+        // Kasir hanya melihat riwayat & selisih shift miliknya sendiri.
+        $own = $request->user()->hasRole(Role::KASIR) ? $request->user()->id : null;
+        $userId = $own ?? ($data['petugas'] ?? null);
+
+        $page = $report->history($from, $to, $userId, $data['status'] ?? null)->withQueryString();
+        $cashierIds = $own ? collect([$own]) : CashShift::whereBetween('opened_at', [$from->copy()->startOfDay(), $to->copy()->endOfDay()])->distinct()->pluck('user_id');
+        $perCashier = $report->perCashier($from, $to);
 
         return response()->json([
             'data' => $page->items(),
-            'per_cashier' => $report->perCashier($from, $to),
+            'per_cashier' => $own ? array_values(array_filter($perCashier, fn ($p) => $p['user_id'] === $own)) : $perCashier,
             'cashiers' => User::whereKey($cashierIds)->orderBy('name')->get(['id', 'name']),
             'meta' => [
                 'from' => $from->toDateString(),
@@ -60,6 +67,7 @@ class ShiftHistoryController extends Controller
 
     public function show(CashShift $shift, CashReportService $report): JsonResponse
     {
+        ShiftController::authorizeOrAudit('view', $shift);
         return response()->json(['data' => $report->shiftDetail($shift)]);
     }
 }

@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\CashMovement;
 use App\Models\CashShift;
+use App\Models\Notification;
 use App\Models\User;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Support\Facades\DB;
@@ -19,6 +20,9 @@ use Illuminate\Validation\ValidationException;
 class ShiftService
 {
     public const MAX_CASH = 50_000_000;
+
+    /** Selisih kas (kurang/lebih) mulai nominal ini dilaporkan ke pengurus lewat notifikasi. */
+    public const LARGE_DIFFERENCE = 10_000;
 
     /** Shift yang sedang terbuka, bila ada. */
     public function current(): ?CashShift
@@ -115,10 +119,29 @@ class ShiftService
         AuditLog::record('shift.closed', 'kas',
             "{$shift->name} ditutup: ".($diff === 0 ? 'kas pas' : ($diff < 0 ? 'kurang' : 'lebih').' Rp'.number_format(abs($diff), 0, ',', '.')),
             ['type' => 'cash_shift', 'id' => $shift->id, 'label' => $shift->name.' '.$shift->opened_at->format('d/m/Y')],
-            ['expected_cash' => (int) $shift->expected_cash, 'counted_cash' => $countedCash, 'difference' => $diff, 'note' => $note],
+            ['expected_cash' => (int) $shift->expected_cash, 'counted_cash' => $countedCash, 'difference' => $diff, 'note' => $note,
+                'flagged' => abs($diff) >= self::LARGE_DIFFERENCE ?: null],
             $countedCash);
 
+        if (abs($diff) >= self::LARGE_DIFFERENCE) {
+            $this->notifyLargeDifference($shift, $diff);
+        }
+
         return $shift->load('user:id,name', 'closer:id,name');
+    }
+
+    /** Notifikasi sistem untuk pengurus (admin ikut melihat) bila selisih kas besar; sekali per shift. */
+    private function notifyLargeDifference(CashShift $shift, int $diff): void
+    {
+        $amount = 'Rp'.number_format(abs($diff), 0, ',', '.');
+        Notification::firstOrCreate(['dedupe_key' => "kas:selisih:{$shift->id}"], [
+            'type' => 'sistem',
+            'target' => 'pengurus',
+            'title' => "Selisih kas {$shift->name} ".($diff < 0 ? 'kurang' : 'lebih')." {$amount}",
+            'message' => ($shift->user?->name ?? 'Kasir').' menutup '.mb_strtolower($shift->name).' '.$shift->opened_at->translatedFormat('d M Y')
+                .' dengan selisih '.($diff < 0 ? 'kurang' : 'lebih')." {$amount}".($shift->close_note ? '. Catatan: '.$shift->close_note : '.'),
+            'url' => route('kas.shift', ['status' => $diff < 0 ? 'kurang' : 'lebih'], false),
+        ]);
     }
 
     /** Bentuk JSON/tampilan satu shift, dengan angka berjalan untuk shift yang masih terbuka. */

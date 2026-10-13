@@ -16,7 +16,7 @@ class CashMovementEndpointTest extends TestCase
 
     public function test_record_in_and_out_on_open_shift(): void
     {
-        $shift = CashShift::factory()->create(['opening_cash' => 100000]);
+        $shift = CashShift::factory()->create(['user_id' => auth()->id(), 'opening_cash' => 100000]);
 
         $this->postJson('/kas/mutasi', ['type' => 'in', 'category' => 'kembalian', 'amount' => 50000, 'reason' => 'Tambah uang kembalian'])
             ->assertCreated()
@@ -35,7 +35,7 @@ class CashMovementEndpointTest extends TestCase
 
     public function test_withdrawal_cannot_exceed_drawer(): void
     {
-        CashShift::factory()->create(['opening_cash' => 20000]);
+        CashShift::factory()->create(['user_id' => auth()->id(), 'opening_cash' => 20000]);
 
         $this->postJson('/kas/mutasi', ['type' => 'out', 'category' => 'operasional', 'amount' => 25000, 'reason' => 'Beli galon'])
             ->assertUnprocessable()->assertJsonValidationErrors(['amount' => 'Uang di laci tidak cukup (seharusnya Rp20.000)']);

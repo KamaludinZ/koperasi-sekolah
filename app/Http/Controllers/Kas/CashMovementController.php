@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Kas;
 
 use App\Http\Controllers\Controller;
+use App\Models\CashShift;
 use App\Services\CashMovementService;
 use App\Services\ShiftService;
 use Illuminate\Http\JsonResponse;
@@ -27,6 +28,9 @@ class CashMovementController extends Controller
     public function store(Request $request, CashMovementService $movements, ShiftService $shifts): JsonResponse
     {
         $data = $request->validate(CashMovementService::rules(), CashMovementService::messages());
+        if ($shift = CashShift::open()->first()) {
+            ShiftController::authorizeOrAudit('recordMovement', $shift); // kasir shift ini atau admin
+        }
         $movement = $movements->record($data['type'], $data['category'], (int) $data['amount'], $data['reason'], $request->user());
 
         return response()->json([

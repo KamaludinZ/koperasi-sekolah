@@ -15,7 +15,7 @@
         'pengguna' => ['bg-rose-100 text-rose-800', 'M12 15a3 3 0 100-6 3 3 0 000 6zM12 3l7 3v6c0 4.5-3 8-7 9-4-1-7-4.5-7-9V6z'],
         'laporan' => ['bg-stone-200 text-stone-700', 'M4 20V10m6 10V4m6 16v-7m4 7H2'],
     ];
-    $danger = ['auth.failed', 'auth.locked', 'auth.inactive', 'member.deleted', 'user.deactivated', 'savings.withdraw'];
+    $danger = ['auth.failed', 'auth.locked', 'auth.inactive', 'member.deleted', 'user.deactivated', 'savings.withdraw', 'shift.denied'];
 @endphp
 <div class="flex min-h-0 flex-1 flex-col overflow-y-auto">
     <header class="flex flex-wrap items-center justify-between gap-3 border-b border-stone-200 bg-white px-4 py-4 sm:px-6">

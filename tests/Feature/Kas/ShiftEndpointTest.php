@@ -46,7 +46,7 @@ class ShiftEndpointTest extends TestCase
     public function test_close_computes_expected_from_sales_and_movements(): void
     {
         $this->seed(ProductSeeder::class);
-        $shift = CashShift::factory()->create(['opening_cash' => 100000]);
+        $shift = CashShift::factory()->create(['user_id' => auth()->id(), 'opening_cash' => 100000]);
         app(CheckoutService::class)->checkout([$this->pid('ATK001') => 2], 'tunai', 10000); // Rp8.000 tunai
         app(CheckoutService::class)->checkout([$this->pid('MNM001') => 1], 'qris', null);   // non-tunai, tidak masuk laci
         CashMovement::factory()->for($shift, 'shift')->create(['amount' => 50000]);
@@ -73,7 +73,7 @@ class ShiftEndpointTest extends TestCase
 
     public function test_exact_count_needs_no_note_and_cannot_close_twice(): void
     {
-        $shift = CashShift::factory()->create(['opening_cash' => 50000]);
+        $shift = CashShift::factory()->create(['user_id' => auth()->id(), 'opening_cash' => 50000]);
 
         $this->postJson("/kas/shift/{$shift->id}/tutup", ['counted_cash' => 50000])->assertOk()->assertJsonPath('data.difference', 0);
         $this->postJson("/kas/shift/{$shift->id}/tutup", ['counted_cash' => 50000])

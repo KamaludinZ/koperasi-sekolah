@@ -7,6 +7,9 @@
             'code' => 'Kode', 'name' => 'Nama', 'category_id' => 'Kategori', 'price' => 'Harga jual', 'cost_price' => 'Harga modal',
             'min_stock' => 'Batas minimum', 'unit' => 'Satuan', 'is_active' => 'Aktif', 'member_code' => 'Kode anggota', 'type' => 'Jenis',
             'class' => 'Kelas', 'phone' => 'No. HP', 'email' => 'Email', 'role' => 'Peran',
+            'opening_cash' => 'Modal awal', 'expected_cash' => 'Kas seharusnya', 'counted_cash' => 'Uang dihitung',
+            'difference' => 'Selisih', 'note' => 'Catatan', 'reason' => 'Alasan', 'category' => 'Kategori',
+            'flagged' => 'Selisih besar', 'ability' => 'Aksi', 'shift_owner_id' => 'Pembuka shift (id)',
         ];
         $show = fn ($v) => is_bool($v) ? ($v ? 'Ya' : 'Tidak') : ($v === null || $v === '' ? '—' : (is_array($v) ? json_encode($v, JSON_UNESCAPED_UNICODE) : $v));
         $other = collect($p)->except(['changes', 'items']);
@@ -77,7 +80,7 @@
                         <h3 class="mb-2 font-semibold">Keterangan</h3>
                         <dl class="grid grid-cols-[9rem_1fr] gap-x-3 gap-y-1 text-xs">
                             @foreach ($other as $key => $value)
-                                <dt class="text-stone-500">{{ str_replace('_', ' ', $key) }}</dt>
+                                <dt class="text-stone-500">{{ $labels[$key] ?? str_replace('_', ' ', $key) }}</dt>
                                 <dd class="break-words">{{ $show($value) }}</dd>
                             @endforeach
                         </dl>

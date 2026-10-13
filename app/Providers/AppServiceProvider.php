@@ -4,8 +4,10 @@ namespace App\Providers;
 
 use App\Http\Middleware\EnsureMenuAccess;
 use App\Http\Middleware\EnsureRole;
+use App\Models\CashShift;
 use App\Models\Role;
 use App\Models\User;
+use App\Policies\CashShiftPolicy;
 use App\Services\NotificationService;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
@@ -37,6 +39,7 @@ class AppServiceProvider extends ServiceProvider
         // mengubahnya (profil, logo, struk, pajak) tetap khusus Admin yang aktif.
         // Buka/tutup shift & catat kas laci: petugas yang boleh memakai layar kasir (kasir, admin).
         Gate::define('kelola-shift', fn (User $user) => $user->canOpen('kasir'));
+        Gate::policy(CashShift::class, CashShiftPolicy::class);
 
         Gate::define('ubah-pengaturan', fn (User $user) => $user->hasRole(Role::ADMIN) && $user->canOpen('pengaturan'));
     }

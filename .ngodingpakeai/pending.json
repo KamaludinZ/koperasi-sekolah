@@ -1,6 +1,6 @@
 {
   "repo": "Koperasi Sekolah",
-  "generatedForCommit": "e7f420946e1af2743881d9ce2c332ccec2144641",
+  "generatedForCommit": "40fc02f52e40072f07f780a58b1fbd5553bf47c0",
   "files": [
     {
       "path": ".claude/skills/ngodingpakeai/SKILL.md",
@@ -124,7 +124,7 @@
     },
     {
       "path": "app/Http/Controllers/Kas/CashReportController.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 2934
     },
@@ -133,6 +133,12 @@
       "reason": "needs_summary",
       "language": "php",
       "size": 1747
+    },
+    {
+      "path": "app/Http/Controllers/Kas/ShiftHistoryController.php",
+      "reason": "new",
+      "language": "php",
+      "size": 2998
     },
     {
       "path": "app/Http/Controllers/Kasir/CheckoutController.php",
@@ -544,9 +550,9 @@
     },
     {
       "path": "app/Services/CashReportService.php",
-      "reason": "new",
+      "reason": "changed",
       "language": "php",
-      "size": 8328
+      "size": 13160
     },
     {
       "path": "app/Services/CheckoutService.php",
@@ -1548,7 +1554,7 @@
       "path": "routes/web.php",
       "reason": "changed",
       "language": "php",
-      "size": 13574
+      "size": 13877
     },
     {
       "path": "tests/Feature/Anggota/IndexTest.php",
@@ -1792,7 +1798,7 @@
     },
     {
       "path": "tests/Feature/Kas/CashReportEndpointTest.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 4568
     },
@@ -1819,6 +1825,12 @@
       "reason": "needs_summary",
       "language": "php",
       "size": 4974
+    },
+    {
+      "path": "tests/Feature/Kas/ShiftHistoryEndpointTest.php",
+      "reason": "new",
+      "language": "php",
+      "size": 3715
     },
     {
       "path": "tests/Feature/Kas/ShiftsTest.php",
