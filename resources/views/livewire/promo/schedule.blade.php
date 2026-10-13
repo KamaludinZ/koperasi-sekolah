@@ -31,7 +31,6 @@
     </header>
 
     <div class="space-y-5 px-4 py-5 sm:px-6" wire:loading.class="opacity-60" wire:target="move,resetWindow">
-        <p class="rounded-xl border border-dashed border-amber-300 bg-amber-50/60 px-4 py-2 text-xs text-amber-900">Tahap pengembangan: jadwal & angka dampak masih data tiruan.</p>
 
         {{-- Linimasa --}}
         <section class="rounded-xl border border-stone-200 bg-white" aria-labelledby="timeline-title">

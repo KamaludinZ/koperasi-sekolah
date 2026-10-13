@@ -24,6 +24,7 @@ use App\Http\Controllers\Laporan\SalesReportController;
 use App\Http\Controllers\Notifikasi\AnnouncementController;
 use App\Http\Controllers\Notifikasi\NotificationController;
 use App\Http\Controllers\Pengaturan\LogoController;
+use App\Http\Controllers\Promo\PromoController;
 use App\Http\Controllers\Pengaturan\SettingsController;
 use App\Http\Controllers\Pengguna\UserController;
 use App\Http\Controllers\Transaksi\TransactionDetailController;
@@ -134,6 +135,11 @@ Route::middleware('menu:kas')->group(function () {
 Route::middleware('menu:promo')->group(function () {
     Route::get('/promo', Promo\Index::class)->name('promo');
     Route::get('/promo/jadwal', Promo\Schedule::class)->name('promo.jadwal');
+    Route::middleware('throttle:120,1')->group(function () {
+        Route::get('/promo/data', [PromoController::class, 'index'])->name('promo.data');
+        Route::get('/promo/jadwal/data', [PromoController::class, 'schedule'])->name('promo.schedule.data');
+        Route::get('/promo/{promo}/dampak', [PromoController::class, 'impact'])->whereNumber('promo')->name('promo.impact');
+    });
 });
 
 Route::middleware('menu:barang')->group(function () {

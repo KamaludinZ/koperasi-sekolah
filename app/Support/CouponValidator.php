@@ -5,7 +5,7 @@ namespace App\Support;
 use Illuminate\Support\Carbon;
 
 /**
- * Memeriksa kode kupon/voucher terhadap daftar kupon (lihat MockData::coupons) dan subtotal
+ * Memeriksa kode kupon/voucher terhadap daftar kupon (lihat CouponService::toArray) dan subtotal
  * belanja, lalu memberi umpan balik yang jelas untuk kasir: tidak dikenal, belum berlaku,
  * kedaluwarsa, kuota habis, nonaktif, kurang minimal belanja, atau berhasil + besar potongan.
  */

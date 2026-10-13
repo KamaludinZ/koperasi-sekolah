@@ -14,7 +14,7 @@ class PromoMatcher
 {
     /**
      * @param  list<array{id: int, name: string, category: ?string, price: int, quantity: int, subtotal: int}>  $lines
-     * @param  list<array>  $promos  lihat MockData::promos()
+     * @param  list<array>  $promos  lihat PromoEngine::toArray()
      * @return array{applied: list<array{id: int, name: string, rule: string, items: list<string>, saving: int}>, hints: list<array{id: int, name: string, message: string}>, total: int}
      */
     public static function match(array $lines, array $promos, ?Carbon $now = null): array

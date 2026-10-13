@@ -3,7 +3,10 @@
 namespace Tests\Feature\Promo;
 
 use App\Livewire\Promo\Index;
-use App\Support\MockData;
+use App\Models\Coupon;
+use App\Services\PromoService;
+use Database\Seeders\ProductSeeder;
+use Database\Seeders\PromoSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Carbon;
 use Livewire\Livewire;
@@ -17,6 +20,8 @@ class IndexTest extends TestCase
     {
         parent::setUp();
         Carbon::setTestNow('2026-10-14 10:00:00');
+        $this->seed([ProductSeeder::class, PromoSeeder::class]);
+        Coupon::where('code', 'PRAMUKA25')->update(['used_count' => 50]); // kuota habis
     }
 
     protected function tearDown(): void
@@ -39,14 +44,14 @@ class IndexTest extends TestCase
 
     public function test_status_is_derived_from_dates_switch_and_quota(): void
     {
-        $promos = collect(MockData::promos())->pluck('status', 'name');
+        $promos = collect(app(PromoService::class)->all())->pluck('status', 'name');
         $this->assertSame('aktif', $promos['Beli 2 Gratis 1 Biskuit Kelapa']);
         $this->assertSame('terjadwal', $promos['Promo Seragam Tahun Ajaran Baru']);
         $this->assertSame('berakhir', $promos['Diskon Hari Guru']);
         $this->assertSame('nonaktif', $promos['Potongan Roti Coklat Sore']);
 
-        $coupons = collect(MockData::coupons())->pluck('status', 'code');
-        $this->assertSame(['aktif', 'aktif', 'habis', 'berakhir', 'terjadwal'], $coupons->only(['MPLS2026', 'GURUHEBAT', 'PRAMUKA25', 'HARIBATIK', 'OSIS100'])->values()->all());
+        $coupons = collect(app(PromoService::class)->coupons())->pluck('status', 'code');
+        $this->assertSame(['aktif', 'aktif', 'habis', 'berakhir', 'terjadwal'], array_map(fn ($c) => $coupons[$c], ['MPLS2026', 'GURUHEBAT', 'PRAMUKA25', 'HARIBATIK', 'OSIS100']));
     }
 
     public function test_filter_by_status_and_search(): void
@@ -64,7 +69,7 @@ class IndexTest extends TestCase
 
     public function test_rule_and_schedule_descriptions(): void
     {
-        $byName = collect(MockData::promos())->keyBy('name');
+        $byName = collect(app(PromoService::class)->all())->keyBy('name');
 
         $this->assertSame('Beli 2 gratis 1 · Biskuit Kelapa', Index::describe($byName['Beli 2 Gratis 1 Biskuit Kelapa']));
         $this->assertSame('Harga Rp3.500/pcs mulai 10 pcs · Buku Tulis 38 Lembar', Index::describe($byName['Grosir Buku Tulis (isi 10)']));
@@ -78,5 +83,27 @@ class IndexTest extends TestCase
         $this->get('/promo')->assertSee('Buat promo');
         $this->loginAs('kasir');
         $this->get('/promo')->assertOk()->assertDontSee('Buat promo');
+    }
+
+    public function test_usage_and_discount_come_from_transactions(): void
+    {
+        app(\App\Services\CheckoutService::class)->checkout([$this->pid('ATK002') => 2], 'qris', null, null, null, null, 'GURUHEBAT');
+
+        $promo = collect(app(PromoService::class)->all())->firstWhere('name', 'Diskon Alat Tulis Awal Semester');
+        $this->assertSame([1, 600], [$promo['usage_count'], $promo['discount_given']]);
+        $stats = Livewire::test(Index::class)->get('stats');
+        $this->assertSame([4, 1, 1], [$stats['active_promos'], $stats['promo_uses'], $stats['coupon_uses'] - 50]);
+    }
+
+    public function test_api_lists_and_filters(): void
+    {
+        $this->getJson('/promo/data')->assertOk()
+            ->assertJsonCount(7, 'data')
+            ->assertJsonPath('counts.aktif', 4)
+            ->assertJsonPath('manual_discount.max_percent', 10)
+            ->assertJsonCount(5, 'coupons');
+        $this->getJson('/promo/data?status=terjadwal')->assertJsonCount(1, 'data')->assertJsonPath('data.0.name', 'Promo Seragam Tahun Ajaran Baru');
+        $this->getJson('/promo/data?q=biskuit')->assertJsonCount(1, 'data');
+        $this->getJson('/promo/data?status=ngawur')->assertJsonValidationErrors('status');
     }
 }

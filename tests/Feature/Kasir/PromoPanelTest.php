@@ -6,7 +6,6 @@ use App\Livewire\Kasir\Cart;
 use App\Models\Transaction;
 use App\Services\CheckoutService;
 use App\Services\PromoEngine;
-use App\Support\MockData;
 use Database\Seeders\PromoSeeder;
 use App\Support\PromoMatcher;
 use Database\Seeders\ProductSeeder;
@@ -32,17 +31,26 @@ class PromoPanelTest extends TestCase
         parent::tearDown();
     }
 
+    /** Semua promo dari PromoSeeder (status dihitung), bentuk PromoMatcher. */
+    private function promos(): array
+    {
+        $this->seed(PromoSeeder::class);
+
+        return collect(app(\App\Services\PromoService::class)->all())->all();
+    }
+
     private function line(string $name, string $category, int $price, int $qty): array
     {
-        static $id = 0;
+        // Id barang sungguhan: promo cakupan "barang" dicocokkan lewat id.
+        $id = \App\Models\Product::where('name', $name)->value('id') ?? 0;
 
-        return ['id' => ++$id, 'name' => $name, 'category' => $category, 'price' => $price, 'quantity' => $qty, 'subtotal' => $price * $qty];
+        return ['id' => $id, 'name' => $name, 'category' => $category, 'price' => $price, 'quantity' => $qty, 'subtotal' => $price * $qty];
     }
 
     public function test_best_promo_per_line_without_stacking(): void
     {
         // Buku tulis 10 pcs: diskon alat tulis 10% (Rp4.000) vs grosir Rp3.500/pcs (Rp5.000) → grosir.
-        $r = PromoMatcher::match([$this->line('Buku Tulis 38 Lembar', 'Alat Tulis', 4000, 10), $this->line('Pensil 2B', 'Alat Tulis', 2500, 2)], MockData::promos());
+        $r = PromoMatcher::match([$this->line('Buku Tulis 38 Lembar', 'Alat Tulis', 4000, 10), $this->line('Pensil 2B', 'Alat Tulis', 2500, 2)], $this->promos());
 
         $byName = collect($r['applied'])->keyBy('name');
         $this->assertSame(5000, $byName['Grosir Buku Tulis (isi 10)']['saving']);
@@ -53,26 +61,26 @@ class PromoPanelTest extends TestCase
 
     public function test_buy_x_get_y_and_hints(): void
     {
-        $r = PromoMatcher::match([$this->line('Biskuit Kelapa', 'Makanan', 2000, 2)], MockData::promos());
+        $r = PromoMatcher::match([$this->line('Biskuit Kelapa', 'Makanan', 2000, 2)], $this->promos());
         $this->assertSame(0, $r['total']);
         $this->assertSame('Tambah 1 Biskuit Kelapa lagi — gratis 1.', $r['hints'][0]['message']);
 
-        $r = PromoMatcher::match([$this->line('Biskuit Kelapa', 'Makanan', 2000, 7)], MockData::promos());
+        $r = PromoMatcher::match([$this->line('Biskuit Kelapa', 'Makanan', 2000, 7)], $this->promos());
         $this->assertSame(4000, $r['total']); // 2 kelompok isi 3 → gratis 2
 
-        $r = PromoMatcher::match([$this->line('Buku Tulis 38 Lembar', 'Alat Tulis', 4000, 6)], MockData::promos());
+        $r = PromoMatcher::match([$this->line('Buku Tulis 38 Lembar', 'Alat Tulis', 4000, 6)], $this->promos());
         $this->assertContains('Tambah 4 Buku Tulis 38 Lembar lagi untuk harga grosir Rp3.500/pcs.', array_column($r['hints'], 'message'));
     }
 
     public function test_time_window_day_and_inactive_promos(): void
     {
         $milk = [$this->line('Teh Kotak', 'Minuman', 4500, 2)];
-        $this->assertSame(0, PromoMatcher::match($milk, MockData::promos())['total']);
-        $this->assertSame(1000, PromoMatcher::match($milk, MockData::promos(), Carbon::parse('2026-10-14 13:30'))['total']);
-        $this->assertSame(0, PromoMatcher::match($milk, MockData::promos(), Carbon::parse('2026-10-17 13:30'))['total']); // Sabtu
+        $this->assertSame(0, PromoMatcher::match($milk, $this->promos())['total']);
+        $this->assertSame(1000, PromoMatcher::match($milk, $this->promos(), Carbon::parse('2026-10-14 13:30'))['total']);
+        $this->assertSame(0, PromoMatcher::match($milk, $this->promos(), Carbon::parse('2026-10-17 13:30'))['total']); // Sabtu
 
         // Roti coklat: promo nonaktif tidak berlaku.
-        $this->assertSame(0, PromoMatcher::match([$this->line('Roti Coklat', 'Makanan', 5000, 1)], MockData::promos(), Carbon::parse('2026-10-14 13:00'))['total']);
+        $this->assertSame(0, PromoMatcher::match([$this->line('Roti Coklat', 'Makanan', 5000, 1)], $this->promos(), Carbon::parse('2026-10-14 13:00'))['total']);
     }
 
     public function test_cart_applies_running_promo_from_database(): void

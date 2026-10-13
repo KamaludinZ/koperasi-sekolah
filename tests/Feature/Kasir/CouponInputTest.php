@@ -8,7 +8,6 @@ use App\Models\Member;
 use App\Models\Transaction;
 use App\Services\CheckoutService;
 use App\Support\CouponValidator;
-use App\Support\MockData;
 use Database\Seeders\MemberSeeder;
 use Database\Seeders\ProductSeeder;
 use Database\Seeders\PromoSeeder;
@@ -37,7 +36,9 @@ class CouponInputTest extends TestCase
 
     public function test_validator_feedback_for_each_state(): void
     {
-        $coupons = MockData::coupons();
+        $this->seed(PromoSeeder::class);
+        Coupon::where('code', 'PRAMUKA25')->update(['used_count' => 50]);
+        $coupons = app(\App\Services\PromoService::class)->coupons();
         $check = fn (string $code, int $subtotal = 50000) => CouponValidator::check($code, $subtotal, $coupons);
 
         $this->assertSame('empty', $check('  ')['reason']);

@@ -3,7 +3,12 @@
 namespace Tests\Feature\Promo;
 
 use App\Livewire\Promo\Schedule;
-use App\Support\MockData;
+use App\Models\Promo;
+use App\Models\TransactionItem;
+use App\Services\PromoService;
+use Database\Seeders\ProductSeeder;
+use Database\Seeders\PromoSeeder;
+use Database\Seeders\TransactionSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Carbon;
 use Livewire\Livewire;
@@ -17,6 +22,7 @@ class ScheduleTest extends TestCase
     {
         parent::setUp();
         Carbon::setTestNow('2026-10-14 10:00:00');
+        $this->seed([ProductSeeder::class, TransactionSeeder::class, PromoSeeder::class]);
     }
 
     protected function tearDown(): void
@@ -62,7 +68,7 @@ class ScheduleTest extends TestCase
         $c->call('resetWindow')->assertSet('offset', 0);
     }
 
-    public function test_impact_excludes_scheduled_and_unused_promos(): void
+    public function test_impact_excludes_scheduled_promos_and_is_consistent(): void
     {
         $impacts = Livewire::test(Schedule::class)->get('impacts');
         $names = array_column($impacts, 'name');
@@ -70,15 +76,35 @@ class ScheduleTest extends TestCase
         $this->assertNotContains('Promo Seragam Tahun Ajaran Baru', $names);
         $this->assertContains('Diskon Hari Guru', $names);
         foreach ($impacts as $i) {
-            $this->assertSame($i['during_daily'] * $i['days_running'], $i['revenue']);
-            $this->assertSame(($i['during_daily'] - $i['before_daily']) * $i['days_running'] - $i['discount'], $i['net_effect']);
+            $this->assertSame($i['revenue'] - $i['before_daily'] * $i['days_running'] - $i['discount'], $i['net_effect']);
         }
         $this->assertSame(collect($impacts)->sortByDesc('net_effect')->values()->all(), $impacts);
     }
 
-    public function test_promo_impact_is_deterministic(): void
+    public function test_impact_uses_sales_of_covered_items(): void
     {
-        $p = collect(MockData::promos())->firstWhere('id', 1);
-        $this->assertSame(MockData::promoImpact($p), MockData::promoImpact($p));
+        $promo = collect(app(PromoService::class)->all())->firstWhere('name', 'Grosir Buku Tulis (isi 10)');
+        $impact = app(PromoService::class)->impact($promo);
+        $buku = $this->pid('ATK001');
+
+        $during = (int) TransactionItem::where('product_id', $buku)
+            ->whereHas('transaction', fn ($q) => $q->whereBetween('created_at', [Carbon::parse($promo['starts_at'])->startOfDay(), today()->endOfDay()]))
+            ->sum('subtotal');
+        $this->assertSame($during, $impact['revenue']);
+        $this->assertSame(61, $impact['days_running']);
+    }
+
+    public function test_api_timeline_and_impact(): void
+    {
+        $this->getJson('/promo/jadwal/data')->assertOk()
+            ->assertJsonPath('meta.from', '2026-09-14')
+            ->assertJsonPath('meta.to', '2026-12-06')
+            ->assertJsonStructure(['data' => [['kind', 'name', 'left', 'width', 'clashes']], 'impacts']);
+        $this->getJson('/promo/jadwal/data?dari=2026-10-01&sampai=2025-01-01')->assertJsonValidationErrors('sampai');
+
+        $id = Promo::firstWhere('name', 'Promo Seragam Tahun Ajaran Baru')->id;
+        $this->getJson("/promo/{$id}/dampak")->assertOk()->assertJsonPath('data.impact', null);
+        $id = Promo::firstWhere('name', 'Diskon Hari Guru')->id;
+        $this->getJson("/promo/{$id}/dampak")->assertOk()->assertJsonPath('data.impact.days_running', 3);
     }
 }

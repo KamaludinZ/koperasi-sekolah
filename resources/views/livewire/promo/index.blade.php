@@ -36,7 +36,6 @@
     </header>
 
     <div class="space-y-5 px-4 py-5 sm:px-6">
-        <p class="rounded-xl border border-dashed border-amber-300 bg-amber-50/60 px-4 py-2 text-xs text-amber-900">Tahap pengembangan: promo & kupon di halaman ini masih data tiruan dan belum memotong harga di kasir.</p>
 
         {{-- Angka utama --}}
         <section class="grid grid-cols-2 gap-3 lg:grid-cols-4" aria-label="Ringkasan promo">

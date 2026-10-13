@@ -2,7 +2,7 @@
 
 namespace App\Livewire\Promo;
 
-use App\Support\MockData;
+use App\Services\PromoService;
 use Illuminate\Support\Carbon;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
@@ -14,7 +14,7 @@ use Livewire\Component;
  * Diskon & Promo: ringkasan promo otomatis (per barang/kategori/semua, beli X gratis Y,
  * harga grosir, jam tertentu), kupon & voucher dengan kuota, serta batas diskon manual kasir.
  * Kasir melihat promo yang berlaku; admin & pengurus mengelolanya.
- * Tahap frontend: data tiruan MockData::promos/coupons/manualDiscountRules.
+ * Data dari database lewat PromoService (status, pemakaian & potongan sungguhan).
  */
 #[Layout('components.layouts.app')]
 #[Title('Diskon & Promo')]
@@ -57,12 +57,19 @@ class Index extends Component
         return (bool) auth()->user()?->hasRole('admin', 'pengurus');
     }
 
+    /** Semua promo dari database (PromoService), sekali per permintaan. */
+    #[Computed]
+    public function allPromos(): array
+    {
+        return app(PromoService::class)->all();
+    }
+
     #[Computed]
     public function promos(): array
     {
         $q = mb_strtolower(trim($this->search));
 
-        return array_values(array_filter(MockData::promos(), fn (array $p) => ($this->status === 'semua' || $p['status'] === $this->status)
+        return array_values(array_filter($this->allPromos, fn (array $p) => ($this->status === 'semua' || $p['status'] === $this->status)
             && ($q === '' || str_contains(mb_strtolower($p['name'].' '.implode(' ', $p['targets'])), $q))));
     }
 
@@ -70,7 +77,7 @@ class Index extends Component
     #[Computed]
     public function counts(): array
     {
-        $counts = collect(MockData::promos())->countBy('status');
+        $counts = collect($this->allPromos)->countBy('status');
 
         return collect(self::STATUSES)->keys()->mapWithKeys(fn ($s) => [$s => $s === 'semua' ? $counts->sum() : ($counts[$s] ?? 0)])->all();
     }
@@ -78,32 +85,19 @@ class Index extends Component
     #[Computed]
     public function coupons(): array
     {
-        $order = ['aktif' => 0, 'terjadwal' => 1, 'habis' => 2, 'berakhir' => 3, 'nonaktif' => 4];
-
-        return collect(MockData::coupons())->sortBy(fn ($c) => $order[$c['status']] ?? 9)->values()->all();
+        return app(PromoService::class)->coupons();
     }
 
     #[Computed]
     public function stats(): array
     {
-        $promos = collect(MockData::promos());
-        $coupons = collect(MockData::coupons());
-        $manual = MockData::manualDiscountRules();
-
-        return [
-            'active_promos' => $promos->where('status', 'aktif')->count(),
-            'scheduled_promos' => $promos->where('status', 'terjadwal')->count(),
-            'active_coupons' => $coupons->where('status', 'aktif')->count(),
-            'coupon_uses' => $coupons->sum('used'),
-            'promo_uses' => $promos->sum('usage_count'),
-            'discount_given' => $promos->sum('discount_given') + $manual['given_7_days'],
-        ];
+        return app(PromoService::class)->stats($this->allPromos, $this->coupons);
     }
 
     #[Computed]
     public function manual(): array
     {
-        return MockData::manualDiscountRules();
+        return app(PromoService::class)->manualRules();
     }
 
     /** Ringkasan aturan promo dalam satu kalimat, mis. "Potongan 10% · kategori Alat Tulis". */
