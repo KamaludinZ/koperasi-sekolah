@@ -49,6 +49,25 @@ class SavingsPaymentService
     }
 
     /**
+     * Potong saldo untuk pelunasan bon (mutasi `tarik`, asal = credit_payment). Dipanggil di dalam
+     * transaksi DB pelunasan.
+     *
+     * @throws ValidationException saldo kurang (kunci `amount`)
+     */
+    public function debitForCredit(int $memberId, int $amount, int $paymentId, string $note, ?int $userId = null): SavingsTransaction
+    {
+        return DB::transaction(function () use ($memberId, $amount, $paymentId, $note, $userId) {
+            $member = Member::withTrashed()->whereKey($memberId)->lockForUpdate()->firstOrFail();
+            $before = (int) round((float) $member->balance);
+            if ($amount > $before) {
+                throw ValidationException::withMessages(['amount' => 'Saldo tabungan hanya Rp'.number_format($before, 0, ',', '.').'.']);
+            }
+
+            return $this->post($member, SavingsTransaction::TYPE_WITHDRAWAL, $amount, $note, 'credit_payment', $paymentId, $userId);
+        });
+    }
+
+    /**
      * Kembalikan saldo ke anggota (retur/pembatalan). Anggota nonaktif tetap menerima pengembalian.
      *
      * @param  string  $source  return | transaction

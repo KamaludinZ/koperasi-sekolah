@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Akun\PasswordController;
 use App\Http\Controllers\Akun\SessionController;
+use App\Http\Controllers\Anggota\CreditController;
 use App\Http\Controllers\Anggota\MemberController;
 use App\Http\Controllers\Anggota\SavingsController;
 use App\Http\Controllers\Audit\AuditLogController;
@@ -317,6 +318,14 @@ Route::middleware('menu:anggota')->group(function () {
         ->whereNumber('member')
         ->middleware('throttle:60,1')
         ->name('anggota.savings.store');
+    Route::get('/anggota/{member}/bon', [CreditController::class, 'index'])
+        ->whereNumber('member')
+        ->middleware('throttle:120,1')
+        ->name('anggota.credits');
+    Route::post('/anggota/{member}/bon/pelunasan', [CreditController::class, 'repay'])
+        ->whereNumber('member')
+        ->middleware('throttle:60,1')
+        ->name('anggota.credits.repay');
     Route::get('/anggota/{member}', Anggota\Show::class)
         ->whereNumber('member')
         ->name('anggota.show');

@@ -2,9 +2,13 @@
 
 namespace App\Services;
 
+use App\Models\CashMovement;
+use App\Models\CashShift;
 use App\Models\Member;
 use App\Models\MemberCredit;
+use App\Models\MemberCreditPayment;
 use App\Models\Transaction;
+use App\Models\User;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -17,6 +21,8 @@ use Illuminate\Validation\ValidationException;
  * - Bon baru ditolak bila anggota nonaktif, masih punya bon lewat jatuh tempo, atau melebihi sisa batas.
  * - Jatuh tempo: besok s.d. config koperasi.credit.max_days hari.
  * Nomor bon BON-YYYYMMDD-NNNN berurutan per hari.
+ * Pelunasan (repay): tunai atau potong tabungan, boleh sebagian, dibagi ke bon jatuh tempo terlama
+ * dulu; pelunasan tunai masuk laci shift yang sedang buka (kas masuk). Nomor PLN-YYYYMMDD-NNNN.
  */
 class MemberCreditService
 {
@@ -133,6 +139,107 @@ class MemberCreditService
         });
     }
 
+    /**
+     * Lunasi bon anggota (sebagian atau semua).
+     *
+     * @param  string  $method  tunai | tabungan
+     *
+     * @throws ValidationException kunci `amount` / `method`
+     */
+    public function repay(int $memberId, int $amount, string $method, ?string $note = null, ?User $user = null): MemberCreditPayment
+    {
+        if (! array_key_exists($method, MemberCreditPayment::METHODS)) {
+            throw ValidationException::withMessages(['method' => 'Cara pelunasan tidak dikenal.']);
+        }
+
+        return DB::transaction(function () use ($memberId, $amount, $method, $note, $user) {
+            $member = Member::withTrashed()->whereKey($memberId)->lockForUpdate()->firstOrFail();
+            $open = $member->credits()->open()->orderBy('due_at')->orderBy('id')->lockForUpdate()->get();
+            $outstanding = (int) $open->sum(fn (MemberCredit $c) => $c->remaining());
+            if ($outstanding === 0) {
+                throw ValidationException::withMessages(['amount' => 'Tidak ada bon yang belum lunas.']);
+            }
+            $min = min(500, $outstanding);
+            if ($amount < $min || $amount > $outstanding) {
+                throw ValidationException::withMessages(['amount' => $amount < $min
+                    ? 'Pelunasan minimal Rp'.number_format($min, 0, ',', '.').'.'
+                    : 'Melebihi sisa bon Rp'.number_format($outstanding, 0, ',', '.').'.']);
+            }
+
+            $payment = $this->createPaymentWithNumber([
+                'member_id' => $member->id,
+                'amount' => $amount,
+                'method' => $method,
+                'note' => filled($note) ? mb_substr(trim($note), 0, 150) : null,
+                'paid_by' => $user?->id,
+                'paid_at' => now(),
+            ]);
+
+            $left = $amount;
+            foreach ($open as $credit) {
+                if ($left <= 0) {
+                    break;
+                }
+                $part = min($left, $credit->remaining());
+                $payment->allocations()->create(['member_credit_id' => $credit->id, 'amount' => $part]);
+                $credit->syncPaid();
+                $left -= $part;
+            }
+
+            if ($method === 'tabungan') {
+                $entry = app(SavingsPaymentService::class)->debitForCredit($member->id, $amount, $payment->id, "Pelunasan bon {$payment->number}", $user?->id);
+                $payment->forceFill(['savings_transaction_id' => $entry->id])->save();
+            } elseif ($shift = CashShift::open()->lockForUpdate()->first()) {
+                // Uang pelunasan tunai diterima di kasir → masuk laci shift yang sedang buka.
+                $shift->movements()->create([
+                    'type' => CashMovement::TYPE_IN, 'category' => 'lainnya', 'amount' => $amount,
+                    'reason' => "Pelunasan bon {$payment->number} · {$member->name}", 'user_id' => $user?->id,
+                ]);
+            }
+
+            $settled = $open->filter(fn (MemberCredit $c) => $c->status === 'lunas')->count();
+            AuditLog::record('credit.payment', 'tabungan',
+                "Pelunasan bon {$member->name} {$payment->number}: Rp".number_format($amount, 0, ',', '.').' ('.mb_strtolower(MemberCreditPayment::METHODS[$method]).')'
+                    .($settled ? ", {$settled} bon lunas" : ''),
+                ['type' => 'member', 'id' => $member->id, 'label' => "{$member->member_code} · {$member->name}"],
+                ['payment_id' => $payment->id, 'method' => $method, 'allocations' => $payment->allocations()->pluck('amount', 'member_credit_id')->all(),
+                    'outstanding_after' => $outstanding - $amount],
+                $amount);
+
+            return $payment->load('allocations.credit');
+        });
+    }
+
+    /** Bon belum lunas anggota, jatuh tempo terlama dulu. */
+    public function openBills(Member $member): array
+    {
+        return $member->credits()->open()->with('transaction:id,invoice_number')->orderBy('due_at')->orderBy('id')->get()
+            ->map(fn (MemberCredit $c) => self::toArray($c))->all();
+    }
+
+    /** Pelunasan terbaru anggota. */
+    public function payments(Member $member, int $limit = 10): array
+    {
+        return $member->creditPayments()->with(['payer:id,name', 'allocations.credit:id,number'])->latest('paid_at')->latest('id')->limit($limit)->get()
+            ->map(fn (MemberCreditPayment $p) => self::paymentToArray($p))->all();
+    }
+
+    /** @return array<string, mixed> */
+    public static function paymentToArray(MemberCreditPayment $p): array
+    {
+        return [
+            'id' => $p->id,
+            'number' => $p->number,
+            'amount' => $p->amount,
+            'method' => $p->method,
+            'method_label' => MemberCreditPayment::METHODS[$p->method] ?? $p->method,
+            'note' => $p->note,
+            'paid_by' => $p->payer?->name,
+            'paid_at' => $p->paid_at->toDateTimeString(),
+            'allocations' => $p->allocations->map(fn ($a) => ['credit_id' => $a->member_credit_id, 'number' => $a->credit?->number, 'amount' => $a->amount])->all(),
+        ];
+    }
+
     /** @return array<string, mixed> */
     public static function toArray(MemberCredit $c): array
     {
@@ -152,6 +259,22 @@ class MemberCreditService
             'note' => $c->note,
             'created_at' => $c->created_at?->toDateTimeString(),
         ];
+    }
+
+    private function createPaymentWithNumber(array $attributes): MemberCreditPayment
+    {
+        $prefix = 'PLN-'.now()->format('Ymd').'-';
+        for ($attempt = 0; $attempt < 5; $attempt++) {
+            $last = MemberCreditPayment::where('number', 'like', $prefix.'%')->max('number');
+            $next = ($last ? (int) substr($last, strlen($prefix)) : 0) + 1 + $attempt;
+            try {
+                return DB::transaction(fn () => MemberCreditPayment::create([...$attributes, 'number' => $prefix.str_pad((string) $next, 4, '0', STR_PAD_LEFT)]));
+            } catch (UniqueConstraintViolationException) {
+                // nomor dipakai pelunasan lain — ulangi
+            }
+        }
+
+        throw new \RuntimeException('Gagal membuat nomor pelunasan unik.');
     }
 
     private function createWithNumber(array $attributes): MemberCredit

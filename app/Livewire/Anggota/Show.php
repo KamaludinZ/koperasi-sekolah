@@ -6,7 +6,8 @@ use App\Models\Member;
 use App\Models\SavingsTransaction;
 use App\Services\MemberService;
 use App\Services\SavingsService;
-use App\Support\MockData;
+use App\Services\MemberCreditService;
+use Illuminate\Validation\ValidationException;
 use Illuminate\Support\Carbon;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
@@ -15,8 +16,8 @@ use Livewire\Component;
 
 /**
  * Profil anggota: identitas, saldo tabungan, ringkasan & riwayat setor/tarik,
- * dialog setor/tarik, serta bon (piutang) anggota dengan form pelunasan. Data tabungan dari
- * MemberService & SavingsService; bon tahap ini dari MockData::memberBills() (simulasi di layar).
+ * dialog setor/tarik, serta bon (piutang) anggota dengan form pelunasan. Data dari MemberService,
+ * SavingsService, dan MemberCreditService (pelunasan tunai/potong tabungan, jatuh tempo terlama dulu).
  */
 #[Layout('components.layouts.app')]
 class Show extends Component
@@ -26,7 +27,7 @@ class Show extends Component
     public function mount(Member $member): void
     {
         $this->profile = MemberService::toArray($member);
-        $this->bills = MockData::memberBills($member->id, $member->type);
+        $this->bills = app(MemberCreditService::class)->openBills($member);
     }
 
     public const REPAY_METHODS = ['tunai' => 'Tunai', 'tabungan' => 'Potong saldo tabungan'];
@@ -47,15 +48,7 @@ class Show extends Component
     #[Computed]
     public function credit(): array
     {
-        $limit = MockData::CREDIT_LIMITS[$this->profile['type']] ?? MockData::CREDIT_LIMITS['siswa'];
-        $outstanding = array_sum(array_column($this->bills, 'remaining'));
-
-        return [
-            'limit' => $limit,
-            'outstanding' => $outstanding,
-            'available' => max(0, $limit - $outstanding),
-            'overdue' => collect($this->bills)->contains('overdue', true),
-        ];
+        return app(MemberCreditService::class)->summary($this->member());
     }
 
     /**
@@ -115,20 +108,27 @@ class Show extends Component
             'repayNote.max' => 'Catatan maksimal 150 karakter.',
         ]);
 
-        // Tahap tampilan: pelunasan disimulasikan di layar; backend pelunasan bon menyusul.
-        $alloc = self::allocate($this->bills, $this->repayAmount);
-        $this->bills = array_values(array_filter(array_map(function ($b) use ($alloc) {
-            $b['remaining'] -= $alloc[$b['id']] ?? 0;
+        try {
+            $payment = app(MemberCreditService::class)->repay($this->profile['id'], (int) $this->repayAmount, $this->repayMethod, trim($this->repayNote) ?: null, auth()->user());
+        } catch (ValidationException $e) {
+            foreach ($e->errors() as $field => $messages) {
+                $this->addError($field === 'method' ? 'repayMethod' : 'repayAmount', $messages[0]);
+            }
 
-            return $b;
-        }, $this->bills), fn ($b) => $b['remaining'] > 0));
+            return;
+        }
 
+        $member = $this->member();
+        $this->bills = app(MemberCreditService::class)->openBills($member);
+        $this->profile = MemberService::toArray($member);
         $this->lastRepayment = [
-            'amount' => $this->repayAmount,
-            'method' => $this->repayMethod,
-            'settled' => count(array_filter($alloc)) - count(array_intersect(array_keys($alloc), array_column($this->bills, 'id'))),
+            'number' => $payment->number,
+            'amount' => $payment->amount,
+            'method' => $payment->method,
+            'settled' => $payment->allocations->filter(fn ($a) => $a->credit->status === 'lunas')->count(),
             'remaining' => array_sum(array_column($this->bills, 'remaining')),
         ];
+        unset($this->stats, $this->history);
         $this->repaying = false;
         unset($this->credit);
     }
