@@ -39,7 +39,11 @@
     <div class="space-y-0.5">
         <div class="flex justify-between"><span>Subtotal</span><span>{{ $rp($tx['subtotal']) }}</span></div>
         @if (($tx['discount'] ?? 0) > 0)
-            <div class="flex justify-between gap-2"><span class="min-w-0">Diskon{{ ($tx['discount_reason'] ?? null) ? ' ('.$tx['discount_reason'].')' : '' }}</span><span class="shrink-0">-{{ $rp($tx['discount']) }}</span></div>
+            @forelse ($tx['discounts'] ?? [] as $d)
+                <div class="flex justify-between gap-2"><span class="min-w-0">{{ $d['label'] }}{{ $d['source'] === 'manual' && $d['reason'] ? ' ('.$d['reason'].')' : '' }}</span><span class="shrink-0">-{{ $rp($d['amount']) }}</span></div>
+            @empty
+                <div class="flex justify-between gap-2"><span class="min-w-0">Diskon{{ ($tx['discount_reason'] ?? null) ? ' ('.$tx['discount_reason'].')' : '' }}</span><span class="shrink-0">-{{ $rp($tx['discount']) }}</span></div>
+            @endforelse
         @endif
         @php $taxName = ($tx['tax_label'] ?? null ?: 'Pajak').(($tx['tax_rate'] ?? 0) > 0 ? ' '.str_replace('.', ',', (string) ($tx['tax_rate'] + 0)).'%' : ''); @endphp
         @if ($tx['tax'] > 0)

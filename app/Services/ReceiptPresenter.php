@@ -40,6 +40,12 @@ class ReceiptPresenter
             'rounding' => (int) $transaction->rounding,
             'discount' => (int) $transaction->discount,
             'discount_reason' => $transaction->discount > 0 ? self::discountReason($transaction) : null,
+            // Rincian potongan (promo / kupon / manual) untuk struk & detail transaksi.
+            'discounts' => $transaction->discount > 0
+                ? $transaction->discounts()->orderBy('id')->get()->map(fn ($d) => [
+                    'source' => $d->source, 'label' => $d->label, 'amount' => (int) round((float) $d->amount), 'reason' => $d->reason,
+                ])->all()
+                : [],
             'total' => (int) $transaction->total,
             'paid' => (int) $transaction->paid,
             'change' => (int) $transaction->change,

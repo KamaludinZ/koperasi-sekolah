@@ -139,6 +139,11 @@ class CheckoutService
                 ]);
             }
 
+            // Jaga konsistensi: rincian potongan harus berjumlah sama dengan kolom discount.
+            if ((int) round((float) $transaction->discounts()->sum('amount')) !== $discount) {
+                throw new \LogicException("Rincian diskon transaksi {$transaction->invoice_number} tidak sama dengan total diskon.");
+            }
+
             foreach ($lines as $line) {
                 /** @var Product $product */
                 $product = $line['product'];

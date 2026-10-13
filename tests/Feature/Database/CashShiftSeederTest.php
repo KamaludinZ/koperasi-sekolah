@@ -62,4 +62,21 @@ class CashShiftSeederTest extends TestCase
         $this->seed(CashShiftSeeder::class);
         $this->assertSame(24, CashShift::count());
     }
+
+    public function test_drawer_never_negative_across_random_sales(): void
+    {
+        // Penjualan contoh memakai acak yang tidak bisa diulang; ulangi beberapa kali.
+        foreach (range(1, 5) as $round) {
+            \App\Models\CashMovement::query()->delete();
+            Transaction::query()->update(['cash_shift_id' => null]);
+            CashShift::query()->delete();
+            Transaction::query()->delete();
+            $this->seed([TransactionSeeder::class, CashShiftSeeder::class]);
+
+            foreach (CashShift::where('status', 'closed')->get() as $shift) {
+                $this->assertGreaterThanOrEqual(0, (int) $shift->counted_cash, "Putaran {$round}, shift #{$shift->id}");
+                $this->assertGreaterThanOrEqual(0, (int) $shift->expected_cash);
+            }
+        }
+    }
 }

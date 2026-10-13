@@ -53,7 +53,11 @@
     <table>
         <tr><td>Subtotal</td><td class="r">Rp{{ $n($tx['subtotal']) }}</td></tr>
         @if ($tx['discount'] > 0)
-            <tr><td>Diskon{{ ($tx['discount_reason'] ?? null) ? ' ('.$tx['discount_reason'].')' : '' }}</td><td class="r">-Rp{{ $n($tx['discount']) }}</td></tr>
+            @forelse ($tx['discounts'] ?? [] as $d)
+                <tr><td>{{ $d['label'] }}{{ $d['source'] === 'manual' && $d['reason'] ? ' ('.$d['reason'].')' : '' }}</td><td class="r">-Rp{{ $n($d['amount']) }}</td></tr>
+            @empty
+                <tr><td>Diskon{{ ($tx['discount_reason'] ?? null) ? ' ('.$tx['discount_reason'].')' : '' }}</td><td class="r">-Rp{{ $n($tx['discount']) }}</td></tr>
+            @endforelse
         @endif
         @php $taxName = ($tx['tax_label'] ?? null ?: 'Pajak').(($tx['tax_rate'] ?? 0) > 0 ? ' '.str_replace('.', ',', (string) ($tx['tax_rate'] + 0)).'%' : ''); @endphp
         @if ($tx['tax'] > 0)

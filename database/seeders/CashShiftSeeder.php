@@ -32,6 +32,9 @@ class CashShiftSeeder extends Seeder
 
     private const DIFFERENCES = [0, 0, 0, 0, -500, -1000, 1000, -2000];
 
+    /** Uang kembalian yang selalu disisakan di laci saat penarikan contoh. */
+    private const KEEP_CHANGE = 50000;
+
     public function run(int $days = 14): void
     {
         if (CashShift::exists()) {
@@ -74,8 +77,8 @@ class CashShiftSeeder extends Seeder
                         [$type, $category, $reason, [$min, $max], $unit] = self::MOVES[mt_rand(0, count(self::MOVES) - 1)];
                         $at = $opened->copy()->addMinutes(mt_rand(20, 200));
                         $amount = mt_rand($min, $max) * $unit;
-                        if ($at->isFuture() || (! $stillOpen && $at->gt($closeAt)) || ($type === 'out' && $amount > $shift->expectedCash())) {
-                            continue; // penarikan tidak boleh melebihi uang di laci
+                        if ($at->isFuture() || (! $stillOpen && $at->gt($closeAt)) || ($type === 'out' && $amount > $shift->expectedCash() - self::KEEP_CHANGE)) {
+                            continue; // penarikan menyisakan uang kembalian di laci
                         }
                         CashMovement::forceCreate([
                             'cash_shift_id' => $shift->id, 'type' => $type, 'category' => $category,
@@ -89,7 +92,8 @@ class CashShiftSeeder extends Seeder
                     }
 
                     $expected = $shift->expectedCash();
-                    $difference = self::DIFFERENCES[mt_rand(0, count(self::DIFFERENCES) - 1)];
+                    // Uang dihitung tidak pernah negatif (penjualan contoh acak bisa membuat laci tipis).
+                    $difference = max(-$expected, self::DIFFERENCES[mt_rand(0, count(self::DIFFERENCES) - 1)]);
                     $shift->forceFill([
                         'status' => CashShift::STATUS_CLOSED, 'closed_at' => $closeAt, 'closed_by' => $cashier,
                         'expected_cash' => $expected, 'counted_cash' => $expected + $difference,

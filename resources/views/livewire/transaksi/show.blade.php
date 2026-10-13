@@ -84,10 +84,20 @@
                     <tfoot class="border-t border-stone-200 text-sm">
                         <tr><td colspan="3" class="px-4 pt-3 text-right text-stone-600">Subtotal</td><td class="px-4 pt-3 text-right tabular-nums">{{ $rp($tx['subtotal']) }}</td></tr>
                         @if ($tx['discount'] > 0)
-                            <tr>
-                                <td colspan="3" class="px-4 pt-1 text-right text-emerald-800">Diskon @if ($tx['discount_reason'])<span class="text-stone-500">· {{ $tx['discount_reason'] }}</span>@endif</td>
-                                <td class="px-4 pt-1 text-right text-emerald-800 tabular-nums">−{{ $rp($tx['discount']) }}</td>
-                            </tr>
+                            @forelse ($tx['discounts'] as $d)
+                                <tr>
+                                    <td colspan="3" class="px-4 pt-1 text-right text-emerald-800">
+                                        <span class="mr-1 rounded bg-emerald-50 px-1.5 py-0.5 text-[11px] font-medium text-emerald-700">{{ \App\Models\TransactionDiscount::SOURCES[$d['source']] }}</span>
+                                        {{ $d['label'] }}@if ($d['reason'])<span class="text-stone-500"> · {{ $d['reason'] }}</span>@endif
+                                    </td>
+                                    <td class="px-4 pt-1 text-right text-emerald-800 tabular-nums">−{{ $rp($d['amount']) }}</td>
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="3" class="px-4 pt-1 text-right text-emerald-800">Diskon @if ($tx['discount_reason'])<span class="text-stone-500">· {{ $tx['discount_reason'] }}</span>@endif</td>
+                                    <td class="px-4 pt-1 text-right text-emerald-800 tabular-nums">−{{ $rp($tx['discount']) }}</td>
+                                </tr>
+                            @endforelse
                         @endif
                         @php $taxName = ($tx['tax_label'] ?? null ?: 'Pajak').(($tx['tax_rate'] ?? 0) > 0 ? ' '.str_replace('.', ',', (string) ($tx['tax_rate'] + 0)).'%' : ''); @endphp
                         <tr><td colspan="3" class="px-4 pt-1 text-right text-stone-600">{{ $taxName }}</td><td class="px-4 pt-1 text-right tabular-nums">{{ $rp($tx['tax']) }}</td></tr>
