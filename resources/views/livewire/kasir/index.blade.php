@@ -16,6 +16,10 @@
         </div>
     </header>
 
+    @if (\Illuminate\Support\Facades\Route::has('transaksi.retur') && auth()->user()->canOpen('transaksi'))
+        <livewire:transaksi.return-status-notice compact />
+    @endif
+
     <div class="grid min-h-0 flex-1 grid-cols-1 grid-rows-[minmax(0,1fr)] md:grid-cols-[1fr_320px] xl:grid-cols-[1fr_380px]">
         {{-- Area barang --}}
         <livewire:kasir.product-picker />

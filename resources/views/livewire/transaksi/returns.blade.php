@@ -39,6 +39,8 @@
                 </div>
             </div>
 
+            <livewire:transaksi.return-status-notice />
+
             @if ($this->canApprove && $s['pending'])
                 <div class="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900" role="status">
                     <span><strong>{{ $s['pending'] }} pengajuan</strong> menunggu persetujuan Anda.</span>
@@ -65,6 +67,9 @@
                 <select wire:model.live="kind" aria-label="Jenis pengajuan" class="rounded-lg border border-stone-300 bg-white px-3 py-2 text-sm">
                     @foreach (Returns::KINDS as $value => $label)<option value="{{ $value }}">{{ $label }}</option>@endforeach
                 </select>
+                <label class="flex items-center gap-2 rounded-lg border border-stone-300 bg-white px-3 py-2 text-sm">
+                    <input type="checkbox" wire:model.live="mine" class="accent-emerald-700"> Pengajuan saya
+                </label>
             </div>
 
             <section class="overflow-hidden rounded-xl border border-stone-200 bg-white" aria-label="Daftar retur & pembatalan">

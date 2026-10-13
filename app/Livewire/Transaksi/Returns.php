@@ -47,6 +47,10 @@ class Returns extends Component
     #[Url(as: 'q', except: '')]
     public string $search = '';
 
+    /** Hanya pengajuan yang dibuat pengguna ini. */
+    #[Url(as: 'saya', except: false)]
+    public bool $mine = false;
+
     public ?int $selectedId = null;
 
     /** Pencarian transaksi untuk pengajuan baru. */
@@ -141,6 +145,7 @@ class Returns extends Component
 
         return array_values(array_filter($this->all, fn ($r) => ($this->status === 'semua' || $r['status'] === $this->status)
             && ($this->kind === '' || $r['kind'] === $this->kind)
+            && (! $this->mine || $r['requested_by'] === auth()->user()->name)
             && ($q === '' || str_contains(mb_strtolower($r['number'].' '.$r['transaction']['invoice'].' '.implode(' ', array_column($r['items'], 'name'))), $q))));
     }
 
@@ -148,7 +153,7 @@ class Returns extends Component
     #[Computed]
     public function counts(): array
     {
-        $rows = array_filter($this->all, fn ($r) => $this->kind === '' || $r['kind'] === $this->kind);
+        $rows = array_filter($this->all, fn ($r) => ($this->kind === '' || $r['kind'] === $this->kind) && (! $this->mine || $r['requested_by'] === auth()->user()->name));
         $counts = array_fill_keys(array_keys(self::STATUSES), 0);
         $counts['semua'] = count($rows);
         foreach ($rows as $r) {
