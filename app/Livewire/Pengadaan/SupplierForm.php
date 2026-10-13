@@ -107,6 +107,7 @@ class SupplierForm extends Component
 
     public function save()
     {
+        \Illuminate\Support\Facades\Gate::authorize('kelola-pengadaan');
         $this->name = preg_replace('/\s+/', ' ', trim($this->name));
         try {
             $this->validate();

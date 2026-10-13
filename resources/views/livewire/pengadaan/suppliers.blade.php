@@ -13,11 +13,13 @@
                 <p class="text-xs text-stone-500">Pemasok barang koperasi, kontak, dan syarat pembayarannya.</p>
             </div>
             <div class="flex items-center gap-2">
+                @can('kelola-pengadaan')
                 @if ($url = Index::link('pengadaan.supplier.buat'))
                     <a href="{{ $url }}" wire:navigate class="rounded-xl bg-emerald-700 px-4 py-2.5 text-sm font-semibold text-white hover:bg-emerald-800">Tambah supplier</a>
                 @else
                     <span title="Segera hadir" class="cursor-not-allowed rounded-xl bg-emerald-700 px-4 py-2.5 text-sm font-semibold text-white opacity-60">Tambah supplier</span>
                 @endif
+                @endcan
             </div>
         </div>
         <x-pengadaan.nav active="pengadaan.supplier" />
@@ -141,7 +143,9 @@
                         <dt class="text-stone-500">Catatan</dt><dd>{{ $sel['note'] ?? '—' }}</dd>
                     </dl>
                     <div class="flex gap-2">
-                        <a href="{{ route('pengadaan.supplier.ubah', $sel['id']) }}" wire:navigate class="flex-1 rounded-xl bg-emerald-700 px-3 py-2 text-center font-semibold text-white hover:bg-emerald-800">Ubah</a>
+                        @can('kelola-pengadaan')
+                            <a href="{{ route('pengadaan.supplier.ubah', $sel['id']) }}" wire:navigate class="flex-1 rounded-xl bg-emerald-700 px-3 py-2 text-center font-semibold text-white hover:bg-emerald-800">Ubah</a>
+                        @endcan
                         <a href="tel:{{ preg_replace('/[^0-9+]/', '', $sel['phone']) }}" class="flex-1 rounded-xl border border-stone-300 px-3 py-2 text-center font-medium text-stone-700 hover:bg-stone-50">Telepon</a>
                         @if ($wa = Suppliers::whatsapp($sel['phone']))
                             <a href="{{ $wa }}" target="_blank" rel="noopener" class="flex-1 rounded-xl border border-emerald-700 px-3 py-2 text-center font-semibold text-emerald-800 hover:bg-emerald-50">WhatsApp</a>

@@ -138,6 +138,7 @@ class OrderForm extends Component
 
     public function save(string $status = 'draf')
     {
+        \Illuminate\Support\Facades\Gate::authorize('kelola-pengadaan');
         try {
             $this->validate();
         } catch (ValidationException $e) {

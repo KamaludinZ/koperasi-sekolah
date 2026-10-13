@@ -14,7 +14,9 @@
                 <p class="text-xs text-stone-500">Hutang pembelian ke supplier, jatuh tempo, dan pembayarannya.</p>
             </div>
             <div class="flex items-center gap-2">
+                @can('kelola-pengadaan')
                 <a href="{{ route('pengadaan.hutang.bayar', $supplier !== '' ? ['supplier' => $supplier] : []) }}" wire:navigate class="rounded-xl bg-emerald-700 px-4 py-2.5 text-sm font-semibold text-white hover:bg-emerald-800">Bayar hutang</a>
+                @endcan
             </div>
         </div>
         <x-pengadaan.nav active="pengadaan.hutang" />
@@ -75,7 +77,7 @@
                                 </td>
                                 <td class="px-4 py-2.5 text-right whitespace-nowrap">
                                     <button type="button" wire:click="showHistory({{ $p['id'] }})" class="rounded-lg px-2 py-1 text-sm font-medium text-stone-600 hover:bg-stone-100">Riwayat</button>
-                                    @if ($open)<button type="button" wire:click="pay({{ $p['id'] }})" class="rounded-lg border border-emerald-700 px-3 py-1 text-sm font-semibold text-emerald-800 hover:bg-emerald-50">Bayar</button>@endif
+                                    @if ($open && $this->canPay)<button type="button" wire:click="pay({{ $p['id'] }})" class="rounded-lg border border-emerald-700 px-3 py-1 text-sm font-semibold text-emerald-800 hover:bg-emerald-50">Bayar</button>@endif
                                 </td>
                             </tr>
                         @empty

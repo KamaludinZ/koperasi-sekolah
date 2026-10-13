@@ -12,11 +12,13 @@
                 <p class="text-xs text-stone-500">Pesanan pembelian ke supplier dan kemajuan penerimaannya.</p>
             </div>
             <div class="flex items-center gap-2">
+                @can('kelola-pengadaan')
                 @if ($url = Index::link('pengadaan.pesanan.buat'))
                     <a href="{{ $url }}" wire:navigate class="rounded-xl bg-emerald-700 px-4 py-2.5 text-sm font-semibold text-white hover:bg-emerald-800">Buat pesanan</a>
                 @else
                     <span title="Segera hadir" class="cursor-not-allowed rounded-xl bg-emerald-700 px-4 py-2.5 text-sm font-semibold text-white opacity-60">Buat pesanan</span>
                 @endif
+                @endcan
             </div>
         </div>
         <x-pengadaan.nav active="pengadaan.pesanan" />

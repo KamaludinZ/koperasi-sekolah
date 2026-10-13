@@ -145,7 +145,7 @@ class Payables extends Component
     public function pay(int $id): void
     {
         $p = collect($this->all)->firstWhere('id', $id);
-        if (! $p || $p['status'] === 'lunas') {
+        if (! $p || $p['status'] === 'lunas' || ! \Illuminate\Support\Facades\Gate::allows('kelola-pengadaan')) {
             return;
         }
         $this->payingId = $id;
@@ -164,6 +164,7 @@ class Payables extends Component
 
     public function savePayment(): void
     {
+        \Illuminate\Support\Facades\Gate::authorize('kelola-pengadaan');
         $p = $this->paying;
         if (! $p) {
             return;
@@ -210,6 +211,12 @@ class Payables extends Component
     public ?int $cancelPaymentId = null;
 
     public string $cancelPaymentReason = '';
+
+    #[Computed]
+    public function canPay(): bool
+    {
+        return \Illuminate\Support\Facades\Gate::allows('kelola-pengadaan');
+    }
 
     #[Computed]
     public function isAdmin(): bool

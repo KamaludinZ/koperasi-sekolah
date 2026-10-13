@@ -12,6 +12,7 @@
                 <p class="text-xs text-stone-500">Pesan barang ke supplier, catat penerimaannya, dan pantau hutang pembelian.</p>
             </div>
             <div class="flex items-center gap-2">
+                @can('kelola-pengadaan')
                 @foreach ([['pengadaan.penerimaan', 'Catat penerimaan', false], ['pengadaan.pesanan.buat', 'Buat pesanan', true]] as [$route, $label, $primary])
                     @if ($url = Index::link($route))
                         <a href="{{ $url }}" wire:navigate @class(['rounded-xl px-4 py-2.5 text-sm font-semibold', 'bg-emerald-700 text-white hover:bg-emerald-800' => $primary, 'border border-stone-300 bg-white text-stone-700 hover:bg-stone-50' => ! $primary])>{{ $label }}</a>
@@ -19,6 +20,7 @@
                         <span title="Segera hadir" @class(['cursor-not-allowed rounded-xl px-4 py-2.5 text-sm font-semibold opacity-60', 'bg-emerald-700 text-white' => $primary, 'border border-stone-300 bg-white text-stone-700' => ! $primary])>{{ $label }}</span>
                     @endif
                 @endforeach
+                @endcan
             </div>
         </div>
         <x-pengadaan.nav active="pengadaan" />

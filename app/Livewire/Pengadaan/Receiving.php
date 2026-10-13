@@ -91,6 +91,7 @@ class Receiving extends Component
 
     public function save()
     {
+        \Illuminate\Support\Facades\Gate::authorize('kelola-pengadaan');
         if (! $this->order) {
             $this->addError('orderId', 'Pilih pesanan yang barangnya datang.');
 

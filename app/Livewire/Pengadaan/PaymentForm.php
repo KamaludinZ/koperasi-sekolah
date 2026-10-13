@@ -107,6 +107,7 @@ class PaymentForm extends Component
 
     public function save()
     {
+        \Illuminate\Support\Facades\Gate::authorize('kelola-pengadaan');
         $rules = [
             'supplierId' => ['required', 'in:'.collect($this->suppliers)->pluck('id')->implode(',')],
             'paidAt' => ['required', 'date_format:Y-m-d', 'before_or_equal:today'],

@@ -1,6 +1,6 @@
 {
   "repo": "Koperasi Sekolah",
-  "generatedForCommit": "6249933e9a284914740d4a009a3d5852d331c9c4",
+  "generatedForCommit": "a673c7fa336d7de0eb366d3e225f01445665fbeb",
   "files": [
     {
       "path": ".claude/skills/ngodingpakeai/SKILL.md",
@@ -244,9 +244,9 @@
     },
     {
       "path": "app/Http/Controllers/Pengadaan/SupplierBillController.php",
-      "reason": "new",
+      "reason": "changed",
       "language": "php",
-      "size": 2377
+      "size": 3860
     },
     {
       "path": "app/Http/Controllers/Pengadaan/SupplierController.php",
@@ -508,7 +508,7 @@
     },
     {
       "path": "app/Livewire/Pengadaan/Index.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 4015
     },
@@ -528,11 +528,11 @@
       "path": "app/Livewire/Pengadaan/Payables.php",
       "reason": "changed",
       "language": "php",
-      "size": 7092
+      "size": 8302
     },
     {
       "path": "app/Livewire/Pengadaan/PaymentForm.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 5884
     },
@@ -1078,9 +1078,9 @@
     },
     {
       "path": "app/Services/SupplierBillService.php",
-      "reason": "new",
+      "reason": "changed",
       "language": "php",
-      "size": 6851
+      "size": 8608
     },
     {
       "path": "app/Services/SupplierService.php",
@@ -1132,7 +1132,7 @@
     },
     {
       "path": "app/Support/MockData.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 15359
     },
@@ -2176,7 +2176,7 @@
     },
     {
       "path": "resources/views/livewire/pengadaan/index.blade.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 11994
     },
@@ -2196,11 +2196,11 @@
       "path": "resources/views/livewire/pengadaan/payables.blade.php",
       "reason": "changed",
       "language": "php",
-      "size": 14245
+      "size": 15714
     },
     {
       "path": "resources/views/livewire/pengadaan/payment-form.blade.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 10250
     },
@@ -2308,7 +2308,7 @@
     },
     {
       "path": "routes/console.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 2624
     },
@@ -2316,7 +2316,7 @@
       "path": "routes/web.php",
       "reason": "changed",
       "language": "php",
-      "size": 23953
+      "size": 24366
     },
     {
       "path": "tests/Concerns/MakesProductImports.php",
@@ -2968,19 +2968,19 @@
     },
     {
       "path": "tests/Feature/Pengadaan/PayablesTest.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 4924
     },
     {
       "path": "tests/Feature/Pengadaan/PaymentFormTest.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 3457
     },
     {
       "path": "tests/Feature/Pengadaan/ProcurementHubTest.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 2439
     },
@@ -3013,6 +3013,12 @@
       "reason": "needs_summary",
       "language": "php",
       "size": 3179
+    },
+    {
+      "path": "tests/Feature/Pengadaan/SupplierPaymentEndpointTest.php",
+      "reason": "new",
+      "language": "php",
+      "size": 3988
     },
     {
       "path": "tests/Feature/Pengaturan/IndexTest.php",
