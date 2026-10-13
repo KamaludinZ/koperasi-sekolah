@@ -32,6 +32,17 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // Denyut pekerja antrean (dari proses queue:work) untuk pemantauan kesehatan; ditulis paling sering tiap 30 detik.
+        \Illuminate\Support\Facades\Queue::looping(function () {
+            static $last = 0;
+            if (time() - $last >= 30) {
+                $last = time();
+                \Illuminate\Support\Facades\Cache::put('health:worker_heartbeat', now()->toDateTimeString(), now()->addHour());
+            }
+        });
+        // /up (pemantau eksternal) ikut memastikan basis data terjangkau; gagal → 500.
+        \Illuminate\Support\Facades\Event::listen(\Illuminate\Foundation\Events\DiagnosingHealth::class, fn () => \Illuminate\Support\Facades\DB::select('SELECT 1'));
+
         // Format rupiah seragam: @rupiah($n) → "Rp12.500" (lihat App\Support\Rupiah).
         \Illuminate\Support\Facades\Blade::directive('rupiah', fn ($expr) => "<?php echo e(\\App\\Support\\Rupiah::format({$expr})); ?>");
 

@@ -420,6 +420,8 @@ Route::middleware(['menu:audit', 'peran:admin,pengurus'])->group(function () {
 
 Route::middleware('menu:sistem')->group(function () {
     Route::get('/sistem', Sistem\Health::class)->name('sistem');
+    Route::get('/sistem/kesehatan/data', fn () => response()->json(\App\Services\HealthCheckService::report()))
+        ->middleware('throttle:60,1')->name('sistem.kesehatan.data');
     Route::get('/sistem/cadangan', Sistem\Backups::class)->name('sistem.cadangan');
     Route::get('/sistem/uji-pemulihan', Sistem\RestoreTest::class)->name('sistem.restore');
     Route::get('/sistem/antrean', Sistem\Queue::class)->name('sistem.antrean');

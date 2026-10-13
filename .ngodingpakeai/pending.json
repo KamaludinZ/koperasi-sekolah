@@ -1,6 +1,6 @@
 {
   "repo": "Koperasi Sekolah",
-  "generatedForCommit": "92ac13d1860f8b5a2a9521c045653b7473fbda92",
+  "generatedForCommit": "96e7aa4eaa0e0954e0b9d90c25e0bba264f8ace7",
   "files": [
     {
       "path": ".claude/skills/ngodingpakeai/SKILL.md",
@@ -940,9 +940,9 @@
     },
     {
       "path": "app/Models/Transaction.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 4755
+      "size": 5036
     },
     {
       "path": "app/Models/TransactionDiscount.php",
@@ -958,9 +958,9 @@
     },
     {
       "path": "app/Models/TransactionReturn.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 3419
+      "size": 3700
     },
     {
       "path": "app/Models/TransactionReturnItem.php",
@@ -1246,9 +1246,9 @@
     },
     {
       "path": "app/Services/SalesReport.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 15703
+      "size": 16826
     },
     {
       "path": "app/Services/SavingsPaymentService.php",
@@ -1399,6 +1399,12 @@
       "reason": "needs_summary",
       "language": "php",
       "size": 5545
+    },
+    {
+      "path": "app/Support/ReportCache.php",
+      "reason": "new",
+      "language": "php",
+      "size": 2380
     },
     {
       "path": "app/Support/Rupiah.php",
@@ -1894,7 +1900,7 @@
     },
     {
       "path": "database/migrations/2026_10_14_000003_add_search_expression_indexes.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 2046
     },
@@ -3172,7 +3178,7 @@
     },
     {
       "path": "tests/Feature/Database/SearchIndexTest.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 1368
     },
@@ -3433,6 +3439,12 @@
       "reason": "needs_summary",
       "language": "php",
       "size": 2589
+    },
+    {
+      "path": "tests/Feature/Laporan/ReportCacheTest.php",
+      "reason": "new",
+      "language": "php",
+      "size": 2117
     },
     {
       "path": "tests/Feature/Laporan/SalesExportEndpointTest.php",

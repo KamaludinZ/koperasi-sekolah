@@ -55,7 +55,6 @@
                     @if ($c['key'] === 'storage' && isset($c['meta']['free_pct']))
                         <span class="mt-2 block h-1.5 overflow-hidden rounded-full bg-stone-100" aria-hidden="true"><span class="block h-full rounded-full {{ $cdot }}" style="width: {{ 100 - $c['meta']['free_pct'] }}%"></span></span>
                     @endif
-                    @if ($c['meta']['mock'] ?? false)<p class="mt-1 text-[11px] text-stone-400">data contoh</p>@endif
                 </article>
             @endforeach
         </section>
@@ -73,7 +72,6 @@
                             </li>
                         @endforeach
                     </ol>
-                    <p class="mt-3 text-[11px] text-stone-400">data contoh</p>
                 @else
                     <p class="mt-2 text-sm text-stone-500">Tidak ada gangguan dalam 30 hari terakhir.</p>
                 @endif
@@ -81,7 +79,7 @@
 
             <div class="space-y-5">
             <a href="{{ route('sistem.cadangan') }}" wire:navigate class="block hover:opacity-95">
-                <x-sistem.backup-status :status="\App\Support\BackupStatus::summarize(\App\Support\MockData::backups())" compact />
+                <x-sistem.backup-status :status="\App\Support\BackupStatus::summarize(\App\Services\HealthCheckService::backupRows())" compact />
             </a>
             <aside class="h-fit rounded-2xl border border-stone-200 bg-white p-5" aria-labelledby="met-title">
                 <h2 id="met-title" class="font-semibold">Angka ringkas</h2>
