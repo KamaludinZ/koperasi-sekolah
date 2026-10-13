@@ -1,6 +1,6 @@
 {
   "repo": "Koperasi Sekolah",
-  "generatedForCommit": "a8d31d608e1dcb19bd48a693dd6cca641da77150",
+  "generatedForCommit": "9b8e43e428f34b62c98fd52d02b855b224111c9a",
   "files": [
     {
       "path": ".claude/skills/ngodingpakeai/SKILL.md",
@@ -423,6 +423,12 @@
       "size": 4943
     },
     {
+      "path": "app/Livewire/Pengaturan/Security.php",
+      "reason": "new",
+      "language": "php",
+      "size": 6365
+    },
+    {
       "path": "app/Livewire/Pengaturan/Tax.php",
       "reason": "needs_summary",
       "language": "php",
@@ -436,7 +442,7 @@
     },
     {
       "path": "app/Livewire/Pengguna/Locked.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 3285
     },
@@ -816,7 +822,7 @@
       "path": "app/Support/MockData.php",
       "reason": "changed",
       "language": "php",
-      "size": 27253
+      "size": 28186
     },
     {
       "path": "app/Support/OpeningHours.php",
@@ -1330,13 +1336,13 @@
     },
     {
       "path": "resources/views/components/pengaturan/nav.blade.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 1084
+      "size": 1139
     },
     {
       "path": "resources/views/components/pengguna/nav.blade.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 679
     },
@@ -1683,6 +1689,12 @@
       "size": 6804
     },
     {
+      "path": "resources/views/livewire/pengaturan/security.blade.php",
+      "reason": "new",
+      "language": "php",
+      "size": 11435
+    },
+    {
       "path": "resources/views/livewire/pengaturan/tax.blade.php",
       "reason": "needs_summary",
       "language": "php",
@@ -1690,13 +1702,13 @@
     },
     {
       "path": "resources/views/livewire/pengguna/index.blade.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 10584
     },
     {
       "path": "resources/views/livewire/pengguna/locked.blade.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 10419
     },
@@ -1752,7 +1764,7 @@
       "path": "routes/web.php",
       "reason": "changed",
       "language": "php",
-      "size": 15409
+      "size": 15506
     },
     {
       "path": "tests/Feature/Anggota/IndexTest.php",
@@ -2259,6 +2271,12 @@
       "size": 1958
     },
     {
+      "path": "tests/Feature/Pengaturan/SecuritySettingsTest.php",
+      "reason": "new",
+      "language": "php",
+      "size": 3738
+    },
+    {
       "path": "tests/Feature/Pengaturan/SettingsAuthorizationTest.php",
       "reason": "needs_summary",
       "language": "php",
@@ -2290,7 +2308,7 @@
     },
     {
       "path": "tests/Feature/Pengguna/LockedPageTest.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 3209
     },

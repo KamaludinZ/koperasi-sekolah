@@ -6,6 +6,7 @@ use App\Support\Petugas;
 use App\Services\AuthService;
 use App\Support\Menu;
 use Database\Seeders\UserSeeder;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
@@ -14,6 +15,8 @@ use Livewire\Component;
 /**
  * Halaman masuk petugas (admin, kasir, pengurus). Validasi akun lewat AuthService:
  * kata sandi terenkripsi, akun nonaktif ditolak, 5 percobaan gagal → dikunci 60 detik.
+ * Menampilkan sisa percobaan sebelum dikunci dan panel kunci dengan hitung mundur
+ * (`lock.manual` = dikunci sampai dibuka Admin, disiapkan untuk kunci bertingkat).
  * Setelah masuk diarahkan ke halaman tujuan atau halaman awal sesuai peran.
  */
 #[Layout('components.layouts.guest')]
@@ -29,6 +32,15 @@ class Login extends Component
     public string $password = '';
 
     public bool $remember = false;
+
+    /** Sisa percobaan sebelum dikunci; ditampilkan bila tinggal sedikit. */
+    public ?int $attemptsLeft = null;
+
+    /** @var array{seconds: ?int, manual: bool}|null kunci aktif untuk email ini */
+    public ?array $lock = null;
+
+    /** Peringatan sisa percobaan muncul bila tinggal sebanyak ini atau kurang. */
+    public const WARN_AT = 2;
 
     public function mount(): void
     {
@@ -52,12 +64,44 @@ class Login extends Component
             $user = $auth->login($this->email, $this->password, $this->remember, request());
         } catch (ValidationException $e) {
             $this->reset('password');
-            $this->addError('email', $e->errors()['email'][0] ?? 'Gagal masuk.');
+            $this->refreshLock();
+            if ($this->lock === null) {
+                $this->addError('email', $e->errors()['email'][0] ?? 'Gagal masuk.');
+            }
 
             return;
         }
 
         $this->redirectIntended(route(Menu::homeRoute($user->roleName(), $user->role?->permissions)));
+    }
+
+    /** Baca status kunci & sisa percobaan untuk email + IP saat ini. */
+    public function refreshLock(): void
+    {
+        $key = AuthService::throttleKey($this->email, request());
+        if (RateLimiter::tooManyAttempts($key, self::MAX_ATTEMPTS)) {
+            $this->lock = ['seconds' => max(1, RateLimiter::availableIn($key)), 'manual' => false];
+            $this->attemptsLeft = 0;
+
+            return;
+        }
+
+        $this->lock = null;
+        $attempts = RateLimiter::attempts($key);
+        $this->attemptsLeft = $attempts > 0 ? self::MAX_ATTEMPTS - $attempts : null;
+    }
+
+    /** Dipanggil hitung mundur saat kunci sementara habis. */
+    public function lockExpired(): void
+    {
+        $this->refreshLock();
+        $this->resetErrorBag();
+    }
+
+    public function updatedEmail(): void
+    {
+        $this->lock = null;
+        $this->attemptsLeft = null;
     }
 
     public function render()

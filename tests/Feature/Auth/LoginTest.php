@@ -128,4 +128,37 @@ class LoginTest extends TestCase
         $this->get('/kasir')->assertOk()->assertSee('Bu Rina');
         $this->get('/laporan')->assertForbidden();
     }
+
+    public function test_warns_remaining_attempts_then_shows_countdown_panel(): void
+    {
+        $c = Livewire::test(Login::class)->set('email', 'admin@koperasi.test');
+        $c->set('password', 'salah')->call('login')
+            ->assertSet('attemptsLeft', Login::MAX_ATTEMPTS - 1)->assertSee('Email atau kata sandi salah')->assertDontSee('kali percobaan sebelum');
+        foreach (range(2, Login::MAX_ATTEMPTS - 2) as $i) {
+            $c->set('password', 'salah')->call('login');
+        }
+        $c->assertSet('attemptsLeft', 2)->assertSee('Sisa 2 kali percobaan sebelum masuk dikunci sementara.');
+
+        $c->set('password', 'salah')->call('login')->set('password', 'salah')->call('login')
+            ->assertSet('attemptsLeft', 0)
+            ->assertSee('Terlalu banyak percobaan masuk')
+            ->assertDontSee('Email atau kata sandi salah')
+            ->assertSeeHtml('disabled');
+        $this->assertGreaterThan(50, $c->get('lock')['seconds']);
+        $this->assertFalse($c->get('lock')['manual']);
+
+        // Ganti email: panel kunci hilang (kunci per email + IP).
+        $c->set('email', 'kasir@koperasi.test')->assertSet('lock', null);
+        $c->set('email', 'admin@koperasi.test')->call('refreshLock')->assertNotSet('lock', null);
+
+        $this->travel(Login::LOCK_SECONDS + 1)->seconds();
+        $c->call('lockExpired')->assertSet('lock', null)->assertSet('attemptsLeft', null)->assertDontSee('Terlalu banyak percobaan');
+        $c->set('password', 'password')->call('login')->assertRedirect(route('kasir'));
+    }
+
+    public function test_manual_lock_panel_tells_to_contact_admin(): void
+    {
+        Livewire::test(Login::class)->set('lock', ['seconds' => null, 'manual' => true])
+            ->assertSee('hanya bisa dibuka oleh admin koperasi')->assertDontSee('coba lagi dalam');
+    }
 }

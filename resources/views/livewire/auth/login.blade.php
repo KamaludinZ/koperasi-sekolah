@@ -40,6 +40,34 @@
                 <p class="mt-5 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-900" role="status">{{ session('status') }}</p>
             @endif
 
+            @if ($lock)
+                @if ($lock['manual'])
+                    <div class="mt-5 flex gap-3 rounded-xl border border-red-200 bg-red-50 px-4 py-3.5 text-sm text-red-900" role="alert">
+                        <svg class="mt-0.5 size-5 shrink-0 text-red-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 018 0v4"/></svg>
+                        <div>
+                            <p class="font-semibold">Akun dikunci karena terlalu banyak percobaan masuk</p>
+                            <p class="mt-0.5 text-red-800">Demi keamanan, akun ini hanya bisa dibuka oleh admin koperasi. Hubungi admin, lalu coba lagi.</p>
+                        </div>
+                    </div>
+                @else
+                    <div wire:key="lock-{{ $lock['seconds'] }}" class="mt-5 flex gap-3 rounded-xl border border-amber-300 bg-amber-50 px-4 py-3.5 text-sm text-amber-950" role="alert"
+                         x-data="{ s: {{ (int) $lock['seconds'] }}, t: null,
+                                   init() { this.t = setInterval(() => { if (--this.s <= 0) { clearInterval(this.t); $wire.lockExpired() } }, 1000) },
+                                   destroy() { clearInterval(this.t) } }">
+                        <svg class="mt-0.5 size-5 shrink-0 text-amber-700" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2 2M9 2h6"/></svg>
+                        <div class="min-w-0 flex-1">
+                            <p class="font-semibold">Terlalu banyak percobaan masuk</p>
+                            <p class="mt-0.5 text-amber-900">Untuk keamanan, coba lagi dalam
+                                <span class="font-semibold tabular-nums" x-text="s >= 60 ? Math.floor(s / 60) + ' menit ' + String(s % 60).padStart(2, '0') + ' detik' : s + ' detik'">{{ $lock['seconds'] }} detik</span>.
+                            </p>
+                            <div class="mt-2 h-1.5 overflow-hidden rounded-full bg-amber-200" aria-hidden="true">
+                                <div class="h-full rounded-full bg-amber-500 transition-[width] duration-1000 ease-linear" x-bind:style="'width:' + (s / {{ max(1, (int) $lock['seconds']) }} * 100) + '%'" style="width: 100%"></div>
+                            </div>
+                        </div>
+                    </div>
+                @endif
+            @endif
+
             <form wire:submit="login" class="mt-7 space-y-5" novalidate>
                 <div>
                     <label for="email" class="mb-1.5 block text-sm font-medium text-stone-700">Email</label>
@@ -53,6 +81,9 @@
                                 {{ $message }}
                             </p>
                         @enderror
+                        @if (! $lock && $attemptsLeft !== null && $attemptsLeft <= \App\Livewire\Auth\Login::WARN_AT)
+                            <p class="mt-1.5 text-sm text-amber-800">Sisa {{ $attemptsLeft }} kali percobaan sebelum masuk dikunci sementara.</p>
+                        @endif
                     </div>
                 </div>
 
@@ -75,7 +106,7 @@
                     Ingat saya di perangkat ini
                 </label>
 
-                <button type="submit" wire:loading.attr="disabled" wire:target="login"
+                <button type="submit" wire:loading.attr="disabled" wire:target="login" @disabled($lock)
                         class="flex w-full items-center justify-center gap-2 rounded-xl bg-emerald-800 py-3 text-[15px] font-semibold text-white shadow-sm transition hover:bg-emerald-900 focus-visible:ring-4 focus-visible:ring-emerald-600/30 focus-visible:outline-none disabled:opacity-60">
                     <svg wire:loading wire:target="login" class="size-4 animate-spin" fill="none" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-opacity=".3" stroke-width="3"/><path d="M21 12a9 9 0 00-9-9" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg>
                     <span wire:loading.remove wire:target="login">Masuk</span>
