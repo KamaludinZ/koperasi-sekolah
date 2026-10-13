@@ -1,6 +1,6 @@
 {
   "repo": "Koperasi Sekolah",
-  "generatedForCommit": "70e54754098e3ff2433c3828a8c613c47ffda9a3",
+  "generatedForCommit": "05c21e4559baf81556b24912ea42009ed31fd167",
   "files": [
     {
       "path": ".claude/skills/ngodingpakeai/SKILL.md",
@@ -382,7 +382,7 @@
     },
     {
       "path": "app/Livewire/Promo/Schedule.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 5298
     },
@@ -403,6 +403,18 @@
       "reason": "needs_summary",
       "language": "php",
       "size": 2012
+    },
+    {
+      "path": "app/Models/CashMovement.php",
+      "reason": "new",
+      "language": "php",
+      "size": 1286
+    },
+    {
+      "path": "app/Models/CashShift.php",
+      "reason": "new",
+      "language": "php",
+      "size": 3326
     },
     {
       "path": "app/Models/Category.php",
@@ -454,9 +466,9 @@
     },
     {
       "path": "app/Models/Transaction.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 2155
+      "size": 2381
     },
     {
       "path": "app/Models/TransactionItem.php",
@@ -640,7 +652,7 @@
     },
     {
       "path": "app/Support/MockData.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 37871
     },
@@ -769,6 +781,18 @@
       "reason": "needs_summary",
       "language": null,
       "size": 10
+    },
+    {
+      "path": "database/factories/CashMovementFactory.php",
+      "reason": "new",
+      "language": "php",
+      "size": 704
+    },
+    {
+      "path": "database/factories/CashShiftFactory.php",
+      "reason": "new",
+      "language": "php",
+      "size": 983
     },
     {
       "path": "database/factories/CategoryFactory.php",
@@ -919,6 +943,12 @@
       "reason": "needs_summary",
       "language": "php",
       "size": 1249
+    },
+    {
+      "path": "database/migrations/2026_10_13_000003_create_cash_shifts_tables.php",
+      "reason": "new",
+      "language": "php",
+      "size": 4051
     },
     {
       "path": "database/seeders/ActivityLogSeeder.php",
@@ -1084,7 +1114,7 @@
     },
     {
       "path": "resources/views/components/promo/nav.blade.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 675
     },
@@ -1426,13 +1456,13 @@
     },
     {
       "path": "resources/views/livewire/promo/index.blade.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 13342
     },
     {
       "path": "resources/views/livewire/promo/schedule.blade.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 12335
     },
@@ -1468,7 +1498,7 @@
     },
     {
       "path": "routes/web.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 12490
     },
@@ -1621,6 +1651,12 @@
       "reason": "needs_summary",
       "language": "php",
       "size": 1866
+    },
+    {
+      "path": "tests/Feature/Database/CashShiftSchemaTest.php",
+      "reason": "new",
+      "language": "php",
+      "size": 4262
     },
     {
       "path": "tests/Feature/Database/MemberModelTest.php",
@@ -1936,7 +1972,7 @@
     },
     {
       "path": "tests/Feature/Promo/ScheduleTest.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 3017
     },

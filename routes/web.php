@@ -10,6 +10,7 @@ use App\Http\Controllers\Barang\ProductController;
 use App\Http\Controllers\BerandaController;
 use App\Http\Controllers\Barang\ProductListController;
 use App\Http\Controllers\Barang\StockAlertController;
+use App\Http\Controllers\Kas\ShiftController;
 use App\Http\Controllers\Kasir\CheckoutController;
 use App\Http\Controllers\Kasir\ProductSearchController;
 use App\Http\Controllers\Kasir\TransactionReceiptController;
@@ -104,6 +105,11 @@ Route::middleware('menu:kas')->group(function () {
     Route::get('/kas', Kas\Index::class)->name('kas');
     Route::get('/kas/rekap', Kas\Recap::class)->name('kas.rekap');
     Route::get('/kas/shift', Kas\Shifts::class)->name('kas.shift');
+    Route::get('/kas/shift/aktif', [ShiftController::class, 'current'])->name('kas.shift.current');
+    Route::middleware(['can:kelola-shift', 'throttle:30,1'])->group(function () {
+        Route::post('/kas/shift/buka', [ShiftController::class, 'open'])->name('kas.shift.open');
+        Route::post('/kas/shift/{shift}/tutup', [ShiftController::class, 'close'])->whereNumber('shift')->name('kas.shift.close');
+    });
 });
 
 Route::middleware('menu:promo')->group(function () {

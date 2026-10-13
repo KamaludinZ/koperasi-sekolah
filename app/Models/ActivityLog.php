@@ -17,6 +17,7 @@ class ActivityLog extends Model
         'auth' => 'Login & akses',
         'transaksi' => 'Penjualan',
         'tabungan' => 'Tabungan',
+        'kas' => 'Kas & shift',
         'stok' => 'Stok',
         'barang' => 'Barang',
         'anggota' => 'Anggota',
@@ -27,7 +28,7 @@ class ActivityLog extends Model
     ];
 
     /** Kategori yang termasuk sirkulasi uang/barang. */
-    public const CIRCULATION = ['transaksi', 'tabungan', 'stok'];
+    public const CIRCULATION = ['transaksi', 'tabungan', 'kas', 'stok'];
 
     protected $fillable = [
         'event', 'category', 'description', 'subject_type', 'subject_id', 'subject_label',

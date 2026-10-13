@@ -35,6 +35,9 @@ class AppServiceProvider extends ServiceProvider
 
         // Melihat pengaturan cukup punya menu "pengaturan" (bisa dibagikan ke peran lain);
         // mengubahnya (profil, logo, struk, pajak) tetap khusus Admin yang aktif.
+        // Buka/tutup shift & catat kas laci: petugas yang boleh memakai layar kasir (kasir, admin).
+        Gate::define('kelola-shift', fn (User $user) => $user->canOpen('kasir'));
+
         Gate::define('ubah-pengaturan', fn (User $user) => $user->hasRole(Role::ADMIN) && $user->canOpen('pengaturan'));
     }
 }

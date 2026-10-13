@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Models\CashShift;
 use App\Models\Product;
 use App\Models\Transaction;
 use App\Support\PriceCalculator;
@@ -13,7 +14,8 @@ use Illuminate\Validation\ValidationException;
  * Menyimpan transaksi penjualan kasir secara atomik:
  * kunci baris barang → validasi stok → hitung total di server (diskon manual dipotong
  * dari subtotal, lalu pajak & pembulatan dari pengaturan, lihat PriceCalculator) →
- * simpan transaksi + item (snapshot nama & harga) → kurangi stok → catat mutasi stok.
+ * simpan transaksi + item (snapshot nama & harga), tertaut ke shift kasir yang terbuka →
+ * kurangi stok → catat mutasi stok.
  */
 class CheckoutService
 {
@@ -84,6 +86,7 @@ class CheckoutService
 
             $transaction = $this->createWithInvoiceNumber([
                 'user_id' => $userId,
+                'cash_shift_id' => CashShift::open()->value('id'), // penjualan masuk ke laci shift berjalan
                 'member_id' => $memberId,
                 'subtotal' => $subtotal,
                 'tax' => $price['tax'],

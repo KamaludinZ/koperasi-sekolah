@@ -8,6 +8,7 @@
         'auth' => ['bg-sky-100 text-sky-800', 'M15 3h4a2 2 0 012 2v14a2 2 0 01-2 2h-4M10 17l5-5-5-5M15 12H3'],
         'transaksi' => ['bg-emerald-100 text-emerald-800', 'M3 3h18v4H3zM5 7v13h14V7M9 11h6'],
         'tabungan' => ['bg-amber-100 text-amber-900', 'M19 7h-1V5a2 2 0 00-2-2H5a2 2 0 00-2 2v12a3 3 0 003 3h13a2 2 0 002-2V9a2 2 0 00-2-2zM16 14h.01'],
+        'kas' => ['bg-orange-100 text-orange-900', 'M3 7h18v12H3zM3 7l3-3h12l3 3M16 13h2M7 11v4'],
         'stok' => ['bg-violet-100 text-violet-800', 'M20 7l-8-4-8 4m16 0v10l-8 4m8-14l-8 4m0 10l-8-4V7m8 14V11'],
         'barang' => ['bg-teal-100 text-teal-800', 'M7 7h.01M3 11l8.6 8.6a2 2 0 002.8 0l5.2-5.2a2 2 0 000-2.8L11 3H3z'],
         'anggota' => ['bg-lime-100 text-lime-900', 'M17 20h5v-2a4 4 0 00-5-3.9M9 20H2v-2a4 4 0 014-4h3a4 4 0 014 4v2zM12 7a3 3 0 11-6 0 3 3 0 016 0z'],
