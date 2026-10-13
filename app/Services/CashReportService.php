@@ -6,6 +6,8 @@ use App\Models\CashMovement;
 use App\Models\CashShift;
 use App\Models\Transaction;
 use Illuminate\Support\Carbon;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
 
 /**
@@ -14,6 +16,8 @@ use Illuminate\Support\Collection;
  *   kas seharusnya, dihitung, selisih), setoran/penarikan, penjualan per metode, ringkasan,
  *   serta penjualan tunai yang terjadi tanpa shift terbuka.
  * - range(): ringkasan per hari untuk satu periode (maks. 92 hari).
+ * - history() / perCashier() / shiftDetail(): riwayat shift berpaginasi dengan saringan
+ *   petugas & status selisih, ringkasan selisih per petugas, dan rincian satu shift.
  * Angka shift dihitung dengan query terkelompok (bukan per baris). Kas seharusnya shift
  * yang sudah ditutup memakai snapshot saat tutup; shift berjalan dihitung dari data terkini.
  */
@@ -100,7 +104,7 @@ class CashReportService
      *
      * @param  Collection<int, CashShift>  $shifts
      */
-    private function shiftRows(Collection $shifts): array
+    public function shiftRows(Collection $shifts): array
     {
         if ($shifts->isEmpty()) {
             return [];
@@ -145,6 +149,91 @@ class CashReportService
                 'note' => $shift->close_note,
             ];
         })->all();
+    }
+
+    /** Status selisih untuk saringan riwayat. */
+    public const DIFFERENCE_STATUSES = ['kurang' => 'Kurang', 'lebih' => 'Lebih', 'pas' => 'Pas', 'berjalan' => 'Berjalan'];
+
+    public const HISTORY_PER_PAGE = 25;
+
+    /**
+     * Shift dalam rentang (terbaru dulu), disaring petugas (user_id) & status selisih, berpaginasi.
+     * Item paginator sudah berupa baris shift (shiftRows).
+     */
+    public function history(Carbon $from, Carbon $to, ?int $userId = null, ?string $status = null, int $perPage = self::HISTORY_PER_PAGE, ?int $page = null): LengthAwarePaginator
+    {
+        $paginator = $this->historyQuery($from, $to)
+            ->when($userId, fn (Builder $q) => $q->where('user_id', $userId))
+            ->when($status, fn (Builder $q) => match ($status) {
+                'berjalan' => $q->where('status', CashShift::STATUS_OPEN),
+                'kurang' => $q->where('status', CashShift::STATUS_CLOSED)->where('difference', '<', 0),
+                'lebih' => $q->where('status', CashShift::STATUS_CLOSED)->where('difference', '>', 0),
+                'pas' => $q->where('status', CashShift::STATUS_CLOSED)->where('difference', 0),
+                default => $q,
+            })
+            ->with('user:id,name', 'closer:id,name')
+            ->orderByDesc('opened_at')->orderByDesc('id')
+            ->paginate($perPage, ['*'], 'page', $page);
+
+        return $paginator->setCollection(collect($this->shiftRows($paginator->getCollection())));
+    }
+
+    /**
+     * Ringkasan per petugas pada rentang (tanpa saringan status): jumlah shift, transaksi,
+     * total selisih, dan banyaknya shift pas/kurang/lebih; selisih terbesar (paling kurang) dulu.
+     */
+    public function perCashier(Carbon $from, Carbon $to): array
+    {
+        $shifts = $this->historyQuery($from, $to)
+            ->groupBy('user_id')
+            ->selectRaw("user_id, COUNT(*) AS shifts,
+                COALESCE(SUM(CASE WHEN status = 'closed' THEN difference ELSE 0 END), 0) AS difference,
+                SUM(CASE WHEN status = 'closed' AND difference < 0 THEN 1 ELSE 0 END) AS short_count,
+                SUM(CASE WHEN status = 'closed' AND difference > 0 THEN 1 ELSE 0 END) AS over_count,
+                SUM(CASE WHEN status = 'closed' AND difference = 0 THEN 1 ELSE 0 END) AS exact_count")
+            ->with('user:id,name')
+            ->get();
+        $transactions = Transaction::query()
+            ->join('cash_shifts', 'cash_shifts.id', '=', 'transactions.cash_shift_id')
+            ->whereBetween('cash_shifts.opened_at', [$from->copy()->startOfDay(), $to->copy()->endOfDay()])
+            ->groupBy('cash_shifts.user_id')
+            ->selectRaw('cash_shifts.user_id AS shift_user_id, COUNT(*) AS n')
+            ->toBase()->get()
+            ->pluck('n', 'shift_user_id');
+
+        return $shifts->map(fn ($r) => [
+            'user_id' => $r->user_id,
+            'name' => $r->user?->name ?? 'Petugas terhapus',
+            'shifts' => (int) $r->shifts,
+            'transactions' => (int) ($transactions[$r->user_id] ?? 0),
+            'difference' => (int) round((float) $r->difference),
+            'short' => (int) $r->short_count,
+            'over' => (int) $r->over_count,
+            'exact' => (int) $r->exact_count,
+        ])->sortBy('difference')->values()->all();
+    }
+
+    /** Rincian satu shift: baris shift + setoran/penarikan + daftar penjualannya. */
+    public function shiftDetail(CashShift $shift): array
+    {
+        $shift->loadMissing('user:id,name', 'closer:id,name');
+
+        return [
+            ...$this->shiftRows(collect([$shift]))[0],
+            'cash_movements' => $shift->movements()->with('user:id,name', 'shift:id,name')->orderBy('created_at')->orderBy('id')->get()
+                ->map(fn (CashMovement $m) => CashMovementService::toArray($m))->all(),
+            'sales' => $shift->transactions()->orderBy('created_at')->orderBy('id')
+                ->get(['id', 'invoice_number', 'created_at', 'payment_method', 'total', 'discount'])
+                ->map(fn (Transaction $t) => [
+                    'id' => $t->id, 'invoice_number' => $t->invoice_number, 'created_at' => $t->created_at->toDateTimeString(),
+                    'payment_method' => $t->payment_method, 'total' => (int) round((float) $t->total), 'discount' => (int) round((float) $t->discount),
+                ])->all(),
+        ];
+    }
+
+    private function historyQuery(Carbon $from, Carbon $to): Builder
+    {
+        return CashShift::query()->whereBetween('opened_at', [$from->copy()->startOfDay(), $to->copy()->endOfDay()]);
     }
 
     /** Ringkasan kas dari baris shift (format sama dengan rekap tahap frontend). */

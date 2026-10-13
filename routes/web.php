@@ -12,6 +12,7 @@ use App\Http\Controllers\Barang\ProductListController;
 use App\Http\Controllers\Barang\StockAlertController;
 use App\Http\Controllers\Kas\CashMovementController;
 use App\Http\Controllers\Kas\CashReportController;
+use App\Http\Controllers\Kas\ShiftHistoryController;
 use App\Http\Controllers\Kas\ShiftController;
 use App\Http\Controllers\Kasir\CheckoutController;
 use App\Http\Controllers\Kasir\ProductSearchController;
@@ -112,6 +113,8 @@ Route::middleware('menu:kas')->group(function () {
     Route::middleware('throttle:120,1')->group(function () {
         Route::get('/kas/rekap/harian', [CashReportController::class, 'day'])->name('kas.report.day');
         Route::get('/kas/rekap/periode', [CashReportController::class, 'period'])->name('kas.report.period');
+        Route::get('/kas/shift/riwayat', [ShiftHistoryController::class, 'index'])->name('kas.shift.history');
+        Route::get('/kas/shift/{shift}/rincian', [ShiftHistoryController::class, 'show'])->whereNumber('shift')->name('kas.shift.detail');
     });
     Route::middleware(['can:kelola-shift', 'throttle:30,1'])->group(function () {
         Route::post('/kas/shift/buka', [ShiftController::class, 'open'])->name('kas.shift.open');
