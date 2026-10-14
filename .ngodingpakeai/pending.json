@@ -1,6 +1,6 @@
 {
   "repo": "Koperasi Sekolah",
-  "generatedForCommit": "b38411b142ae4b2bf4f761ab7ebfa39667ab5717",
+  "generatedForCommit": "94c35f1e3e9e71a9183e67738132e14831798494",
   "files": [
     {
       "path": ".claude/skills/ngodingpakeai/SKILL.md",
@@ -316,9 +316,9 @@
     },
     {
       "path": "app/Http/Controllers/Portal/OrderController.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 2636
+      "size": 3759
     },
     {
       "path": "app/Http/Controllers/Portal/PinController.php",
@@ -1276,7 +1276,7 @@
     },
     {
       "path": "app/Services/BalanceDeductionService.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 6454
     },
@@ -1398,7 +1398,7 @@
       "path": "app/Services/OrderService.php",
       "reason": "changed",
       "language": "php",
-      "size": 15578
+      "size": 17410
     },
     {
       "path": "app/Services/PasswordService.php",
@@ -3340,9 +3340,9 @@
     },
     {
       "path": "routes/web.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 39875
+      "size": 40100
     },
     {
       "path": "tests/Concerns/MakesProductImports.php",
@@ -4324,7 +4324,7 @@
     },
     {
       "path": "tests/Feature/Portal/BalanceDeductionServiceTest.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 2797
     },
@@ -4342,9 +4342,9 @@
     },
     {
       "path": "tests/Feature/Portal/OrderEndpointTest.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 2869
+      "size": 4282
     },
     {
       "path": "tests/Feature/Portal/OrderTrackingTest.php",
