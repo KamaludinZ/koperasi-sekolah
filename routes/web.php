@@ -466,6 +466,10 @@ Route::middleware('menu:laporan')->group(function () {
     })->whereNumber('export')->middleware('throttle:30,1')->name('laporan.unduhan');
 });
 
+Route::middleware(['menu:pinjaman', 'peran:admin,pengurus'])->group(function () {
+    Route::get('/pinjaman', \App\Livewire\Pinjaman\Index::class)->name('pinjaman');
+});
+
 Route::middleware(['menu:simpanan', 'peran:admin,pengurus'])->group(function () {
     Route::get('/simpanan', Simpanan\Types::class)->name('simpanan');
     Route::get('/simpanan/mutasi', Simpanan\Entries::class)->name('simpanan.mutasi');

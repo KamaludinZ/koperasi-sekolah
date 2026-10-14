@@ -23,7 +23,7 @@ class Role extends Model
     public const ADMIN_REQUIRED = ['pengguna', 'pengaturan'];
 
     /** Menu yang tidak boleh diberikan ke peran tertentu (simpanan hanya dikelola pengurus/admin). */
-    public const FORBIDDEN = ['kasir' => ['simpanan']];
+    public const FORBIDDEN = ['kasir' => ['simpanan', 'pinjaman']];
 
     protected $fillable = ['name', 'label', 'permissions'];
 

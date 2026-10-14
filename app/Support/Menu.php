@@ -59,6 +59,11 @@ class Menu
             'description' => 'Simpanan pokok, wajib & sukarela anggota',
             'icon' => 'M12 3v18M17 7H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6',
         ],
+        'pinjaman' => [
+            'label' => 'Pinjaman', 'route' => 'pinjaman', 'group' => 'data',
+            'description' => 'Pengajuan, pencairan & angsuran pinjaman anggota',
+            'icon' => 'M3 10h18M5 6h14a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2zM7 14h3',
+        ],
         'laporan' => [
             'label' => 'Laporan', 'route' => 'laporan', 'group' => 'pengurus',
             'description' => 'Rekap penjualan & unduhan',
@@ -91,9 +96,9 @@ class Menu
      * Pengurus: memantau data, laporan & rekap kas, pengadaan barang, tanpa layar kasir.
      */
     public const DEFAULT_PERMISSIONS = [
-        'admin' => ['kasir', 'transaksi', 'kas', 'barang', 'pengadaan', 'promo', 'anggota', 'simpanan', 'laporan', 'audit', 'pengguna', 'sistem', 'pengaturan'],
+        'admin' => ['kasir', 'transaksi', 'kas', 'barang', 'pengadaan', 'promo', 'anggota', 'simpanan', 'pinjaman', 'laporan', 'audit', 'pengguna', 'sistem', 'pengaturan'],
         'kasir' => ['kasir', 'transaksi', 'kas', 'barang', 'promo', 'anggota'],
-        'pengurus' => ['laporan', 'transaksi', 'kas', 'barang', 'pengadaan', 'promo', 'anggota', 'simpanan', 'audit'], // urutan pertama = halaman awal setelah masuk
+        'pengurus' => ['laporan', 'transaksi', 'kas', 'barang', 'pengadaan', 'promo', 'anggota', 'simpanan', 'pinjaman', 'audit'], // urutan pertama = halaman awal setelah masuk
     ];
 
     public static function allows(?string $role, string $menu): bool

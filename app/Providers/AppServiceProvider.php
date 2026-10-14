@@ -81,6 +81,9 @@ class AppServiceProvider extends ServiceProvider
         // Jenis & mutasi simpanan anggota hanya untuk pengurus/admin (kasir tidak punya menu ini).
         Gate::define('kelola-simpanan', fn (User $user) => $user->hasRole(Role::ADMIN, Role::PENGURUS) && $user->canOpen('simpanan'));
 
+        // Pinjaman anggota hanya dikelola pengurus/admin.
+        Gate::define('kelola-pinjaman', fn (User $user) => $user->hasRole(Role::ADMIN, Role::PENGURUS) && $user->canOpen('pinjaman'));
+
         Gate::define('kelola-pengadaan', fn (User $user) => $user->hasRole(Role::ADMIN, Role::PENGURUS) && $user->canOpen('pengadaan'));
 
         // Retur & pembatalan transaksi disetujui/ditolak oleh Admin & Pengurus pemegang menu Transaksi.
