@@ -101,6 +101,7 @@ Route::get('/masuk', Login::class)->name('login');
 Route::get('/portal/masuk', \App\Livewire\Portal\Login::class)->middleware('guest:member')->name('portal.login');
 Route::middleware('auth:member')->group(function () {
     Route::get('/portal', \App\Livewire\Portal\Home::class)->name('portal');
+    Route::get('/portal/simpanan', \App\Livewire\Portal\Savings::class)->name('portal.simpanan');
     Route::post('/portal/keluar', function (\Illuminate\Http\Request $request) {
         app(\App\Services\PortalAuthService::class)->logout();
         $request->session()->regenerateToken();
