@@ -120,6 +120,11 @@ class SavingDueService
                     continue;
                 }
                 $member = $due->member;
+                if ($member->type !== 'guru') {
+                    $skipped[] = "{$member->name} (bukan anggota guru/karyawan)"; // jenis anggota berubah setelah dicatat
+
+                    continue;
+                }
                 if ($this->savings->isPaid($member, $type, $period)) {
                     $skipped[] = "{$member->name} (bulan ini sudah disetor)";
 

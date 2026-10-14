@@ -246,4 +246,16 @@ class MonthlyDuesTest extends TestCase
         $this->loginAs('kasir');
         $this->postJson("/simpanan/setoran-bulanan/{$due->id}/koreksi", ['nominal' => 5000, 'alasan' => 'Coba kasir'])->assertForbidden();
     }
+
+    public function test_only_teachers_can_be_posted(): void
+    {
+        $svc = app(SavingDueService::class);
+        $svc->record('2026-10', $this->wajib, [$this->buSiti->id => 10000]);
+        $this->buSiti->update(['type' => 'siswa', 'class' => '9A']);
+        $r = $svc->post('2026-10', $this->wajib, [$this->buSiti->id]);
+        $this->assertSame(0, $r['posted']);
+        $this->assertStringContainsString('bukan anggota guru', $r['skipped'][0]);
+        $this->assertSame(0, MemberSavingEntry::count());
+        $this->assertNotContains($this->buSiti->id, array_column($svc->sheet('2026-10', $this->wajib), 'member_id'));
+    }
 }
