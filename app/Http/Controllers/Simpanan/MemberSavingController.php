@@ -51,6 +51,39 @@ class MemberSavingController extends Controller
         ], $replayed ? 200 : 201);
     }
 
+    /**
+     * GET /portal/simpanan/mutasi?riwayat=simpanan|tabungan&periode=30-hari|90-hari|tahun-ini|semua&jenis=&limit=
+     * Mutasi milik anggota yang masuk (terbaru dulu) + total masuk/keluar sesuai saringan.
+     */
+    public function myEntries(\Illuminate\Http\Request $request): JsonResponse
+    {
+        $data = $request->validate([
+            'riwayat' => ['nullable', \Illuminate\Validation\Rule::in(['simpanan', 'tabungan'])],
+            'periode' => ['nullable', \Illuminate\Validation\Rule::in(['30-hari', '90-hari', 'tahun-ini', 'semua'])],
+            'jenis' => ['nullable', 'integer'],
+            'limit' => ['nullable', 'integer', 'min:1', 'max:200'],
+        ]);
+        $id = Auth::guard('member')->id();
+        $from = match ($data['periode'] ?? 'semua') {
+            '30-hari' => now()->subDays(29)->startOfDay(), '90-hari' => now()->subDays(89)->startOfDay(),
+            'tahun-ini' => now()->startOfYear(), default => null,
+        };
+        $tabungan = ($data['riwayat'] ?? 'simpanan') === 'tabungan';
+        $query = ($tabungan
+            ? \App\Models\SavingsTransaction::where('member_id', $id)
+            : \App\Models\MemberSavingEntry::with('savingType:id,name')->where('member_id', $id)->when($data['jenis'] ?? null, fn ($q, $t) => $q->where('saving_type_id', $t)))
+            ->when($from, fn ($q) => $q->where('created_at', '>=', $from));
+        $totals = (clone $query)->toBase()->selectRaw("COALESCE(SUM(CASE WHEN type = 'setor' THEN amount ELSE 0 END), 0) AS masuk, COALESCE(SUM(CASE WHEN type <> 'setor' THEN amount ELSE 0 END), 0) AS keluar")->first();
+        $rows = $query->latest('created_at')->latest('id')->limit((int) ($data['limit'] ?? 50))->get();
+
+        return response()->json([
+            'data' => $rows->map(fn ($e) => ['at' => $e->created_at->toIso8601String(), 'type' => $e->type, 'amount' => (int) round((float) $e->amount),
+                'balance_after' => (int) round((float) $e->balance_after), 'note' => $e->note, 'period' => $e->period ?? null,
+                'saving_type' => $tabungan ? null : $e->savingType?->name])->values(),
+            'meta' => ['riwayat' => $tabungan ? 'tabungan' : 'simpanan', 'in' => (int) round((float) $totals->masuk), 'out' => (int) round((float) $totals->keluar)],
+        ]);
+    }
+
     public function mine(MemberSavingService $savings): JsonResponse
     {
         $member = Auth::guard('member')->user();

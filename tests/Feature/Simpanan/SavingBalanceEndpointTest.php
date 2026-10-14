@@ -64,4 +64,18 @@ class SavingBalanceEndpointTest extends TestCase
         $this->loginAs('kasir');
         $this->postJson($url, ['jenis_id' => $sukarela, 'arah' => 'setor', 'nominal' => 1000])->assertForbidden();
     }
+
+    public function test_member_entries_endpoint(): void
+    {
+        $other = Member::factory()->create();
+        app(SavingsService::class)->deposit($other, 99000, 'Punya orang lain');
+        $this->actingAsMember($this->m);
+
+        $this->getJson('/portal/simpanan/mutasi')->assertOk()->assertJsonCount(2, 'data')
+            ->assertJsonPath('meta', ['riwayat' => 'simpanan', 'in' => 57000, 'out' => 0])->assertJsonPath('data.0.saving_type', 'Simpanan Sukarela');
+        $this->getJson('/portal/simpanan/mutasi?jenis='.SavingType::where('code', 'POKOK')->value('id'))->assertJsonCount(1, 'data');
+        $this->getJson('/portal/simpanan/mutasi?riwayat=tabungan')->assertJsonCount(1, 'data')->assertJsonPath('meta.in', 3000)
+            ->assertJsonMissing(['note' => 'Punya orang lain']);
+        $this->getJson('/portal/simpanan/mutasi?periode=minggu')->assertJsonValidationErrors('periode');
+    }
 }
