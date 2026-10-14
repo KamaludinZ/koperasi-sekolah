@@ -6,9 +6,12 @@
 @endphp
 <div class="flex min-h-0 flex-1 flex-col overflow-y-auto">
     <header class="border-b border-stone-200 bg-white px-4 pt-4 sm:px-6">
-        <div>
-            <h1 class="text-lg font-semibold">Simpanan Anggota</h1>
-            <p class="text-xs text-stone-500">Setoran simpanan bulanan guru/karyawan dari potong gaji. Catat nominal, lalu posting agar saldo bertambah.</p>
+        <div class="flex flex-wrap items-center justify-between gap-3">
+            <div>
+                <h1 class="text-lg font-semibold">Simpanan Anggota</h1>
+                <p class="text-xs text-stone-500">Setoran simpanan bulanan guru/karyawan dari potong gaji. Catat nominal, lalu posting agar saldo bertambah.</p>
+            </div>
+            <a href="{{ route('simpanan.setoran.rekap', ['jenis' => $typeId]) }}" wire:navigate class="rounded-xl border border-stone-300 bg-white px-4 py-2.5 text-sm font-medium text-stone-700 hover:bg-stone-50">Rekap status</a>
         </div>
         <x-simpanan.nav active="simpanan.setoran" />
     </header>

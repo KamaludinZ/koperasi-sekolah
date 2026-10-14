@@ -174,6 +174,38 @@ class SavingDueService
                 'posted' => (int) $r->posted, 'posted_amount' => (int) round((float) $r->posted_amount)])->all();
     }
 
+    /**
+     * Matriks status per guru untuk $months bulan terakhir (lama → baru): disetor (ada mutasi setor bulan itu),
+     * belum (dicatat, belum diposting), kosong (belum dicatat), atau null (belum bergabung).
+     *
+     * @return array{periods: list<array{key: string, label: string}>, rows: list<array{member_id: int, code: string, name: string, cells: array<string, ?string>, missing: int}>}
+     */
+    public function matrix(SavingType $type, int $months = 6): array
+    {
+        $periods = collect(range($months - 1, 0))->map(fn ($i) => now()->startOfMonth()->subMonths($i));
+        $keys = $periods->map->format('Y-m')->all();
+        $members = Member::active()->where('type', 'guru')->orderByRaw('LOWER(name)')->get();
+        $ids = $members->pluck('id');
+        $paid = MemberSavingEntry::where('saving_type_id', $type->id)->where('type', 'setor')->whereIn('period', $keys)->whereIn('member_id', $ids)
+            ->get(['member_id', 'period'])->groupBy('member_id')->map(fn ($g) => $g->pluck('period')->flip());
+        $pending = SavingDue::where('saving_type_id', $type->id)->where('status', 'belum')->whereIn('period', $keys)->whereIn('member_id', $ids)
+            ->get(['member_id', 'period'])->groupBy('member_id')->map(fn ($g) => $g->pluck('period')->flip());
+
+        $rows = $members->map(function (Member $m) use ($keys, $paid, $pending) {
+            $joined = ($m->joined_at ?? $m->created_at)?->format('Y-m');
+            $cells = [];
+            foreach ($keys as $k) {
+                $cells[$k] = $joined && $k < $joined ? null
+                    : (isset($paid[$m->id][$k]) ? 'disetor' : (isset($pending[$m->id][$k]) ? 'belum' : 'kosong'));
+            }
+
+            return ['member_id' => $m->id, 'code' => $m->member_code, 'name' => $m->name, 'cells' => $cells,
+                'missing' => count(array_filter($cells, fn ($c) => $c !== null && $c !== 'disetor'))];
+        })->values()->all();
+
+        return ['periods' => $periods->map(fn ($d) => ['key' => $d->format('Y-m'), 'label' => $d->translatedFormat('M y')])->all(), 'rows' => $rows];
+    }
+
     private function assertTypeAndPeriod(SavingType $type, string $period): void
     {
         if (! self::validPeriod($period)) {

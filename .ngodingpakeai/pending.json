@@ -1,6 +1,6 @@
 {
   "repo": "Koperasi Sekolah",
-  "generatedForCommit": "239e19c3e1b52bffb0e89c0e1a49dd2719fe268a",
+  "generatedForCommit": "d7cc3db8ad6a6123ffbbcda55f1863e2f5241b8a",
   "files": [
     {
       "path": ".claude/skills/ngodingpakeai/SKILL.md",
@@ -322,7 +322,7 @@
     },
     {
       "path": "app/Http/Controllers/Simpanan/SavingTypeController.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 2310
     },
@@ -807,8 +807,14 @@
       "size": 5474
     },
     {
+      "path": "app/Livewire/Simpanan/MonthlyDues.php",
+      "reason": "new",
+      "language": "php",
+      "size": 6311
+    },
+    {
       "path": "app/Livewire/Simpanan/Types.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 3857
     },
@@ -1077,6 +1083,12 @@
       "size": 1300
     },
     {
+      "path": "app/Models/SavingDue.php",
+      "reason": "new",
+      "language": "php",
+      "size": 927
+    },
+    {
       "path": "app/Models/SavingType.php",
       "reason": "needs_summary",
       "language": "php",
@@ -1318,9 +1330,9 @@
     },
     {
       "path": "app/Services/MemberSavingService.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 13783
+      "size": 15300
     },
     {
       "path": "app/Services/MemberService.php",
@@ -1473,8 +1485,14 @@
       "size": 16826
     },
     {
+      "path": "app/Services/SavingDueService.php",
+      "reason": "new",
+      "language": "php",
+      "size": 9286
+    },
+    {
       "path": "app/Services/SavingTypeService.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 5560
     },
@@ -2211,6 +2229,12 @@
       "size": 1495
     },
     {
+      "path": "database/migrations/2026_10_14_000013_create_saving_dues_table.php",
+      "reason": "new",
+      "language": "php",
+      "size": 2012
+    },
+    {
       "path": "database/seeders/ActivityLogSeeder.php",
       "reason": "needs_summary",
       "language": "php",
@@ -2506,9 +2530,9 @@
     },
     {
       "path": "resources/views/components/simpanan/nav.blade.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 839
+      "size": 880
     },
     {
       "path": "resources/views/components/sistem/backup-status.blade.php",
@@ -3105,8 +3129,14 @@
       "size": 9205
     },
     {
+      "path": "resources/views/livewire/simpanan/monthly-dues.blade.php",
+      "reason": "new",
+      "language": "php",
+      "size": 9141
+    },
+    {
       "path": "resources/views/livewire/simpanan/types.blade.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 10415
     },
@@ -3210,7 +3240,7 @@
       "path": "routes/web.php",
       "reason": "changed",
       "language": "php",
-      "size": 38248
+      "size": 38348
     },
     {
       "path": "tests/Concerns/MakesProductImports.php",
@@ -4251,6 +4281,12 @@
       "size": 5659
     },
     {
+      "path": "tests/Feature/Simpanan/MonthlyDuesTest.php",
+      "reason": "new",
+      "language": "php",
+      "size": 4709
+    },
+    {
       "path": "tests/Feature/Simpanan/ProfileSavingTypesTest.php",
       "reason": "needs_summary",
       "language": "php",
@@ -4258,7 +4294,7 @@
     },
     {
       "path": "tests/Feature/Simpanan/SavingTypeEndpointTest.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 2090
     },

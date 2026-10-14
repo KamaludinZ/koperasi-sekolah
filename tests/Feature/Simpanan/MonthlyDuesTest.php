@@ -96,4 +96,27 @@ class MonthlyDuesTest extends TestCase
         $this->loginAs('kasir');
         $this->get('/simpanan/setoran-bulanan')->assertForbidden();
     }
+
+    public function test_status_matrix(): void
+    {
+        $svc = app(SavingDueService::class);
+        app(MemberSavingService::class)->depositForPeriod($this->pakDedi, $this->wajib, 10000, '2026-09');
+        $svc->record('2026-10', $this->wajib, [$this->pakDedi->id => 10000]);
+
+        $m = $svc->matrix($this->wajib, 3);
+        $this->assertSame(['2026-08', '2026-09', '2026-10'], array_column($m['periods'], 'key'));
+        $dedi = collect($m['rows'])->firstWhere('member_id', $this->pakDedi->id);
+        $this->assertSame(['2026-08' => 'kosong', '2026-09' => 'disetor', '2026-10' => 'belum'], $dedi['cells']);
+        $this->assertSame(2, $dedi['missing']);
+
+        $this->get('/simpanan/setoran-bulanan/rekap')->assertOk()->assertSee('Pak Dedi')->assertSee('data-cell="disetor"', false)->assertDontSee('Andi Siswa');
+        $this->buSiti->joined_at = '2026-10-01';
+        $this->buSiti->save();
+        $siti = collect($svc->matrix($this->wajib, 3)['rows'])->firstWhere('member_id', $this->buSiti->id);
+        $this->assertNull($siti['cells']['2026-08']);
+        $this->assertSame(1, $siti['missing']);
+
+        app(MemberSavingService::class)->depositForPeriod($this->buSiti, $this->wajib, 10000, '2026-10');
+        Livewire::test(\App\Livewire\Simpanan\DuesRecap::class)->set('months', 3)->set('onlyMissing', true)->assertSee('Pak Dedi')->assertDontSee('Bu Siti');
+    }
 }
