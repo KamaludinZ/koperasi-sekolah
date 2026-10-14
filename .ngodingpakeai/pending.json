@@ -1,6 +1,6 @@
 {
   "repo": "Koperasi Sekolah",
-  "generatedForCommit": "9138587c3528b335ef4dc91689426688861d82f8",
+  "generatedForCommit": "a7b09feb66b2ca229199d02f6f944185baeb442b",
   "files": [
     {
       "path": ".claude/skills/ngodingpakeai/SKILL.md",
@@ -208,7 +208,7 @@
     },
     {
       "path": "app/Http/Controllers/Kasir/CheckoutController.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 3430
     },
@@ -340,9 +340,9 @@
     },
     {
       "path": "app/Http/Controllers/Simpanan/MemberSavingController.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 3272
+      "size": 5571
     },
     {
       "path": "app/Http/Controllers/Simpanan/MonthlyDuesController.php",
@@ -622,7 +622,7 @@
     },
     {
       "path": "app/Livewire/Kasir/Cart.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 22387
     },
@@ -1180,7 +1180,7 @@
     },
     {
       "path": "app/Models/Transaction.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 5068
     },
@@ -1198,7 +1198,7 @@
     },
     {
       "path": "app/Models/TransactionReturn.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 3738
     },
@@ -1318,7 +1318,7 @@
     },
     {
       "path": "app/Services/CheckoutService.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 13183
     },
@@ -1618,7 +1618,7 @@
     },
     {
       "path": "app/Services/TransactionReturnService.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 29130
     },
@@ -2314,7 +2314,7 @@
     },
     {
       "path": "database/migrations/2026_10_14_000017_add_saving_type_to_transactions.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 1561
     },
@@ -2662,7 +2662,7 @@
     },
     {
       "path": "resources/views/components/transaksi/method-badge.blade.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 584
     },
@@ -2974,7 +2974,7 @@
     },
     {
       "path": "resources/views/livewire/kasir/partials/payment-panel.blade.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 29225
     },
@@ -3358,9 +3358,9 @@
     },
     {
       "path": "routes/web.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 40794
+      "size": 40946
     },
     {
       "path": "tests/Concerns/MakesProductImports.php",
@@ -3988,7 +3988,7 @@
     },
     {
       "path": "tests/Feature/Kasir/MemberPaymentMethodsTest.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 8433
     },
@@ -4024,7 +4024,7 @@
     },
     {
       "path": "tests/Feature/Kasir/ReceiptPaymentInfoTest.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 4247
     },
@@ -4048,7 +4048,7 @@
     },
     {
       "path": "tests/Feature/Kasir/SimpananPaymentTest.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 4307
     },
@@ -4456,9 +4456,9 @@
     },
     {
       "path": "tests/Feature/Simpanan/SavingBalanceEndpointTest.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 3462
+      "size": 4373
     },
     {
       "path": "tests/Feature/Simpanan/SavingIndexesTest.php",
