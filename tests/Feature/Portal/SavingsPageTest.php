@@ -69,4 +69,20 @@ class SavingsPageTest extends TestCase
         auth('member')->logout();
         $this->get('/portal/simpanan')->assertRedirect('/portal/masuk');
     }
+
+    public function test_deduction_history_tab(): void
+    {
+        $this->seed(\Database\Seeders\ProductSeeder::class);
+        $svc = app(\App\Services\OrderService::class);
+        $a = $svc->place($this->andi, [$this->pid('ATK001') => 1], ['fulfillment' => 'ambil', 'payment_method' => 'tabungan']);
+        $sukarela = SavingType::where('code', 'SUKARELA')->first();
+        app(MemberSavingService::class)->deposit($this->andi, $sukarela, 10000);
+        $b = $svc->place($this->andi, [$this->pid('ATK002') => 1], ['fulfillment' => 'ambil', 'payment_method' => 'simpanan', 'saving_type_id' => $sukarela->id]);
+        $svc->cancel($b, 'Tidak jadi beli');
+
+        Livewire::test(Savings::class)->call('setTab', 'potong')
+            ->assertSee('Pesanan '.$a->code)->assertSee('Pesanan '.$b->code)->assertSee('Simpanan Sukarela')
+            ->assertSee(route('portal.pesanan.show', $a->id))->assertSee('data-refunded', false)
+            ->assertSee('Dipotong')->assertSee('−Rp7.000')->assertDontSee('Setoran awal');
+    }
 }

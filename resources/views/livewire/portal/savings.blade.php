@@ -55,7 +55,7 @@
         <div class="flex flex-wrap items-center justify-between gap-2 px-4 pt-4">
             <h2 id="hist-title" class="font-semibold">Riwayat</h2>
             <div class="flex gap-1 rounded-xl bg-stone-100 p-1" role="tablist" aria-label="Jenis riwayat">
-                @foreach (['simpanan' => 'Simpanan', 'tabungan' => 'Tabungan'] as $k => $label)
+                @foreach (['simpanan' => 'Simpanan', 'tabungan' => 'Tabungan', 'potong' => 'Potong saldo'] as $k => $label)
                     <button type="button" role="tab" wire:click="setTab('{{ $k }}')" aria-selected="{{ $tab === $k ? 'true' : 'false' }}"
                             @class(['rounded-lg px-3 py-1 text-sm font-medium', 'bg-white text-emerald-900 shadow-sm' => $tab === $k, 'text-stone-600' => $tab !== $k])>{{ $label }}</button>
                 @endforeach
@@ -72,13 +72,16 @@
                 @foreach (\App\Livewire\Portal\Savings::PERIODS as $k => $label)<option value="{{ $k }}">{{ $label }}</option>@endforeach
             </select>
             @php $tt = $this->totals; @endphp
-            <p class="ml-auto self-center text-xs text-stone-500" data-history-totals>Masuk <strong class="text-emerald-800 tabular-nums">+{{ $rp($tt['in']) }}</strong> · Keluar <strong class="text-red-700 tabular-nums">−{{ $rp($tt['out']) }}</strong></p>
+            <p class="ml-auto self-center text-xs text-stone-500" data-history-totals>{{ $tab === 'potong' ? 'Dikembalikan' : 'Masuk' }} <strong class="text-emerald-800 tabular-nums">+{{ $rp($tt['in']) }}</strong> · {{ $tab === 'potong' ? 'Dipotong' : 'Keluar' }} <strong class="text-red-700 tabular-nums">−{{ $rp($tt['out']) }}</strong></p>
         </div>
         <ul class="mt-2 divide-y divide-stone-100">
             @forelse ($h['rows'] as $r)
                 <li class="flex items-center justify-between gap-3 px-4 py-2.5" wire:key="h-{{ $r['id'] }}">
                     <div class="min-w-0">
-                        <p class="truncate text-sm">{{ $r['label'] }}</p>
+                        <p class="truncate text-sm">
+                            @if (! empty($r['order']))<a href="{{ route('portal.pesanan.show', $r['order']['id']) }}" wire:navigate class="hover:text-emerald-800 hover:underline">{{ $r['label'] }}</a>@else{{ $r['label'] }}@endif
+                            @if (! empty($r['refunded']))<span class="ml-1 rounded bg-emerald-100 px-1.5 py-0.5 text-[11px] font-medium text-emerald-800" data-refunded>Dikembalikan</span>@endif
+                        </p>
                         <p class="text-xs text-stone-500">{{ $r['at']->translatedFormat('d M Y H:i') }}@if ($r['type']) · {{ $r['type'] }}@endif</p>
                     </div>
                     <div class="shrink-0 text-right">

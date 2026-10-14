@@ -24,7 +24,7 @@ class Savings extends Component
 {
     public const STEP = 20;
 
-    #[Url(as: 'riwayat', except: 'simpanan')]
+    #[Url(as: 'riwayat', except: 'simpanan')] // simpanan | tabungan | potong
     public string $tab = 'simpanan';
 
     public int $limit = self::STEP;
@@ -66,10 +66,42 @@ class Savings extends Component
             ->when($this->from(), fn ($q, $from) => $q->where('created_at', '>=', $from));
     }
 
+    /**
+     * Semua potong saldo untuk belanja (tabungan & simpanan; pesanan portal & kasir), terbaru dulu, dengan
+     * tautan pesanan dan tanda bila sudah dikembalikan.
+     */
+    private function deductions(int $limit): \Illuminate\Support\Collection
+    {
+        $id = $this->member()->id;
+        $from = $this->from();
+        $tab = SavingsTransaction::where('member_id', $id)->where('type', SavingsTransaction::TYPE_WITHDRAWAL)->whereIn('source_type', ['order', 'transaction'])
+            ->when($from, fn ($q) => $q->where('created_at', '>=', $from))->latest('created_at')->latest('id')->limit($limit)->get()
+            ->map(fn (SavingsTransaction $s) => ['id' => 't'.$s->id, 'at' => $s->created_at, 'source' => 'Tabungan', 'label' => $s->note,
+                'amount' => (int) round((float) $s->amount), 'balance' => (int) round((float) $s->balance_after), 'src' => [$s->source_type, $s->source_id]]);
+        $sim = MemberSavingEntry::with('savingType:id,name')->where('member_id', $id)->where('type', 'potong')
+            ->when($from, fn ($q) => $q->where('created_at', '>=', $from))->latest('created_at')->latest('id')->limit($limit)->get()
+            ->map(fn (MemberSavingEntry $e) => ['id' => 's'.$e->id, 'at' => $e->created_at, 'source' => $e->savingType?->name ?? 'Simpanan', 'label' => $e->note,
+                'amount' => (int) round((float) $e->amount), 'balance' => (int) round((float) $e->balance_after), 'src' => [$e->source_type, $e->source_id]]);
+        $rows = $tab->concat($sim)->sortByDesc(fn ($r) => $r['at']->timestamp)->values();
+        $orders = \App\Models\Order::whereIn('id', $rows->where('src.0', 'order')->pluck('src.1'))->get(['id', 'code', 'payment_status'])->keyBy('id');
+
+        return $rows->map(function ($r) use ($orders) {
+            $o = $r['src'][0] === 'order' ? $orders->get($r['src'][1]) : null;
+
+            return $r + ['in' => false, 'type' => $r['source'], 'order' => $o ? ['id' => $o->id, 'code' => $o->code] : null,
+                'refunded' => $o?->payment_status === 'dikembalikan'];
+        });
+    }
+
     /** Total masuk & keluar sesuai saringan riwayat. */
     #[Computed]
     public function totals(): array
     {
+        if ($this->tab === 'potong') {
+            $rows = $this->deductions(500);
+
+            return ['in' => (int) $rows->where('refunded', true)->sum('amount'), 'out' => (int) $rows->sum('amount')];
+        }
         $row = $this->historyQuery()->selectRaw("COALESCE(SUM(CASE WHEN type = 'setor' THEN amount ELSE 0 END), 0) AS masuk,
             COALESCE(SUM(CASE WHEN type <> 'setor' THEN amount ELSE 0 END), 0) AS keluar")->first();
 
@@ -83,7 +115,7 @@ class Savings extends Component
 
     public function setTab(string $tab): void
     {
-        $this->tab = in_array($tab, ['simpanan', 'tabungan'], true) ? $tab : 'simpanan';
+        $this->tab = in_array($tab, ['simpanan', 'tabungan', 'potong'], true) ? $tab : 'simpanan';
         $this->typeFilter = '';
         $this->limit = self::STEP;
     }
@@ -110,6 +142,11 @@ class Savings extends Component
     #[Computed]
     public function history(): array
     {
+        if ($this->tab === 'potong') {
+            $rows = $this->deductions($this->limit + 1);
+
+            return ['rows' => $rows->take($this->limit)->values()->all(), 'more' => $rows->count() > $this->limit];
+        }
         $rows = $this->tab === 'tabungan'
             ? $this->historyQuery()->latest('created_at')->latest('id')->limit($this->limit + 1)->get()
                 ->map(fn (SavingsTransaction $s) => ['id' => 't'.$s->id, 'at' => $s->created_at, 'in' => $s->type === 'setor',
