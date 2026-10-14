@@ -19,7 +19,7 @@ class ProductSearchController extends Controller
         $validated = $request->validate([
             'q' => ['nullable', 'string', 'max:100'],
             'kategori' => ['nullable', 'string', 'max:100'],
-            'kode' => ['nullable', 'string', 'max:50'],
+            'kode' => ['nullable', 'string', 'max:64'], // kode barang atau barcode
             'limit' => ['nullable', 'integer', 'min:1', 'max:'.ProductCatalog::SEARCH_LIMIT],
         ]);
 

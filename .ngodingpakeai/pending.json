@@ -1,6 +1,6 @@
 {
   "repo": "Koperasi Sekolah",
-  "generatedForCommit": "855fb66c75a34c02f9ddbc01910742d53de12ea6",
+  "generatedForCommit": "f2022698e8f5110c519a2add506c69dc85111a2d",
   "files": [
     {
       "path": ".claude/skills/ngodingpakeai/SKILL.md",
@@ -112,9 +112,9 @@
     },
     {
       "path": "app/Http/Controllers/Barang/BarcodeController.php",
-      "reason": "new",
+      "reason": "changed",
       "language": "php",
-      "size": 1959
+      "size": 2946
     },
     {
       "path": "app/Http/Controllers/Barang/BarcodeImageController.php",
@@ -1348,7 +1348,7 @@
     },
     {
       "path": "app/Services/ProductBarcode.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 5078
     },
@@ -3190,7 +3190,7 @@
     },
     {
       "path": "routes/web.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 36993
     },
@@ -3412,9 +3412,9 @@
     },
     {
       "path": "tests/Feature/Barang/BarcodeEndpointTest.php",
-      "reason": "new",
+      "reason": "changed",
       "language": "php",
-      "size": 2482
+      "size": 3274
     },
     {
       "path": "tests/Feature/Barang/BarcodeFormTest.php",

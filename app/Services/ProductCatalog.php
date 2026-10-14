@@ -32,9 +32,10 @@ class ProductCatalog
                 $like = '%'.str_replace(['\\', '%', '_'], ['\\\\', '\\%', '\\_'], $term).'%';
                 $q->where(fn (Builder $w) => $w
                     ->whereRaw("LOWER(name) LIKE ? ESCAPE '\\'", [$like])
-                    ->orWhereRaw("LOWER(code) LIKE ? ESCAPE '\\'", [$like]));
+                    ->orWhereRaw("LOWER(code) LIKE ? ESCAPE '\\'", [$like])
+                    ->orWhereRaw('LOWER(barcode) = ?', [$term])); // barcode dicocokkan persis (hasil scan)
             })
-            ->when($term !== '', fn (Builder $q) => $q->orderByRaw('CASE WHEN LOWER(code) = ? THEN 0 ELSE 1 END', [$term]))
+            ->when($term !== '', fn (Builder $q) => $q->orderByRaw('CASE WHEN LOWER(code) = ? OR LOWER(barcode) = ? THEN 0 ELSE 1 END', [$term, $term]))
             ->orderBy('name')
             ->limit($limit)
             ->get()
@@ -87,7 +88,8 @@ class ProductCatalog
         return [
             'id' => $p->id,
             'code' => $p->code,
-            'barcode' => $p->barcode,
+            'barcode' => $p->barcode,                          // barcode khusus (null = ikut kode)
+            'barcode_value' => $p->barcode ?: $p->code,        // nilai yang tercetak di label & cocok saat scan
             'name' => $p->name,
             'category' => $p->category?->name,
             'price' => (int) round((float) $p->price),
