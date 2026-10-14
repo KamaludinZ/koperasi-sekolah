@@ -67,7 +67,7 @@ class ProfileSavingTypesTest extends TestCase
     {
         $this->deposit('POKOK', 20000);
         Livewire::test(Show::class, ['member' => $this->member->id])
-            ->assertSee('data-saving-types', false)->assertSee('Simpanan Pokok')->assertSee('Belum dibayar Rp50.000')
+            ->assertSee('data-saving-types', false)->assertSee('Simpanan Pokok')->assertSee('Belum dibayar Rp30.000')
             ->assertSee('Tunggakan 3 bulan · Rp30.000');
 
         $this->seed(UserSeeder::class);

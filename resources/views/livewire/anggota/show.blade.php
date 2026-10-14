@@ -84,9 +84,10 @@
                 </div>
             @endif
 
-            @if ($sv = $this->savingTypes)
-                @include('livewire.anggota.partials.saving-types-card', ['sv' => $sv])
-            @endif
+            @can('menu', 'simpanan')
+                {{-- Simpanan per jenis hanya untuk pengurus/admin (kasir tidak punya menu Simpanan). --}}
+                <livewire:simpanan.member-savings :member-id="$m['id']" :key="'sv-'.$m['id']" />
+            @endcan
 
             @include('livewire.anggota.partials.bon-card')
         </aside>
