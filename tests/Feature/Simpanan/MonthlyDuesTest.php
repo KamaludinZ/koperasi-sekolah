@@ -119,4 +119,33 @@ class MonthlyDuesTest extends TestCase
         app(MemberSavingService::class)->depositForPeriod($this->buSiti, $this->wajib, 10000, '2026-10');
         Livewire::test(\App\Livewire\Simpanan\DuesRecap::class)->set('months', 3)->set('onlyMissing', true)->assertSee('Pak Dedi')->assertDontSee('Bu Siti');
     }
+
+    public function test_correction_adjusts_balance_or_reverses_posting(): void
+    {
+        $svc = app(SavingDueService::class);
+        $svc->record('2026-10', $this->wajib, [$this->pakDedi->id => 10000]);
+        $svc->post('2026-10', $this->wajib, [$this->pakDedi->id]);
+        $due = SavingDue::where('member_id', $this->pakDedi->id)->firstOrFail();
+        $balance = fn () => (int) $this->pakDedi->savingAccounts()->where('saving_type_id', $this->wajib->id)->value('balance');
+
+        Livewire::test(MonthlyDues::class)->call('openCorrection', $due->id)->assertSet('correctAmount', 10000)
+            ->set('correctAmount', 25000)->call('saveCorrection')->assertHasErrors('correctReason')
+            ->set('correctReason', 'Potongan gaji sebenarnya Rp25.000')->call('saveCorrection')->assertHasNoErrors()->assertSet('correcting', null);
+        $this->assertSame(25000, $balance());
+        $this->assertSame(25000, (int) $due->fresh()->amount);
+        $this->assertSame(15000, (int) ActivityLog::where('event', 'simpanan.koreksi')->value('amount'));
+
+        $svc->correct($due->fresh(), 0, 'Salah orang, dibatalkan');
+        $this->assertSame(0, $balance());
+        $this->assertSame('belum', $due->fresh()->status);
+        $this->assertFalse(app(MemberSavingService::class)->isPaid($this->pakDedi, $this->wajib, '2026-10')); // bulan kembali belum lunas
+        $this->assertSame(['tunggak', 0], [collect(app(MemberSavingService::class)->summary($this->pakDedi)['types'])->firstWhere('code', 'WAJIB')['status'],
+            collect(app(MemberSavingService::class)->summary($this->pakDedi)['types'])->firstWhere('code', 'WAJIB')['paid_months']]);
+
+        // Saldo sudah terpakai → koreksi turun ditolak
+        $svc->post('2026-10', $this->wajib, [$this->pakDedi->id]);
+        \App\Models\MemberSavingAccount::where('member_id', $this->pakDedi->id)->where('saving_type_id', $this->wajib->id)->update(['balance' => 1000]);
+        $this->expectException(ValidationException::class);
+        $svc->correct($due->fresh(), 2000, 'Nominal seharusnya lebih kecil');
+    }
 }

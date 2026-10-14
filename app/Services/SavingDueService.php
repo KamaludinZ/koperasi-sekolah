@@ -46,8 +46,7 @@ class SavingDueService
             ->when($term !== '', fn ($q) => $q->where(fn ($w) => $w->whereRaw('LOWER(name) LIKE ?', ["%{$term}%"])->orWhereRaw('LOWER(member_code) LIKE ?', ["%{$term}%"])))
             ->orderByRaw('LOWER(name)')->get();
         $dues = SavingDue::where('period', $period)->where('saving_type_id', $type->id)->whereIn('member_id', $members->pluck('id'))->get()->keyBy('member_id');
-        $paid = MemberSavingEntry::where('saving_type_id', $type->id)->where('period', $period)->where('type', 'setor')
-            ->whereIn('member_id', $members->pluck('id'))->pluck('member_id')->flip();
+        $paid = MemberSavingService::paidPeriodRows($members->pluck('id')->all(), $type->id, [$period])->pluck('member_id')->flip();
         $default = (int) round((float) $type->amount);
 
         return $members->map(function (Member $m) use ($dues, $paid, $default) {
@@ -148,6 +147,45 @@ class SavingDueService
         });
     }
 
+    /**
+     * Koreksi setoran: yang belum diposting cukup diubah nominalnya; yang sudah diposting dikoreksi lewat
+     * mutasi selisih pada bulan yang sama. Nominal baru 0 = batalkan posting (catatan kembali `belum`).
+     *
+     * @throws ValidationException
+     */
+    public function correct(SavingDue $due, int $newAmount, string $reason, ?User $by = null): SavingDue
+    {
+        $reason = trim($reason);
+        if (mb_strlen($reason) < 5 || mb_strlen($reason) > 150) {
+            throw ValidationException::withMessages(['reason' => 'Tulis alasan koreksi (5–150 karakter).']);
+        }
+        if ($newAmount < 0 || $newAmount > MemberSavingService::MAX_AMOUNT || ($newAmount > 0 && $newAmount < MemberSavingService::MIN_AMOUNT)) {
+            throw ValidationException::withMessages(['amount' => 'Nominal baru tidak valid (0 untuk membatalkan posting).']);
+        }
+
+        return DB::transaction(function () use ($due, $newAmount, $reason, $by) {
+            $due = SavingDue::with(['member', 'savingType'])->whereKey($due->id)->lockForUpdate()->firstOrFail();
+            $old = (int) round((float) $due->amount);
+            if ($due->status !== 'disetor') {
+                if ($newAmount === 0) {
+                    throw ValidationException::withMessages(['amount' => 'Setoran belum diposting; hapus catatannya saja.']);
+                }
+                $due->update(['amount' => $newAmount, 'note' => mb_substr($reason, 0, 200)]);
+
+                return $due;
+            }
+            $delta = ($newAmount === 0 ? 0 : $newAmount) - $old;
+            if ($delta !== 0) {
+                $this->savings->correctPeriod($due->member, $due->savingType, $due->period, $delta, $reason, $by?->id, ['saving_due', $due->id]);
+            }
+            $due->forceFill($newAmount === 0
+                ? ['status' => 'belum', 'posted_at' => null, 'entry_id' => null, 'note' => mb_substr('Posting dibatalkan: '.$reason, 0, 200)]
+                : ['amount' => $newAmount, 'note' => mb_substr('Dikoreksi dari '.\App\Support\Rupiah::format($old).': '.$reason, 0, 200)])->save();
+
+            return $due->refresh();
+        });
+    }
+
     /** Hapus catatan setoran yang belum diposting. */
     public function discard(SavingDue $due): void
     {
@@ -186,8 +224,7 @@ class SavingDueService
         $keys = $periods->map->format('Y-m')->all();
         $members = Member::active()->where('type', 'guru')->orderByRaw('LOWER(name)')->get();
         $ids = $members->pluck('id');
-        $paid = MemberSavingEntry::where('saving_type_id', $type->id)->where('type', 'setor')->whereIn('period', $keys)->whereIn('member_id', $ids)
-            ->get(['member_id', 'period'])->groupBy('member_id')->map(fn ($g) => $g->pluck('period')->flip());
+        $paid = MemberSavingService::paidPeriodRows($ids->all(), $type->id, $keys)->groupBy('member_id')->map(fn ($g) => $g->pluck('period')->flip());
         $pending = SavingDue::where('saving_type_id', $type->id)->where('status', 'belum')->whereIn('period', $keys)->whereIn('member_id', $ids)
             ->get(['member_id', 'period'])->groupBy('member_id')->map(fn ($g) => $g->pluck('period')->flip());
 

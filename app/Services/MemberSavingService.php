@@ -29,8 +29,7 @@ class MemberSavingService
         $accounts = $member->savingAccounts()->get()->keyBy('saving_type_id');
         $last = MemberSavingEntry::where('member_id', $member->id)
             ->selectRaw('saving_type_id, MAX(created_at) AS last_at')->groupBy('saving_type_id')->pluck('last_at', 'saving_type_id');
-        $paidPeriods = MemberSavingEntry::where('member_id', $member->id)->where('type', 'setor')->whereNotNull('period')
-            ->select('saving_type_id', 'period')->distinct()->get()->groupBy('saving_type_id')->map->count();
+        $paidPeriods = self::paidPeriodRows([$member->id])->groupBy('saving_type_id')->map->count();
         $deposited = MemberSavingEntry::where('member_id', $member->id)->where('type', 'setor')
             ->selectRaw('saving_type_id, SUM(amount) AS total')->groupBy('saving_type_id')->pluck('total', 'saving_type_id');
 
@@ -155,8 +154,7 @@ class MemberSavingService
     {
         $due = self::monthsDue($member->joined_at ?? $member->created_at, now());
         $start = Carbon::parse($member->joined_at ?? $member->created_at)->startOfMonth();
-        $paid = MemberSavingEntry::where('member_id', $member->id)->where('saving_type_id', $type->id)->where('type', 'setor')
-            ->whereNotNull('period')->pluck('period')->all();
+        $paid = self::paidPeriodRows([$member->id], $type->id)->pluck('period')->all();
         $out = [];
         for ($i = 0; $i < $due && count($out) < $limit; $i++) {
             $p = $start->copy()->addMonths($i)->format('Y-m');
@@ -190,12 +188,58 @@ class MemberSavingService
 
     private function lastPaidPeriod(Member $member, SavingType $type): ?string
     {
-        return MemberSavingEntry::where('member_id', $member->id)->where('saving_type_id', $type->id)->where('type', 'setor')->max('period');
+        return self::paidPeriodRows([$member->id], $type->id)->max('period');
     }
 
     public function isPaid(Member $member, SavingType $type, string $period): bool
     {
-        return MemberSavingEntry::where('member_id', $member->id)->where('saving_type_id', $type->id)->where('type', 'setor')->where('period', $period)->exists();
+        return self::paidPeriodRows([$member->id], $type->id, [$period])->isNotEmpty();
+    }
+
+    /**
+     * Bulan yang terbayar = jumlah bersih mutasi berperiode (setor − tarik/koreksi) > 0, sehingga setoran
+     * yang dibatalkan lewat koreksi tidak lagi dihitung lunas.
+     *
+     * @param  list<int>  $memberIds
+     * @param  list<string>|null  $periods
+     * @return \Illuminate\Support\Collection<int, object{member_id: int, saving_type_id: int, period: string}>
+     */
+    public static function paidPeriodRows(array $memberIds, ?int $typeId = null, ?array $periods = null)
+    {
+        return MemberSavingEntry::query()->whereIn('member_id', $memberIds)->whereNotNull('period')
+            ->when($typeId, fn ($q) => $q->where('saving_type_id', $typeId))
+            ->when($periods !== null, fn ($q) => $q->whereIn('period', $periods))
+            ->groupBy('member_id', 'saving_type_id', 'period')
+            ->havingRaw("SUM(CASE WHEN type = 'setor' THEN amount ELSE -amount END) > 0")
+            ->get(['member_id', 'saving_type_id', 'period'])->toBase();
+    }
+
+    /**
+     * Koreksi mutasi berperiode (mis. setoran bulanan yang salah nominal): $delta > 0 menambah (setor),
+     * $delta < 0 mengurangi (tarik, tanpa syarat "boleh ditarik"). Saldo tidak boleh menjadi minus.
+     *
+     * @throws ValidationException
+     */
+    public function correctPeriod(Member $member, SavingType $type, string $period, int $delta, string $reason, ?int $userId = null, ?array $source = null): MemberSavingEntry
+    {
+        return DB::transaction(function () use ($member, $type, $period, $delta, $reason, $userId, $source) {
+            $locked = Member::withTrashed()->whereKey($member->id)->lockForUpdate()->firstOrFail();
+            MemberSavingAccount::firstOrCreate(['member_id' => $locked->id, 'saving_type_id' => $type->id], ['balance' => 0]);
+            $account = MemberSavingAccount::where('member_id', $locked->id)->where('saving_type_id', $type->id)->lockForUpdate()->firstOrFail();
+            $balance = (int) round((float) $account->balance);
+            if ($delta < 0 && -$delta > $balance) {
+                throw ValidationException::withMessages(['amount' => 'Saldo '.$type->name.' tinggal '.\App\Support\Rupiah::format($balance).'; koreksi tidak bisa dilakukan.']);
+            }
+            $month = Carbon::parse($period.'-01')->translatedFormat('F Y');
+            $entry = $this->post($locked, $account, $type, $delta > 0 ? 'setor' : 'tarik', abs($delta), "Koreksi {$type->name} {$month}: {$reason}", $userId, $period, null, $source);
+            AuditLog::record('simpanan.koreksi', 'simpanan',
+                "Koreksi {$type->name} {$locked->name} {$month}: ".($delta > 0 ? '+' : '−').\App\Support\Rupiah::format(abs($delta))." ({$reason})",
+                ['type' => 'member', 'id' => $locked->id, 'label' => "{$locked->member_code} · {$locked->name}"],
+                ['saving_type_id' => $type->id, 'entry_ids' => [$entry->id], 'period' => $period, 'delta' => $delta,
+                    'balance_before' => (int) $entry->balance_before, 'balance_after' => (int) $entry->balance_after], abs($delta), reason: $reason);
+
+            return $entry;
+        });
     }
 
     /** @return array{0: Member, 1: MemberSavingAccount} anggota & saldo jenis yang sudah dikunci */

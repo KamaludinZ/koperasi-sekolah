@@ -68,6 +68,8 @@
                                     <td class="px-4 py-2 text-right">
                                         @if ($r['status'] === 'belum' && $this->canManage)
                                             <button type="button" wire:click="discard({{ $r['due_id'] }})" class="text-xs font-medium text-red-700 hover:underline">Hapus catatan</button>
+                                        @elseif ($r['status'] === 'disetor' && $r['due_id'] && $this->canManage)
+                                            <button type="button" wire:click="openCorrection({{ $r['due_id'] }})" class="text-xs font-medium text-stone-600 hover:underline">Koreksi</button>
                                         @endif
                                     </td>
                                 </tr>
@@ -96,6 +98,25 @@
             @endif
         @endif
     </div>
+
+    @if ($correcting)
+        <div class="fixed inset-0 z-50 grid place-items-center bg-stone-950/50 p-4" role="dialog" aria-modal="true" aria-labelledby="corr-title" x-data x-on:keydown.escape.window="$wire.set('correcting', null)">
+            <form wire:submit="saveCorrection" class="w-full max-w-sm space-y-3 rounded-2xl bg-white p-5 shadow-xl text-sm">
+                <h2 id="corr-title" class="font-semibold">Koreksi setoran</h2>
+                <p class="text-xs text-stone-500">Selisih dicatat sebagai mutasi koreksi pada bulan yang sama. Isi 0 untuk membatalkan posting.</p>
+                <label class="block"><span class="mb-1 block font-medium">Nominal yang benar (Rp)</span>
+                    <input type="number" min="0" step="1000" wire:model="correctAmount" class="w-full rounded-lg border border-stone-300 px-3 py-2 tabular-nums">
+                    @error('correctAmount') <span class="mt-1 block text-xs text-red-600">{{ $message }}</span> @enderror</label>
+                <label class="block"><span class="mb-1 block font-medium">Alasan</span>
+                    <input type="text" wire:model="correctReason" maxlength="150" placeholder="mis. Potongan gaji Oktober hanya Rp20.000" class="w-full rounded-lg border border-stone-300 px-3 py-2">
+                    @error('correctReason') <span class="mt-1 block text-xs text-red-600">{{ $message }}</span> @enderror</label>
+                <div class="flex justify-end gap-2 pt-1">
+                    <button type="button" wire:click="$set('correcting', null)" class="rounded-lg px-3 py-2 font-medium text-stone-600 hover:bg-stone-100">Batal</button>
+                    <button type="submit" class="rounded-lg bg-emerald-700 px-4 py-2 font-semibold text-white hover:bg-emerald-800">Simpan koreksi</button>
+                </div>
+            </form>
+        </div>
+    @endif
 
     @if ($this->canManage && $this->type)
         <div class="sticky bottom-0 z-10 border-t border-stone-200 bg-white/95 px-4 py-3 backdrop-blur sm:px-6" role="region" aria-label="Aksi setoran">

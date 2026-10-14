@@ -168,6 +168,45 @@ class MonthlyDues extends Component
         $this->toast($result['skipped'] ? 'error' : 'success', $msg.($result['skipped'] ? ' Dilewati: '.implode(', ', $result['skipped']).'.' : ''));
     }
 
+    /** Koreksi setoran yang sudah diposting (nominal baru; 0 = batalkan posting). */
+    public ?int $correcting = null;
+
+    public ?int $correctAmount = null;
+
+    public string $correctReason = '';
+
+    public function openCorrection(int $dueId): void
+    {
+        abort_unless($this->canManage, 403);
+        $due = SavingDue::find($dueId);
+        if (! $due) {
+            return;
+        }
+        $this->correcting = $due->id;
+        $this->correctAmount = (int) round((float) $due->amount);
+        $this->correctReason = '';
+        $this->resetValidation();
+    }
+
+    public function saveCorrection(): void
+    {
+        abort_unless($this->canManage && $this->correcting, 403);
+        $this->resetErrorBag();
+        try {
+            $due = app(SavingDueService::class)->correct(SavingDue::findOrFail($this->correcting), (int) $this->correctAmount, $this->correctReason, auth()->user());
+        } catch (ValidationException $e) {
+            foreach ($e->errors() as $key => $m) {
+                $this->addError(['amount' => 'correctAmount', 'reason' => 'correctReason'][$key] ?? 'correctAmount', $m[0]);
+            }
+
+            return;
+        }
+        $this->correcting = null;
+        unset($this->rows, $this->summary, $this->recap);
+        $this->loadAmounts();
+        $this->toast('success', $due->status === 'disetor' ? 'Setoran dikoreksi; saldo disesuaikan.' : 'Posting dibatalkan; saldo dikembalikan dan catatan menjadi belum disetor.');
+    }
+
     public function discard(int $dueId): void
     {
         abort_unless($this->canManage, 403);
