@@ -1,6 +1,6 @@
 {
   "repo": "Koperasi Sekolah",
-  "generatedForCommit": "fe73f9d4bd0cea6c0734ccf6ec810d4d37fbc730",
+  "generatedForCommit": "ca6f7ee5625ce94f2141bb2d9ea83dc3b371b446",
   "files": [
     {
       "path": ".claude/skills/ngodingpakeai/SKILL.md",
@@ -328,9 +328,9 @@
     },
     {
       "path": "app/Models/LoanInstallment.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 886
+      "size": 3563
     },
     {
       "path": "app/Models/LoanPayment.php",
@@ -364,9 +364,9 @@
     },
     {
       "path": "app/Services/LoanDisbursementService.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 7807
+      "size": 7913
     },
     {
       "path": "app/Services/LoanInstallmentQuery.php",
@@ -376,9 +376,9 @@
     },
     {
       "path": "app/Services/LoanPaymentService.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 19454
+      "size": 19295
     },
     {
       "path": "app/Services/LoanScheduleGenerator.php",
@@ -999,6 +999,12 @@
       "size": 660
     },
     {
+      "path": "database/migrations/2026_10_16_000007_add_parts_to_loan_installments.php",
+      "reason": "new",
+      "language": "php",
+      "size": 2386
+    },
+    {
       "path": "database/seeders/LoanSeeder.php",
       "reason": "needs_summary",
       "language": "php",
@@ -1276,7 +1282,7 @@
     },
     {
       "path": "resources/views/components/portal/loans-empty.blade.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 2744
     },
@@ -1900,7 +1906,7 @@
     },
     {
       "path": "resources/views/livewire/portal/loans.blade.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 3061
     },
@@ -2224,9 +2230,9 @@
     },
     {
       "path": "tests/Feature/Database/LoanSchemaTest.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 9316
+      "size": 13410
     },
     {
       "path": "tests/Feature/Database/NotificationSchemaTest.php",
@@ -2572,7 +2578,7 @@
     },
     {
       "path": "tests/Feature/Portal/LoansPageTest.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 10288
     },

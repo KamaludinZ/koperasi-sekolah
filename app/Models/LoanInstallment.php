@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /** Angsuran pinjaman: jadwal (ke-n, jatuh tempo, nominal) & pembayarannya. */
 class LoanInstallment extends Model
@@ -17,9 +18,82 @@ class LoanInstallment extends Model
         return ['due_date' => 'date', 'paid_at' => 'date', 'amount' => 'decimal:2', 'principal_part' => 'decimal:2', 'interest_part' => 'decimal:2', 'paid_amount' => 'decimal:2', 'sequence' => 'integer'];
     }
 
+    /** Konteks riwayat yang sedang berlaku: event, loan_payment_id, reason, user_id. */
+    private static ?array $historyContext = null;
+
+    private static bool $historySuppressed = false;
+
+    /** Jalankan $fn dengan konteks riwayat (mis. pembayaran mana yang menyebabkan perubahan). */
+    public static function withHistoryContext(array $context, callable $fn): mixed
+    {
+        $prev = self::$historyContext;
+        self::$historyContext = $context;
+        try {
+            return $fn();
+        } finally {
+            self::$historyContext = $prev;
+        }
+    }
+
+    /** Jalankan $fn tanpa mencatat riwayat per simpan (pemanggil mencatat selisih bersihnya sendiri, mis. koreksi). */
+    public static function withoutHistory(callable $fn): mixed
+    {
+        $prev = self::$historySuppressed;
+        self::$historySuppressed = true;
+        try {
+            return $fn();
+        } finally {
+            self::$historySuppressed = $prev;
+        }
+    }
+
+    /** Catat satu baris riwayat untuk angsuran ini bila ada kolom yang berubah. */
+    public function logChange(string $event, array $changes, array $context = []): ?LoanInstallmentChange
+    {
+        if ($changes === []) {
+            return null;
+        }
+        $userId = $context['user_id'] ?? auth()->id();
+
+        return LoanInstallmentChange::create([
+            'loan_id' => $this->loan_id, 'loan_installment_id' => $this->id, 'sequence' => $this->sequence, 'event' => $event,
+            'changes' => $changes, 'loan_payment_id' => $context['loan_payment_id'] ?? null, 'reason' => $context['reason'] ?? null,
+            'user_id' => $userId, 'actor_name' => $userId ? User::whereKey($userId)->value('name') : null,
+        ]);
+    }
+
+    /** Snapshot kolom yang dilacak (nilai mentah sebelum perubahan). */
+    public function trackedOriginal(): array
+    {
+        return array_intersect_key($this->getRawOriginal(), array_flip(LoanInstallmentChange::TRACKED));
+    }
+
+    public function trackedAttributes(): array
+    {
+        return array_intersect_key($this->getAttributes(), array_flip(LoanInstallmentChange::TRACKED));
+    }
+
     /** Angsuran tanpa porsi eksplisit diisi otomatis (pembagian sama dengan generator jadwal). */
     protected static function booted(): void
     {
+        static::updated(function (self $i) {
+            if (self::$historySuppressed) {
+                return;
+            }
+            $changes = LoanInstallmentChange::diff($i->trackedOriginal(), $i->trackedAttributes());
+            if ($changes === []) {
+                return;
+            }
+            $ctx = self::$historyContext ?? [];
+            $keys = array_keys($changes);
+            $event = match (true) {
+                array_intersect($keys, ['due_date', 'amount', 'principal_part', 'interest_part']) !== [] => 'jadwal',
+                $keys === ['status'] => 'status',
+                default => $ctx['event'] ?? 'pembayaran',
+            };
+            $i->logChange($event, $changes, $ctx);
+        });
+
         static::saving(function (self $i) {
             if ($i->principal_part !== null && $i->interest_part !== null) {
                 return;
@@ -68,6 +142,12 @@ class LoanInstallment extends Model
     public function loan(): BelongsTo
     {
         return $this->belongsTo(Loan::class);
+    }
+
+    /** Riwayat perubahan angsuran ini, terlama dulu. */
+    public function history(): HasMany
+    {
+        return $this->hasMany(LoanInstallmentChange::class)->orderBy('id');
     }
 
     public function user(): BelongsTo

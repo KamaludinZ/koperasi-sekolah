@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\Loan;
 use App\Models\LoanInstallment;
+use App\Models\LoanInstallmentChange;
 use App\Models\LoanPayment;
 use App\Support\Rupiah;
 use App\Support\Tanggal;
@@ -124,19 +125,21 @@ class LoanPaymentService
 
             $installments = $locked->installments()->lockForUpdate()->get();
             $plan = self::allocate($installments, $amount);
-            $byId = $installments->keyBy('id');
-            foreach ($plan as $row) {
-                $inst = $byId[$row['installment_id']];
-                $paid = (int) round((float) $inst->paid_amount) + $row['amount'];
-                $inst->update([
-                    'paid_amount' => $paid, 'paid_at' => $data['paid_at'], 'payment_method' => $data['payment_method'], 'user_id' => $userId,
-                    'status' => $row['settles'] ? 'dibayar' : $inst->status,
-                ]);
-            }
-
             $payment = LoanPayment::create(['loan_id' => $locked->id, 'paid_at' => $data['paid_at'], 'amount' => $amount, 'payment_method' => $data['payment_method'],
                 'reference' => $reference, 'note' => $note, 'allocations' => array_map(fn ($r) => ['installment_id' => $r['installment_id'], 'sequence' => $r['sequence'], 'amount' => $r['amount']], $plan),
                 'user_id' => $userId]);
+            $byId = $installments->keyBy('id');
+            LoanInstallment::withHistoryContext(['event' => 'pembayaran', 'loan_payment_id' => $payment->id, 'user_id' => $userId], function () use ($plan, $byId, $data, $userId) {
+                foreach ($plan as $row) {
+                    $inst = $byId[$row['installment_id']];
+                    $paid = (int) round((float) $inst->paid_amount) + $row['amount'];
+                    $inst->update([
+                        'paid_amount' => $paid, 'paid_at' => $data['paid_at'], 'payment_method' => $data['payment_method'], 'user_id' => $userId,
+                        'status' => $row['settles'] ? 'dibayar' : $inst->status,
+                    ]);
+                }
+            });
+
             $before = $locked->status;
             $this->refreshLoan($locked);
             $locked->load('member');
@@ -203,8 +206,16 @@ class LoanPaymentService
                     'allocations' => [], 'user_id' => $userId, 'replaces_id' => $locked->id]);
             }
 
-            $this->replay($loan);
-            $this->refreshLoan($loan);
+            // putar ulang tanpa riwayat per simpan; yang dicatat adalah selisih bersih tiap angsuran dengan alasan koreksi
+            $snapshot = $loan->installments()->get()->mapWithKeys(fn (LoanInstallment $i) => [$i->id => $i->trackedAttributes()]);
+            LoanInstallment::withoutHistory(function () use ($loan) {
+                $this->replay($loan);
+                $this->refreshLoan($loan);
+            });
+            foreach ($loan->installments()->get() as $i) {
+                $i->logChange('koreksi', LoanInstallmentChange::diff($snapshot[$i->id] ?? [], $i->trackedAttributes()),
+                    ['loan_payment_id' => $locked->id, 'reason' => $reason, 'user_id' => $userId]);
+            }
             $loan->load('member');
 
             AuditLog::record('pinjaman.angsuran_koreksi', 'pinjaman',

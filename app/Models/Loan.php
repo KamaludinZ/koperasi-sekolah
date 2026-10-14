@@ -72,6 +72,12 @@ class Loan extends Model
         return $this->hasMany(LoanInstallment::class)->orderBy('sequence');
     }
 
+    /** Riwayat perubahan seluruh angsuran pinjaman ini (append-only), terlama dulu. */
+    public function installmentChanges(): HasMany
+    {
+        return $this->hasMany(LoanInstallmentChange::class)->orderBy('id');
+    }
+
     public function payments(): HasMany
     {
         return $this->hasMany(LoanPayment::class)->orderBy('paid_at')->orderBy('id');
