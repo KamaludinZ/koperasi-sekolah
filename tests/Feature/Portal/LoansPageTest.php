@@ -143,7 +143,15 @@ class LoansPageTest extends TestCase
     {
         $fresh = Member::factory()->create();
         $this->actingAsMember($fresh);
-        $this->get('/portal/pinjaman')->assertOk()->assertSeeHtml('data-empty="pinjaman-saya"')->assertDontSee('PJM-RUN');
+        $this->get('/portal/pinjaman')->assertOk()->assertSeeHtml('data-empty="pinjaman-saya"')->assertDontSee('PJM-RUN')
+            ->assertSee('Belum ada pinjaman')->assertSee('Pengajuan pinjaman dicatat oleh pengurus koperasi')
+            ->assertSeeInOrder(['Ajukan ke pengurus', 'Ditinjau pengurus', 'Dana cair &amp; angsuran'], false)
+            ->assertSeeHtml('href="tel:081234567890"')->assertSee(route('portal.simpanan'), false)
+            ->assertDontSeeHtml('role="tablist" aria-label="Saring pinjaman"')->assertDontSeeHtml('data-total-outstanding')->assertDontSeeHtml('data-nav-alert');
+
+        // tanpa nomor telepon di profil koperasi tombol kontak disembunyikan
+        app(\App\Services\SettingsService::class)->save('profile', ['phone' => null]);
+        $this->get('/portal/pinjaman')->assertOk()->assertSeeHtml('data-empty="pinjaman-saya"')->assertDontSeeHtml('data-contact-phone');
     }
 
     public function test_requires_member_login(): void

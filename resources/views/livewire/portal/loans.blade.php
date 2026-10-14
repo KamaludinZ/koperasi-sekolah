@@ -3,10 +3,7 @@
     <h1 class="text-xl font-semibold">Pinjaman saya</h1>
 
     @if ($loans === [])
-        <div class="rounded-2xl border border-dashed border-stone-300 bg-white px-6 py-12 text-center" data-empty="pinjaman-saya">
-            <p class="font-medium text-stone-700">Belum ada pinjaman</p>
-            <p class="mt-1 text-sm text-stone-500">Pengajuan pinjaman dicatat oleh pengurus koperasi. Hubungi pengurus bila ingin mengajukan pinjaman.</p>
-        </div>
+        <x-portal.loans-empty />
     @else
         @if ($t['overdue'] > 0)
             <div role="alert" class="flex gap-3 rounded-2xl border-2 border-red-300 bg-red-50 p-4 text-red-900" data-overdue-alert>
