@@ -479,6 +479,8 @@ Route::middleware(['menu:pinjaman', 'peran:admin,pengurus', 'can:kelola-pinjaman
     Route::get('/pinjaman/pencairan', \App\Livewire\Pinjaman\Disbursements::class)->name('pinjaman.pencairan');
     Route::get('/pinjaman/pencairan/{disbursement}/bukti', \App\Http\Controllers\Pinjaman\DisbursementProofController::class)
         ->whereNumber('disbursement')->middleware('throttle:60,1')->name('pinjaman.pencairan.bukti');
+    Route::post('/pinjaman/pencairan/{disbursement}/bukti', [\App\Http\Controllers\Pinjaman\DisbursementController::class, 'updateProof'])
+        ->whereNumber('disbursement')->middleware('throttle:30,1')->name('pinjaman.pencairan.bukti.update');
     Route::get('/pinjaman/ringkasan', [\App\Http\Controllers\Pinjaman\LoanController::class, 'summary'])->middleware('throttle:120,1')->name('pinjaman.summary');
     Route::get('/pinjaman/daftar', [\App\Http\Controllers\Pinjaman\LoanController::class, 'index'])->middleware('throttle:120,1')->name('pinjaman.list');
     Route::post('/pinjaman/{loan}/pencairan', [\App\Http\Controllers\Pinjaman\DisbursementController::class, 'store'])->whereNumber('loan')->middleware('throttle:30,1')->name('pinjaman.pencairan.store');
