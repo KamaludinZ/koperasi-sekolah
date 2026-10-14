@@ -258,4 +258,22 @@ class MonthlyDuesTest extends TestCase
         $this->assertSame(0, MemberSavingEntry::count());
         $this->assertNotContains($this->buSiti->id, array_column($svc->sheet('2026-10', $this->wajib), 'member_id'));
     }
+
+    public function test_corrections_are_logged_in_table(): void
+    {
+        $svc = app(SavingDueService::class);
+        $svc->record('2026-10', $this->wajib, [$this->pakDedi->id => 10000]);
+        $due = SavingDue::firstOrFail();
+        $svc->correct($due, 12000, 'Nominal draf diubah');
+        $svc->post('2026-10', $this->wajib, [$this->pakDedi->id]);
+        $svc->correct($due->fresh(), 15000, 'Potongan sebenarnya 15 ribu');
+        $svc->correct($due->fresh(), 0, 'Dibatalkan, salah bulan');
+
+        $log = $due->fresh()->corrections;
+        $this->assertSame(['draf', 'ubah', 'batal'], $log->pluck('action')->all());
+        $this->assertSame([0, 3000, -15000], $log->map(fn ($c) => (int) $c->delta)->all());
+        $this->assertNull($log[0]->entry_id);
+        $this->assertNotNull($log[1]->entry_id);
+        $this->assertSame(auth()->id(), $log[2]->user_id);
+    }
 }

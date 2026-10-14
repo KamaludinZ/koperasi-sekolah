@@ -27,6 +27,11 @@ class SavingDue extends Model
         return $this->belongsTo(SavingType::class);
     }
 
+    public function corrections(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(SavingDueCorrection::class)->orderBy('created_at')->orderBy('id');
+    }
+
     public function recorder(): BelongsTo
     {
         return $this->belongsTo(User::class, 'recorded_by');

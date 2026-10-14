@@ -176,19 +176,27 @@ class SavingDueService
                     throw ValidationException::withMessages(['amount' => 'Setoran belum diposting; hapus catatannya saja.']);
                 }
                 $due->update(['amount' => $newAmount, 'note' => mb_substr($reason, 0, 200)]);
+                $this->logCorrection($due, 'draf', $old, $newAmount, 0, $reason, null, $by);
 
                 return $due;
             }
             $delta = ($newAmount === 0 ? 0 : $newAmount) - $old;
-            if ($delta !== 0) {
-                $this->savings->correctPeriod($due->member, $due->savingType, $due->period, $delta, $reason, $by?->id, ['saving_due', $due->id]);
-            }
+            $entry = $delta !== 0
+                ? $this->savings->correctPeriod($due->member, $due->savingType, $due->period, $delta, $reason, $by?->id, ['saving_due', $due->id])
+                : null;
+            $this->logCorrection($due, $newAmount === 0 ? 'batal' : 'ubah', $old, $newAmount, $delta, $reason, $entry?->id, $by);
             $due->forceFill($newAmount === 0
                 ? ['status' => 'belum', 'posted_at' => null, 'entry_id' => null, 'note' => mb_substr('Posting dibatalkan: '.$reason, 0, 200)]
                 : ['amount' => $newAmount, 'note' => mb_substr('Dikoreksi dari '.\App\Support\Rupiah::format($old).': '.$reason, 0, 200)])->save();
 
             return $due->refresh();
         });
+    }
+
+    private function logCorrection(SavingDue $due, string $action, int $old, int $new, int $delta, string $reason, ?int $entryId, ?User $by): void
+    {
+        \App\Models\SavingDueCorrection::create(['saving_due_id' => $due->id, 'action' => $action, 'old_amount' => $old, 'new_amount' => $new,
+            'delta' => $delta, 'reason' => mb_substr($reason, 0, 150), 'entry_id' => $entryId, 'user_id' => $by?->id ?? auth()->id(), 'created_at' => now()]);
     }
 
     /** Hapus catatan setoran yang belum diposting. */
