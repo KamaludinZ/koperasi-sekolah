@@ -84,6 +84,32 @@ class ProductBarcode
         });
     }
 
+    /**
+     * Ubah barcode satu barang: `nilai` (barcode pabrik/isian), `baru` (EAN-13 internal), `kode` (ikut kode barang).
+     *
+     * @throws \Illuminate\Validation\ValidationException
+     */
+    public function assign(Product $product, string $mode, ?string $value = null): Product
+    {
+        $barcode = match ($mode) {
+            'baru' => $this->generate($product->id),
+            'kode' => null,
+            'nilai' => self::normalize($value, $product->code),
+            default => throw \Illuminate\Validation\ValidationException::withMessages(['mode' => 'Pilih nilai, baru, atau kode.']),
+        };
+        if ($mode === 'nilai' && $barcode !== null) {
+            if (! preg_match(self::PATTERN, $barcode)) {
+                throw \Illuminate\Validation\ValidationException::withMessages(['barcode' => 'Barcode 3–64 karakter: huruf, angka, - . / +.']);
+            }
+            if (self::taken($barcode, $product->id)) {
+                throw \Illuminate\Validation\ValidationException::withMessages(['barcode' => 'Barcode sudah dipakai barang lain.']);
+            }
+        }
+        $product->update(['barcode' => $barcode]); // dicatat MasterDataObserver
+
+        return $product->refresh();
+    }
+
     /** Lengkapi 12 digit dengan digit pemeriksa EAN-13. */
     public static function ean13(string $twelve): string
     {

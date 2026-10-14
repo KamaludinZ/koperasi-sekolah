@@ -1,6 +1,6 @@
 {
   "repo": "Koperasi Sekolah",
-  "generatedForCommit": "ab1aa937b64bf2015319d8b1ebb9f54661b52aaa",
+  "generatedForCommit": "62c950ba8decf9e50a80ca99651b8338b555e02d",
   "files": [
     {
       "path": ".claude/skills/ngodingpakeai/SKILL.md",
@@ -109,6 +109,12 @@
       "reason": "needs_summary",
       "language": "php",
       "size": 750
+    },
+    {
+      "path": "app/Http/Controllers/Barang/BarcodeImageController.php",
+      "reason": "new",
+      "language": "php",
+      "size": 1714
     },
     {
       "path": "app/Http/Controllers/Barang/CategoryController.php",
@@ -1558,9 +1564,9 @@
     },
     {
       "path": "app/Support/BarcodeImage.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 1626
+      "size": 2991
     },
     {
       "path": "app/Support/CouponValidator.php",
@@ -1594,7 +1600,7 @@
     },
     {
       "path": "app/Support/OpeningHours.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 3929
     },
@@ -3004,13 +3010,13 @@
     },
     {
       "path": "resources/views/livewire/portal/checkout.blade.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 7831
     },
     {
       "path": "resources/views/livewire/portal/home.blade.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 1924
     },
@@ -3180,7 +3186,7 @@
       "path": "routes/web.php",
       "reason": "changed",
       "language": "php",
-      "size": 36347
+      "size": 36589
     },
     {
       "path": "tests/Concerns/MakesProductImports.php",
@@ -3403,6 +3409,12 @@
       "reason": "needs_summary",
       "language": "php",
       "size": 3881
+    },
+    {
+      "path": "tests/Feature/Barang/BarcodeImageEndpointTest.php",
+      "reason": "new",
+      "language": "php",
+      "size": 1745
     },
     {
       "path": "tests/Feature/Barang/BarcodesPageTest.php",
@@ -4078,7 +4090,7 @@
     },
     {
       "path": "tests/Feature/Pengaturan/OpenStatusEndpointTest.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 2119
     },

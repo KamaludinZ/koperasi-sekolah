@@ -263,6 +263,10 @@ Route::middleware('menu:barang')->group(function () {
     Route::get('/barang/barcode', Barang\Barcodes::class)->name('barang.barcode');
     Route::get('/barang/{product}/barcode.{format}', \App\Http\Controllers\Barang\BarcodeImageController::class)
         ->whereNumber('product')->whereIn('format', ['svg', 'png'])->middleware('throttle:120,1')->name('barang.barcode.image');
+    Route::middleware(['can:kelola-katalog', 'throttle:30,1'])->group(function () {
+        Route::put('/barang/{product}/barcode', [\App\Http\Controllers\Barang\BarcodeController::class, 'update'])->whereNumber('product')->name('barang.barcode.update');
+        Route::post('/barang/barcode/massal', [\App\Http\Controllers\Barang\BarcodeController::class, 'bulk'])->name('barang.barcode.bulk');
+    });
     Route::get('/barang/barcode/label', Barang\Labels::class)->name('barang.label');
     Route::get('/barang/barcode/label/cetak', \App\Http\Controllers\Barang\LabelPrintController::class)
         ->middleware('throttle:30,1')->name('barang.label.cetak');
