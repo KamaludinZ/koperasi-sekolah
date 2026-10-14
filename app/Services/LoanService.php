@@ -44,6 +44,47 @@ class LoanService
     }
 
     /**
+     * Ringkasan lengkap untuk endpoint: jumlah & nominal per status, sebaran per metode bayar (pinjaman aktif),
+     * dan angsuran yang jatuh tempo bulan ini / sudah lewat jatuh tempo.
+     */
+    public function summary(): array
+    {
+        $byStatus = Loan::query()->selectRaw('status, COUNT(*) AS n, COALESCE(SUM(principal), 0) AS pokok, COALESCE(SUM(outstanding), 0) AS sisa')
+            ->groupBy('status')->get()->keyBy('status');
+        $statuses = collect(Loan::STATUSES)->map(fn ($label, $s) => [
+            'status' => $s, 'label' => $label, 'count' => (int) ($byStatus[$s]->n ?? 0),
+            'principal' => (int) round((float) ($byStatus[$s]->pokok ?? 0)), 'outstanding' => (int) round((float) ($byStatus[$s]->sisa ?? 0)),
+        ])->values()->all();
+
+        $byMethod = Loan::active()->selectRaw('payment_method, COUNT(*) AS n, COALESCE(SUM(outstanding), 0) AS sisa')->groupBy('payment_method')->get()->keyBy('payment_method');
+        $methods = collect(Loan::METHODS)->map(fn ($label, $m) => [
+            'method' => $m, 'label' => $label, 'count' => (int) ($byMethod[$m]->n ?? 0), 'outstanding' => (int) round((float) ($byMethod[$m]->sisa ?? 0)),
+        ])->values()->all();
+
+        $today = today();
+        $open = LoanInstallment::query()->where('status', '!=', 'dibayar')->whereHas('loan', fn ($q) => $q->whereIn('status', Loan::ACTIVE));
+        $sum = fn ($q) => (int) round((float) $q->sum(\Illuminate\Support\Facades\DB::raw('amount - paid_amount')));
+        $dueMonth = (clone $open)->whereBetween('due_date', [$today->copy()->startOfMonth()->toDateString(), $today->copy()->endOfMonth()->toDateString()]);
+        $late = (clone $open)->where('due_date', '<', $today->toDateString());
+
+        $stats = $this->stats();
+
+        return [
+            'counts' => $stats['counts'],
+            'statuses' => $statuses,
+            'methods' => $methods,
+            'outstanding' => $stats['outstanding'],
+            'overdue_outstanding' => $stats['overdue_outstanding'],
+            'active_count' => $stats['counts']['berjalan'] + $stats['counts']['menunggak'],
+            'awaiting_decision' => $stats['counts']['diajukan'],
+            'awaiting_disbursement' => $stats['counts']['disetujui'],
+            'due_this_month' => ['count' => (clone $dueMonth)->count(), 'amount' => $sum(clone $dueMonth)],
+            'late_installments' => ['count' => (clone $late)->count(), 'amount' => $sum(clone $late)],
+            'generated_at' => now()->toIso8601String(),
+        ];
+    }
+
+    /**
      * Rincian satu pinjaman: data pinjaman, pencairan, jadwal angsuran & ringkasan pembayaran.
      * Angsuran "belum" yang lewat jatuh tempo ditandai `late` (status tersimpan tetap apa adanya).
      */

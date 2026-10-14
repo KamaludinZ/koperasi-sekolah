@@ -12,6 +12,7 @@ use Illuminate\Validation\Rule;
 /**
  * Pinjaman anggota (JSON, Admin & Pengurus):
  * - GET /pinjaman/daftar?q=&status=&metode=&anggota=&per_halaman=&page= → daftar berpaginasi + ringkasan status
+ * - GET /pinjaman/ringkasan → jumlah & nominal per status, per metode, angsuran jatuh tempo bulan ini & terlambat
  * - GET /pinjaman/{loan}/data → rincian satu pinjaman (pencairan, jadwal angsuran, ringkasan bayar)
  * - GET /pinjaman/{loan}/angsuran?status=belum|dibayar|menunggak|terlambat → jadwal angsuran saja (+ ringkasan)
  */
@@ -54,6 +55,11 @@ class LoanController extends Controller
             ],
             'links' => ['prev' => $paginator->previousPageUrl(), 'next' => $paginator->nextPageUrl()],
         ]);
+    }
+
+    public function summary(LoanService $loans): JsonResponse
+    {
+        return response()->json(['data' => $loans->summary()]);
     }
 
     public function show(Loan $loan, LoanService $loans): JsonResponse
