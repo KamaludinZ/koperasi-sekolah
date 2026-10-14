@@ -1,6 +1,6 @@
 {
   "repo": "Koperasi Sekolah",
-  "generatedForCommit": "2546cf350a209b23905cee1387c6e8a5911069fe",
+  "generatedForCommit": "002202eab799c752e007e7c40612bc583e85f7b8",
   "files": [
     {
       "path": ".claude/skills/ngodingpakeai/SKILL.md",
@@ -130,13 +130,13 @@
     },
     {
       "path": "app/Http/Controllers/Pinjaman/DisbursementController.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 3571
+      "size": 6504
     },
     {
       "path": "app/Http/Controllers/Pinjaman/DisbursementProofController.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 2198
     },
@@ -304,7 +304,7 @@
     },
     {
       "path": "app/Models/LoanDisbursement.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 720
     },
@@ -340,7 +340,7 @@
     },
     {
       "path": "app/Services/LoanDisbursementService.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 7807
     },
@@ -946,7 +946,7 @@
     },
     {
       "path": "database/migrations/2026_10_16_000004_add_proof_hash_to_loan_disbursements.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 679
     },
@@ -2014,9 +2014,9 @@
     },
     {
       "path": "routes/web.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 46126
+      "size": 46508
     },
     {
       "path": "tests/Concerns/MakesProductImports.php",
@@ -2380,9 +2380,15 @@
     },
     {
       "path": "tests/Feature/Pinjaman/DisbursementAuditTest.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 4838
+    },
+    {
+      "path": "tests/Feature/Pinjaman/DisbursementDetailEndpointTest.php",
+      "reason": "new",
+      "language": "php",
+      "size": 4023
     },
     {
       "path": "tests/Feature/Pinjaman/DisbursementEndpointTest.php",
@@ -2398,7 +2404,7 @@
     },
     {
       "path": "tests/Feature/Pinjaman/DisbursementProofTest.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 8526
     },
