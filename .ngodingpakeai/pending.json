@@ -1,6 +1,6 @@
 {
   "repo": "Koperasi Sekolah",
-  "generatedForCommit": "054571bfe4289b31adc295ccbde1e745154f3c52",
+  "generatedForCommit": "e6dab245232ae77479bec7078f5583683fe8a341",
   "files": [
     {
       "path": ".claude/skills/ngodingpakeai/SKILL.md",
@@ -328,9 +328,9 @@
     },
     {
       "path": "app/Http/Controllers/Simpanan/MonthlyDuesExportController.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 3124
+      "size": 5530
     },
     {
       "path": "app/Http/Controllers/Simpanan/SavingTypeController.php",
@@ -1642,7 +1642,7 @@
     },
     {
       "path": "app/Support/DatabaseIndexes.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 2984
     },
@@ -2278,7 +2278,7 @@
     },
     {
       "path": "database/migrations/2026_10_14_000016_add_saving_report_indexes.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 1203
     },
@@ -3184,9 +3184,9 @@
     },
     {
       "path": "resources/views/livewire/simpanan/dues-recap.blade.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 7438
+      "size": 8035
     },
     {
       "path": "resources/views/livewire/simpanan/entries.blade.php",
@@ -3303,6 +3303,12 @@
       "size": 2049
     },
     {
+      "path": "resources/views/simpanan/rekap-pdf.blade.php",
+      "reason": "new",
+      "language": "php",
+      "size": 2108
+    },
+    {
       "path": "resources/views/simpanan/setoran-pdf.blade.php",
       "reason": "needs_summary",
       "language": "php",
@@ -3316,9 +3322,9 @@
     },
     {
       "path": "routes/web.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 39215
+      "size": 39426
     },
     {
       "path": "tests/Concerns/MakesProductImports.php",
@@ -4372,9 +4378,9 @@
     },
     {
       "path": "tests/Feature/Simpanan/MonthlyDuesTest.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 16565
+      "size": 17684
     },
     {
       "path": "tests/Feature/Simpanan/ProfileSavingTypesTest.php",
@@ -4384,7 +4390,7 @@
     },
     {
       "path": "tests/Feature/Simpanan/SavingIndexesTest.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 827
     },
