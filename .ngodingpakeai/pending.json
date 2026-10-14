@@ -1,6 +1,6 @@
 {
   "repo": "Koperasi Sekolah",
-  "generatedForCommit": "01737f71666dd1a26f9333a5a661c4c203ef1162",
+  "generatedForCommit": "049cb36f84795c0afd8ff0f036b67ab5274b97d7",
   "files": [
     {
       "path": ".claude/skills/ngodingpakeai/SKILL.md",
@@ -124,7 +124,7 @@
     },
     {
       "path": "app/Http/Controllers/Barang/LabelPrintController.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 1580
     },
@@ -490,7 +490,7 @@
     },
     {
       "path": "app/Livewire/Barang/Labels.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 5006
     },
@@ -1444,9 +1444,9 @@
     },
     {
       "path": "app/Support/LabelFormats.php",
-      "reason": "new",
+      "reason": "changed",
       "language": "php",
-      "size": 3382
+      "size": 3828
     },
     {
       "path": "app/Support/Menu.php",
@@ -2164,13 +2164,13 @@
     },
     {
       "path": "resources/views/barang/label-print.blade.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 2042
     },
     {
       "path": "resources/views/barang/partials/label-sheet.blade.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 1420
     },
@@ -2488,7 +2488,7 @@
     },
     {
       "path": "resources/views/livewire/barang/barcodes.blade.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 7710
     },
@@ -2524,15 +2524,15 @@
     },
     {
       "path": "resources/views/livewire/barang/index.blade.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 16294
     },
     {
       "path": "resources/views/livewire/barang/labels.blade.php",
-      "reason": "new",
+      "reason": "changed",
       "language": "php",
-      "size": 8610
+      "size": 8797
     },
     {
       "path": "resources/views/livewire/barang/min-stock-settings.blade.php",
@@ -2914,7 +2914,7 @@
     },
     {
       "path": "routes/web.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 34427
     },
@@ -3214,9 +3214,9 @@
     },
     {
       "path": "tests/Feature/Barang/LabelPrintTest.php",
-      "reason": "new",
+      "reason": "changed",
       "language": "php",
-      "size": 3501
+      "size": 3989
     },
     {
       "path": "tests/Feature/Barang/LowStockPanelTest.php",

@@ -59,6 +59,19 @@ class LabelPrintTest extends TestCase
         $c->set('format', 'a4-3x8')->call('fillSheet')->assertSet('rows.0.copies', 12)->call('clear')->assertSet('rows', []);
     }
 
+    public function test_preview_pages_and_toggles(): void
+    {
+        $a = $this->pid('ATK001');
+        $b = $this->pid('ATK002');
+        Livewire::withQueryParams(['barang' => "{$a}:24,{$b}:2"])->test(Labels::class)
+            ->assertSee('lembar 1 dari 2')->assertSee('Rp4.000')->assertDontSee('data-label="ATK002"', false)
+            ->call('previewTo', 1)->assertSet('previewPage', 1)->assertSee('lembar 2 dari 2')->assertSee('data-label="ATK002"', false)
+            ->call('previewTo', 9)->assertSet('previewPage', 1)
+            ->assertSee('3.2mm;">Rp', false)->set('showPrice', false)->assertDontSee('3.2mm;">Rp', false)
+            ->set('showName', false)->assertDontSee('Pulpen Hitam</p>', false)
+            ->set('rows.0.copies', 1)->assertSet('previewPage', 0);
+    }
+
     public function test_print_view(): void
     {
         $a = $this->pid('ATK001');

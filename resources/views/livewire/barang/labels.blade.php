@@ -91,13 +91,19 @@
                 <div class="mt-3 flex justify-center overflow-hidden rounded-lg bg-stone-100 p-3">
                     @if ($sheet['pages'])
                         <div class="shadow ring-1 ring-stone-300" style="zoom: {{ $zoom }}">
-                            @include('barang.partials.label-sheet', ['f' => $f, 'page' => $sheet['pages'][0], 'showName' => $showName, 'showPrice' => $showPrice])
+                            @include('barang.partials.label-sheet', ['f' => $f, 'page' => $sheet['pages'][$previewPage] ?? $sheet['pages'][0], 'showName' => $showName, 'showPrice' => $showPrice])
                         </div>
                     @else
                         <p class="py-16 text-sm text-stone-400">Pratinjau muncul setelah barang ditambahkan.</p>
                     @endif
                 </div>
-                @if (count($sheet['pages']) > 1)<p class="mt-2 text-center text-xs text-stone-500">Menampilkan lembar 1 dari {{ count($sheet['pages']) }}.</p>@endif
+                @if (($pages = count($sheet['pages'])) > 1)
+                    <div class="mt-2 flex items-center justify-center gap-3 text-xs text-stone-500">
+                        <button type="button" wire:click="previewTo({{ $previewPage - 1 }})" @disabled($previewPage === 0) class="rounded-md border border-stone-300 px-2 py-1 disabled:opacity-40" aria-label="Lembar sebelumnya">‹</button>
+                        <span>Menampilkan lembar {{ min($previewPage, $pages - 1) + 1 }} dari {{ $pages }}.</span>
+                        <button type="button" wire:click="previewTo({{ $previewPage + 1 }})" @disabled($previewPage >= $pages - 1) class="rounded-md border border-stone-300 px-2 py-1 disabled:opacity-40" aria-label="Lembar berikutnya">›</button>
+                    </div>
+                @endif
                 @if ($url = $this->printUrl)
                     <a href="{{ $url }}" target="_blank" rel="noopener" data-print-labels class="mt-4 block rounded-xl bg-emerald-700 px-4 py-2.5 text-center text-sm font-semibold text-white hover:bg-emerald-800">Cetak label</a>
                 @else

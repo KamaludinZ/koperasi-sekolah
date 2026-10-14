@@ -31,6 +31,9 @@ class Labels extends Component
 
     public string $search = '';
 
+    /** Lembar yang ditampilkan di pratinjau (mulai 0). */
+    public int $previewPage = 0;
+
     public function mount(): void
     {
         foreach (LabelFormats::parseItems(request()->query('barang')) as $id => $copies) {
@@ -103,6 +106,12 @@ class Labels extends Component
             $this->format = LabelFormats::DEFAULT;
         }
         unset($this->products, $this->items, $this->sheet, $this->printUrl);
+        $this->previewTo($this->previewPage);
+    }
+
+    public function previewTo(int $page): void
+    {
+        $this->previewPage = max(0, min($page, count($this->sheet['pages']) - 1));
     }
 
     public function add(int $id): void
