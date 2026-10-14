@@ -42,9 +42,10 @@
     @else
         <p class="mt-2 text-sm text-stone-500">Belum ada jenis simpanan aktif.</p>
     @endif
-    @if (\Illuminate\Support\Facades\Route::has('simpanan'))
-        <a href="{{ route('simpanan') }}" wire:navigate class="mt-2 inline-block text-xs font-medium text-emerald-800 hover:underline">Kelola jenis simpanan →</a>
-    @endif
+    <p class="mt-2 flex flex-wrap gap-x-4 text-xs font-medium">
+        <a href="{{ route('simpanan.mutasi', ['anggota' => $memberId, 'periode' => 'semua']) }}" wire:navigate class="text-emerald-800 hover:underline">Riwayat mutasi →</a>
+        <a href="{{ route('simpanan') }}" wire:navigate class="text-stone-500 hover:underline">Jenis simpanan</a>
+    </p>
 
     @if ($open)
         <div class="fixed inset-0 z-50 grid place-items-center bg-stone-950/50 p-4" role="dialog" aria-modal="true" aria-labelledby="sv-form-title"

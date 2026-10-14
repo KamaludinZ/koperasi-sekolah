@@ -413,6 +413,7 @@ Route::middleware('menu:laporan')->group(function () {
 
 Route::middleware(['menu:simpanan', 'peran:admin,pengurus'])->group(function () {
     Route::get('/simpanan', Simpanan\Types::class)->name('simpanan');
+    Route::get('/simpanan/mutasi', Simpanan\Entries::class)->name('simpanan.mutasi');
 });
 
 Route::middleware(['menu:pengguna', 'peran:admin'])->group(function () {
