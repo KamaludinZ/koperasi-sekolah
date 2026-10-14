@@ -29,6 +29,20 @@ class LoanService
     }
 
     /**
+     * Ringkasan konsol: jumlah pinjaman per status & total sisa pinjaman aktif (berjalan + menunggak).
+     *
+     * @return array{counts: array<string, int>, outstanding: int, overdue_outstanding: int}
+     */
+    public function stats(): array
+    {
+        $rows = Loan::query()->selectRaw('status, COUNT(*) AS n, COALESCE(SUM(outstanding), 0) AS sisa')->groupBy('status')->get()->keyBy('status');
+        $counts = collect(array_keys(Loan::STATUSES))->mapWithKeys(fn ($s) => [$s => (int) ($rows[$s]->n ?? 0)])->all();
+        $sisa = fn (string $s) => (int) round((float) ($rows[$s]->sisa ?? 0));
+
+        return ['counts' => $counts, 'outstanding' => $sisa('berjalan') + $sisa('menunggak'), 'overdue_outstanding' => $sisa('menunggak')];
+    }
+
+    /**
      * Rincian satu pinjaman: data pinjaman, pencairan, jadwal angsuran & ringkasan pembayaran.
      * Angsuran "belum" yang lewat jatuh tempo ditandai `late` (status tersimpan tetap apa adanya).
      */

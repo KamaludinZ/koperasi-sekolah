@@ -9,6 +9,32 @@
     </header>
 
     <div class="space-y-4 px-4 py-5 sm:px-6">
+        @php $st = $this->stats; $c = $st['counts']; @endphp
+        <section class="grid grid-cols-2 gap-3 lg:grid-cols-5" aria-label="Ringkasan status pinjaman">
+            <div class="rounded-xl border border-sky-200 bg-sky-50 px-4 py-3" data-loan-card="diajukan">
+                <p class="text-xs text-sky-800">Menunggu keputusan</p>
+                <p class="text-2xl font-bold text-sky-900 tabular-nums">{{ $c['diajukan'] }}</p>
+                <p class="text-xs text-sky-800/80">{{ $c['disetujui'] }} disetujui, belum cair</p>
+            </div>
+            <div class="rounded-xl border border-stone-200 bg-white px-4 py-3" data-loan-card="berjalan">
+                <p class="text-xs text-stone-500">Berjalan</p>
+                <p class="text-2xl font-bold tabular-nums">{{ $c['berjalan'] }}</p>
+            </div>
+            <div @class(['rounded-xl border px-4 py-3', 'border-red-200 bg-red-50' => $c['menunggak'] > 0, 'border-stone-200 bg-white' => $c['menunggak'] === 0]) data-loan-card="menunggak">
+                <p @class(['text-xs', 'text-red-800' => $c['menunggak'] > 0, 'text-stone-500' => $c['menunggak'] === 0])>Menunggak</p>
+                <p @class(['text-2xl font-bold tabular-nums', 'text-red-800' => $c['menunggak'] > 0])>{{ $c['menunggak'] }}</p>
+                @if ($st['overdue_outstanding'] > 0)<p class="text-xs text-red-800/80 tabular-nums">Sisa {{ $rp($st['overdue_outstanding']) }}</p>@endif
+            </div>
+            <div class="rounded-xl border border-stone-200 bg-white px-4 py-3" data-loan-card="lunas">
+                <p class="text-xs text-stone-500">Lunas</p>
+                <p class="text-2xl font-bold tabular-nums">{{ $c['lunas'] }}</p>
+            </div>
+            <div class="col-span-2 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 lg:col-span-1" data-loan-card="sisa">
+                <p class="text-xs text-emerald-800">Total sisa pinjaman aktif</p>
+                <p class="text-xl font-bold text-emerald-900 tabular-nums sm:text-2xl">{{ $rp($st['outstanding']) }}</p>
+            </div>
+        </section>
+
         <section class="overflow-hidden rounded-xl border border-stone-200 bg-white" aria-label="Daftar pinjaman">
             <div class="overflow-x-auto">
                 <table class="w-full min-w-[56rem] text-sm">

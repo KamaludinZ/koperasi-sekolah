@@ -28,6 +28,12 @@ class Index extends Component
         return app(LoanService::class)->query()->paginate(self::PER_PAGE)->through(fn (Loan $l) => LoanService::toArray($l));
     }
 
+    #[Computed]
+    public function stats(): array
+    {
+        return app(LoanService::class)->stats();
+    }
+
     public function render()
     {
         return view('livewire.pinjaman.index');
