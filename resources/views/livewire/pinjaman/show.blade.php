@@ -112,6 +112,58 @@
             @if ($flash)
                 <p class="rounded-xl bg-stone-100 px-4 py-3 text-sm text-stone-800" role="status">{{ $flash }}</p>
             @endif
+            @if (in_array($l['status'], \App\Models\Loan::ACTIVE, true))
+                @can('kelola-pinjaman')
+                    @unless ($paying)
+                        <button type="button" wire:click="openPayment" class="w-full rounded-xl bg-emerald-700 py-2.5 text-sm font-semibold text-white hover:bg-emerald-800" data-open-payment>Catat angsuran</button>
+                    @else
+                        @php $in = 'w-full rounded-lg border border-stone-300 bg-white px-3 py-2 text-sm outline-none focus:border-emerald-600 focus:ring-4 focus:ring-emerald-600/15'; $plan = $this->paymentPreview; @endphp
+                        <form wire:submit="recordPayment" class="space-y-3 rounded-xl border border-emerald-200 bg-white p-4" data-payment-form>
+                            <h2 class="text-sm font-semibold">Catat angsuran diterima</h2>
+                            <label class="block">
+                                <span class="mb-1 block text-sm font-medium">Nominal diterima</span>
+                                <span class="relative block">
+                                    <span class="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-sm text-stone-500">Rp</span>
+                                    <input type="number" inputmode="numeric" min="1" max="{{ $l['outstanding'] }}" wire:model.live.debounce.400ms="payAmount" class="{{ $in }} pl-9 tabular-nums">
+                                </span>
+                                @error('payAmount') <span class="mt-1 block text-xs text-red-600">{{ $message }}</span> @else <span class="mt-1 block text-xs text-stone-500">Sisa pinjaman {{ $rp($l['outstanding']) }}. Boleh sebagian atau beberapa angsuran sekaligus.</span> @enderror
+                            </label>
+                            @if ($plan)
+                                <ul class="rounded-lg bg-stone-50 px-3 py-2 text-xs text-stone-600" data-payment-preview>
+                                    @foreach ($plan as $p)
+                                        <li class="flex justify-between"><span>Angsuran ke-{{ $p['sequence'] }}{{ $p['settles'] ? ' (lunas)' : ' (sebagian)' }}</span><span class="tabular-nums">{{ $rp($p['amount']) }}</span></li>
+                                    @endforeach
+                                </ul>
+                            @endif
+                            <label class="block">
+                                <span class="mb-1 block text-sm font-medium">Tanggal bayar</span>
+                                <input type="date" wire:model="payDate" min="{{ $l['disbursed_at'] }}" max="{{ today()->toDateString() }}" class="{{ $in }}">
+                                @error('payDate') <span class="mt-1 block text-xs text-red-600">{{ $message }}</span> @enderror
+                            </label>
+                            <fieldset>
+                                <legend class="mb-1 block text-sm font-medium">Metode bayar</legend>
+                                <div class="grid grid-cols-3 gap-2">
+                                    @foreach (\App\Models\Loan::METHODS as $value => $label)
+                                        <label @class(['flex cursor-pointer items-center justify-center rounded-lg border px-2 py-2 text-xs', 'border-emerald-600 bg-emerald-50 font-semibold text-emerald-900' => $payMethod === $value, 'border-stone-300' => $payMethod !== $value])>
+                                            <input type="radio" wire:model.live="payMethod" value="{{ $value }}" class="sr-only"> {{ $label }}
+                                        </label>
+                                    @endforeach
+                                </div>
+                                @error('payMethod') <span class="mt-1 block text-xs text-red-600">{{ $message }}</span> @enderror
+                            </fieldset>
+                            <label class="block">
+                                <span class="mb-1 block text-sm font-medium">Catatan <span class="font-normal text-stone-500">(opsional)</span></span>
+                                <input type="text" wire:model="payNote" maxlength="200" placeholder="Mis. potong gaji Oktober, ref. transfer" class="{{ $in }}">
+                                @error('payNote') <span class="mt-1 block text-xs text-red-600">{{ $message }}</span> @enderror
+                            </label>
+                            <div class="flex gap-2">
+                                <button type="button" wire:click="cancelPayment" class="rounded-lg border border-stone-300 px-3 py-2 text-sm font-medium text-stone-700 hover:bg-stone-50">Batal</button>
+                                <button type="submit" wire:loading.attr="disabled" wire:target="recordPayment" class="flex-1 rounded-lg bg-emerald-700 py-2 text-sm font-semibold text-white hover:bg-emerald-800 disabled:opacity-60">Simpan angsuran</button>
+                            </div>
+                        </form>
+                    @endunless
+                @endcan
+            @endif
             @if ($l['status'] === 'disetujui')
                 <div class="rounded-xl border border-indigo-200 bg-indigo-50 px-4 py-3" data-ready-banner>
                     <p class="text-sm font-semibold text-indigo-900">Siap dicairkan</p>

@@ -72,6 +72,11 @@ class Loan extends Model
         return $this->hasMany(LoanInstallment::class)->orderBy('sequence');
     }
 
+    public function payments(): HasMany
+    {
+        return $this->hasMany(LoanPayment::class)->orderBy('paid_at')->orderBy('id');
+    }
+
     public function disbursements(): HasMany
     {
         return $this->hasMany(LoanDisbursement::class)->orderBy('disbursed_on')->orderBy('id');

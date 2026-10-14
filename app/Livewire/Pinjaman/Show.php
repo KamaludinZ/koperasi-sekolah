@@ -49,6 +49,17 @@ class Show extends Component
 
     public ?string $flash = null;
 
+    /** Form input angsuran (pinjaman berjalan/menunggak). */
+    public bool $paying = false;
+
+    public int|string|null $payAmount = '';
+
+    public string $payDate = '';
+
+    public string $payMethod = '';
+
+    public string $payNote = '';
+
     public function mount(Loan $loan): void
     {
         $this->loanId = $loan->id;
@@ -135,6 +146,73 @@ class Show extends Component
     public function detail(): array
     {
         return app(LoanService::class)->detail(Loan::findOrFail($this->loanId));
+    }
+
+    public function openPayment(): void
+    {
+        abort_unless(Gate::allows('kelola-pinjaman'), 403);
+        $loan = $this->loan();
+        if (! in_array($loan->status, Loan::ACTIVE, true)) {
+            return;
+        }
+        $next = $loan->installments()->where('status', '!=', 'dibayar')->orderBy('sequence')->first();
+        $this->resetValidation();
+        $this->payAmount = $next ? (int) round((float) $next->amount - (float) $next->paid_amount) : '';
+        $this->payDate = today()->toDateString();
+        $this->payMethod = $loan->payment_method;
+        $this->payNote = '';
+        $this->disbursing = false;
+        $this->paying = true;
+    }
+
+    public function cancelPayment(): void
+    {
+        $this->paying = false;
+    }
+
+    /** Pratinjau alokasi nominal yang sedang diisi ke angsuran tertua. */
+    #[Computed]
+    public function paymentPreview(): array
+    {
+        $amount = is_numeric($this->payAmount) ? (int) $this->payAmount : 0;
+        if (! $this->paying || $amount < 1) {
+            return [];
+        }
+
+        return \App\Services\LoanPaymentService::allocate($this->loan()->installments()->get(), $amount);
+    }
+
+    public function recordPayment(): void
+    {
+        abort_unless(Gate::allows('kelola-pinjaman'), 403);
+        $loan = $this->loan();
+        $map = ['amount' => 'payAmount', 'paid_at' => 'payDate', 'payment_method' => 'payMethod', 'note' => 'payNote'];
+        $rules = collect(\App\Services\LoanPaymentService::rules($loan))->mapWithKeys(fn ($r, $k) => [$map[$k] => $r])->all();
+        $messages = collect(\App\Services\LoanPaymentService::messages($loan))->mapWithKeys(fn ($m, $k) => [str_replace(array_keys($map), array_values($map), $k) => $m])->all();
+        $data = $this->validate($rules, $messages);
+
+        try {
+            $payment = app(\App\Services\LoanPaymentService::class)->record($loan, ['amount' => $data['payAmount'], 'paid_at' => $data['payDate'],
+                'payment_method' => $data['payMethod'], 'note' => $data['payNote'] ?? null], auth()->id());
+        } catch (ValidationException $e) {
+            $errors = $e->errors();
+            if (isset($errors['loan'])) {
+                $this->paying = false;
+                $this->flash = $errors['loan'][0];
+                unset($this->detail);
+
+                return;
+            }
+            $this->addError('payAmount', collect($errors)->flatten()->first());
+
+            return;
+        }
+
+        $loan->refresh();
+        $this->paying = false;
+        $this->flash = 'Angsuran '.\App\Support\Rupiah::format($payment->amount).' dicatat untuk angsuran ke-'.implode(', ', array_column($payment->allocations, 'sequence')).'. '
+            .($loan->status === 'lunas' ? 'Pinjaman lunas.' : 'Sisa '.\App\Support\Rupiah::format($loan->outstanding).'.');
+        unset($this->detail, $this->paymentPreview);
     }
 
     public function openAttach(int $disbursementId): void
