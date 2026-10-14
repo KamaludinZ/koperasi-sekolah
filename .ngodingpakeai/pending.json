@@ -1,6 +1,6 @@
 {
   "repo": "Koperasi Sekolah",
-  "generatedForCommit": "911384eb8abccb5b4621c3ee089f5a06a2f0eb45",
+  "generatedForCommit": "e09cf84b4ddccecb3d0b8c1b39f98672869eb329",
   "files": [
     {
       "path": ".claude/skills/ngodingpakeai/SKILL.md",
@@ -760,9 +760,9 @@
     },
     {
       "path": "app/Livewire/Portal/OrderShow.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 1924
+      "size": 2068
     },
     {
       "path": "app/Livewire/Portal/Orders.php",
@@ -1366,9 +1366,9 @@
     },
     {
       "path": "app/Services/OrderService.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 17345
+      "size": 18990
     },
     {
       "path": "app/Services/PasswordService.php",
@@ -2560,7 +2560,7 @@
     },
     {
       "path": "resources/views/components/portal/payment-methods.blade.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 4754
     },
@@ -3100,7 +3100,7 @@
     },
     {
       "path": "resources/views/livewire/portal/checkout.blade.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 9242
     },
@@ -3118,9 +3118,9 @@
     },
     {
       "path": "resources/views/livewire/portal/order-show.blade.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 5707
+      "size": 7489
     },
     {
       "path": "resources/views/livewire/portal/orders.blade.php",
@@ -4288,13 +4288,13 @@
     },
     {
       "path": "tests/Feature/Portal/OrderTrackingTest.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 3155
+      "size": 3618
     },
     {
       "path": "tests/Feature/Portal/PaymentMethodsComponentTest.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 1985
     },

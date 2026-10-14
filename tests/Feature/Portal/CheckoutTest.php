@@ -99,6 +99,24 @@ class CheckoutTest extends TestCase
             ->assertSeeHtml('data-after>Rp12.000')->assertSee('tanpa menunggu persetujuan pengurus');
     }
 
+    public function test_rejection_when_balance_drops_before_confirm(): void
+    {
+        app(SavingsService::class)->deposit($this->andi, 10000);
+        $c = Livewire::test(Checkout::class)->set('payment', 'tabungan')->call('review')->assertSet('confirming', true);
+        app(SavingsService::class)->withdraw($this->andi, 5000); // saldo berubah sebelum konfirmasi
+        $stock = Product::find($this->pid('ATK001'))->stock;
+
+        $c->set('pin', '123456')->call('place')->assertSet('confirming', false)
+            ->assertSee('data-balance-rejected', false)->assertSee('Pembayaran ditolak')->assertSee('Saldo tabungan kurang Rp3.000');
+        $this->assertSame(0, Order::count());
+        $this->assertEquals(5000, (float) $this->andi->fresh()->balance);
+        $this->assertSame($stock, Product::find($this->pid('ATK001'))->stock);
+
+        $c->call('switchPayment', 'tunai')->assertSet('payment', 'tunai')->assertSet('rejection', null)->assertDontSee('data-balance-rejected', false)
+            ->call('review')->set('pin', '123456')->call('place')->assertHasNoErrors();
+        $this->assertSame('tunai', Order::value('payment_method'));
+    }
+
     public function test_validation_stock_and_idempotency(): void
     {
         Livewire::test(Checkout::class)->set('fulfillment', 'antar')->set('deliveryTo', '')->set('pin', '123456')->call('place')->assertHasErrors('deliveryTo');

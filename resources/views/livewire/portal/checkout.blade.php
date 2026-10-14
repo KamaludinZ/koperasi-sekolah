@@ -51,6 +51,24 @@
         @error('fulfillment') <p class="text-sm text-red-700">{{ $message }}</p> @enderror
     </fieldset>
 
+    @if ($rejection)
+        <section class="rounded-2xl border border-red-200 bg-red-50 p-4" role="alert" data-balance-rejected>
+            <div class="flex items-start gap-3">
+                <span class="grid size-10 shrink-0 place-items-center rounded-full bg-red-600 text-white" aria-hidden="true">
+                    <svg class="size-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></svg></span>
+                <div class="min-w-0">
+                    <h2 class="font-semibold text-red-900">Pembayaran ditolak</h2>
+                    <p class="text-sm text-red-800">{{ $rejection }}</p>
+                    <p class="mt-1 text-xs text-red-700">Pesanan belum dibuat dan tidak ada saldo yang dipotong.</p>
+                </div>
+            </div>
+            <div class="mt-3 flex flex-wrap gap-2">
+                <button type="button" wire:click="switchPayment('tunai')" class="rounded-lg bg-white px-3 py-2 text-sm font-semibold text-stone-800 ring-1 ring-red-200 hover:bg-red-100">Bayar tunai saja</button>
+                <button type="button" wire:click="switchPayment('qris')" class="rounded-lg bg-white px-3 py-2 text-sm font-semibold text-stone-800 ring-1 ring-red-200 hover:bg-red-100">Bayar QRIS</button>
+            </div>
+        </section>
+    @endif
+
     <x-portal.payment-methods :payments="$payments" :payment="$payment" :fulfillment="$fulfillment" :balances="$this->balances"
                               :balance-total="$this->balanceTotal" :deduction="$this->deduction" :qris-url="$this->qrisUrl" />
 

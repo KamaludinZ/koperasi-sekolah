@@ -43,6 +43,9 @@ class Checkout extends Component
 
     public string $pin = '';
 
+    /** Penolakan potong saldo (saldo berubah/kurang saat dikirim): pesan dari server. */
+    public ?string $rejection = null;
+
     public function mount()
     {
         if (! PortalCart::summary()['count']) {
@@ -110,6 +113,7 @@ class Checkout extends Component
 
     public function updatedPayment(): void
     {
+        $this->rejection = null;
         if ($this->payment === 'simpanan' && ! $this->savingTypeId) {
             $this->savingTypeId = collect($this->balances['simpanan'])->firstWhere(fn ($t) => $t['balance'] >= $this->balanceTotal)['id'] ?? null;
         }
@@ -120,6 +124,17 @@ class Checkout extends Component
     public function pinAttempts(): array
     {
         return app(PortalPinService::class)->attempts(Auth::guard('member')->user());
+    }
+
+    /** Ganti ke cara bayar lain setelah potong saldo ditolak. */
+    public function switchPayment(string $method): void
+    {
+        if (in_array($method, ['tunai', 'qris'], true)) {
+            $this->payment = $method;
+            $this->rejection = null;
+            $this->resetErrorBag('payment');
+            unset($this->price, $this->deduction);
+        }
     }
 
     /** Buka langkah verifikasi PIN (pilihan dicek dulu tanpa membuat pesanan). */
@@ -163,6 +178,9 @@ class Checkout extends Component
             ], $this->ref);
         } catch (ValidationException $e) {
             $map = ['payment_method' => 'payment', 'saving_type_id' => 'savingTypeId', 'delivery_to' => 'deliveryTo'];
+            if (isset($e->errors()['payment_method']) && in_array($this->payment, ['tabungan', 'simpanan'], true)) {
+                $this->rejection = $e->errors()['payment_method'][0]; // ditolak, tidak ada yang dipotong
+            }
             foreach ($e->errors() as $key => $messages) {
                 $this->addError($map[$key] ?? $key, $messages[0]);
             }
