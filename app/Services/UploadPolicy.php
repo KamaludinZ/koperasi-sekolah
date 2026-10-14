@@ -21,7 +21,33 @@ class UploadPolicy
         'webp' => ['image/webp'],
         'csv' => ['text/plain', 'text/csv', 'application/csv', 'text/x-csv'],
         'xlsx' => ['application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 'application/zip', 'application/octet-stream'],
+        'pdf' => ['application/pdf'],
     ];
+
+    /** Bukti serah terima (pencairan pinjaman): foto/scan gambar atau PDF, maks. 4 MB. */
+    public const PROOF_TYPES = ['jpg', 'png', 'webp', 'pdf'];
+
+    public const PROOF_MAX_KB = 4096;
+
+    public static function proofRules(bool $required = false): array
+    {
+        $mimes = collect(self::PROOF_TYPES)->flatMap(fn ($t) => self::MIMES[$t])->unique()->values()->all();
+
+        return [$required ? 'required' : 'nullable', 'file', 'max:'.self::PROOF_MAX_KB, 'mimes:jpg,jpeg,png,webp,pdf',
+            'mimetypes:'.implode(',', $mimes), new SafeUpload('proof')];
+    }
+
+    public static function proofMessages(string $field): array
+    {
+        return [
+            "{$field}.required" => 'Pilih berkas bukti.',
+            "{$field}.file" => 'Unggahan gagal. Coba pilih berkasnya lagi.',
+            "{$field}.uploaded" => 'Unggahan gagal. Coba pilih berkasnya lagi.',
+            "{$field}.max" => 'Ukuran bukti maksimal 4 MB.',
+            "{$field}.mimes" => 'Gunakan foto JPG, PNG, WEBP, atau PDF.',
+            "{$field}.mimetypes" => 'Gunakan foto JPG, PNG, WEBP, atau PDF.',
+        ];
+    }
 
     /** Batas gambar logo (piksel). */
     public const LOGO_DIMENSIONS = 'dimensions:min_width=64,min_height=64,max_width=2000,max_height=2000';

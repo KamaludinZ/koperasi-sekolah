@@ -58,6 +58,7 @@ class SafeUpload implements ValidationRule
             in_array($ext, ['png', 'jpg', 'jpeg', 'webp'], true) => $this->checkImage($path, $ext),
             $ext === 'csv' => str_contains(substr($head, 0, 65536), "\0") ? 'Berkas CSV harus berupa teks.' : null,
             $ext === 'xlsx' => $this->checkXlsx($path),
+            $ext === 'pdf' => $this->checkPdf($path),
             default => null,
         };
         if ($error) {
@@ -71,6 +72,17 @@ class SafeUpload implements ValidationRule
         $expected = ['png' => IMAGETYPE_PNG, 'jpg' => IMAGETYPE_JPEG, 'jpeg' => IMAGETYPE_JPEG, 'webp' => IMAGETYPE_WEBP][$ext];
 
         return $info && $info[2] === $expected ? null : 'Isi berkas tidak sesuai dengan jenis gambarnya.';
+    }
+
+    /** PDF asli (diawali %PDF-) tanpa JavaScript, aksi peluncuran, atau berkas sisipan. */
+    private function checkPdf(string $path): ?string
+    {
+        $body = (string) file_get_contents($path, false, null, 0, 10 * 1024 * 1024);
+        if (! str_starts_with($body, '%PDF-')) {
+            return 'Berkas bukan PDF yang sah.';
+        }
+
+        return preg_match('#/(JavaScript|JS|Launch|EmbeddedFile|OpenAction|AA)\b#', $body) ? 'PDF berisi skrip atau aksi otomatis dan ditolak.' : null;
     }
 
     private function checkXlsx(string $path): ?string

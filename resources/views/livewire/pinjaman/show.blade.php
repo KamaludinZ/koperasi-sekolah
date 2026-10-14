@@ -141,6 +141,12 @@
                             <input type="text" wire:model="proof" maxlength="200" placeholder="Mis. kuitansi no. 017, transfer BRI" class="{{ $in }}">
                             @error('proof') <span class="mt-1 block text-xs text-red-600">{{ $message }}</span> @enderror
                         </label>
+                        <label class="block">
+                            <span class="mb-1 block text-sm font-medium">Foto/scan bukti serah terima <span class="font-normal text-stone-500">(opsional)</span></span>
+                            <input type="file" wire:model="proofFile" accept=".jpg,.jpeg,.png,.webp,.pdf" class="block w-full text-sm text-stone-600 file:mr-3 file:rounded-lg file:border-0 file:bg-stone-100 file:px-3 file:py-1.5 file:text-sm file:font-medium">
+                            <span wire:loading wire:target="proofFile" class="mt-1 block text-xs text-stone-500">Mengunggah…</span>
+                            @error('proofFile') <span class="mt-1 block text-xs text-red-600">{{ $message }}</span> @else <span class="mt-1 block text-xs text-stone-500">JPG, PNG, WEBP, atau PDF, maks. 4 MB.</span> @enderror
+                        </label>
                         @if ($preview)
                             <div class="rounded-lg bg-stone-50 px-3 py-2 text-xs text-stone-600" data-schedule-preview>
                                 <p class="font-medium text-stone-700">Jadwal yang akan terbentuk ({{ count($preview) }} angsuran)</p>
@@ -150,7 +156,7 @@
                         @endif
                         <div class="flex gap-2">
                             <button type="button" wire:click="cancelDisburse" class="rounded-lg border border-stone-300 px-3 py-2 text-sm font-medium text-stone-700 hover:bg-stone-50">Batal</button>
-                            <button type="submit" wire:loading.attr="disabled" wire:target="disburse" class="flex-1 rounded-lg bg-emerald-700 py-2 text-sm font-semibold text-white hover:bg-emerald-800 disabled:opacity-60">Cairkan & bentuk jadwal</button>
+                            <button type="submit" wire:loading.attr="disabled" wire:target="disburse,proofFile" class="flex-1 rounded-lg bg-emerald-700 py-2 text-sm font-semibold text-white hover:bg-emerald-800 disabled:opacity-60">Cairkan & bentuk jadwal</button>
                         </div>
                     </form>
                 @endif
@@ -183,7 +189,30 @@
                     @forelse ($disb as $d)
                         <li class="px-4 py-2.5" wire:key="disb-{{ $d['id'] }}">
                             <p class="flex justify-between"><span>{{ $date($d['disbursed_on']) }}</span><span class="font-medium tabular-nums">{{ $rp($d['amount']) }}</span></p>
-                            <p class="text-xs text-stone-500">{{ $d['proof'] ?? 'Tanpa keterangan bukti' }}{{ $d['has_file'] ? ' · ada lampiran' : '' }}{{ $d['user'] ? ' · '.$d['user'] : '' }}</p>
+                            <p class="text-xs text-stone-500">{{ $d['proof'] ?? 'Tanpa keterangan bukti' }}{{ $d['user'] ? ' · '.$d['user'] : '' }}</p>
+                            <div class="mt-1 flex flex-wrap gap-3 text-xs">
+                                @if ($d['has_file'])
+                                    <a href="{{ route('pinjaman.pencairan.bukti', $d['id']) }}" class="font-medium text-emerald-800 hover:underline" data-proof-download>Unduh bukti</a>
+                                @endif
+                                @can('kelola-pinjaman')
+                                    @if ($attachingId !== $d['id'])
+                                        <button type="button" wire:click="openAttach({{ $d['id'] }})" class="font-medium text-stone-600 hover:underline">{{ $d['has_file'] ? 'Ganti bukti' : 'Lampirkan bukti' }}</button>
+                                    @endif
+                                @endcan
+                            </div>
+                            @if ($attachingId === $d['id'])
+                                <form wire:submit="saveAttach" class="mt-2 space-y-2 rounded-lg bg-stone-50 p-3" data-attach-form>
+                                    <input type="text" wire:model="attachProof" maxlength="200" placeholder="Keterangan bukti" aria-label="Keterangan bukti"
+                                           class="w-full rounded-lg border border-stone-300 bg-white px-3 py-1.5 text-sm">
+                                    @error('attachProof') <span class="block text-xs text-red-600">{{ $message }}</span> @enderror
+                                    <input type="file" wire:model="attachFile" accept=".jpg,.jpeg,.png,.webp,.pdf" aria-label="Berkas bukti" class="block w-full text-xs">
+                                    @error('attachFile') <span class="block text-xs text-red-600">{{ $message }}</span> @enderror
+                                    <div class="flex gap-2">
+                                        <button type="button" wire:click="cancelAttach" class="rounded-lg border border-stone-300 px-3 py-1 text-xs font-medium">Batal</button>
+                                        <button type="submit" wire:loading.attr="disabled" wire:target="saveAttach,attachFile" class="rounded-lg bg-emerald-700 px-3 py-1 text-xs font-semibold text-white disabled:opacity-60">Simpan bukti</button>
+                                    </div>
+                                </form>
+                            @endif
                         </li>
                     @empty
                         <li class="px-4 py-6 text-center text-stone-400">Belum dicairkan.</li>

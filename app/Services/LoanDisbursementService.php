@@ -55,6 +55,35 @@ class LoanDisbursementService
         ], range(1, $tenor));
     }
 
+    public const PROOF_DIR = 'pinjaman/bukti';
+
+    /** Simpan berkas bukti di disk lokal (privat) dengan nama acak; kembalikan path relatif. */
+    public static function storeProof(\Illuminate\Http\UploadedFile $file): string
+    {
+        $ext = strtolower($file->getClientOriginalExtension()) === 'jpeg' ? 'jpg' : strtolower($file->getClientOriginalExtension());
+
+        return $file->storeAs(self::PROOF_DIR, \Illuminate\Support\Str::random(40).'.'.$ext, 'local');
+    }
+
+    /** Lampirkan/ganti berkas bukti & keterangan pada pencairan yang sudah tercatat; berkas lama dihapus. */
+    public function attachProof(\App\Models\LoanDisbursement $disbursement, ?string $proof, ?string $path): \App\Models\LoanDisbursement
+    {
+        $proof = filled($proof) ? trim($proof) : null;
+        $old = ['proof' => $disbursement->proof, 'has_file' => filled($disbursement->proof_file)];
+        $oldFile = $disbursement->proof_file;
+        $disbursement->update(['proof' => $proof] + ($path ? ['proof_file' => $path] : []));
+        if ($path && $oldFile && $oldFile !== $path) {
+            \Illuminate\Support\Facades\Storage::disk('local')->delete($oldFile);
+        }
+
+        $loan = $disbursement->loan()->with('member')->first();
+        AuditLog::record('pinjaman.bukti', 'pinjaman', "Bukti pencairan {$loan->code} {$loan->member->name} diperbarui".($proof ? ": {$proof}" : ''),
+            LoanApplicationService::subject($loan), ['disbursement_id' => $disbursement->id], action: 'diubah',
+            old: $old, new: ['proof' => $proof, 'has_file' => filled($disbursement->proof_file)]);
+
+        return $disbursement;
+    }
+
     /** @param  array  $data  data tervalidasi (rules()) */
     public function disburse(Loan $loan, array $data, ?int $userId = null, ?string $proofFile = null): Loan
     {
