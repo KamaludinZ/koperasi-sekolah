@@ -193,7 +193,7 @@ class MemberSavingService
         return MemberSavingEntry::where('member_id', $member->id)->where('saving_type_id', $type->id)->where('type', 'setor')->max('period');
     }
 
-    private function isPaid(Member $member, SavingType $type, string $period): bool
+    public function isPaid(Member $member, SavingType $type, string $period): bool
     {
         return MemberSavingEntry::where('member_id', $member->id)->where('saving_type_id', $type->id)->where('type', 'setor')->where('period', $period)->exists();
     }
@@ -220,7 +220,33 @@ class MemberSavingService
         }
     }
 
-    private function post(Member $member, MemberSavingAccount $account, SavingType $type, string $kind, int $amount, ?string $note, ?int $userId, ?string $period, ?string $clientRef): MemberSavingEntry
+    /**
+     * Setor untuk satu bulan tertentu (mis. posting setoran bulanan potong gaji). Ditolak bila bulan itu
+     * sudah disetor. Dicatat dengan asal mutasi ($source = [jenis, id]).
+     *
+     * @throws ValidationException
+     */
+    public function depositForPeriod(Member $member, SavingType $type, int $amount, string $period, ?string $note = null, ?int $userId = null, ?array $source = null): MemberSavingEntry
+    {
+        if (! preg_match('/^\d{4}-(0[1-9]|1[0-2])$/', $period)) {
+            throw ValidationException::withMessages(['period' => 'Periode tidak valid.']);
+        }
+
+        return DB::transaction(function () use ($member, $type, $amount, $period, $note, $userId, $source) {
+            [$locked, $account] = $this->lock($member, $type);
+            $this->assertAmount($amount);
+            if ($this->isPaid($locked, $type, $period)) {
+                throw ValidationException::withMessages(['period' => "{$type->name} {$locked->name} bulan ".Carbon::parse($period.'-01')->translatedFormat('F Y').' sudah disetor.']);
+            }
+            $entry = $this->post($locked, $account, $type, 'setor', $amount,
+                $note ?: "{$type->name} ".Carbon::parse($period.'-01')->translatedFormat('F Y'), $userId, $period, null, $source);
+            $this->audit($locked, $type, 'setor', $amount, [$entry], 'periode '.$period);
+
+            return $entry;
+        });
+    }
+
+    private function post(Member $member, MemberSavingAccount $account, SavingType $type, string $kind, int $amount, ?string $note, ?int $userId, ?string $period, ?string $clientRef, ?array $source = null): MemberSavingEntry
     {
         $before = (int) round((float) $account->balance);
         $after = $kind === 'setor' ? $before + $amount : $before - $amount;
@@ -228,6 +254,7 @@ class MemberSavingService
             'member_id' => $member->id, 'saving_type_id' => $type->id, 'type' => $kind, 'amount' => $amount,
             'balance_before' => $before, 'balance_after' => $after, 'period' => $period,
             'note' => $note !== null ? mb_substr(trim($note), 0, 200) : null, 'user_id' => $userId, 'client_ref' => $clientRef,
+            'source_type' => $source[0] ?? null, 'source_id' => $source[1] ?? null,
         ]);
         $account->forceFill(['balance' => $after])->save();
 

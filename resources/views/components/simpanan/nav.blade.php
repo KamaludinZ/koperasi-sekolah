@@ -1,7 +1,7 @@
 {{-- Navigasi bagian Simpanan. `active` = nama route halaman ini; route yang belum ada tidak ditampilkan. --}}
 @props(['active'])
 @php
-    $items = collect(['simpanan' => 'Jenis simpanan', 'simpanan.saldo' => 'Saldo anggota', 'simpanan.mutasi' => 'Mutasi'])
+    $items = collect(['simpanan' => 'Jenis simpanan', 'simpanan.saldo' => 'Saldo anggota', 'simpanan.setoran' => 'Setoran bulanan', 'simpanan.mutasi' => 'Mutasi'])
         ->filter(fn ($label, $route) => \Illuminate\Support\Facades\Route::has($route));
 @endphp
 <nav class="mt-3 -mb-px flex gap-1 overflow-x-auto" aria-label="Bagian simpanan">

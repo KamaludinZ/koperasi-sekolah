@@ -1,6 +1,6 @@
 {
   "repo": "Koperasi Sekolah",
-  "generatedForCommit": "ffdf92d682a51a102a32c1343cc93fc0e1e56bfa",
+  "generatedForCommit": "239e19c3e1b52bffb0e89c0e1a49dd2719fe268a",
   "files": [
     {
       "path": ".claude/skills/ngodingpakeai/SKILL.md",
@@ -136,7 +136,7 @@
     },
     {
       "path": "app/Http/Controllers/Barang/LabelPrintController.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 3625
     },
@@ -319,6 +319,12 @@
       "reason": "needs_summary",
       "language": "php",
       "size": 3378
+    },
+    {
+      "path": "app/Http/Controllers/Simpanan/SavingTypeController.php",
+      "reason": "new",
+      "language": "php",
+      "size": 2310
     },
     {
       "path": "app/Http/Controllers/Sistem/BackupController.php",
@@ -802,9 +808,9 @@
     },
     {
       "path": "app/Livewire/Simpanan/Types.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 3688
+      "size": 3857
     },
     {
       "path": "app/Livewire/Sistem/Backups.php",
@@ -1468,9 +1474,9 @@
     },
     {
       "path": "app/Services/SavingTypeService.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 4177
+      "size": 5560
     },
     {
       "path": "app/Services/SavingsPaymentService.php",
@@ -3100,9 +3106,9 @@
     },
     {
       "path": "resources/views/livewire/simpanan/types.blade.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 10073
+      "size": 10415
     },
     {
       "path": "resources/views/livewire/sistem/backups.blade.php",
@@ -3204,7 +3210,7 @@
       "path": "routes/web.php",
       "reason": "changed",
       "language": "php",
-      "size": 37350
+      "size": 38248
     },
     {
       "path": "tests/Concerns/MakesProductImports.php",
@@ -3520,7 +3526,7 @@
     },
     {
       "path": "tests/Feature/Barang/LabelPrintTest.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 6951
     },
@@ -4249,6 +4255,12 @@
       "reason": "needs_summary",
       "language": "php",
       "size": 3376
+    },
+    {
+      "path": "tests/Feature/Simpanan/SavingTypeEndpointTest.php",
+      "reason": "new",
+      "language": "php",
+      "size": 2090
     },
     {
       "path": "tests/Feature/Simpanan/TypesPageTest.php",

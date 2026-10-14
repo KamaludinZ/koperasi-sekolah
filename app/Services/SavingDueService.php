@@ -1,0 +1,189 @@
+<?php
+
+namespace App\Services;
+
+use App\Models\Member;
+use App\Models\MemberSavingEntry;
+use App\Models\SavingDue;
+use App\Models\SavingType;
+use App\Models\User;
+use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
+
+/**
+ * Setoran simpanan bulanan anggota guru/karyawan (hasil potong gaji). Pengurus mencatat nominal per
+ * periode (status `belum`), lalu memposting → saldo jenis simpanan bertambah lewat mutasi setor dengan
+ * periode itu (status `disetor`). Tidak berlaku untuk siswa; sistem tidak menghitung penggajian.
+ */
+class SavingDueService
+{
+    public function __construct(private MemberSavingService $savings) {}
+
+    /** Jenis simpanan yang bisa dipakai setoran bulanan: aktif & berperiode bulanan. */
+    public static function types()
+    {
+        return SavingType::active()->where('period', 'bulanan')->ordered()->get();
+    }
+
+    public static function validPeriod(string $period): bool
+    {
+        return (bool) preg_match('/^\d{4}-(0[1-9]|1[0-2])$/', $period);
+    }
+
+    /**
+     * Lembar setoran satu periode: semua anggota guru aktif (yang bergabung paling lambat bulan itu) dengan
+     * nominal tercatat/bawaan dan statusnya. `paid_elsewhere` = bulan itu sudah disetor lewat setoran biasa.
+     *
+     * @return list<array{member_id: int, code: string, name: string, due_id: ?int, amount: int, status: string, posted_at: ?string, paid_elsewhere: bool, note: ?string}>
+     */
+    public function sheet(string $period, SavingType $type, string $search = ''): array
+    {
+        $end = Carbon::parse($period.'-01')->endOfMonth();
+        $term = mb_strtolower(trim($search));
+        $members = Member::active()->where('type', 'guru')
+            ->where(fn ($q) => $q->whereNull('joined_at')->orWhere('joined_at', '<=', $end->toDateString()))
+            ->when($term !== '', fn ($q) => $q->where(fn ($w) => $w->whereRaw('LOWER(name) LIKE ?', ["%{$term}%"])->orWhereRaw('LOWER(member_code) LIKE ?', ["%{$term}%"])))
+            ->orderByRaw('LOWER(name)')->get();
+        $dues = SavingDue::where('period', $period)->where('saving_type_id', $type->id)->whereIn('member_id', $members->pluck('id'))->get()->keyBy('member_id');
+        $paid = MemberSavingEntry::where('saving_type_id', $type->id)->where('period', $period)->where('type', 'setor')
+            ->whereIn('member_id', $members->pluck('id'))->pluck('member_id')->flip();
+        $default = (int) round((float) $type->amount);
+
+        return $members->map(function (Member $m) use ($dues, $paid, $default) {
+            $d = $dues->get($m->id);
+
+            return [
+                'member_id' => $m->id, 'code' => $m->member_code, 'name' => $m->name,
+                'due_id' => $d?->id, 'amount' => $d ? (int) round((float) $d->amount) : $default,
+                'status' => $d?->status ?? ($paid->has($m->id) ? 'disetor' : 'kosong'),
+                'posted_at' => $d?->posted_at?->toDateTimeString(),
+                'paid_elsewhere' => ! $d && $paid->has($m->id), 'note' => $d?->note,
+            ];
+        })->values()->all();
+    }
+
+    /**
+     * Catat/ubah nominal setoran (status `belum`); baris yang sudah disetor tidak diubah.
+     *
+     * @param  array<int, int>  $amounts  member_id → nominal
+     * @return int jumlah baris tercatat
+     *
+     * @throws ValidationException
+     */
+    public function record(string $period, SavingType $type, array $amounts, ?User $by = null): int
+    {
+        $this->assertTypeAndPeriod($type, $period);
+        $members = Member::whereKey(array_keys($amounts))->get()->keyBy('id');
+        $n = 0;
+        DB::transaction(function () use ($period, $type, $amounts, $members, $by, &$n) {
+            foreach ($amounts as $memberId => $amount) {
+                $m = $members->get($memberId);
+                if (! $m || $m->type !== 'guru') {
+                    throw ValidationException::withMessages(['amounts' => 'Setoran potong gaji hanya untuk anggota guru/karyawan.']);
+                }
+                $amount = (int) $amount;
+                if ($amount < MemberSavingService::MIN_AMOUNT || $amount > MemberSavingService::MAX_AMOUNT) {
+                    throw ValidationException::withMessages(['amounts' => "Nominal {$m->name} tidak valid (minimal ".\App\Support\Rupiah::format(MemberSavingService::MIN_AMOUNT).').']);
+                }
+                $due = SavingDue::firstOrNew(['member_id' => $m->id, 'saving_type_id' => $type->id, 'period' => $period]);
+                if ($due->status === 'disetor') {
+                    continue;
+                }
+                $due->fill(['amount' => $amount, 'status' => 'belum', 'recorded_by' => $by?->id])->save();
+                $n++;
+            }
+        });
+
+        return $n;
+    }
+
+    /**
+     * Posting setoran `belum` → saldo bertambah (mutasi setor periode tsb.). Bulan yang sudah disetor lewat
+     * jalan lain dilewati. Satu ringkasan dicatat di audit.
+     *
+     * @param  list<int>  $memberIds
+     * @return array{posted: int, amount: int, skipped: list<string>}
+     */
+    public function post(string $period, SavingType $type, array $memberIds, ?User $by = null): array
+    {
+        $this->assertTypeAndPeriod($type, $period);
+        $dues = SavingDue::with('member')->where('period', $period)->where('saving_type_id', $type->id)->where('status', 'belum')
+            ->whereIn('member_id', array_map('intval', $memberIds))->orderBy('id')->get();
+
+        return DB::transaction(function () use ($dues, $type, $period, $by) {
+            $posted = 0;
+            $total = 0;
+            $skipped = [];
+            foreach ($dues as $due) {
+                $due = SavingDue::whereKey($due->id)->lockForUpdate()->first();
+                if ($due->status !== 'belum') {
+                    continue;
+                }
+                $member = $due->member;
+                if ($this->savings->isPaid($member, $type, $period)) {
+                    $skipped[] = "{$member->name} (bulan ini sudah disetor)";
+
+                    continue;
+                }
+                try {
+                    $entry = $this->savings->depositForPeriod($member, $type, (int) round((float) $due->amount), $period,
+                        "{$type->name} ".Carbon::parse($period.'-01')->translatedFormat('F Y').' (potong gaji)', $by?->id, ['saving_due', $due->id]);
+                } catch (ValidationException $e) {
+                    $skipped[] = "{$member->name} (".collect($e->errors())->flatten()->first().')';
+
+                    continue;
+                }
+                $due->forceFill(['status' => 'disetor', 'posted_at' => now(), 'entry_id' => $entry->id])->save();
+                $posted++;
+                $total += (int) $entry->amount;
+            }
+            if ($posted) {
+                AuditLog::record('simpanan.setoran_bulanan', 'simpanan',
+                    "Posting setoran bulanan {$type->name} ".Carbon::parse($period.'-01')->translatedFormat('F Y').": {$posted} anggota, ".\App\Support\Rupiah::format($total),
+                    null, ['period' => $period, 'saving_type_id' => $type->id, 'posted' => $posted, 'skipped' => $skipped], $total);
+            }
+
+            return ['posted' => $posted, 'amount' => $total, 'skipped' => $skipped];
+        });
+    }
+
+    /** Hapus catatan setoran yang belum diposting. */
+    public function discard(SavingDue $due): void
+    {
+        if ($due->status === 'disetor') {
+            throw ValidationException::withMessages(['due' => 'Setoran yang sudah diposting tidak bisa dihapus.']);
+        }
+        $due->delete();
+    }
+
+    /**
+     * Rekap per bulan (terbaru dulu) untuk satu jenis: anggota & nominal tercatat vs sudah disetor.
+     *
+     * @return list<array{period: string, label: string, recorded: int, recorded_amount: int, posted: int, posted_amount: int}>
+     */
+    public function recap(SavingType $type, int $months = 12): array
+    {
+        return SavingDue::where('saving_type_id', $type->id)
+            ->selectRaw("period, COUNT(*) AS recorded, COALESCE(SUM(amount), 0) AS recorded_amount,
+                SUM(CASE WHEN status = 'disetor' THEN 1 ELSE 0 END) AS posted,
+                COALESCE(SUM(CASE WHEN status = 'disetor' THEN amount ELSE 0 END), 0) AS posted_amount")
+            ->groupBy('period')->orderByDesc('period')->limit($months)->get()
+            ->map(fn ($r) => ['period' => $r->period, 'label' => Carbon::parse($r->period.'-01')->translatedFormat('F Y'),
+                'recorded' => (int) $r->recorded, 'recorded_amount' => (int) round((float) $r->recorded_amount),
+                'posted' => (int) $r->posted, 'posted_amount' => (int) round((float) $r->posted_amount)])->all();
+    }
+
+    private function assertTypeAndPeriod(SavingType $type, string $period): void
+    {
+        if (! self::validPeriod($period)) {
+            throw ValidationException::withMessages(['period' => 'Periode tidak valid.']);
+        }
+        if ($period > now()->format('Y-m')) {
+            throw ValidationException::withMessages(['period' => 'Periode tidak boleh melewati bulan ini.']);
+        }
+        if (! $type->is_active || $type->period !== 'bulanan') {
+            throw ValidationException::withMessages(['type' => 'Pilih jenis simpanan bulanan yang aktif.']);
+        }
+    }
+}
