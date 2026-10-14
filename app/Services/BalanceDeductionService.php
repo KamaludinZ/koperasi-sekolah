@@ -94,4 +94,32 @@ class BalanceDeductionService
             $account->forceFill(['balance' => $before + $amount])->save();
         });
     }
+
+    /**
+     * Riwayat potong saldo anggota untuk belanja (tabungan & simpanan; pesanan portal & kasir), terbaru dulu,
+     * dengan tautan pesanan dan tanda bila sudah dikembalikan.
+     *
+     * @return \Illuminate\Support\Collection<int, array{id: string, at: \Illuminate\Support\Carbon, source: string, label: ?string, amount: int, balance: int, order: ?array, refunded: bool}>
+     */
+    public function history(Member $member, ?\Illuminate\Support\Carbon $from, int $limit): \Illuminate\Support\Collection
+    {
+        $id = $member->id;
+        $tab = SavingsTransaction::where('member_id', $id)->where('type', SavingsTransaction::TYPE_WITHDRAWAL)->whereIn('source_type', ['order', 'transaction'])
+            ->when($from, fn ($q) => $q->where('created_at', '>=', $from))->latest('created_at')->latest('id')->limit($limit)->get()
+            ->map(fn (SavingsTransaction $s) => ['id' => 't'.$s->id, 'at' => $s->created_at, 'source' => 'Tabungan', 'label' => $s->note,
+                'amount' => (int) round((float) $s->amount), 'balance' => (int) round((float) $s->balance_after), 'src' => [$s->source_type, $s->source_id]]);
+        $sim = MemberSavingEntry::with('savingType:id,name')->where('member_id', $id)->where('type', 'potong')
+            ->when($from, fn ($q) => $q->where('created_at', '>=', $from))->latest('created_at')->latest('id')->limit($limit)->get()
+            ->map(fn (MemberSavingEntry $e) => ['id' => 's'.$e->id, 'at' => $e->created_at, 'source' => $e->savingType?->name ?? 'Simpanan', 'label' => $e->note,
+                'amount' => (int) round((float) $e->amount), 'balance' => (int) round((float) $e->balance_after), 'src' => [$e->source_type, $e->source_id]]);
+        $rows = $tab->concat($sim)->sortByDesc(fn ($r) => $r['at']->timestamp)->values();
+        $orders = \App\Models\Order::whereIn('id', $rows->where('src.0', 'order')->pluck('src.1'))->get(['id', 'code', 'payment_status'])->keyBy('id');
+
+        return $rows->map(function ($r) use ($orders) {
+            $o = $r['src'][0] === 'order' ? $orders->get($r['src'][1]) : null;
+
+            return $r + ['in' => false, 'type' => $r['source'], 'order' => $o ? ['id' => $o->id, 'code' => $o->code] : null,
+                'refunded' => $o?->payment_status === 'dikembalikan'];
+        });
+    }
 }

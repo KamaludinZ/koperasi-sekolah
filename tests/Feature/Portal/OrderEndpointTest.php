@@ -83,4 +83,21 @@ class OrderEndpointTest extends TestCase
         $foreign = app(\App\Services\OrderService::class)->place($other, [$this->pid('ATK002') => 1], ['fulfillment' => 'ambil', 'payment_method' => 'tunai']);
         $this->postJson("/portal/pesanan/{$foreign->id}/bayar-saldo", [], ['X-Pin-Token' => $this->token()])->assertNotFound();
     }
+
+    public function test_deduction_history_endpoint(): void
+    {
+        app(SavingsService::class)->deposit($this->andi, 20000);
+        $svc = app(\App\Services\OrderService::class);
+        $a = $svc->place($this->andi, [$this->pid('ATK001') => 1], ['fulfillment' => 'ambil', 'payment_method' => 'tabungan']);
+        $b = $svc->place($this->andi, [$this->pid('ATK002') => 1], ['fulfillment' => 'ambil', 'payment_method' => 'tabungan']);
+        $svc->cancel($b, 'Tidak jadi');
+
+        $this->getJson('/portal/potong-saldo')->assertOk()
+            ->assertJsonPath('meta', ['deducted' => 7000, 'refunded' => 3000, 'count' => 2])
+            ->assertJsonPath('data.0.order.code', $b->code)->assertJsonPath('data.0.refunded', true)
+            ->assertJsonPath('data.1.order.id', $a->id)->assertJsonPath('data.1.source', 'Tabungan');
+        $this->getJson('/portal/potong-saldo?periode=minggu')->assertJsonValidationErrors('periode');
+        auth('member')->logout();
+        $this->getJson('/portal/potong-saldo')->assertUnauthorized();
+    }
 }
