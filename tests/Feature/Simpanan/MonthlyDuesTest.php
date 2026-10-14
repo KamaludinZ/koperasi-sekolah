@@ -120,7 +120,9 @@ class MonthlyDuesTest extends TestCase
 
         app(MemberSavingService::class)->depositForPeriod($this->buSiti, $this->wajib, 10000, '2026-10');
         Livewire::test(\App\Livewire\Simpanan\DuesRecap::class)->set('months', 3)->set('status', 'belum')->assertSee('Pak Dedi')->assertDontSee('Bu Siti')
-            ->set('status', 'lengkap')->assertSee('Bu Siti')->assertDontSee('Pak Dedi')->set('status', 'x')->assertSet('status', '');
+            ->set('status', 'lengkap')->assertSee('Bu Siti')->assertDontSee('Pak Dedi')->set('status', 'x')->assertSet('status', '')
+            ->set('search', 'ded')->assertSee('Pak Dedi')->assertDontSee('Bu Siti')
+            ->set('search', mb_strtolower($this->buSiti->member_code))->assertSee('Bu Siti')->assertDontSee('Pak Dedi');
 
         Livewire::test(MonthlyDues::class)->set('status', 'belum')->assertSee('Pak Dedi')->assertDontSee('Bu Siti')
             ->set('status', 'disetor')->assertSee('Bu Siti')->assertDontSee('Pak Dedi');

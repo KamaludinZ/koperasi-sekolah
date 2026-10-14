@@ -28,6 +28,9 @@ class DuesRecap extends Component
     #[Url(as: 'status', except: '')]
     public string $status = '';
 
+    #[Url(as: 'q', except: '')]
+    public string $search = '';
+
     public function mount(): void
     {
         $types = SavingDueService::types();
@@ -59,6 +62,9 @@ class DuesRecap extends Component
             return ['periods' => [], 'rows' => [], 'totals' => []];
         }
         $m = app(SavingDueService::class)->matrix($type, $this->months);
+        if (($term = mb_strtolower(trim($this->search))) !== '') {
+            $m['rows'] = array_values(array_filter($m['rows'], fn ($r) => str_contains(mb_strtolower($r['name']), $term) || str_contains(mb_strtolower($r['code']), $term)));
+        }
         if ($this->status !== '') {
             $m['rows'] = array_values(array_filter($m['rows'], fn ($r) => $this->status === 'lengkap' ? $r['missing'] === 0 : $r['missing'] > 0));
         }

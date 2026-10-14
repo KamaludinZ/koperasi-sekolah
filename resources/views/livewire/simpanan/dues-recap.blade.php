@@ -29,6 +29,8 @@
             <select wire:model.live="months" aria-label="Rentang" class="rounded-lg border border-stone-300 bg-white px-3 py-2 text-sm">
                 @foreach (\App\Livewire\Simpanan\DuesRecap::RANGES as $k => $label)<option value="{{ $k }}">{{ $label }}</option>@endforeach
             </select>
+            <input type="search" wire:model.live.debounce.300ms="search" placeholder="Cari nama atau kode…" aria-label="Cari anggota"
+                   class="min-w-48 flex-1 rounded-lg border border-stone-300 bg-white px-3 py-2 text-sm outline-none focus:border-emerald-600 focus:ring-4 focus:ring-emerald-600/15 sm:flex-none">
             <select wire:model.live="status" aria-label="Status" class="rounded-lg border border-stone-300 bg-white px-3 py-2 text-sm">
                 @foreach (\App\Livewire\Simpanan\DuesRecap::STATUSES as $k => $label)<option value="{{ $k }}">{{ $label }}</option>@endforeach
             </select>
