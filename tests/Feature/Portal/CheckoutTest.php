@@ -45,7 +45,7 @@ class CheckoutTest extends TestCase
     {
         $stock = Product::find($this->pid('ATK001'))->stock;
         Livewire::test(Checkout::class)->assertSee('Rp8.000')->assertSet('deliveryTo', 'Kelas 7A')
-            ->set('payment', 'tunai')->call('place')->assertHasNoErrors()->assertRedirect(route('portal'));
+            ->set('payment', 'tunai')->call('place')->assertHasNoErrors()->assertRedirect(route('portal.pesanan.show', Order::value('id')));
 
         $order = Order::with('items', 'statusLogs')->firstOrFail();
         $this->assertSame(['ORD-20261014-0001', 'menunggu', 'ambil', 'tunai', 'belum', 8000, 2], [$order->code, $order->status, $order->fulfillment,

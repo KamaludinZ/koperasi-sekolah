@@ -103,6 +103,85 @@ class OrderService
         });
     }
 
+    /**
+     * Batalkan pesanan yang belum selesai: stok dikembalikan dan saldo yang sudah dipotong dikembalikan
+     * (mutasi setor tabungan / simpanan dengan asal `order`). Anggota hanya boleh membatalkan saat
+     * masih `menunggu`; petugas ($userId terisi) boleh sampai `siap`.
+     *
+     * @throws ValidationException
+     */
+    public function cancel(Order $order, string $reason, ?int $userId = null, ?string $actorName = null): Order
+    {
+        $reason = trim($reason);
+        if (mb_strlen($reason) < 3 || mb_strlen($reason) > 200) {
+            throw ValidationException::withMessages(['reason' => 'Tulis alasan pembatalan (3–200 karakter).']);
+        }
+
+        return DB::transaction(function () use ($order, $reason, $userId, $actorName) {
+            $order = Order::whereKey($order->id)->lockForUpdate()->firstOrFail();
+            $allowed = $userId ? ['menunggu', 'diproses', 'siap'] : ['menunggu'];
+            if (! in_array($order->status, $allowed, true)) {
+                throw ValidationException::withMessages(['reason' => $userId
+                    ? 'Pesanan '.mb_strtolower(Order::STATUSES[$order->status]).' tidak bisa dibatalkan.'
+                    : 'Pesanan sudah diproses petugas; hubungi koperasi untuk membatalkan.']);
+            }
+            $member = Member::withTrashed()->whereKey($order->member_id)->lockForUpdate()->firstOrFail();
+
+            foreach ($order->items as $item) {
+                if ($product = Product::withTrashed()->find($item->product_id)) {
+                    $this->stock->increase($product, $item->quantity, "Batal pesanan {$order->code}", $userId);
+                }
+            }
+            if ($order->payment_status === 'lunas' && in_array($order->payment_method, ['tabungan', 'simpanan'], true)) {
+                $this->refundBalance($member, $order, $userId);
+                $order->payment_status = 'dikembalikan';
+            }
+            $from = $order->status;
+            $order->forceFill(['status' => 'dibatalkan', 'cancel_reason' => $reason])->save();
+            $actor = $actorName ?? $member->name;
+            $this->log($order, $from, 'dibatalkan', $reason, $userId, $actor);
+
+            AuditLog::record('order.cancelled', 'pesanan', "Pesanan {$order->code} dibatalkan oleh {$actor}: {$reason}",
+                ['type' => 'order', 'id' => $order->id, 'label' => $order->code], ['from' => $from, 'payment_status' => $order->payment_status],
+                (int) round((float) $order->total), actor: $userId ? null : PortalAuthService::actor($member), reason: $reason);
+
+            return $order->refresh();
+        });
+    }
+
+    private function refundBalance(Member $locked, Order $order, ?int $userId): void
+    {
+        $amount = (int) round((float) $order->total);
+        if ($order->payment_method === 'tabungan') {
+            $before = (int) round((float) $locked->balance);
+            $locked->savings()->create(['type' => SavingsTransaction::TYPE_DEPOSIT, 'amount' => $amount, 'balance_before' => $before,
+                'balance_after' => $before + $amount, 'note' => "Pengembalian pesanan {$order->code}", 'source_type' => 'order', 'source_id' => $order->id, 'user_id' => $userId]);
+            $locked->forceFill(['balance' => $before + $amount])->save();
+
+            return;
+        }
+        $account = MemberSavingAccount::firstOrCreate(['member_id' => $locked->id, 'saving_type_id' => $order->saving_type_id], ['balance' => 0]);
+        $account = MemberSavingAccount::whereKey($account->id)->lockForUpdate()->first();
+        $before = (int) round((float) $account->balance);
+        MemberSavingEntry::create(['member_id' => $locked->id, 'saving_type_id' => $order->saving_type_id, 'type' => 'setor', 'amount' => $amount,
+            'balance_before' => $before, 'balance_after' => $before + $amount, 'note' => "Pengembalian pesanan {$order->code}",
+            'source_type' => 'order', 'source_id' => $order->id, 'user_id' => $userId]);
+        $account->forceFill(['balance' => $before + $amount])->save();
+    }
+
+    /** Ringkasan pesanan untuk tampilan portal/petugas. */
+    public static function toArray(Order $o): array
+    {
+        return [
+            'id' => $o->id, 'code' => $o->code, 'status' => $o->status, 'status_label' => Order::STATUSES[$o->status] ?? $o->status,
+            'fulfillment' => $o->fulfillment, 'fulfillment_label' => Order::FULFILLMENTS[$o->fulfillment] ?? $o->fulfillment, 'delivery_to' => $o->delivery_to,
+            'payment_method' => $o->payment_method, 'payment_label' => Order::PAYMENTS[$o->payment_method] ?? $o->payment_method,
+            'payment_status' => $o->payment_status, 'payment_status_label' => Order::PAYMENT_STATUSES[$o->payment_status] ?? $o->payment_status,
+            'saving_type' => $o->savingType?->name, 'total' => (int) round((float) $o->total), 'item_count' => $o->item_count,
+            'note' => $o->note, 'cancel_reason' => $o->cancel_reason, 'created_at' => $o->created_at,
+        ];
+    }
+
     /** Saldo yang bisa dipakai bayar: tabungan + jenis simpanan aktif yang boleh ditarik. */
     public function balanceOptions(Member $member): array
     {

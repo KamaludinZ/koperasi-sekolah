@@ -105,6 +105,8 @@ Route::middleware('auth:member')->group(function () {
     Route::get('/portal/riwayat', \App\Livewire\Portal\Purchases::class)->name('portal.riwayat');
     Route::get('/portal/belanja', \App\Livewire\Portal\Shop::class)->name('portal.belanja');
     Route::get('/portal/checkout', \App\Livewire\Portal\Checkout::class)->name('portal.checkout');
+    Route::get('/portal/pesanan', \App\Livewire\Portal\Orders::class)->name('portal.pesanan');
+    Route::get('/portal/pesanan/{order}', \App\Livewire\Portal\OrderShow::class)->whereNumber('order')->name('portal.pesanan.show');
     Route::post('/portal/keluar', function (\Illuminate\Http\Request $request) {
         app(\App\Services\PortalAuthService::class)->logout();
         $request->session()->regenerateToken();
