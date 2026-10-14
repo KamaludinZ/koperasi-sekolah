@@ -107,7 +107,8 @@ class LoanDisbursementService
                 'proof' => $proof, 'user_id' => $userId] + ($file ?? []));
             $schedule = LoanScheduleGenerator::generate((int) round((float) $locked->principal), (int) round((float) $locked->interest), $locked->tenor_months, $data['disbursed_on']);
             foreach ($schedule as $row) {
-                $locked->installments()->create(['sequence' => $row['sequence'], 'due_date' => $row['due_date'], 'amount' => $row['amount'], 'status' => 'belum', 'paid_amount' => 0]);
+                $locked->installments()->create(['sequence' => $row['sequence'], 'due_date' => $row['due_date'], 'amount' => $row['amount'],
+                    'principal_part' => $row['principal_part'], 'interest_part' => $row['interest_part'], 'status' => 'belum', 'paid_amount' => 0]);
             }
             $locked->update(['status' => 'berjalan', 'disbursed_at' => $data['disbursed_on'], 'outstanding' => $locked->totalDue()]);
             $locked->load('member');

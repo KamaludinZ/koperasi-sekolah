@@ -292,15 +292,12 @@ class LoanPaymentService
         $installments = $loan->installments()->get();
         $paid = (int) $installments->sum(fn ($i) => (int) round((float) $i->paid_amount));
 
-        $interestPaid = 0;
-        if ($loan->disbursed_at && $installments->isNotEmpty()) {
-            $parts = collect(LoanScheduleGenerator::generate($principal, $interest, $loan->tenor_months, $loan->disbursed_at))->keyBy('sequence');
-            foreach ($installments as $i) {
-                $amount = (int) round((float) $i->amount);
-                $part = $parts[$i->sequence]['interest_part'] ?? 0;
-                $interestPaid += $amount > 0 ? intdiv($part * (int) round((float) $i->paid_amount), $amount) : 0;
-            }
-        }
+        // porsi bunga tiap angsuran tersimpan di tabel; yang terbayar dibagi proporsional terhadap pembayaran angsuran itu
+        $interestPaid = (int) $installments->sum(function ($i) {
+            $amount = (int) round((float) $i->amount);
+
+            return $amount > 0 ? intdiv((int) round((float) $i->interest_part) * (int) round((float) $i->paid_amount), $amount) : 0;
+        });
         $valid = $loan->payments()->whereNull('voided_at');
         $last = (clone $valid)->reorder()->orderByDesc('paid_at')->orderByDesc('id')->first();
 

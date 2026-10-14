@@ -24,7 +24,7 @@ class LoanSchemaTest extends TestCase
             'purpose', 'decision_note', 'outstanding', 'applied_at', 'decided_at', 'decided_by', 'cancelled_at', 'cancelled_by', 'cancel_reason',
             'disbursed_at', 'paid_off_at', 'created_by']));
         $this->assertTrue(Schema::hasColumns('loan_disbursements', ['loan_id', 'disbursed_on', 'amount', 'proof', 'proof_file', 'proof_mime', 'proof_size', 'user_id']));
-        $this->assertTrue(Schema::hasColumns('loan_installments', ['loan_id', 'sequence', 'due_date', 'amount', 'paid_amount', 'paid_at',
+        $this->assertTrue(Schema::hasColumns('loan_installments', ['loan_id', 'sequence', 'due_date', 'amount', 'principal_part', 'interest_part', 'paid_amount', 'paid_at',
             'payment_method', 'status', 'note', 'user_id']));
     }
 
@@ -43,6 +43,8 @@ class LoanSchemaTest extends TestCase
                 $paid = (int) $loan->installments->sum(fn ($i) => (float) $i->paid_amount);
                 $this->assertSame($loan->totalDue() - $paid, (int) (float) $loan->outstanding);
                 $this->assertSame((int) (float) $loan->principal, (int) (float) $loan->disbursements->sum('amount'));
+                $this->assertSame((int) (float) $loan->principal, (int) $loan->installments->sum(fn ($i) => (float) $i->principal_part));
+                $this->assertSame((int) (float) $loan->interest, (int) $loan->installments->sum(fn ($i) => (float) $i->interest_part));
             } else {
                 $this->assertCount(0, $loan->installments);
             }
@@ -93,6 +95,47 @@ class LoanSchemaTest extends TestCase
         $this->assertSame(0, LoanInstallment::count());
     }
 
+    public function test_installment_parts_are_persisted_on_disbursement_and_derived_otherwise(): void
+    {
+        $loan = Loan::factory()->create(['status' => 'disetujui', 'principal' => 1000000, 'interest' => 100000, 'tenor_months' => 3, 'applied_at' => '2026-01-01']);
+        app(\App\Services\LoanDisbursementService::class)->disburse($loan, ['disbursed_on' => '2026-01-31', 'amount' => 1000000]);
+        $rows = $loan->installments()->orderBy('sequence')->get();
+        $expected = \App\Services\LoanScheduleGenerator::generate(1000000, 100000, 3, '2026-01-31');
+        foreach ($rows as $k => $i) {
+            $this->assertSame($expected[$k]['principal_part'], (int) (float) $i->principal_part);
+            $this->assertSame($expected[$k]['interest_part'], (int) (float) $i->interest_part);
+            $this->assertSame((int) (float) $i->amount, (int) ((float) $i->principal_part + (float) $i->interest_part));
+        }
+        $this->assertSame([33333, 33333, 33334], $rows->map(fn ($i) => (int) (float) $i->interest_part)->all());
+
+        // dibuat langsung tanpa porsi (data lama/impor): diisi otomatis, bunga proporsional bila tidak cocok jadwal
+        $odd = Loan::factory()->running()->create(['principal' => 100000, 'interest' => 10000, 'outstanding' => 110000, 'tenor_months' => 2]);
+        $a = LoanInstallment::create(['loan_id' => $odd->id, 'sequence' => 1, 'due_date' => today(), 'amount' => 70000]);
+        $this->assertSame([63637, 6363], [(int) (float) $a->principal_part, (int) (float) $a->interest_part]);
+        $b = LoanInstallment::create(['loan_id' => $odd->id, 'sequence' => 2, 'due_date' => today()->addMonth(), 'amount' => 55000]);
+        $this->assertSame(55000, (int) ((float) $b->principal_part + (float) $b->interest_part));
+
+        // nominal persis jadwal generator → porsi generator
+        $this->assertSame([1 => ['principal_part' => 50000, 'interest_part' => 5000], 2 => ['principal_part' => 50000, 'interest_part' => 5000]],
+            LoanInstallment::partsFor(100000, 10000, [['sequence' => 1, 'amount' => 55000], ['sequence' => 2, 'amount' => 55000]]));
+    }
+
+    public function test_balance_uses_stored_parts(): void
+    {
+        $this->travelTo('2026-03-01 09:00:00');
+        $loan = Loan::factory()->create(['status' => 'disetujui', 'principal' => 900000, 'interest' => 90000, 'tenor_months' => 3, 'applied_at' => '2026-02-01']);
+        app(\App\Services\LoanDisbursementService::class)->disburse($loan, ['disbursed_on' => '2026-03-01', 'amount' => 900000]);
+        // porsi angsuran ke-1 diubah (mis. hasil restrukturisasi tercatat) — ringkasan harus mengikuti tabel, bukan generator
+        $first = $loan->installments()->where('sequence', 1)->first();
+        $first->update(['principal_part' => 270000, 'interest_part' => 60000]);
+        app(\App\Services\LoanPaymentService::class)->record($loan->fresh(), ['amount' => 330000, 'paid_at' => '2026-03-20', 'payment_method' => 'tunai']);
+
+        $b = app(\App\Services\LoanPaymentService::class)->balance($loan->fresh());
+        $this->assertSame(60000, $b['interest_paid']);
+        $this->assertSame(270000, $b['principal_paid']);
+        $this->assertSame(30000, $b['interest_remaining']);
+    }
+
     public function test_pgsql_checks_reject_inconsistent_rows(): void
     {
         if (DB::getDriverName() !== 'pgsql') {
@@ -115,7 +158,10 @@ class LoanSchemaTest extends TestCase
             fn () => DB::table('loan_installments')->where('id', $inst->id)->update(['payment_method' => 'kartu']),
             fn () => DB::table('loan_installments')->where('id', $inst->id)->update(['paid_amount' => 1000]),                       // bayar tanpa metode/tanggal
             fn () => DB::table('loan_installments')->where('id', $inst->id)->update(['paid_amount' => 55000, 'paid_at' => today(), 'payment_method' => 'tunai']), // penuh tapi masih "belum"
-            fn () => DB::table('loan_installments')->insert(['loan_id' => $loan->id, 'sequence' => 2, 'due_date' => $inst->due_date, 'amount' => 55000]),   // jatuh tempo ganda
+            fn () => DB::table('loan_installments')->insert(['loan_id' => $loan->id, 'sequence' => 2, 'due_date' => $inst->due_date, 'amount' => 55000, 'principal_part' => 50000, 'interest_part' => 5000]),   // jatuh tempo ganda
+            fn () => DB::table('loan_installments')->insert(['loan_id' => $loan->id, 'sequence' => 2, 'due_date' => today()->addMonth(), 'amount' => 55000]),        // tanpa porsi pokok/bunga
+            fn () => DB::table('loan_installments')->where('id', $inst->id)->update(['interest_part' => 5001]),                     // porsi ≠ nominal
+            fn () => DB::table('loan_installments')->where('id', $inst->id)->update(['principal_part' => 56000, 'interest_part' => -1000]), // porsi negatif
         ];
         foreach ($bad as $i => $q) {
             try {

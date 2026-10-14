@@ -1,6 +1,6 @@
 {
   "repo": "Koperasi Sekolah",
-  "generatedForCommit": "f5426f12daeb4f20c69da89b021c6c8162672fea",
+  "generatedForCommit": "fe73f9d4bd0cea6c0734ccf6ec810d4d37fbc730",
   "files": [
     {
       "path": ".claude/skills/ngodingpakeai/SKILL.md",
@@ -298,7 +298,7 @@
     },
     {
       "path": "app/Livewire/Portal/Loans.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 6857
     },
@@ -1222,7 +1222,7 @@
     },
     {
       "path": "resources/views/components/layouts/portal.blade.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 4984
     },
@@ -1264,7 +1264,7 @@
     },
     {
       "path": "resources/views/components/portal/loan-card.blade.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 5493
     },
@@ -1273,6 +1273,12 @@
       "reason": "needs_summary",
       "language": "php",
       "size": 604
+    },
+    {
+      "path": "resources/views/components/portal/loans-empty.blade.php",
+      "reason": "new",
+      "language": "php",
+      "size": 2744
     },
     {
       "path": "resources/views/components/portal/order-status.blade.php",
@@ -1896,7 +1902,7 @@
       "path": "resources/views/livewire/portal/loans.blade.php",
       "reason": "changed",
       "language": "php",
-      "size": 3402
+      "size": 3061
     },
     {
       "path": "resources/views/livewire/portal/login.blade.php",
@@ -2568,7 +2574,7 @@
       "path": "tests/Feature/Portal/LoansPageTest.php",
       "reason": "changed",
       "language": "php",
-      "size": 9503
+      "size": 10288
     },
     {
       "path": "tests/Feature/Services/TanggalTest.php",
