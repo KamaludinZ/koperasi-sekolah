@@ -65,7 +65,8 @@ class ConsolePageTest extends TestCase
         $rina = Member::factory()->teacher()->create(['name' => 'Bu Rina', 'member_code' => 'G-2026-777']);
         Loan::factory()->running()->create(['code' => 'PJM-R1', 'member_id' => $rina->id, 'payment_method' => 'transfer', 'outstanding' => 100000]);
         Loan::factory()->create(['code' => 'PJM-R2', 'member_id' => $rina->id, 'payment_method' => 'tunai']);
-        Loan::factory()->overdue()->create(['code' => 'PJM-Z9', 'payment_method' => 'potong_gaji', 'outstanding' => 50000]);
+        $budi = Member::factory()->teacher()->create(['name' => 'Pak Budi', 'member_code' => 'G-2026-001']); // nama tetap: faker bisa memuat "rina"
+        Loan::factory()->overdue()->create(['code' => 'PJM-Z9', 'member_id' => $budi->id, 'payment_method' => 'potong_gaji', 'outstanding' => 50000]);
 
         $codes = fn ($c) => collect($c->instance()->loans->items())->pluck('code')->sort()->values()->all();
 

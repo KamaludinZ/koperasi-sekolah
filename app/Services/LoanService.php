@@ -13,17 +13,18 @@ class LoanService
     /**
      * Pinjaman untuk konsol: yang perlu tindakan (diajukan/menunggak) lalu berjalan dulu, terbaru dulu.
      *
-     * @param  array{search?: string, status?: string, method?: string}  $f
+     * @param  array{search?: string, status?: string, method?: string, member_id?: int|null}  $f
      */
     public function query(array $f = []): Builder
     {
-        $term = mb_strtolower(trim($f['search'] ?? ''));
+        $term = str_replace(['\\', '%', '_'], ['\\\\', '\\%', '\\_'], mb_strtolower(trim($f['search'] ?? ''))); // wildcard LIKE diperlakukan harfiah
 
         return Loan::query()->with('member:id,member_code,name,class,type,deleted_at')
-            ->when($term !== '', fn ($q) => $q->where(fn ($w) => $w->whereRaw('LOWER(code) LIKE ?', ["%{$term}%"])
-                ->orWhereHas('member', fn ($m) => $m->withTrashed()->where(fn ($x) => $x->whereRaw('LOWER(name) LIKE ?', ["%{$term}%"])->orWhereRaw('LOWER(member_code) LIKE ?', ["%{$term}%"])))))
+            ->when($term !== '', fn ($q) => $q->where(fn ($w) => $w->whereRaw("LOWER(code) LIKE ? ESCAPE '\\'", ["%{$term}%"])
+                ->orWhereHas('member', fn ($m) => $m->withTrashed()->where(fn ($x) => $x->whereRaw("LOWER(name) LIKE ? ESCAPE '\\'", ["%{$term}%"])->orWhereRaw("LOWER(member_code) LIKE ? ESCAPE '\\'", ["%{$term}%"])))))
             ->when(($f['status'] ?? '') !== '', fn ($q) => $q->where('status', $f['status']))
             ->when(($f['method'] ?? '') !== '', fn ($q) => $q->where('payment_method', $f['method']))
+            ->when(! empty($f['member_id']), fn ($q) => $q->where('member_id', (int) $f['member_id']))
             ->orderByRaw("CASE status WHEN 'menunggak' THEN 0 WHEN 'diajukan' THEN 1 WHEN 'disetujui' THEN 2 WHEN 'berjalan' THEN 3 ELSE 4 END")
             ->orderByDesc('applied_at')->orderByDesc('id');
     }

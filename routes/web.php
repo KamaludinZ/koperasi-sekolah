@@ -468,6 +468,8 @@ Route::middleware('menu:laporan')->group(function () {
 
 Route::middleware(['menu:pinjaman', 'peran:admin,pengurus'])->group(function () {
     Route::get('/pinjaman', \App\Livewire\Pinjaman\Index::class)->name('pinjaman');
+    Route::get('/pinjaman/daftar', [\App\Http\Controllers\Pinjaman\LoanController::class, 'index'])->middleware('throttle:120,1')->name('pinjaman.list');
+    Route::get('/pinjaman/{loan}/data', [\App\Http\Controllers\Pinjaman\LoanController::class, 'show'])->whereNumber('loan')->middleware('throttle:120,1')->name('pinjaman.data');
     Route::get('/pinjaman/{loan}', \App\Livewire\Pinjaman\Show::class)->whereNumber('loan')->name('pinjaman.show');
 });
 
