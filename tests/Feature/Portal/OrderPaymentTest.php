@@ -120,4 +120,28 @@ class OrderPaymentTest extends TestCase
         $c->call('show', $x->id)->set('cancelling', true)->set('reason', 'Stok habis')->call('cancel')->assertHasNoErrors();
         $this->assertSame('dibatalkan', $x->fresh()->status);
     }
+
+    public function test_completed_order_recorded_as_sale_once(): void
+    {
+        $shift = CashShift::factory()->create(['user_id' => auth()->id()]);
+        $stockBefore = \App\Models\Product::find($this->pid('ATK001'))->stock;
+        $o = $this->place(); // stok langsung dicadangkan: −2
+        $svc = app(OrderService::class);
+        foreach (['diproses', 'siap'] as $to) {
+            $svc->transition($o, $to, auth()->user());
+        }
+        $svc->markPaid($o, 'tunai', auth()->user());
+        $svc->transition($o, 'selesai', auth()->user());
+
+        $tx = \App\Models\Transaction::with('items')->sole();
+        $this->assertSame($tx->id, $o->fresh()->transaction_id);
+        $this->assertSame(['tunai', $this->andi->id, 8000, null], [$tx->payment_method, $tx->member_id, (int) $tx->total, $tx->cash_shift_id]);
+        $this->assertSame([2, 'Buku Tulis 38 Lembar'], [$tx->items[0]->quantity, $tx->items[0]->product_name]);
+        $this->assertSame($stockBefore - 2, \App\Models\Product::find($this->pid('ATK001'))->stock); // tidak dipotong dua kali
+        $this->assertSame(8000, $shift->fresh()->expectedCash() - (int) $shift->opening_cash); // tunai masuk laci sekali (mutasi kas)
+
+        $report = app(\App\Services\SalesReport::class)->summary(today(), now()->endOfDay());
+        $this->assertSame(8000, $report['revenue']);
+        $this->get('/transaksi')->assertSee($tx->invoice_number);
+    }
 }

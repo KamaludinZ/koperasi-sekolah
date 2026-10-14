@@ -305,12 +305,49 @@ class OrderService
             }
             $from = $order->status;
             $order->forceFill(['status' => $to] + ($to === 'selesai' ? ['completed_at' => now()] : []))->save();
+            if ($to === 'selesai') {
+                $this->recordSale($order, $by);
+            }
             $this->log($order, $from, $to, $note !== null && trim($note) !== '' ? mb_substr(trim($note), 0, 200) : null, $by->id, $by->name);
             AuditLog::record('order.status', 'pesanan', "Pesanan {$order->code}: ".Order::STATUSES[$from].' → '.Order::STATUSES[$to],
                 ['type' => 'order', 'id' => $order->id, 'label' => $order->code], ['from' => $from, 'to' => $to]);
 
             return $order->refresh();
         });
+    }
+
+    /**
+     * Pesanan selesai → dicatat sebagai transaksi penjualan agar masuk laporan & riwayat transaksi. Stok &
+     * saldo TIDAK diubah lagi (sudah saat pesanan dibuat/dibayar). cash_shift_id kosong: uang tunai sudah
+     * masuk laci lewat mutasi kas saat dibayar, jadi kas shift tidak terhitung dua kali.
+     */
+    private function recordSale(Order $order, \App\Models\User $by): \App\Models\Transaction
+    {
+        if ($order->transaction_id) {
+            return \App\Models\Transaction::findOrFail($order->transaction_id);
+        }
+        $order->loadMissing('items');
+        $tax = $this->settings->tax();
+        $total = (int) round((float) $order->total);
+        $tx = app(CheckoutService::class)->createWithInvoiceNumber([
+            'user_id' => $by->id, 'cash_shift_id' => null, 'member_id' => $order->member_id,
+            'saving_type_id' => $order->payment_method === 'simpanan' ? $order->saving_type_id : null,
+            'subtotal' => $order->subtotal, 'discount' => $order->discount, 'tax' => $order->tax, 'tax_included' => $order->tax_included,
+            'tax_label' => (float) $order->tax > 0 || (float) $order->tax_included > 0 ? ($tax['label'] ?? 'Pajak') : null,
+            'tax_rate' => (float) $order->tax > 0 || (float) $order->tax_included > 0 ? (float) ($tax['rate'] ?? 0) : 0,
+            'rounding' => $order->rounding, 'total' => $total, 'paid' => $total, 'change' => 0,
+            'payment_method' => $order->payment_method, 'item_count' => $order->item_count,
+        ]);
+        $costs = Product::withTrashed()->whereKey($order->items->pluck('product_id'))->pluck('cost_price', 'id');
+        foreach ($order->items as $item) {
+            $tx->items()->create(['product_id' => $item->product_id, 'product_name' => $item->product_name, 'price' => $item->price,
+                'cost_price' => $costs[$item->product_id] ?? 0, 'quantity' => $item->quantity, 'subtotal' => $item->subtotal]);
+        }
+        $order->forceFill(['transaction_id' => $tx->id])->save();
+        AuditLog::record('order.sale_recorded', 'transaksi', "Pesanan {$order->code} dicatat sebagai penjualan {$tx->invoice_number}",
+            ['type' => 'transaction', 'id' => $tx->id, 'label' => $tx->invoice_number], ['order_id' => $order->id], $total);
+
+        return $tx;
     }
 
     /**

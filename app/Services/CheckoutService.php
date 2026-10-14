@@ -233,7 +233,7 @@ class CheckoutService
      * Nomor invoice berurutan per hari: INV-YYYYMMDD-0001.
      * Bila bentrok (dua kasir bersamaan), coba nomor berikutnya.
      */
-    private function createWithInvoiceNumber(array $attributes): Transaction
+    public function createWithInvoiceNumber(array $attributes): Transaction
     {
         $prefix = 'INV-'.now()->format('Ymd').'-';
 
