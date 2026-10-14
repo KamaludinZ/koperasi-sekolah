@@ -1,6 +1,6 @@
 {
   "repo": "Koperasi Sekolah",
-  "generatedForCommit": "612d4c941b344369d8f3f0a8afd75ded5341feb7",
+  "generatedForCommit": "263fed0eaf582332d3ad5c41a342df38cf9f7a4d",
   "files": [
     {
       "path": ".claude/skills/ngodingpakeai/SKILL.md",
@@ -130,7 +130,7 @@
     },
     {
       "path": "app/Http/Controllers/Pinjaman/LoanController.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 3588
     },
@@ -237,6 +237,12 @@
       "size": 4296
     },
     {
+      "path": "app/Livewire/Pinjaman/Applications.php",
+      "reason": "new",
+      "language": "php",
+      "size": 2041
+    },
+    {
       "path": "app/Livewire/Pinjaman/Index.php",
       "reason": "needs_summary",
       "language": "php",
@@ -298,7 +304,7 @@
     },
     {
       "path": "app/Services/LoanService.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 9017
     },
@@ -1689,6 +1695,12 @@
       "size": 8878
     },
     {
+      "path": "resources/views/livewire/pinjaman/applications.blade.php",
+      "reason": "new",
+      "language": "php",
+      "size": 5568
+    },
+    {
       "path": "resources/views/livewire/pinjaman/index.blade.php",
       "reason": "needs_summary",
       "language": "php",
@@ -1908,7 +1920,7 @@
       "path": "routes/web.php",
       "reason": "changed",
       "language": "php",
-      "size": 44004
+      "size": 44115
     },
     {
       "path": "tests/Concerns/MakesProductImports.php",
@@ -2223,6 +2235,12 @@
       "size": 3788
     },
     {
+      "path": "tests/Feature/Pinjaman/ApplicationsPageTest.php",
+      "reason": "new",
+      "language": "php",
+      "size": 2883
+    },
+    {
       "path": "tests/Feature/Pinjaman/ConsolePageTest.php",
       "reason": "needs_summary",
       "language": "php",
@@ -2248,7 +2266,7 @@
     },
     {
       "path": "tests/Feature/Pinjaman/LoanSummaryEndpointTest.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 3693
     },

@@ -1,14 +1,26 @@
 @php $rp = fn ($n) => \App\Support\Rupiah::format($n); $apps = $this->applications; $counts = $this->counts; @endphp
 <div class="flex min-h-0 flex-1 flex-col overflow-y-auto">
     <header class="border-b border-stone-200 bg-white px-4 pt-4 sm:px-6">
-        <div>
-            <h1 class="text-lg font-semibold">Pengajuan Pinjaman</h1>
-            <p class="text-xs text-stone-500">Pengajuan pinjaman anggota yang dicatat pengurus: menunggu keputusan, disetujui, ditolak, atau dibatalkan.</p>
+        <div class="flex flex-wrap items-center justify-between gap-3">
+            <div>
+                <h1 class="text-lg font-semibold">Pengajuan Pinjaman</h1>
+                <p class="text-xs text-stone-500">Pengajuan pinjaman anggota yang dicatat pengurus: menunggu keputusan, disetujui, ditolak, atau dibatalkan.</p>
+            </div>
+            @can('kelola-pinjaman')
+                <button type="button" wire:click="create"
+                        class="inline-flex items-center gap-2 rounded-xl bg-emerald-700 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-emerald-800">
+                    <svg class="size-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
+                    Catat pengajuan
+                </button>
+            @endcan
         </div>
         <x-pinjaman.nav active="pinjaman.pengajuan" />
     </header>
 
     <div class="space-y-4 px-4 py-5 sm:px-6">
+        @if ($flash)
+            <p class="rounded-lg bg-emerald-50 px-4 py-2.5 text-sm text-emerald-900" role="status">{{ $flash }}</p>
+        @endif
         <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div class="flex gap-1 overflow-x-auto rounded-xl bg-stone-100 p-1" role="tablist" aria-label="Tahap pengajuan">
                 @foreach (\App\Livewire\Pinjaman\Applications::TABS as $key => $label)
@@ -64,4 +76,6 @@
             @endif
         @endif
     </div>
+
+    @include('livewire.pinjaman.partials.application-form')
 </div>
