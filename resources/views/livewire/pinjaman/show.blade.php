@@ -106,6 +106,40 @@
                     </table>
                 </div>
             </section>
+
+            @php $history = $this->history; @endphp
+            @if ($history)
+                <section class="overflow-hidden rounded-xl border border-stone-200 bg-white" aria-label="Riwayat pembayaran">
+                    <h2 class="border-b border-stone-200 px-4 py-3 text-sm font-semibold">Riwayat pembayaran</h2>
+                    <div class="overflow-x-auto">
+                        <table class="w-full min-w-[40rem] text-sm">
+                            <thead class="bg-stone-50 text-left text-xs text-stone-500">
+                                <tr>
+                                    <th class="px-4 py-2 font-medium">#</th>
+                                    <th class="px-3 py-2 font-medium">Tanggal bayar</th>
+                                    <th class="px-3 py-2 text-right font-medium">Nominal</th>
+                                    <th class="px-3 py-2 font-medium">Metode</th>
+                                    <th class="px-3 py-2 font-medium">Untuk angsuran</th>
+                                    <th class="px-4 py-2 text-right font-medium">Sisa setelahnya</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-stone-100">
+                                @foreach ($history as $h)
+                                    <tr wire:key="pay-{{ $h['id'] }}" @class(['text-stone-400 line-through' => $h['voided']]) data-payment="{{ $h['id'] }}">
+                                        <td class="px-4 py-2.5 tabular-nums">{{ $h['number'] ?? '—' }}</td>
+                                        <td class="px-3 py-2.5 whitespace-nowrap">{{ $date($h['paid_at']) }}<span class="block text-xs text-stone-500 no-underline">{{ $h['user'] ?? '' }}</span></td>
+                                        <td class="px-3 py-2.5 text-right tabular-nums">{{ $rp($h['amount']) }}</td>
+                                        <td class="px-3 py-2.5">{{ $h['payment_label'] }}@if ($h['reference_label'])<span class="block text-xs text-stone-500">{{ $h['reference_label'] }}</span>@endif</td>
+                                        <td class="px-3 py-2.5">ke-{{ implode(', ', $h['sequences']) }}@if ($h['note'])<span class="block text-xs text-stone-500">{{ $h['note'] }}</span>@endif
+                                            @if ($h['voided'])<span class="block text-xs text-red-700 no-underline">Dikoreksi: {{ $h['void_reason'] }}</span>@endif</td>
+                                        <td class="px-4 py-2.5 text-right font-medium tabular-nums">{{ $rp($h['balance_after']) }}</td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+            @endif
         </div>
 
         <aside class="space-y-3">

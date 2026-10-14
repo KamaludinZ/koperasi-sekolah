@@ -1,6 +1,6 @@
 {
   "repo": "Koperasi Sekolah",
-  "generatedForCommit": "b48cb4f6376c24f4b584246395aff68ab2067a84",
+  "generatedForCommit": "504ac6c47b1e86caa5ca8d81dfae1fbf399da70d",
   "files": [
     {
       "path": ".claude/skills/ngodingpakeai/SKILL.md",
@@ -288,7 +288,7 @@
       "path": "app/Livewire/Pinjaman/Show.php",
       "reason": "changed",
       "language": "php",
-      "size": 9401
+      "size": 10041
     },
     {
       "path": "app/Livewire/Transaksi/Index.php",
@@ -304,7 +304,7 @@
     },
     {
       "path": "app/Models/Loan.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 4730
     },
@@ -322,9 +322,9 @@
     },
     {
       "path": "app/Models/LoanPayment.php",
-      "reason": "new",
+      "reason": "changed",
       "language": "php",
-      "size": 958
+      "size": 971
     },
     {
       "path": "app/Models/Setting.php",
@@ -364,9 +364,9 @@
     },
     {
       "path": "app/Services/LoanPaymentService.php",
-      "reason": "new",
+      "reason": "changed",
       "language": "php",
-      "size": 7439
+      "size": 9568
     },
     {
       "path": "app/Services/LoanScheduleGenerator.php",
@@ -976,9 +976,15 @@
     },
     {
       "path": "database/migrations/2026_10_16_000005_create_loan_payments_table.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 2114
+    },
+    {
+      "path": "database/migrations/2026_10_16_000006_add_reference_to_loan_payments.php",
+      "reason": "new",
+      "language": "php",
+      "size": 660
     },
     {
       "path": "database/seeders/LoanSeeder.php",
@@ -1842,7 +1848,7 @@
       "path": "resources/views/livewire/pinjaman/show.blade.php",
       "reason": "changed",
       "language": "php",
-      "size": 27456
+      "size": 29048
     },
     {
       "path": "resources/views/livewire/portal/checkout.blade.php",
@@ -2488,9 +2494,9 @@
     },
     {
       "path": "tests/Feature/Pinjaman/PaymentFormTest.php",
-      "reason": "new",
+      "reason": "changed",
       "language": "php",
-      "size": 6001
+      "size": 8553
     },
     {
       "path": "tests/Feature/Pinjaman/ScheduleGeneratorTest.php",

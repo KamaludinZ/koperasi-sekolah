@@ -29,8 +29,8 @@ class LoanInstallmentQuery
                 ->when($term !== '', fn ($q) => $q->where(fn ($w) => $w->whereRaw("LOWER(code) LIKE ? ESCAPE '\\'", ["%{$term}%"])
                     ->orWhereHas('member', fn ($m) => $m->withTrashed()->where(fn ($x) => $x->whereRaw("LOWER(name) LIKE ? ESCAPE '\\'", ["%{$term}%"])
                         ->orWhereRaw("LOWER(member_code) LIKE ? ESCAPE '\\'", ["%{$term}%"]))))))
-            ->when($month, fn ($q) => $q->whereBetween('due_date', [$month.'-01', \Illuminate\Support\Carbon::parse($month.'-01')->endOfMonth()->toDateString()]))
-            ->when($filter === 'bulan_ini', fn ($q) => $q->whereBetween('due_date', [today()->startOfMonth()->toDateString(), today()->endOfMonth()->toDateString()]))
+            ->when($month, fn ($q) => $q->whereDayRange('due_date', $month.'-01', \Illuminate\Support\Carbon::parse($month.'-01')->endOfMonth()->toDateString()))
+            ->when($filter === 'bulan_ini', fn ($q) => $q->whereDayRange('due_date', today()->startOfMonth()->toDateString(), today()->endOfMonth()->toDateString()))
             ->when($filter === 'terlambat', fn ($q) => $q->where('status', '!=', 'dibayar')->where('due_date', '<', $today))
             ->when($filter === 'belum', fn ($q) => $q->where('status', '!=', 'dibayar'))
             ->when($filter === 'dibayar', fn ($q) => $q->where('status', 'dibayar'))
@@ -63,12 +63,12 @@ class LoanInstallmentQuery
         $remain = \Illuminate\Support\Facades\DB::raw('amount - paid_amount');
 
         return [
-            'due_month' => ['count' => $base()->whereBetween('due_date', [$from, $to])->where('status', '!=', 'dibayar')->count(),
-                'amount' => (int) round((float) $base()->whereBetween('due_date', [$from, $to])->where('status', '!=', 'dibayar')->sum($remain))],
+            'due_month' => ['count' => $base()->whereDayRange('due_date', $from, $to)->where('status', '!=', 'dibayar')->count(),
+                'amount' => (int) round((float) $base()->whereDayRange('due_date', $from, $to)->where('status', '!=', 'dibayar')->sum($remain))],
             'late' => ['count' => $base()->where('status', '!=', 'dibayar')->where('due_date', '<', today()->toDateString())->count(),
                 'amount' => (int) round((float) $base()->where('status', '!=', 'dibayar')->where('due_date', '<', today()->toDateString())->sum($remain))],
-            'paid_month' => ['count' => $base()->whereBetween('paid_at', [$from, $to])->count(),
-                'amount' => (int) round((float) $base()->whereBetween('paid_at', [$from, $to])->sum('paid_amount'))],
+            'paid_month' => ['count' => $base()->whereDayRange('paid_at', $from, $to)->count(),
+                'amount' => (int) round((float) $base()->whereDayRange('paid_at', $from, $to)->sum('paid_amount'))],
         ];
     }
 }

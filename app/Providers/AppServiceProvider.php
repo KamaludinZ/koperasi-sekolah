@@ -48,6 +48,13 @@ class AppServiceProvider extends ServiceProvider
 
         // Format rupiah seragam: @rupiah($n) → "Rp12.500" (lihat App\Support\Rupiah).
         \Illuminate\Support\Facades\Blade::directive('rupiah', fn ($expr) => "<?php echo e(\\App\\Support\\Rupiah::format({$expr})); ?>");
+        // Rentang hari inklusif yang aman untuk kolom tanggal di semua driver (SQLite menyimpan 'Y-m-d 00:00:00',
+        // sehingga BETWEEN 'awal' AND 'akhir' melewatkan hari terakhir): kolom >= awal AND kolom < akhir + 1 hari.
+        \Illuminate\Database\Eloquent\Builder::macro('whereDayRange', function (string $column, string $from, string $to) {
+            /** @var \Illuminate\Database\Eloquent\Builder $this */
+            return $this->where($column, '>=', \Illuminate\Support\Carbon::parse($from)->toDateString())
+                ->where($column, '<', \Illuminate\Support\Carbon::parse($to)->addDay()->toDateString());
+        });
         \Illuminate\Support\Facades\Blade::directive('tanggal', fn ($expr) => "<?php echo e(\\App\\Support\\Tanggal::format({$expr})); ?>");
 
         // Semua URL yang dibuat aplikasi memakai https bila HTTPS dipaksa.

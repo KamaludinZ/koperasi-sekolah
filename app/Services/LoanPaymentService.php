@@ -155,6 +155,44 @@ class LoanPaymentService
         });
     }
 
+    public static function paymentToArray(LoanPayment $p): array
+    {
+        return [
+            'id' => $p->id, 'paid_at' => $p->paid_at->toDateString(), 'amount' => (int) round((float) $p->amount),
+            'payment_method' => $p->payment_method, 'payment_label' => Loan::METHODS[$p->payment_method] ?? $p->payment_method,
+            'reference' => $p->reference, 'reference_label' => self::referenceLabel($p->payment_method, $p->reference), 'note' => $p->note,
+            'sequences' => array_column($p->allocations ?? [], 'sequence'), 'allocations' => $p->allocations ?? [],
+            'user' => $p->user?->name, 'recorded_at' => $p->created_at?->toDateTimeString(),
+            'voided' => $p->voided_at !== null, 'void_reason' => $p->void_reason, 'voided_at' => $p->voided_at?->toDateTimeString(),
+        ];
+    }
+
+    /**
+     * Riwayat pembayaran satu pinjaman berurutan (tanggal bayar, lalu urutan catat) dengan saldo sisa berjalan:
+     * sisa setelah tiap pembayaran = total pinjaman − jumlah pembayaran sah sampai baris itu. Pembayaran yang
+     * dikoreksi tetap tampil (dicoret) dan tidak mengurangi sisa.
+     *
+     * @return list<array>
+     */
+    public function history(Loan $loan): array
+    {
+        $balance = $loan->totalDue();
+        $n = 0;
+
+        return $loan->payments()->with('user:id,name')->get()->map(function (LoanPayment $p) use (&$balance, &$n) {
+            $row = self::paymentToArray($p);
+            if (! $row['voided']) {
+                $balance -= $row['amount'];
+                $row['number'] = ++$n;
+            } else {
+                $row['number'] = null;
+            }
+            $row['balance_after'] = $balance;
+
+            return $row;
+        })->all();
+    }
+
     /**
      * Hitung ulang sisa, status, & tanggal lunas pinjaman dari jadwal (dipakai pembayaran, koreksi, deteksi tunggakan).
      * Status angsuran yang belum lunas: lewat jatuh tempo → menunggak, selain itu belum.

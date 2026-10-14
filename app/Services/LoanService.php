@@ -64,7 +64,7 @@ class LoanService
         $today = today();
         $open = LoanInstallment::query()->where('status', '!=', 'dibayar')->whereHas('loan', fn ($q) => $q->whereIn('status', Loan::ACTIVE));
         $sum = fn ($q) => (int) round((float) $q->sum(\Illuminate\Support\Facades\DB::raw('amount - paid_amount')));
-        $dueMonth = (clone $open)->whereBetween('due_date', [$today->copy()->startOfMonth()->toDateString(), $today->copy()->endOfMonth()->toDateString()]);
+        $dueMonth = (clone $open)->whereDayRange('due_date', $today->copy()->startOfMonth()->toDateString(), $today->copy()->endOfMonth()->toDateString());
         $late = (clone $open)->where('due_date', '<', $today->toDateString());
 
         $stats = $this->stats();

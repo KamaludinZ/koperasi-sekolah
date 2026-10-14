@@ -52,7 +52,7 @@ class SupplierBillService
             'outstanding' => $remain($open),
             'overdue' => $remain($open->filter(fn ($b) => $b->daysLeft() < 0)),
             'week' => $remain($open->filter(fn ($b) => $b->daysLeft() >= 0 && $b->daysLeft() <= self::DUE_SOON_DAYS)),
-            'paid_month' => (int) SupplierPayment::whereBetween('paid_at', [now()->startOfMonth()->toDateString(), now()->endOfMonth()->toDateString()])->sum('amount'),
+            'paid_month' => (int) SupplierPayment::whereDayRange('paid_at', now()->startOfMonth()->toDateString(), now()->endOfMonth()->toDateString())->sum('amount'),
         ];
     }
 
