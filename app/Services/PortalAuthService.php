@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Validation\ValidationException;
 
 /**
- * Masuk portal anggota (guard `member`): kode anggota atau email + kata sandi/PIN.
+ * Masuk portal anggota (guard `member`): kode anggota atau email + kata sandi (PIN khusus verifikasi transaksi).
  * Pesan gagal selalu sama (tidak membocorkan apakah akun ada), 5 percobaan gagal per 15 menit
  * per identitas+IP, dan setiap masuk/gagal dicatat di jejak audit.
  */

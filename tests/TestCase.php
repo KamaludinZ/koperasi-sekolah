@@ -32,6 +32,9 @@ abstract class TestCase extends BaseTestCase
         if (blank($member->getAttributes()['password'] ?? null)) {
             $member->forceFill(['password' => 'rahasia123'])->save(); // akses portal butuh kata sandi
         }
+        if (! $member->hasPin()) {
+            $member->forceFill(['pin' => '123456'])->save(); // PIN transaksi bawaan tes
+        }
         $this->app['auth']->guard('member')->setUser($member);
 
         return $this;

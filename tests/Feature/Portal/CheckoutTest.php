@@ -45,7 +45,7 @@ class CheckoutTest extends TestCase
     {
         $stock = Product::find($this->pid('ATK001'))->stock;
         Livewire::test(Checkout::class)->assertSee('Rp8.000')->assertSet('deliveryTo', 'Kelas 7A')
-            ->set('payment', 'tunai')->call('place')->assertHasNoErrors()->assertRedirect(route('portal.pesanan.show', Order::value('id')));
+            ->set('payment', 'tunai')->set('pin', '123456')->call('place')->assertHasNoErrors()->assertRedirect(route('portal.pesanan.show', Order::value('id')));
 
         $order = Order::with('items', 'statusLogs')->firstOrFail();
         $this->assertSame(['ORD-20261014-0001', 'menunggu', 'ambil', 'tunai', 'belum', 8000, 2], [$order->code, $order->status, $order->fulfillment,
@@ -61,11 +61,11 @@ class CheckoutTest extends TestCase
     public function test_pay_with_tabungan_or_simpanan(): void
     {
         app(SavingsService::class)->deposit($this->andi, 5000);
-        Livewire::test(Checkout::class)->assertSee('tidak cukup')->set('payment', 'tabungan')->call('place')->assertHasErrors('payment');
+        Livewire::test(Checkout::class)->assertSee('tidak cukup')->set('payment', 'tabungan')->set('pin', '123456')->call('place')->assertHasErrors('payment');
         $this->assertSame(0, Order::count());
 
         app(SavingsService::class)->deposit($this->andi, 5000);
-        Livewire::test(Checkout::class)->set('payment', 'tabungan')->set('fulfillment', 'antar')->set('deliveryTo', 'Kelas 7A')->call('place')->assertHasNoErrors();
+        Livewire::test(Checkout::class)->set('payment', 'tabungan')->set('fulfillment', 'antar')->set('deliveryTo', 'Kelas 7A')->set('pin', '123456')->call('place')->assertHasNoErrors();
         $order = Order::firstOrFail();
         $this->assertSame(['lunas', 'antar', 'Kelas 7A'], [$order->payment_status, $order->fulfillment, $order->delivery_to]);
         $this->assertEquals(2000, (float) $this->andi->fresh()->balance);
@@ -74,7 +74,7 @@ class CheckoutTest extends TestCase
         $sukarela = SavingType::where('code', 'SUKARELA')->first();
         app(MemberSavingService::class)->deposit($this->andi, $sukarela, 10000);
         PortalCart::set($this->pid('ATK002'), 1); // Rp3.000
-        Livewire::test(Checkout::class)->set('payment', 'simpanan')->assertSet('savingTypeId', $sukarela->id)->call('place')->assertHasNoErrors();
+        Livewire::test(Checkout::class)->set('payment', 'simpanan')->assertSet('savingTypeId', $sukarela->id)->set('pin', '123456')->call('place')->assertHasNoErrors();
         $entry = MemberSavingEntry::where('type', 'potong')->firstOrFail();
         $this->assertSame([3000, 7000, 'order'], [(int) $entry->amount, (int) $entry->balance_after, $entry->source_type]);
     }
@@ -86,14 +86,14 @@ class CheckoutTest extends TestCase
         // Rp8.000 + PPN 11% = Rp8.880 → tunai dibulatkan ke atas per Rp500 = Rp9.000
         Livewire::test(Checkout::class)->set('payment', 'tunai')->assertSee('PPN')->assertSee('Rp880')->assertSee('Rp120')->assertSeeHtml('data-total>Rp9.000')
             ->set('payment', 'qris')->assertSeeHtml('data-total>Rp8.880')
-            ->set('payment', 'tunai')->call('place')->assertHasNoErrors();
+            ->set('payment', 'tunai')->set('pin', '123456')->call('place')->assertHasNoErrors();
         $o = Order::firstOrFail();
         $this->assertSame([8000, 880, 120, 9000], [(int) $o->subtotal, (int) $o->tax, (int) $o->rounding, (int) $o->total]);
     }
 
     public function test_validation_stock_and_idempotency(): void
     {
-        Livewire::test(Checkout::class)->set('fulfillment', 'antar')->set('deliveryTo', '')->call('place')->assertHasErrors('deliveryTo');
+        Livewire::test(Checkout::class)->set('fulfillment', 'antar')->set('deliveryTo', '')->set('pin', '123456')->call('place')->assertHasErrors('deliveryTo');
 
         Product::whereKey($this->pid('ATK001'))->update(['stock' => 1]);
         $svc = app(OrderService::class);

@@ -41,7 +41,7 @@ class Member extends Model implements AuthenticatableContract
     ];
 
     /** Kata sandi portal tidak pernah ikut terserialisasi (JSON/array). */
-    protected $hidden = ['password', 'remember_token'];
+    protected $hidden = ['password', 'pin', 'remember_token'];
 
     protected function casts(): array
     {
@@ -51,6 +51,7 @@ class Member extends Model implements AuthenticatableContract
             'is_active' => 'boolean',
             'joined_at' => 'date',
             'password' => 'hashed',
+            'pin' => 'hashed',
             'portal_last_login_at' => 'datetime',
         ];
     }
@@ -59,6 +60,11 @@ class Member extends Model implements AuthenticatableContract
     public function getRememberTokenName()
     {
         return '';
+    }
+
+    public function hasPin(): bool
+    {
+        return filled($this->getAttributes()['pin'] ?? null);
     }
 
     public function hasPortalAccess(): bool

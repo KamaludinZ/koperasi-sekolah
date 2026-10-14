@@ -4,6 +4,7 @@ namespace App\Livewire\Portal;
 
 use App\Models\Order;
 use App\Services\OrderService;
+use App\Services\PortalPinService;
 use App\Services\QrisImageService;
 use App\Services\SettingsService;
 use App\Support\PortalCart;
@@ -18,7 +19,7 @@ use Livewire\Component;
 
 /**
  * Portal anggota → Checkout: ringkasan keranjang, pilih pengambilan (ambil/antar) & pembayaran
- * (potong saldo tabungan/simpanan, tunai di kasir, QRIS/transfer), lalu kirim pesanan (OrderService).
+ * (potong saldo tabungan/simpanan, tunai di kasir, QRIS/transfer), lalu verifikasi PIN transaksi dan kirim pesanan (OrderService).
  */
 #[Layout('components.layouts.portal')]
 #[Title('Checkout')]
@@ -36,6 +37,11 @@ class Checkout extends Component
 
     #[Locked]
     public string $ref = '';
+
+    /** Langkah konfirmasi: ringkasan pesanan + PIN transaksi. */
+    public bool $confirming = false;
+
+    public string $pin = '';
 
     public function mount()
     {
@@ -88,9 +94,39 @@ class Checkout extends Component
         $this->resetValidation(['payment', 'savingTypeId']);
     }
 
+    /** Buka langkah verifikasi PIN (pilihan dicek dulu tanpa membuat pesanan). */
+    public function review(): void
+    {
+        $this->resetErrorBag();
+        if ($this->fulfillment === 'antar' && mb_strlen(trim($this->deliveryTo)) < 2) {
+            $this->addError('deliveryTo', 'Tulis tujuan antar (mis. Kelas 7A atau Ruang Guru).');
+
+            return;
+        }
+        if ($this->payment === 'simpanan' && ! $this->savingTypeId) {
+            $this->addError('savingTypeId', 'Pilih simpanan yang dipotong.');
+
+            return;
+        }
+        $this->pin = '';
+        $this->confirming = true;
+    }
+
+    /** Kirim pesanan setelah PIN transaksi benar. */
     public function place()
     {
         $this->resetErrorBag();
+        $member = Auth::guard('member')->user();
+        try {
+            app(PortalPinService::class)->verify($member, $this->pin);
+        } catch (ValidationException $e) {
+            $this->pin = '';
+            $this->confirming = true;
+            $this->addError('pin', $e->errors()['pin'][0]);
+
+            return null;
+        }
+        $this->pin = '';
         try {
             $order = app(OrderService::class)->place(Auth::guard('member')->user(), PortalCart::items(), [
                 'fulfillment' => $this->fulfillment, 'delivery_to' => $this->deliveryTo, 'payment_method' => $this->payment,
@@ -101,6 +137,7 @@ class Checkout extends Component
             foreach ($e->errors() as $key => $messages) {
                 $this->addError($map[$key] ?? $key, $messages[0]);
             }
+            $this->confirming = false;
             unset($this->cart, $this->balances);
 
             return null;

@@ -7,7 +7,7 @@
     $balanceTotal = $this->balanceTotal;
     $option = 'flex cursor-pointer items-start gap-3 rounded-xl border border-stone-300 bg-white px-4 py-3 has-checked:border-emerald-600 has-checked:bg-emerald-50 has-disabled:cursor-not-allowed has-disabled:opacity-50';
 @endphp
-<form wire:submit="place" class="space-y-5">
+<form wire:submit="review" class="space-y-5">
     <div>
         <a href="{{ route('portal.belanja') }}" wire:navigate class="text-sm text-stone-500 hover:text-emerald-800">← Kembali belanja</a>
         <h1 class="mt-1 text-xl font-semibold">Checkout</h1>
@@ -83,7 +83,34 @@
         <input type="text" wire:model="note" maxlength="200" placeholder="mis. Titip ke wali kelas" class="w-full rounded-xl border border-stone-300 bg-white px-3.5 py-2.5 text-sm outline-none focus:border-emerald-600 focus:ring-4 focus:ring-emerald-600/15">
         @error('note') <span class="mt-1 block text-xs text-red-600">{{ $message }}</span> @enderror</label>
 
-    <button type="submit" wire:loading.attr="disabled" wire:target="place" class="w-full rounded-xl bg-emerald-700 py-3 text-base font-semibold text-white hover:bg-emerald-800 disabled:opacity-60">
-        <span wire:loading.remove wire:target="place">Kirim pesanan · {{ $rp($total) }}</span><span wire:loading wire:target="place">Mengirim…</span>
+    @php $hasPin = auth('member')->user()->hasPin(); @endphp
+    @unless ($hasPin)
+        <p class="rounded-xl bg-amber-50 px-4 py-3 text-sm text-amber-900" data-no-pin>Setiap transaksi diverifikasi dengan PIN, tetapi PIN Anda belum diatur. Minta pengurus koperasi mengaturnya.</p>
+    @endunless
+    <button type="submit" @disabled(! $hasPin) class="w-full rounded-xl bg-emerald-700 py-3 text-base font-semibold text-white hover:bg-emerald-800 disabled:opacity-60">
+        Kirim pesanan · {{ $rp($total) }}
     </button>
+
+    @if ($confirming)
+        <div class="fixed inset-0 z-50 flex items-end justify-center bg-stone-950/50 sm:items-center" role="dialog" aria-modal="true" aria-labelledby="pin-title"
+             x-data x-on:keydown.escape.window="$wire.set('confirming', false)" wire:click.self="$set('confirming', false)">
+            <div class="w-full max-w-sm space-y-4 rounded-t-2xl bg-white p-5 shadow-xl sm:rounded-2xl" data-pin-dialog>
+                <div>
+                    <h2 id="pin-title" class="text-lg font-semibold">Verifikasi PIN</h2>
+                    <p class="text-sm text-stone-500">{{ $cart['count'] }} barang · {{ $payments[$payment] }} · {{ $fulfillment === 'antar' ? 'diantar' : 'ambil sendiri' }}</p>
+                    <p class="mt-1 text-2xl font-bold tabular-nums">{{ $rp($total) }}</p>
+                </div>
+                <label class="block"><span class="mb-1 block text-sm font-medium">PIN transaksi (6 angka)</span>
+                    <input type="password" inputmode="numeric" pattern="[0-9]*" maxlength="6" autocomplete="one-time-code" wire:model="pin" x-init="$el.focus()"
+                           wire:keydown.enter.prevent="place" class="w-full rounded-xl border border-stone-300 px-3.5 py-3 text-center text-2xl tracking-[0.5em] tabular-nums outline-none focus:border-emerald-600 focus:ring-4 focus:ring-emerald-600/15">
+                    @error('pin') <span class="mt-1 block text-sm text-red-700" role="alert">{{ $message }}</span> @enderror
+                </label>
+                <div class="flex gap-2">
+                    <button type="button" wire:click="$set('confirming', false)" class="flex-1 rounded-xl border border-stone-300 py-2.5 text-sm font-medium text-stone-700">Batal</button>
+                    <button type="button" wire:click="place" wire:loading.attr="disabled" wire:target="place" class="flex-1 rounded-xl bg-emerald-700 py-2.5 text-sm font-semibold text-white hover:bg-emerald-800 disabled:opacity-60">
+                        <span wire:loading.remove wire:target="place">Konfirmasi</span><span wire:loading wire:target="place">Memproses…</span></button>
+                </div>
+            </div>
+        </div>
+    @endif
 </form>

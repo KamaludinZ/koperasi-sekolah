@@ -8,7 +8,7 @@ use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Component;
 
-/** Portal anggota → Masuk: kode anggota/email + kata sandi atau PIN. */
+/** Portal anggota → Masuk: kode anggota/email + kata sandi (PIN hanya untuk verifikasi transaksi). */
 #[Layout('components.layouts.portal')]
 #[Title('Masuk Anggota')]
 class Login extends Component
@@ -21,7 +21,7 @@ class Login extends Component
     {
         $this->validate(
             ['identifier' => ['required', 'string', 'max:120'], 'password' => ['required', 'string', 'max:100']],
-            ['identifier.required' => 'Masukkan kode anggota atau email.', 'password.required' => 'Masukkan kata sandi atau PIN.'],
+            ['identifier.required' => 'Masukkan kode anggota atau email.', 'password.required' => 'Masukkan kata sandi.'],
         );
 
         try {

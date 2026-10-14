@@ -14,7 +14,7 @@
                        @class([$input, 'border-red-400' => $errors->has('identifier'), 'border-stone-300' => ! $errors->has('identifier')])>
             </label>
             <label class="block">
-                <span class="mb-1 block text-sm font-medium">Kata sandi atau PIN</span>
+                <span class="mb-1 block text-sm font-medium">Kata sandi</span>
                 <input type="password" wire:model="password" autocomplete="current-password"
                        @class([$input, 'border-red-400' => $errors->has('password'), 'border-stone-300' => ! $errors->has('password')])>
                 @error('password') <span class="mt-1 block text-xs text-red-600">{{ $message }}</span> @enderror
@@ -24,7 +24,7 @@
                 <span wire:loading.remove wire:target="login">Masuk</span><span wire:loading wire:target="login">Memeriksa…</span>
             </button>
         </form>
-        <p class="mt-4 text-xs leading-relaxed text-stone-500">Belum punya akses? Minta pengurus koperasi mengaktifkan akun portal Anda. Lupa kata sandi atau PIN? Hubungi pengurus untuk mengaturnya ulang.</p>
+        <p class="mt-4 text-xs leading-relaxed text-stone-500">Belum punya akses? Minta pengurus koperasi mengaktifkan akun portal Anda. PIN 6 angka dipakai untuk memverifikasi setiap transaksi. Lupa kata sandi atau PIN? Hubungi pengurus untuk mengaturnya ulang.</p>
     </div>
     <p class="mt-6 text-xs text-emerald-300/80">{{ $profile['name'] }} · <a href="{{ route('login') }}" class="hover:underline">Masuk petugas</a></p>
 </div>
