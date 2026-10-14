@@ -1,6 +1,6 @@
 {
   "repo": "Koperasi Sekolah",
-  "generatedForCommit": "8f2213ab2dc6188fa73bcd770feea07474e5ba1c",
+  "generatedForCommit": "e13d55a8de6a2e809babd684b1b6eabc6e53768b",
   "files": [
     {
       "path": ".claude/skills/ngodingpakeai/SKILL.md",
@@ -274,7 +274,7 @@
     },
     {
       "path": "app/Livewire/Pinjaman/Show.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 6212
     },
@@ -298,7 +298,7 @@
     },
     {
       "path": "app/Models/LoanDisbursement.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 704
     },
@@ -334,7 +334,7 @@
     },
     {
       "path": "app/Services/LoanDisbursementService.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 6973
     },
@@ -922,9 +922,15 @@
     },
     {
       "path": "database/migrations/2026_10_16_000002_harden_loan_disbursements.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 1873
+    },
+    {
+      "path": "database/migrations/2026_10_16_000003_harden_loan_installments.php",
+      "reason": "new",
+      "language": "php",
+      "size": 1735
     },
     {
       "path": "database/seeders/LoanSeeder.php",
@@ -2118,7 +2124,7 @@
       "path": "tests/Feature/Database/LoanSchemaTest.php",
       "reason": "changed",
       "language": "php",
-      "size": 8470
+      "size": 9316
     },
     {
       "path": "tests/Feature/Database/NotificationSchemaTest.php",
@@ -2356,13 +2362,13 @@
     },
     {
       "path": "tests/Feature/Pinjaman/DisbursementProofTest.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 8445
     },
     {
       "path": "tests/Feature/Pinjaman/DisbursementsPageTest.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 2766
     },
@@ -2382,7 +2388,7 @@
       "path": "tests/Feature/Pinjaman/LoanDetailEndpointTest.php",
       "reason": "changed",
       "language": "php",
-      "size": 5337
+      "size": 5393
     },
     {
       "path": "tests/Feature/Pinjaman/LoanEndpointTest.php",
@@ -2392,9 +2398,9 @@
     },
     {
       "path": "tests/Feature/Pinjaman/LoanSummaryEndpointTest.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 3693
+      "size": 3735
     },
     {
       "path": "tests/Feature/Pinjaman/StatusTransitionTest.php",
