@@ -22,6 +22,9 @@ class Role extends Model
     /** Menu yang wajib dimiliki admin agar tidak terkunci dari pengelolaan akun. */
     public const ADMIN_REQUIRED = ['pengguna', 'pengaturan'];
 
+    /** Menu yang tidak boleh diberikan ke peran tertentu (simpanan hanya dikelola pengurus/admin). */
+    public const FORBIDDEN = ['kasir' => ['simpanan']];
+
     protected $fillable = ['name', 'label', 'permissions'];
 
     protected function casts(): array

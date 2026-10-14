@@ -1,6 +1,6 @@
 {
   "repo": "Koperasi Sekolah",
-  "generatedForCommit": "525286992b5b27e7ce0b0b695c0027d13da08e95",
+  "generatedForCommit": "0888eef0b2b094a217b62e84b48ccbab359f063e",
   "files": [
     {
       "path": ".claude/skills/ngodingpakeai/SKILL.md",
@@ -418,7 +418,7 @@
     },
     {
       "path": "app/Livewire/Anggota/Show.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 9137
     },
@@ -723,8 +723,14 @@
       "size": 2768
     },
     {
-      "path": "app/Livewire/Simpanan/MemberSavings.php",
+      "path": "app/Livewire/Simpanan/Entries.php",
       "reason": "new",
+      "language": "php",
+      "size": 4659
+    },
+    {
+      "path": "app/Livewire/Simpanan/MemberSavings.php",
+      "reason": "needs_summary",
       "language": "php",
       "size": 5474
     },
@@ -1216,7 +1222,7 @@
     },
     {
       "path": "app/Services/MemberSavingService.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 13783
     },
@@ -2524,7 +2530,7 @@
     },
     {
       "path": "resources/views/livewire/anggota/show.blade.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 6398
     },
@@ -2889,10 +2895,16 @@
       "size": 12154
     },
     {
-      "path": "resources/views/livewire/simpanan/member-savings.blade.php",
+      "path": "resources/views/livewire/simpanan/entries.blade.php",
       "reason": "new",
       "language": "php",
-      "size": 9080
+      "size": 6768
+    },
+    {
+      "path": "resources/views/livewire/simpanan/member-savings.blade.php",
+      "reason": "changed",
+      "language": "php",
+      "size": 9205
     },
     {
       "path": "resources/views/livewire/simpanan/types.blade.php",
@@ -2998,9 +3010,9 @@
     },
     {
       "path": "routes/web.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 34611
+      "size": 34697
     },
     {
       "path": "tests/Concerns/MakesProductImports.php",
@@ -3969,14 +3981,20 @@
       "size": 4433
     },
     {
-      "path": "tests/Feature/Simpanan/MemberSavingMutationTest.php",
+      "path": "tests/Feature/Simpanan/EntriesPageTest.php",
       "reason": "new",
+      "language": "php",
+      "size": 2528
+    },
+    {
+      "path": "tests/Feature/Simpanan/MemberSavingMutationTest.php",
+      "reason": "needs_summary",
       "language": "php",
       "size": 5659
     },
     {
       "path": "tests/Feature/Simpanan/ProfileSavingTypesTest.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 3376
     },

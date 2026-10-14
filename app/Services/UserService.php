@@ -162,6 +162,10 @@ class UserService
     public function updatePermissions(Role $role, array $menus): Role
     {
         $menus = array_values(array_intersect(array_keys(Menu::ITEMS), $menus)); // urutan & kunci valid saja
+        if ($forbidden = array_intersect($menus, Role::FORBIDDEN[$role->name] ?? [])) {
+            $names = implode(', ', array_map(fn ($k) => Menu::ITEMS[$k]['label'] ?? $k, $forbidden));
+            throw ValidationException::withMessages(['permissions' => "Menu {$names} tidak boleh diberikan ke peran {$role->label}."]);
+        }
         if ($role->name === Role::ADMIN && array_diff(Role::ADMIN_REQUIRED, $menus)) {
             throw ValidationException::withMessages(['permissions' => 'Peran Admin wajib tetap bisa membuka menu Pengguna dan Pengaturan.']);
         }

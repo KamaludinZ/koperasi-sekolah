@@ -57,9 +57,12 @@ class TypesPageTest extends TestCase
         $this->seed(UserSeeder::class);
         $this->loginAs('kasir@koperasi.test');
         $this->get('/simpanan')->assertForbidden();
+        $this->get('/kasir')->assertOk()->assertDontSee('href="'.route('simpanan').'"', false);
+        $this->get('/anggota')->assertOk()->assertDontSee('Simpanan pokok, wajib');
 
         $this->loginAs('pengurus@koperasi.test');
         $this->get('/simpanan')->assertOk()->assertSee('Tambah jenis');
+        $this->get('/anggota')->assertOk()->assertSee('href="'.route('simpanan').'"', false);
         Livewire::test(Types::class)->call('create')->assertSet('editing', true);
     }
 }

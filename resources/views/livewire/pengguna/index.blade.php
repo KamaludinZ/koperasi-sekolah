@@ -122,10 +122,13 @@
                         @if ($permissionsRole === $r->name)
                             <div class="mt-2 space-y-1.5">
                                 @foreach ($menus as $key => $m)
-                                    @php $locked = $r->name === 'admin' && in_array($key, \App\Models\Role::ADMIN_REQUIRED, true); @endphp
-                                    <label @class(['flex items-start gap-2 text-xs', 'opacity-60' => $locked])>
-                                        <input type="checkbox" value="{{ $key }}" wire:model="permissions.{{ $r->name }}" @disabled($locked) class="mt-0.5 size-3.5 accent-amber-400">
-                                        <span><span class="font-medium text-white">{{ $m['label'] }}</span> <span class="text-emerald-300">· {{ $m['description'] }}</span></span>
+                                    @php
+                                        $locked = $r->name === 'admin' && in_array($key, \App\Models\Role::ADMIN_REQUIRED, true);
+                                        $forbidden = in_array($key, \App\Models\Role::FORBIDDEN[$r->name] ?? [], true);
+                                    @endphp
+                                    <label @class(['flex items-start gap-2 text-xs', 'opacity-60' => $locked || $forbidden]) @if ($forbidden) data-forbidden-menu="{{ $key }}" @endif>
+                                        <input type="checkbox" value="{{ $key }}" wire:model="permissions.{{ $r->name }}" @disabled($locked || $forbidden) class="mt-0.5 size-3.5 accent-amber-400">
+                                        <span><span class="font-medium text-white">{{ $m['label'] }}</span> <span class="text-emerald-300">· {{ $forbidden ? 'khusus pengurus & admin' : $m['description'] }}</span></span>
                                     </label>
                                 @endforeach
                                 @error('permissions') <p class="text-xs text-red-300">{{ $message }}</p> @enderror

@@ -146,6 +146,9 @@ class IndexTest extends TestCase
 
         $this->putJson('/pengguna/peran/admin', ['permissions' => ['kasir']])->assertJsonValidationErrors('permissions');
         $this->putJson('/pengguna/peran/kasir', ['permissions' => ['gudang']])->assertJsonValidationErrors('permissions.0');
+        $this->putJson('/pengguna/peran/kasir', ['permissions' => ['kasir', 'simpanan']])->assertJsonValidationErrors('permissions')
+            ->assertJsonPath('errors.permissions.0', 'Menu Simpanan tidak boleh diberikan ke peran Kasir.');
+        Livewire::test(Index::class)->call('editPermissions', 'kasir')->assertSeeHtml('data-forbidden-menu="simpanan"')->assertSee('khusus pengurus & admin');
 
         Livewire::test(Index::class)
             ->call('editPermissions', 'pengurus')
