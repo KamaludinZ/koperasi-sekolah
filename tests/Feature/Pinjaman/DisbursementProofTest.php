@@ -141,8 +141,8 @@ class DisbursementProofTest extends TestCase
         $this->assertStringContainsString('sandbox', $res->headers->get('Content-Security-Policy'));
 
         // PDF tidak pernah ditampilkan langsung.
-        $d->update(['proof_file' => 'pinjaman/bukti/doc.pdf']);
         Storage::disk('local')->put('pinjaman/bukti/doc.pdf', '%PDF-1.4');
+        $d->update(['proof_file' => 'pinjaman/bukti/doc.pdf', 'proof_mime' => 'application/pdf', 'proof_sha256' => hash('sha256', '%PDF-1.4')]);
         $pdf = $this->get(route('pinjaman.pencairan.bukti', ['disbursement' => $d->id, 'lihat' => 1]))->assertOk();
         $this->assertStringStartsWith('attachment', $pdf->headers->get('Content-Disposition'));
         $this->get(route('pinjaman.show', $this->loan))->assertSee('data-proof-pdf', false)->assertDontSee('data-proof-image', false);

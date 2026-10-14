@@ -20,6 +20,12 @@ class DisbursementProofController extends Controller
         $path = $disbursement->proof_file;
         abort_unless($path && str_starts_with($path, \App\Services\LoanDisbursementService::PROOF_DIR.'/') && ! str_contains($path, '..')
             && Storage::disk('local')->exists($path), 404, 'Berkas bukti tidak ditemukan.');
+        // Berkas diganti/diubah di luar aplikasi → jangan disajikan sebagai bukti sah.
+        if ($disbursement->proof_sha256 && ! hash_equals($disbursement->proof_sha256, hash_file('sha256', Storage::disk('local')->path($path)))) {
+            \App\Services\AuditLog::record('pinjaman.bukti_tidak_cocok', 'pinjaman', "Berkas bukti pencairan {$disbursement->loan->code} tidak cocok dengan sidik jari tercatat",
+                \App\Services\LoanApplicationService::subject($disbursement->loan), ['disbursement_id' => $disbursement->id]);
+            abort(409, 'Berkas bukti berubah sejak diunggah dan tidak bisa dipercaya. Hubungi admin.');
+        }
         $ext = strtolower(pathinfo($path, PATHINFO_EXTENSION));
         $headers = ['X-Content-Type-Options' => 'nosniff', 'Cache-Control' => 'private, no-store', 'Content-Security-Policy' => "default-src 'none'; sandbox"];
         if ($request->boolean('lihat') && isset(self::INLINE[$ext])) {

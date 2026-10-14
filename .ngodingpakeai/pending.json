@@ -1,6 +1,6 @@
 {
   "repo": "Koperasi Sekolah",
-  "generatedForCommit": "8366764e450013816c511de995013b7dfac3337d",
+  "generatedForCommit": "1ab56d24c6e3c407619c9ab054cb7e2861ea0499",
   "files": [
     {
       "path": ".claude/skills/ngodingpakeai/SKILL.md",
@@ -130,9 +130,9 @@
     },
     {
       "path": "app/Http/Controllers/Pinjaman/DisbursementController.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 1862
+      "size": 3571
     },
     {
       "path": "app/Http/Controllers/Pinjaman/DisbursementProofController.php",
@@ -280,7 +280,7 @@
     },
     {
       "path": "app/Livewire/Pinjaman/Show.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 6282
     },
@@ -340,13 +340,13 @@
     },
     {
       "path": "app/Services/LoanDisbursementService.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 6944
     },
     {
       "path": "app/Services/LoanScheduleGenerator.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 2128
     },
@@ -2008,9 +2008,9 @@
     },
     {
       "path": "routes/web.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 45878
+      "size": 46126
     },
     {
       "path": "tests/Concerns/MakesProductImports.php",
@@ -2379,6 +2379,12 @@
       "size": 4372
     },
     {
+      "path": "tests/Feature/Pinjaman/DisbursementProofEndpointTest.php",
+      "reason": "new",
+      "language": "php",
+      "size": 3197
+    },
+    {
       "path": "tests/Feature/Pinjaman/DisbursementProofTest.php",
       "reason": "needs_summary",
       "language": "php",
@@ -2422,7 +2428,7 @@
     },
     {
       "path": "tests/Feature/Pinjaman/ScheduleGeneratorTest.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 3689
     },

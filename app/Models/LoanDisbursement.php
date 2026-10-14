@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 /** Pencairan dana pinjaman (tanggal, nominal, bukti serah terima). */
 class LoanDisbursement extends Model
 {
-    protected $fillable = ['loan_id', 'disbursed_on', 'amount', 'proof', 'proof_file', 'proof_mime', 'proof_size', 'user_id'];
+    protected $fillable = ['loan_id', 'disbursed_on', 'amount', 'proof', 'proof_file', 'proof_mime', 'proof_size', 'proof_sha256', 'user_id'];
 
     protected function casts(): array
     {
