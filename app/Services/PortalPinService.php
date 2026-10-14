@@ -19,6 +19,16 @@ class PortalPinService
 
     public const PATTERN = '/^\d{6}$/';
 
+    /** @return array{left: int, locked: bool, minutes: int} sisa percobaan PIN anggota saat ini */
+    public function attempts(Member $member): array
+    {
+        $key = 'portal-pin:'.$member->id;
+        $locked = RateLimiter::tooManyAttempts($key, self::MAX_ATTEMPTS);
+
+        return ['left' => max(0, self::MAX_ATTEMPTS - RateLimiter::attempts($key)), 'locked' => $locked,
+            'minutes' => $locked ? (int) ceil(RateLimiter::availableIn($key) / 60) : 0];
+    }
+
     /** @throws ValidationException */
     public function verify(Member $member, string $pin): void
     {

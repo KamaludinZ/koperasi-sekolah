@@ -1,6 +1,6 @@
 {
   "repo": "Koperasi Sekolah",
-  "generatedForCommit": "11d4be48543a1d0595f0c4023ca88ffb26269073",
+  "generatedForCommit": "01bd920f2788157de3041db6c30eb918dd130fe1",
   "files": [
     {
       "path": ".claude/skills/ngodingpakeai/SKILL.md",
@@ -742,7 +742,7 @@
     },
     {
       "path": "app/Livewire/Portal/Checkout.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 5395
     },
@@ -754,7 +754,7 @@
     },
     {
       "path": "app/Livewire/Portal/Login.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 1630
     },
@@ -976,7 +976,7 @@
     },
     {
       "path": "app/Models/Member.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 4606
     },
@@ -1378,13 +1378,13 @@
     },
     {
       "path": "app/Services/PortalAuthService.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 2996
     },
     {
       "path": "app/Services/PortalPinService.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 1788
     },
@@ -2254,7 +2254,7 @@
     },
     {
       "path": "database/migrations/2026_10_14_000014_add_pin_to_members_table.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 647
     },
@@ -2374,9 +2374,9 @@
     },
     {
       "path": "resources/js/app.js",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "javascript",
-      "size": 1568
+      "size": 1650
     },
     {
       "path": "resources/js/barcode-reader.js",
@@ -2401,6 +2401,12 @@
       "reason": "needs_summary",
       "language": "javascript",
       "size": 1289
+    },
+    {
+      "path": "resources/js/pin-input.js",
+      "reason": "new",
+      "language": "javascript",
+      "size": 1547
     },
     {
       "path": "resources/js/sales-chart.js",
@@ -2539,6 +2545,12 @@
       "reason": "needs_summary",
       "language": "php",
       "size": 712
+    },
+    {
+      "path": "resources/views/components/pin-input.blade.php",
+      "reason": "new",
+      "language": "php",
+      "size": 1502
     },
     {
       "path": "resources/views/components/portal/order-status.blade.php",
@@ -3084,7 +3096,7 @@
       "path": "resources/views/livewire/portal/checkout.blade.php",
       "reason": "changed",
       "language": "php",
-      "size": 10187
+      "size": 9780
     },
     {
       "path": "resources/views/livewire/portal/home.blade.php",
@@ -3094,7 +3106,7 @@
     },
     {
       "path": "resources/views/livewire/portal/login.blade.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 2592
     },
@@ -4258,7 +4270,7 @@
     },
     {
       "path": "tests/Feature/Portal/CheckoutTest.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 6382
     },
@@ -4276,9 +4288,9 @@
     },
     {
       "path": "tests/Feature/Portal/PinVerificationTest.php",
-      "reason": "new",
+      "reason": "changed",
       "language": "php",
-      "size": 2818
+      "size": 2884
     },
     {
       "path": "tests/Feature/Portal/PurchasesPageTest.php",
@@ -4540,7 +4552,7 @@
     },
     {
       "path": "tests/TestCase.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 2209
     },

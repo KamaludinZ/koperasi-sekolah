@@ -94,6 +94,12 @@ class Checkout extends Component
         $this->resetValidation(['payment', 'savingTypeId']);
     }
 
+    #[Computed]
+    public function pinAttempts(): array
+    {
+        return app(PortalPinService::class)->attempts(Auth::guard('member')->user());
+    }
+
     /** Buka langkah verifikasi PIN (pilihan dicek dulu tanpa membuat pesanan). */
     public function review(): void
     {
@@ -122,6 +128,7 @@ class Checkout extends Component
         } catch (ValidationException $e) {
             $this->pin = '';
             $this->confirming = true;
+            unset($this->pinAttempts);
             $this->addError('pin', $e->errors()['pin'][0]);
 
             return null;

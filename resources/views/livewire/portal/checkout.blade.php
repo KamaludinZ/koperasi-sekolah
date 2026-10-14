@@ -100,8 +100,17 @@
                     <p class="text-sm text-stone-500">{{ $cart['count'] }} barang · {{ $payments[$payment] }} · {{ $fulfillment === 'antar' ? 'diantar' : 'ambil sendiri' }}</p>
                     <p class="mt-1 text-2xl font-bold tabular-nums">{{ $rp($total) }}</p>
                 </div>
+                @php $att = $this->pinAttempts; @endphp
                 <x-pin-input model="pin" submit="place">
                     @error('pin') <span class="block text-center text-sm text-red-700" role="alert">{{ $message }}</span> @enderror
+                    @if ($att['locked'])
+                        <p class="text-center text-xs font-medium text-red-700" data-pin-locked>Transaksi terkunci {{ $att['minutes'] }} menit karena PIN salah berulang.</p>
+                    @elseif ($att['left'] < \App\Services\PortalPinService::MAX_ATTEMPTS)
+                        <p class="flex items-center justify-center gap-1 text-xs text-amber-800" data-pin-left="{{ $att['left'] }}">
+                            @for ($i = 0; $i < \App\Services\PortalPinService::MAX_ATTEMPTS; $i++)<span @class(['size-1.5 rounded-full', 'bg-amber-500' => $i < $att['left'], 'bg-stone-300' => $i >= $att['left']])></span>@endfor
+                            <span class="ml-1">Sisa {{ $att['left'] }} percobaan</span>
+                        </p>
+                    @endif
                 </x-pin-input>
                 <div class="flex gap-2">
                     <button type="button" wire:click="$set('confirming', false)" class="flex-1 rounded-xl border border-stone-300 py-2.5 text-sm font-medium text-stone-700">Batal</button>
