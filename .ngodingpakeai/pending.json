@@ -1,6 +1,6 @@
 {
   "repo": "Koperasi Sekolah",
-  "generatedForCommit": "8414656504efd95f76601a1aff18a69327b78344",
+  "generatedForCommit": "16b6a22e9a24cac0d949e129240309810302b18a",
   "files": [
     {
       "path": ".claude/skills/ngodingpakeai/SKILL.md",
@@ -232,7 +232,7 @@
     },
     {
       "path": "app/Livewire/Pinjaman/Index.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 2278
     },
@@ -291,6 +291,12 @@
       "size": 2211
     },
     {
+      "path": "app/Providers/AppServiceProvider.php",
+      "reason": "changed",
+      "language": "php",
+      "size": 5491
+    },
+    {
       "path": "app/Services/LoanService.php",
       "reason": "needs_summary",
       "language": "php",
@@ -331,6 +337,12 @@
       "reason": "needs_summary",
       "language": "php",
       "size": 2149
+    },
+    {
+      "path": "app/Support/Tanggal.php",
+      "reason": "new",
+      "language": "php",
+      "size": 825
     },
     {
       "path": "artisan",
@@ -1668,13 +1680,13 @@
       "path": "resources/views/livewire/pinjaman/index.blade.php",
       "reason": "changed",
       "language": "php",
-      "size": 9801
+      "size": 10595
     },
     {
       "path": "resources/views/livewire/pinjaman/show.blade.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 10113
+      "size": 10096
     },
     {
       "path": "resources/views/livewire/portal/checkout.blade.php",
@@ -2190,13 +2202,19 @@
       "path": "tests/Feature/Pinjaman/ConsolePageTest.php",
       "reason": "changed",
       "language": "php",
-      "size": 5016
+      "size": 5089
     },
     {
       "path": "tests/Feature/Pinjaman/DetailPageTest.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 2989
+      "size": 3064
+    },
+    {
+      "path": "tests/Feature/Services/TanggalTest.php",
+      "reason": "new",
+      "language": "php",
+      "size": 840
     },
     {
       "path": "tests/Feature/Transaksi/DateFilterTest.php",

@@ -29,6 +29,19 @@ class LoanFactory extends Factory
         ];
     }
 
+    /** Status yang sudah dicairkan wajib punya tanggal cair; lunas bersisa nol (sesuai CHECK PostgreSQL). */
+    public function configure(): static
+    {
+        return $this->afterMaking(function (Loan $loan) {
+            if (in_array($loan->status, ['berjalan', 'menunggak', 'lunas'], true) && ! $loan->disbursed_at) {
+                $loan->disbursed_at = now()->toDateString();
+            }
+            if ($loan->status === 'lunas') {
+                $loan->outstanding = 0;
+            }
+        });
+    }
+
     /** Sudah dicairkan & berjalan: sisa = pokok + bunga. */
     public function running(): static
     {

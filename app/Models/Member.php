@@ -82,6 +82,12 @@ class Member extends Model implements AuthenticatableContract
         return $this->hasMany(MemberCreditPayment::class);
     }
 
+    /** Pinjaman (simpan pinjam) milik anggota. */
+    public function loans(): HasMany
+    {
+        return $this->hasMany(Loan::class);
+    }
+
     public function transactions(): HasMany
     {
         return $this->hasMany(Transaction::class);

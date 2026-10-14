@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -44,6 +45,27 @@ class Loan extends Model
     public function disbursements(): HasMany
     {
         return $this->hasMany(LoanDisbursement::class)->orderBy('disbursed_on')->orderBy('id');
+    }
+
+    public function creator(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'created_by');
+    }
+
+    /** Sudah dicairkan & masih punya sisa (berjalan/menunggak). */
+    public function scopeActive(Builder $query): void
+    {
+        $query->whereIn('status', self::ACTIVE);
+    }
+
+    /** Kode pinjaman berikutnya per tahun: PJM-2026-0001, PJM-2026-0002, … (panggil di dalam transaksi). */
+    public static function nextCode(?\DateTimeInterface $at = null): string
+    {
+        $prefix = 'PJM-'.($at ?? now())->format('Y').'-';
+        $last = static::query()->where('code', 'like', $prefix.'%')->lockForUpdate()->orderByDesc('code')->value('code');
+        $n = $last ? (int) substr($last, strlen($prefix)) + 1 : 1;
+
+        return $prefix.str_pad((string) $n, 4, '0', STR_PAD_LEFT);
     }
 
     public function decider(): BelongsTo
