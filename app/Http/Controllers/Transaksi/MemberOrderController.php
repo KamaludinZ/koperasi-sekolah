@@ -11,12 +11,35 @@ use Illuminate\Validation\Rule;
 
 /**
  * Pesanan portal anggota di sisi petugas (JSON, menu Transaksi):
+ * - GET  /pesanan/data?status=&q=&per_page=        → daftar (aktif dulu, terlama dulu) + jumlah per status
+ * - GET  /pesanan/{order}/data                      → detail: anggota, barang, riwayat status, potong saldo, langkah berikutnya
  * - POST /pesanan/{order}/bayar {metode: tunai|qris} → catat pembayaran saat diambil/diantar (tunai masuk laci shift)
  * - POST /pesanan/{order}/status {status, catatan?}   → majukan status (menunggu → diproses → siap → selesai)
  * - POST /pesanan/{order}/batal {alasan}              → batalkan (stok & saldo dikembalikan)
  */
 class MemberOrderController extends Controller
 {
+    public function index(Request $request): JsonResponse
+    {
+        $data = $request->validate([
+            'status' => ['nullable', Rule::in(array_keys(Order::STATUSES))],
+            'q' => ['nullable', 'string', 'max:100'],
+            'per_page' => ['nullable', 'integer', 'min:1', 'max:100'],
+        ]);
+        $page = OrderService::staffQuery($data['status'] ?? '', $data['q'] ?? '')->paginate((int) ($data['per_page'] ?? 25))->withQueryString();
+
+        return response()->json([
+            'data' => collect($page->items())->map(fn (Order $o) => OrderService::toArray($o)
+                + ['member' => ['id' => $o->member->id, 'code' => $o->member->member_code, 'name' => $o->member->name]])->values(),
+            'meta' => ['total' => $page->total(), 'current_page' => $page->currentPage(), 'last_page' => $page->lastPage(), 'counts' => OrderService::statusCounts()],
+        ]);
+    }
+
+    public function show(Order $order): JsonResponse
+    {
+        return response()->json(['data' => OrderService::detail($order)]);
+    }
+
     public function status(Request $request, Order $order, OrderService $orders): JsonResponse
     {
         $data = $request->validate([

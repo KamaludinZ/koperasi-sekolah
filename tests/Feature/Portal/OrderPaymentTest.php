@@ -90,4 +90,34 @@ class OrderPaymentTest extends TestCase
         $this->postJson("/pesanan/{$o->id}/batal", [])->assertJsonValidationErrors('alasan');
         $this->postJson("/pesanan/{$o->id}/batal", ['alasan' => 'Stok rusak'])->assertOk()->assertJsonPath('data.status', 'dibatalkan');
     }
+
+    public function test_staff_list_and_detail_endpoints(): void
+    {
+        $a = $this->place();
+        $b = $this->place();
+        app(OrderService::class)->cancel($b, 'Batal uji');
+
+        $this->getJson('/pesanan/data')->assertOk()->assertJsonPath('meta.total', 2)->assertJsonPath('data.0.code', $a->code)
+            ->assertJsonPath('meta.counts.menunggu', 1)->assertJsonPath('meta.counts.dibatalkan', 1);
+        $this->getJson('/pesanan/data?status=dibatalkan')->assertJsonPath('meta.total', 1);
+        $this->getJson('/pesanan/data?q=andi')->assertJsonPath('meta.total', 2);
+        $this->getJson("/pesanan/{$a->id}/data")->assertOk()->assertJsonPath('data.member.name', 'Andi')
+            ->assertJsonPath('data.next', ['diproses'])->assertJsonPath('data.items.0.quantity', 2);
+    }
+
+    public function test_staff_page_full_flow(): void
+    {
+        $o = $this->place();
+        $this->get('/pesanan')->assertOk()->assertSee($o->code)->assertSee('Pesanan anggota');
+        $c = \Livewire\Livewire::test(\App\Livewire\Transaksi\MemberOrders::class)->call('show', $o->id)->assertSee('data-order-actions', false)
+            ->set('note', 'Disiapkan Bu Rina')->call('advance', 'diproses')->assertHasNoErrors()
+            ->call('advance', 'siap')->call('advance', 'selesai')->assertHasErrors('action')->assertSee('Catat pembayaran dulu')
+            ->call('markPaid', 'tunai')->call('advance', 'selesai')->assertHasNoErrors()->assertDontSee('data-order-actions', false);
+        $this->assertSame(['selesai', 'lunas'], [$o->fresh()->status, $o->fresh()->payment_status]);
+        $this->assertSame('Disiapkan Bu Rina', $o->statusLogs()->where('to_status', 'diproses')->value('note'));
+
+        $x = $this->place();
+        $c->call('show', $x->id)->set('cancelling', true)->set('reason', 'Stok habis')->call('cancel')->assertHasNoErrors();
+        $this->assertSame('dibatalkan', $x->fresh()->status);
+    }
 }

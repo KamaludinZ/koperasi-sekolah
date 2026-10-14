@@ -202,6 +202,45 @@ class OrderService
             'refund' => $back ? ['amount' => (int) round((float) $back->amount), 'after' => (int) round((float) $back->balance_after), 'at' => $back->created_at] : null];
     }
 
+    /** Pesanan untuk petugas: saring status & cari kode/nama/kode anggota; yang aktif (belum selesai) dulu. */
+    public static function staffQuery(string $status = '', string $search = '')
+    {
+        $term = mb_strtolower(trim($search));
+
+        return Order::with(['member:id,member_code,name,class,deleted_at', 'savingType:id,name'])
+            ->when($status !== '', fn ($q) => $q->where('status', $status))
+            ->when($term !== '', fn ($q) => $q->where(fn ($w) => $w->whereRaw('LOWER(code) LIKE ?', ["%{$term}%"])
+                ->orWhereHas('member', fn ($m) => $m->withTrashed()->where(fn ($x) => $x->whereRaw('LOWER(name) LIKE ?', ["%{$term}%"])->orWhereRaw('LOWER(member_code) LIKE ?', ["%{$term}%"])))))
+            ->orderByRaw("CASE WHEN status IN ('selesai','dibatalkan') THEN 1 ELSE 0 END")
+            ->orderBy('created_at')->orderBy('id');
+    }
+
+    /** Jumlah pesanan per status (untuk tab petugas). */
+    public static function statusCounts(): array
+    {
+        $counts = Order::selectRaw('status, COUNT(*) AS n')->groupBy('status')->pluck('n', 'status');
+
+        return collect(Order::STATUSES)->map(fn ($l, $k) => (int) ($counts[$k] ?? 0))->all();
+    }
+
+    /** Detail lengkap pesanan (petugas): barang, riwayat status, potong saldo. */
+    public static function detail(Order $order): array
+    {
+        $order->loadMissing(['items', 'statusLogs', 'savingType:id,name', 'member']);
+
+        return array_merge(self::toArray($order), [
+            'member' => ['id' => $order->member->id, 'code' => $order->member->member_code, 'name' => $order->member->name, 'class' => $order->member->class],
+            'items' => $order->items->map(fn ($i) => ['name' => $i->product_name, 'quantity' => $i->quantity, 'price' => (int) round((float) $i->price),
+                'subtotal' => (int) round((float) $i->subtotal)])->all(),
+            'subtotal' => (int) round((float) $order->subtotal), 'tax' => (int) round((float) $order->tax), 'rounding' => (int) round((float) $order->rounding),
+            'paid_at' => $order->paid_at?->toDateTimeString(), 'completed_at' => $order->completed_at?->toDateTimeString(),
+            'next' => Order::TRANSITIONS[$order->status] ?? [],
+            'status_logs' => $order->statusLogs->map(fn ($l) => ['from' => $l->from_status, 'to' => $l->to_status, 'note' => $l->note,
+                'actor' => $l->actor_name, 'at' => $l->created_at->toDateTimeString()])->all(),
+            'deduction' => ($d = self::deductionFor($order)) ? ['source' => $d['source'], 'amount' => $d['amount'], 'before' => $d['before'], 'after' => $d['after']] : null,
+        ]);
+    }
+
     /** Ringkasan pesanan untuk tampilan portal/petugas. */
     public static function toArray(Order $o): array
     {
