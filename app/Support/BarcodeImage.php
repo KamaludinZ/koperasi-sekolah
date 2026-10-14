@@ -2,6 +2,7 @@
 
 namespace App\Support;
 
+use Picqer\Barcode\Renderers\PngRenderer;
 use Picqer\Barcode\Renderers\SvgRenderer;
 use Picqer\Barcode\Types\TypeCode128;
 
@@ -17,6 +18,42 @@ class BarcodeImage
         $p = (array) ($product instanceof \Illuminate\Database\Eloquent\Model ? $product->getAttributes() : $product);
 
         return (string) (($p['barcode'] ?? null) ?: ($p['code'] ?? ''));
+    }
+
+    /**
+     * PNG CODE128 (latar putih, `$module` piksel per modul, tinggi `$height` px) untuk PDF/aplikasi lain.
+     * Null bila nilai kosong atau tidak bisa dikodekan.
+     */
+    public static function png(string $value, int $module = 2, int $height = 60): ?string
+    {
+        $value = trim($value);
+        if ($value === '' || mb_strlen($value) > 64) {
+            return null;
+        }
+        try {
+            $barcode = (new TypeCode128)->getBarcode($value);
+
+            return (new PngRenderer)->useGd()->setBackgroundColor([255, 255, 255])
+                ->render($barcode, $barcode->getWidth() * max(1, min(6, $module)), max(20, min(300, $height)));
+        } catch (\Throwable) {
+            return null;
+        }
+    }
+
+    /** Dokumen SVG mandiri (dengan deklarasi XML & ukuran asli) untuk diunduh/ditautkan. */
+    public static function svgDocument(string $value, float $height = 60): ?string
+    {
+        $value = trim($value);
+        if ($value === '' || mb_strlen($value) > 64) {
+            return null;
+        }
+        try {
+            $barcode = (new TypeCode128)->getBarcode($value);
+
+            return (new SvgRenderer)->setBackgroundColor([255, 255, 255])->render($barcode, $barcode->getWidth() * 2, $height);
+        } catch (\Throwable) {
+            return null;
+        }
     }
 
     /** SVG inline (tanpa deklarasi XML); null bila nilai kosong atau tidak bisa dikodekan CODE128. */

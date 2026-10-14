@@ -1,6 +1,6 @@
 {
   "repo": "Koperasi Sekolah",
-  "generatedForCommit": "58c8c49f55e245f9ebb27e0ff9d71f482e11c667",
+  "generatedForCommit": "ab1aa937b64bf2015319d8b1ebb9f54661b52aaa",
   "files": [
     {
       "path": ".claude/skills/ngodingpakeai/SKILL.md",
@@ -346,7 +346,7 @@
     },
     {
       "path": "app/Http/Middleware/EnsurePortalMember.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 976
     },
@@ -718,7 +718,7 @@
     },
     {
       "path": "app/Livewire/Portal/Checkout.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 4121
     },
@@ -982,7 +982,7 @@
     },
     {
       "path": "app/Models/Order.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 2032
     },
@@ -1156,7 +1156,7 @@
     },
     {
       "path": "app/Providers/AppServiceProvider.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 4908
     },
@@ -1318,7 +1318,7 @@
     },
     {
       "path": "app/Services/OrderService.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 17345
     },
@@ -1594,9 +1594,9 @@
     },
     {
       "path": "app/Support/OpeningHours.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 3270
+      "size": 3929
     },
     {
       "path": "app/Support/Petugas.php",
@@ -1666,7 +1666,7 @@
     },
     {
       "path": "bootstrap/app.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 2387
     },
@@ -2182,7 +2182,7 @@
     },
     {
       "path": "database/migrations/2026_10_14_000012_add_tax_rounding_to_orders_table.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 1495
     },
@@ -3006,13 +3006,13 @@
       "path": "resources/views/livewire/portal/checkout.blade.php",
       "reason": "changed",
       "language": "php",
-      "size": 7421
+      "size": 7831
     },
     {
       "path": "resources/views/livewire/portal/home.blade.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 1339
+      "size": 1924
     },
     {
       "path": "resources/views/livewire/portal/login.blade.php",
@@ -3180,7 +3180,7 @@
       "path": "routes/web.php",
       "reason": "changed",
       "language": "php",
-      "size": 35988
+      "size": 36347
     },
     {
       "path": "tests/Concerns/MakesProductImports.php",
@@ -4077,6 +4077,12 @@
       "size": 2300
     },
     {
+      "path": "tests/Feature/Pengaturan/OpenStatusEndpointTest.php",
+      "reason": "new",
+      "language": "php",
+      "size": 2119
+    },
+    {
       "path": "tests/Feature/Pengaturan/ProfileTest.php",
       "reason": "needs_summary",
       "language": "php",
@@ -4138,37 +4144,37 @@
     },
     {
       "path": "tests/Feature/Portal/CheckoutTest.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 6250
     },
     {
       "path": "tests/Feature/Portal/LoginTest.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 4624
     },
     {
       "path": "tests/Feature/Portal/OrderTrackingTest.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 3155
     },
     {
       "path": "tests/Feature/Portal/PurchasesPageTest.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 2560
     },
     {
       "path": "tests/Feature/Portal/SavingsPageTest.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 3137
     },
     {
       "path": "tests/Feature/Portal/ShopPageTest.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 2475
     },
@@ -4402,7 +4408,7 @@
     },
     {
       "path": "tests/TestCase.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 2075
     },

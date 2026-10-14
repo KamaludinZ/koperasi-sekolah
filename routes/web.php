@@ -261,6 +261,8 @@ Route::middleware('menu:barang')->group(function () {
     Route::get('/barang/riwayat-stok', Barang\StockHistory::class)->name('barang.riwayat-stok');
     Route::get('/barang/saran-restok', Barang\Restock::class)->name('barang.saran-restok');
     Route::get('/barang/barcode', Barang\Barcodes::class)->name('barang.barcode');
+    Route::get('/barang/{product}/barcode.{format}', \App\Http\Controllers\Barang\BarcodeImageController::class)
+        ->whereNumber('product')->whereIn('format', ['svg', 'png'])->middleware('throttle:120,1')->name('barang.barcode.image');
     Route::get('/barang/barcode/label', Barang\Labels::class)->name('barang.label');
     Route::get('/barang/barcode/label/cetak', \App\Http\Controllers\Barang\LabelPrintController::class)
         ->middleware('throttle:30,1')->name('barang.label.cetak');
