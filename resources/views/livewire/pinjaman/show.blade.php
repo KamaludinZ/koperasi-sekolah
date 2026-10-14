@@ -48,7 +48,10 @@
             </section>
 
             <section class="overflow-hidden rounded-xl border border-stone-200 bg-white" aria-label="Jadwal angsuran">
-                <h2 class="border-b border-stone-200 px-4 py-3 text-sm font-semibold">Jadwal angsuran</h2>
+                <div class="flex flex-wrap items-center justify-between gap-2 border-b border-stone-200 px-4 py-3">
+                    <h2 class="text-sm font-semibold">Jadwal angsuran</h2>
+                    @if ($rows)<p class="text-xs text-stone-500">{{ $sum['paid_count'] }} dari {{ $sum['count'] }} lunas{{ $sum['late_count'] ? ' · '.$sum['late_count'].' lewat jatuh tempo' : '' }}</p>@endif
+                </div>
                 <div class="overflow-x-auto">
                     <table class="w-full min-w-[40rem] text-sm">
                         <thead class="bg-stone-50 text-left text-xs text-stone-500">
@@ -57,17 +60,20 @@
                                 <th class="px-3 py-2 font-medium">Jatuh tempo</th>
                                 <th class="px-3 py-2 text-right font-medium">Tagihan</th>
                                 <th class="px-3 py-2 text-right font-medium">Dibayar</th>
+                                <th class="px-3 py-2 text-right font-medium">Sisa</th>
                                 <th class="px-3 py-2 font-medium">Tanggal bayar</th>
                                 <th class="px-4 py-2 font-medium">Status</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-stone-100">
                             @forelse ($rows as $i)
-                                <tr wire:key="inst-{{ $i['id'] }}" @class(['bg-red-50/40' => $i['late']]) data-installment="{{ $i['sequence'] }}">
-                                    <td class="px-4 py-2.5 tabular-nums">{{ $i['sequence'] }}</td>
+                                @php $isNext = ($sum['next']['id'] ?? null) === $i['id']; @endphp
+                                <tr wire:key="inst-{{ $i['id'] }}" @class(['bg-red-50/40' => $i['late'], 'bg-amber-50/60' => $isNext && ! $i['late'], 'text-stone-500' => $i['status'] === 'dibayar']) data-installment="{{ $i['sequence'] }}" @if ($isNext) data-next-installment @endif>
+                                    <td class="px-4 py-2.5 tabular-nums">{{ $i['sequence'] }}@if ($isNext)<span class="ml-1 rounded bg-amber-100 px-1 text-[10px] font-semibold text-amber-900">berikutnya</span>@endif</td>
                                     <td class="px-3 py-2.5 whitespace-nowrap">{{ $date($i['due_date']) }}</td>
                                     <td class="px-3 py-2.5 text-right tabular-nums">{{ $rp($i['amount']) }}</td>
                                     <td class="px-3 py-2.5 text-right tabular-nums">{{ $i['paid_amount'] > 0 ? $rp($i['paid_amount']) : '—' }}</td>
+                                    <td class="px-3 py-2.5 text-right font-medium tabular-nums">{{ $i['remaining'] > 0 ? $rp($i['remaining']) : '—' }}</td>
                                     <td class="px-3 py-2.5">{{ $i['paid_at'] ? $date($i['paid_at']) : '—' }}@if ($i['payment_label'])<span class="block text-xs text-stone-500">{{ $i['payment_label'] }}</span>@endif</td>
                                     <td class="px-4 py-2.5">
                                         <span @class(['inline-block rounded-md px-2 py-0.5 text-[11px] font-semibold whitespace-nowrap',
@@ -75,13 +81,25 @@
                                             'bg-red-100 text-red-800' => $i['status'] !== 'dibayar' && ($i['late'] || $i['status'] === 'menunggak'),
                                             'bg-stone-100 text-stone-700' => $i['status'] !== 'dibayar' && ! $i['late'] && $i['status'] !== 'menunggak'])
                                               data-installment-status="{{ $i['late'] && $i['status'] === 'belum' ? 'terlambat' : $i['status'] }}">{{ $i['late'] && $i['status'] === 'belum' ? 'Lewat jatuh tempo' : $i['status_label'] }}</span>
+                                        @if ($i['late'])<span class="block text-xs text-red-700" data-days-late>{{ $i['days_late'] }} hari terlambat</span>@endif
                                         @if ($i['note'])<span class="block text-xs text-stone-500">{{ $i['note'] }}</span>@endif
                                     </td>
                                 </tr>
                             @empty
-                                <tr><td colspan="6" class="px-4 py-10 text-center text-stone-400">Jadwal angsuran dibuat otomatis saat pinjaman dicairkan.</td></tr>
+                                <tr><td colspan="7" class="px-4 py-10 text-center text-stone-400">Jadwal angsuran dibuat otomatis saat pinjaman dicairkan.</td></tr>
                             @endforelse
                         </tbody>
+                        @if ($rows)
+                            <tfoot class="border-t border-stone-200 bg-stone-50 text-sm font-semibold" data-schedule-total>
+                                <tr>
+                                    <td class="px-4 py-2.5" colspan="2">Total</td>
+                                    <td class="px-3 py-2.5 text-right tabular-nums">{{ $rp(array_sum(array_column($rows, 'amount'))) }}</td>
+                                    <td class="px-3 py-2.5 text-right tabular-nums">{{ $rp($sum['paid']) }}</td>
+                                    <td class="px-3 py-2.5 text-right tabular-nums">{{ $rp(array_sum(array_column($rows, 'remaining'))) }}</td>
+                                    <td colspan="2"></td>
+                                </tr>
+                            </tfoot>
+                        @endif
                     </table>
                 </div>
             </section>

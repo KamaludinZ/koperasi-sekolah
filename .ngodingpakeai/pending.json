@@ -1,6 +1,6 @@
 {
   "repo": "Koperasi Sekolah",
-  "generatedForCommit": "9c758d69392888472bbb687ef3da8772abbee623",
+  "generatedForCommit": "4a977efcbe7ac45779b2efc9af84094496f74816",
   "files": [
     {
       "path": ".claude/skills/ngodingpakeai/SKILL.md",
@@ -250,7 +250,7 @@
     },
     {
       "path": "app/Livewire/Pinjaman/Disbursements.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 1896
     },
@@ -262,9 +262,9 @@
     },
     {
       "path": "app/Livewire/Pinjaman/Show.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 884
+      "size": 3802
     },
     {
       "path": "app/Livewire/Transaksi/Index.php",
@@ -319,6 +319,12 @@
       "reason": "needs_summary",
       "language": "php",
       "size": 12631
+    },
+    {
+      "path": "app/Services/LoanDisbursementService.php",
+      "reason": "new",
+      "language": "php",
+      "size": 4796
     },
     {
       "path": "app/Services/LoanService.php",
@@ -1150,7 +1156,7 @@
     },
     {
       "path": "resources/views/components/pinjaman/nav.blade.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 938
     },
@@ -1720,7 +1726,7 @@
     },
     {
       "path": "resources/views/livewire/pinjaman/disbursements.blade.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 4245
     },
@@ -1752,7 +1758,7 @@
       "path": "resources/views/livewire/pinjaman/show.blade.php",
       "reason": "changed",
       "language": "php",
-      "size": 11147
+      "size": 15135
     },
     {
       "path": "resources/views/livewire/portal/checkout.blade.php",
@@ -1960,7 +1966,7 @@
     },
     {
       "path": "routes/web.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 44227
     },
@@ -2307,8 +2313,14 @@
       "size": 3064
     },
     {
-      "path": "tests/Feature/Pinjaman/DisbursementsPageTest.php",
+      "path": "tests/Feature/Pinjaman/DisburseTest.php",
       "reason": "new",
+      "language": "php",
+      "size": 5934
+    },
+    {
+      "path": "tests/Feature/Pinjaman/DisbursementsPageTest.php",
+      "reason": "needs_summary",
       "language": "php",
       "size": 2736
     },

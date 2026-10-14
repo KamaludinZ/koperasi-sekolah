@@ -66,4 +66,15 @@ class DetailPageTest extends TestCase
         $this->loginAs('kasir');
         $this->get(route('pinjaman.show', $loan))->assertForbidden();
     }
+
+    public function test_schedule_table_shows_remaining_totals_next_and_days_late(): void
+    {
+        $loan = $this->runningLoan(); // hari ini 20 Mei 2026; ke-1 dibayar, ke-2 jatuh tempo 25 Apr (25 hari terlambat)
+
+        $this->get(route('pinjaman.show', $loan))->assertOk()
+            ->assertSee('1 dari 5 lunas · 1 lewat jatuh tempo')
+            ->assertSee('data-next-installment', false)->assertSeeInOrder(['data-installment="2"', 'data-next-installment', 'berikutnya'], false)
+            ->assertSee('25 hari terlambat')
+            ->assertSeeInOrder(['data-schedule-total', 'Rp1.050.000', 'Rp210.000', 'Rp840.000'], false);
+    }
 }
