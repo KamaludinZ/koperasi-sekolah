@@ -1,6 +1,6 @@
 {
   "repo": "Koperasi Sekolah",
-  "generatedForCommit": "d633070682ae79a2c419a9dd8bf95349783f8ad7",
+  "generatedForCommit": "a2940f329e93eb75d584db0abb9a6ced9d79f46d",
   "files": [
     {
       "path": ".claude/skills/ngodingpakeai/SKILL.md",
@@ -88,9 +88,9 @@
     },
     {
       "path": "app/Http/Controllers/Audit/AuditLogController.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 5726
+      "size": 7691
     },
     {
       "path": "app/Http/Controllers/Audit/TrashController.php",
@@ -1114,7 +1114,7 @@
     },
     {
       "path": "app/Services/DiscountReport.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 4796
     },
@@ -1450,7 +1450,7 @@
     },
     {
       "path": "app/Support/ReportCache.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 2413
     },
@@ -2830,9 +2830,9 @@
     },
     {
       "path": "routes/web.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 33098
+      "size": 33214
     },
     {
       "path": "tests/Concerns/MakesProductImports.php",
@@ -2932,9 +2932,9 @@
     },
     {
       "path": "tests/Feature/Audit/AuditEndpointTest.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 3389
+      "size": 4678
     },
     {
       "path": "tests/Feature/Audit/AuditLockTest.php",
@@ -3520,7 +3520,7 @@
     },
     {
       "path": "tests/Feature/Laporan/ReportCacheTest.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 2826
     },

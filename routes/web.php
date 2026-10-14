@@ -38,6 +38,7 @@ use App\Http\Controllers\Pengaturan\LogoController;
 use App\Http\Controllers\Promo\PromoController;
 use App\Http\Controllers\Pengaturan\SettingsController;
 use App\Http\Controllers\Pengguna\LockoutController;
+use App\Http\Controllers\Pengguna\SessionAdminController;
 use App\Http\Controllers\Pengguna\UserController;
 use App\Http\Controllers\Transaksi\ReturnController;
 use App\Http\Controllers\Transaksi\TransactionDetailController;
@@ -404,6 +405,9 @@ Route::middleware(['menu:pengguna', 'peran:admin'])->group(function () {
     Route::get('/pengguna', Pengguna\Index::class)->name('pengguna');
     Route::get('/pengguna/terkunci', Pengguna\Locked::class)->name('pengguna.terkunci');
     Route::get('/pengguna/sesi-aktif', Pengguna\ActiveSessions::class)->name('pengguna.sesi');
+    Route::get('/pengguna/sesi-aktif/data', [SessionAdminController::class, 'index'])->name('pengguna.sesi.data');
+    Route::delete('/pengguna/sesi-aktif/{session}', [SessionAdminController::class, 'destroy'])
+        ->where('session', '[A-Za-z0-9\-]{1,255}')->middleware('throttle:30,1')->name('pengguna.sesi.destroy');
     Route::get('/pengguna/terkunci/data', [LockoutController::class, 'index'])->name('pengguna.terkunci.data');
     Route::post('/pengguna/terkunci/{lockout}/buka', [LockoutController::class, 'unlock'])
         ->whereNumber('lockout')->middleware('throttle:30,1')->name('pengguna.terkunci.unlock');

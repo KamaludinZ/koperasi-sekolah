@@ -20,6 +20,28 @@ class ActiveSessionsAdminTest extends TestCase
         DB::table('sessions')->insert(['id' => $id, 'user_id' => $user->id, 'ip_address' => '10.0.0.5', 'user_agent' => $agent, 'payload' => '', 'last_activity' => now()->subMinutes($minutesAgo)->timestamp]);
     }
 
+    public function test_json_endpoints_list_and_end_sessions(): void
+    {
+        $kasir = User::where('email', 'kasir@koperasi.test')->first();
+        $this->addSession('s-kasir', $kasir, 5);
+        $this->addSession('s-lama', $kasir, 600);
+
+        $this->getJson('/pengguna/sesi-aktif/data')->assertOk()
+            ->assertJsonPath('meta.users', 1)
+            ->assertJsonPath('data.0.id', 's-kasir')
+            ->assertJsonPath('data.0.name', $kasir->name);
+
+        $this->deleteJson('/pengguna/sesi-aktif/s-kasir', ['alasan' => 'ok'])->assertJsonValidationErrors('alasan');
+        $this->deleteJson('/pengguna/sesi-aktif/s-kasir', ['alasan' => 'HP kasir hilang'])->assertOk();
+        $this->assertDatabaseMissing('sessions', ['id' => 's-kasir']);
+        $this->assertSame('HP kasir hilang', ActivityLog::where('event', 'auth.session_ended')->latest('id')->value('reason'));
+        $this->deleteJson('/pengguna/sesi-aktif/s-kasir', ['alasan' => 'HP kasir hilang'])->assertNotFound();
+
+        $this->loginAs('pengurus@koperasi.test');
+        $this->getJson('/pengguna/sesi-aktif/data')->assertForbidden();
+        $this->deleteJson('/pengguna/sesi-aktif/s-lama', ['alasan' => 'HP kasir hilang'])->assertForbidden();
+    }
+
     public function test_lists_active_sessions_and_forces_logout(): void
     {
         $kasir = User::where('email', 'kasir@koperasi.test')->first();
