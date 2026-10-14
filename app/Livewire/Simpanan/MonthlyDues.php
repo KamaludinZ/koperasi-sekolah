@@ -183,6 +183,16 @@ class MonthlyDues extends Component
 
     public string $correctReason = '';
 
+    /** Konteks modal koreksi: anggota, jenis, bulan, nominal terposting. */
+    #[Computed]
+    public function correctionDue(): ?array
+    {
+        $due = $this->correcting ? SavingDue::with(['member', 'savingType'])->find($this->correcting) : null;
+
+        return $due ? ['member' => $due->member->name, 'code' => $due->member->member_code, 'type' => $due->savingType->name,
+            'month' => Carbon::parse($due->period.'-01')->translatedFormat('F Y'), 'amount' => (int) round((float) $due->amount), 'status' => $due->status] : null;
+    }
+
     public function openCorrection(int $dueId): void
     {
         abort_unless($this->canManage, 403);
@@ -191,6 +201,7 @@ class MonthlyDues extends Component
             return;
         }
         $this->correcting = $due->id;
+        unset($this->correctionDue);
         $this->correctAmount = (int) round((float) $due->amount);
         $this->correctReason = '';
         $this->resetValidation();

@@ -106,9 +106,21 @@
         <div class="fixed inset-0 z-50 grid place-items-center bg-stone-950/50 p-4" role="dialog" aria-modal="true" aria-labelledby="corr-title" x-data x-on:keydown.escape.window="$wire.set('correcting', null)">
             <form wire:submit="saveCorrection" class="w-full max-w-sm space-y-3 rounded-2xl bg-white p-5 shadow-xl text-sm">
                 <h2 id="corr-title" class="font-semibold">Koreksi setoran</h2>
-                <p class="text-xs text-stone-500">Selisih dicatat sebagai mutasi koreksi pada bulan yang sama. Isi 0 untuk membatalkan posting.</p>
+                @if ($cd = $this->correctionDue)
+                    <dl class="grid grid-cols-[6rem_1fr] gap-y-1 rounded-lg bg-stone-50 px-3 py-2 text-xs" data-correction-context>
+                        <dt class="text-stone-500">Anggota</dt><dd><span class="font-mono">{{ $cd['code'] }}</span> {{ $cd['member'] }}</dd>
+                        <dt class="text-stone-500">Simpanan</dt><dd>{{ $cd['type'] }} · {{ $cd['month'] }}</dd>
+                        <dt class="text-stone-500">Terposting</dt><dd class="font-semibold tabular-nums">{{ $rp($cd['amount']) }}</dd>
+                    </dl>
+                @endif
+                <p class="text-xs text-stone-500">Selisih dicatat sebagai mutasi koreksi pada bulan yang sama dan tercatat di audit. Isi 0 untuk membatalkan posting.</p>
                 <label class="block"><span class="mb-1 block font-medium">Nominal yang benar (Rp)</span>
-                    <input type="number" min="0" step="1000" wire:model="correctAmount" class="w-full rounded-lg border border-stone-300 px-3 py-2 tabular-nums">
+                    <input type="number" min="0" step="1000" wire:model.live.debounce.400ms="correctAmount" class="w-full rounded-lg border border-stone-300 px-3 py-2 tabular-nums">
+                    @if ($cd && $correctAmount !== null && (int) $correctAmount !== $cd['amount'])
+                        @php $delta = (int) $correctAmount === 0 ? -$cd['amount'] : (int) $correctAmount - $cd['amount']; @endphp
+                        <span @class(['mt-1 block text-xs font-medium', 'text-emerald-800' => $delta > 0, 'text-red-700' => $delta < 0]) data-correction-delta>
+                            {{ (int) $correctAmount === 0 ? 'Posting dibatalkan: saldo berkurang ' : ($delta > 0 ? 'Saldo bertambah ' : 'Saldo berkurang ') }}{{ $rp(abs($delta)) }}</span>
+                    @endif
                     @error('correctAmount') <span class="mt-1 block text-xs text-red-600">{{ $message }}</span> @enderror</label>
                 <label class="block"><span class="mb-1 block font-medium">Alasan</span>
                     <input type="text" wire:model="correctReason" maxlength="150" placeholder="mis. Potongan gaji Oktober hanya Rp20.000" class="w-full rounded-lg border border-stone-300 px-3 py-2">

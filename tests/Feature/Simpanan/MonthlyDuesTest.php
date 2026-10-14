@@ -137,6 +137,8 @@ class MonthlyDuesTest extends TestCase
         $balance = fn () => (int) $this->pakDedi->savingAccounts()->where('saving_type_id', $this->wajib->id)->value('balance');
 
         Livewire::test(MonthlyDues::class)->call('openCorrection', $due->id)->assertSet('correctAmount', 10000)
+            ->assertSee('data-correction-context', false)->assertSee('Oktober 2026')->set('correctAmount', 4000)->assertSee('Saldo berkurang Rp6.000')
+            ->set('correctAmount', 0)->assertSee('Posting dibatalkan: saldo berkurang Rp10.000')
             ->set('correctAmount', 25000)->call('saveCorrection')->assertHasErrors('correctReason')
             ->set('correctReason', 'Potongan gaji sebenarnya Rp25.000')->call('saveCorrection')->assertHasNoErrors()->assertSet('correcting', null);
         $this->assertSame(25000, $balance());
