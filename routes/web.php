@@ -446,6 +446,13 @@ Route::middleware('menu:laporan')->group(function () {
 Route::middleware(['menu:simpanan', 'peran:admin,pengurus'])->group(function () {
     Route::get('/simpanan', Simpanan\Types::class)->name('simpanan');
     Route::get('/simpanan/mutasi', Simpanan\Entries::class)->name('simpanan.mutasi');
+    Route::get('/simpanan/jenis/data', [\App\Http\Controllers\Simpanan\SavingTypeController::class, 'index'])->name('simpanan.jenis.data');
+    Route::middleware(['can:kelola-simpanan', 'throttle:30,1'])->group(function () {
+        Route::post('/simpanan/jenis', [\App\Http\Controllers\Simpanan\SavingTypeController::class, 'store'])->name('simpanan.jenis.store');
+        Route::put('/simpanan/jenis/{type}', [\App\Http\Controllers\Simpanan\SavingTypeController::class, 'update'])->whereNumber('type')->name('simpanan.jenis.update');
+        Route::patch('/simpanan/jenis/{type}/status', [\App\Http\Controllers\Simpanan\SavingTypeController::class, 'status'])->whereNumber('type')->name('simpanan.jenis.status');
+        Route::delete('/simpanan/jenis/{type}', [\App\Http\Controllers\Simpanan\SavingTypeController::class, 'destroy'])->whereNumber('type')->name('simpanan.jenis.destroy');
+    });
 });
 
 Route::middleware(['menu:pengguna', 'peran:admin'])->group(function () {

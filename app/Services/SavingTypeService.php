@@ -88,6 +88,31 @@ class SavingTypeService
         return "Anggota menyetor {$nominal} {$when}; ".($withdrawable ? 'saldo boleh ditarik kapan saja.' : 'saldo ditahan selama masih menjadi anggota.');
     }
 
+    /** @return array<int, array{members: int, balance: int}> jumlah anggota bersaldo & total saldo per jenis */
+    public function stats(): array
+    {
+        return \App\Models\MemberSavingAccount::where('balance', '>', 0)
+            ->selectRaw('saving_type_id, COUNT(*) AS members, COALESCE(SUM(balance), 0) AS total')->groupBy('saving_type_id')->get()
+            ->mapWithKeys(fn ($r) => [(int) $r->saving_type_id => ['members' => (int) $r->members, 'balance' => (int) round((float) $r->total)]])->all();
+    }
+
+    /**
+     * Hapus jenis yang belum pernah dipakai (tanpa saldo/mutasi/pesanan); yang sudah dipakai cukup dinonaktifkan.
+     *
+     * @throws \Illuminate\Validation\ValidationException
+     */
+    public function delete(SavingType $type): void
+    {
+        $used = \App\Models\MemberSavingEntry::where('saving_type_id', $type->id)->exists()
+            || \App\Models\MemberSavingAccount::where('saving_type_id', $type->id)->where('balance', '>', 0)->exists()
+            || \App\Models\Order::where('saving_type_id', $type->id)->exists();
+        if ($used) {
+            throw \Illuminate\Validation\ValidationException::withMessages(['type' => "{$type->name} sudah dipakai; nonaktifkan saja."]);
+        }
+        \App\Models\MemberSavingAccount::where('saving_type_id', $type->id)->delete();
+        $type->delete(); // dicatat MasterDataObserver
+    }
+
     public static function toArray(SavingType $t): array
     {
         return [

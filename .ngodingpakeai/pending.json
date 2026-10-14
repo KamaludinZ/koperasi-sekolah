@@ -1,6 +1,6 @@
 {
   "repo": "Koperasi Sekolah",
-  "generatedForCommit": "c155c9291b9bf17f24a2e37827b4fe7c2feb8e20",
+  "generatedForCommit": "ffdf92d682a51a102a32c1343cc93fc0e1e56bfa",
   "files": [
     {
       "path": ".claude/skills/ngodingpakeai/SKILL.md",
@@ -138,7 +138,7 @@
       "path": "app/Http/Controllers/Barang/LabelPrintController.php",
       "reason": "changed",
       "language": "php",
-      "size": 2464
+      "size": 3625
     },
     {
       "path": "app/Http/Controllers/Barang/ProductController.php",
@@ -508,7 +508,7 @@
     },
     {
       "path": "app/Livewire/Barang/Labels.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 5679
     },
@@ -1276,7 +1276,7 @@
     },
     {
       "path": "app/Services/LabelPdfService.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 1452
     },
@@ -2356,7 +2356,7 @@
     },
     {
       "path": "resources/views/barang/label-pdf.blade.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 2049
     },
@@ -2752,7 +2752,7 @@
     },
     {
       "path": "resources/views/livewire/barang/labels.blade.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 9690
     },
@@ -3204,7 +3204,7 @@
       "path": "routes/web.php",
       "reason": "changed",
       "language": "php",
-      "size": 37171
+      "size": 37350
     },
     {
       "path": "tests/Concerns/MakesProductImports.php",
@@ -3522,7 +3522,7 @@
       "path": "tests/Feature/Barang/LabelPrintTest.php",
       "reason": "changed",
       "language": "php",
-      "size": 5883
+      "size": 6951
     },
     {
       "path": "tests/Feature/Barang/LowStockPanelTest.php",

@@ -28,6 +28,7 @@
                             <th class="px-3 py-2 text-right font-medium">Nominal setor</th>
                             <th class="px-3 py-2 font-medium">Periode</th>
                             <th class="px-3 py-2 font-medium">Penarikan</th>
+                            <th class="px-3 py-2 text-right font-medium">Saldo anggota</th>
                             <th class="px-4 py-2"><span class="sr-only">Aksi</span></th>
                         </tr>
                     </thead>
@@ -42,6 +43,7 @@
                                 <td class="px-3 py-3 text-right tabular-nums">{{ $t['amount'] ? \App\Support\Rupiah::format($t['amount']) : 'Bebas' }}</td>
                                 <td class="px-3 py-3">{{ $t['period_label'] }}</td>
                                 <td class="px-3 py-3">{{ $t['withdrawable'] ? 'Boleh ditarik' : 'Ditahan selama anggota' }}</td>
+                                <td class="px-3 py-3 text-right tabular-nums" data-type-total="{{ $t['code'] }}">{{ \App\Support\Rupiah::format($t['total_balance']) }}<span class="block text-xs text-stone-500">{{ $t['members'] }} anggota</span></td>
                                 <td class="px-4 py-3 text-right whitespace-nowrap">
                                     @if ($this->canManage)
                                         <button type="button" wire:click="toggle({{ $t['id'] }})" class="mr-3 text-sm font-medium text-stone-600 hover:underline">{{ $t['is_active'] ? 'Nonaktifkan' : 'Aktifkan' }}</button>
@@ -50,7 +52,7 @@
                                 </td>
                             </tr>
                         @empty
-                            <tr><td colspan="6" class="px-4 py-10 text-center text-stone-400">Belum ada jenis simpanan.</td></tr>
+                            <tr><td colspan="7" class="px-4 py-10 text-center text-stone-400">Belum ada jenis simpanan.</td></tr>
                         @endforelse
                     </tbody>
                 </table>

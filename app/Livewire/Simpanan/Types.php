@@ -30,7 +30,10 @@ class Types extends Component
     #[Computed]
     public function types(): array
     {
-        return SavingType::ordered()->get()->map(fn (SavingType $t) => SavingTypeService::toArray($t))->all();
+        $stats = app(SavingTypeService::class)->stats();
+
+        return SavingType::ordered()->get()->map(fn (SavingType $t) => SavingTypeService::toArray($t)
+            + ['members' => $stats[$t->id]['members'] ?? 0, 'total_balance' => $stats[$t->id]['balance'] ?? 0])->all();
     }
 
     #[Computed]
