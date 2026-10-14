@@ -84,6 +84,11 @@ class LoanSchemaTest extends TestCase
             $this->fail('Angsuran ke-1 ganda seharusnya ditolak.');
         } catch (QueryException) {
         }
+        try {
+            DB::transaction(fn () => LoanInstallment::create(['loan_id' => $loan->id, 'sequence' => 2, 'due_date' => today(), 'amount' => 100000]));
+            $this->fail('Dua angsuran dengan jatuh tempo sama harus ditolak.');
+        } catch (QueryException) {
+        }
         $loan->delete();
         $this->assertSame(0, LoanInstallment::count());
     }
@@ -108,6 +113,9 @@ class LoanSchemaTest extends TestCase
             fn () => DB::table('loans')->insert(['code' => 'PJM-X-3', 'member_id' => $loan->member_id, 'principal' => 1, 'tenor_months' => 1, 'payment_method' => 'tunai', 'status' => 'diajukan', 'applied_at' => today(), 'cancelled_at' => now()]),
             fn () => DB::table('loan_installments')->where('id', $inst->id)->update(['status' => 'dibayar']),
             fn () => DB::table('loan_installments')->where('id', $inst->id)->update(['payment_method' => 'kartu']),
+            fn () => DB::table('loan_installments')->where('id', $inst->id)->update(['paid_amount' => 1000]),                       // bayar tanpa metode/tanggal
+            fn () => DB::table('loan_installments')->where('id', $inst->id)->update(['paid_amount' => 55000, 'paid_at' => today(), 'payment_method' => 'tunai']), // penuh tapi masih "belum"
+            fn () => DB::table('loan_installments')->insert(['loan_id' => $loan->id, 'sequence' => 2, 'due_date' => $inst->due_date, 'amount' => 55000]),   // jatuh tempo ganda
         ];
         foreach ($bad as $i => $q) {
             try {
@@ -117,7 +125,7 @@ class LoanSchemaTest extends TestCase
                 $this->assertTrue(true);
             }
         }
-        DB::table('loan_installments')->where('id', $inst->id)->update(['status' => 'dibayar', 'paid_amount' => 55000, 'paid_at' => today()]);
+        DB::table('loan_installments')->where('id', $inst->id)->update(['status' => 'dibayar', 'paid_amount' => 55000, 'paid_at' => today(), 'payment_method' => 'tunai']);
         DB::table('loans')->where('id', $loan->id)->update(['outstanding' => 55000]);
         $this->assertSame('dibayar', $inst->fresh()->status);
     }

@@ -22,7 +22,7 @@ class LoanSummaryEndpointTest extends TestCase
 
         $inst = fn (Loan $l, int $seq, string $due, int $amount, int $paid = 0, string $status = 'belum') => LoanInstallment::create(
             ['loan_id' => $l->id, 'sequence' => $seq, 'due_date' => $due, 'amount' => $amount, 'paid_amount' => $paid,
-                'paid_at' => $status === 'dibayar' ? $due : null, 'status' => $status]);
+                'paid_at' => $paid > 0 ? $due : null, 'payment_method' => $paid > 0 ? 'potong_gaji' : null, 'status' => $status]);
         $inst($run, 1, '2026-05-20', 350000, 350000, 'dibayar');
         $inst($run, 2, '2026-06-20', 350000);                    // jatuh tempo bulan ini (belum lewat)
         $inst($late, 1, '2026-05-01', 200000, 50000, 'menunggak'); // terlambat, sisa 150.000

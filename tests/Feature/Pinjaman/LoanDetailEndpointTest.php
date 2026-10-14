@@ -27,7 +27,7 @@ class LoanDetailEndpointTest extends TestCase
         LoanInstallment::create(['loan_id' => $this->loan->id, 'sequence' => 1, 'due_date' => '2026-04-10', 'amount' => 315000, 'paid_amount' => 315000,
             'paid_at' => '2026-04-09', 'payment_method' => 'potong_gaji', 'status' => 'dibayar']);
         LoanInstallment::create(['loan_id' => $this->loan->id, 'sequence' => 3, 'due_date' => '2026-06-10', 'amount' => 315000]);
-        LoanInstallment::create(['loan_id' => $this->loan->id, 'sequence' => 2, 'due_date' => '2026-05-31', 'amount' => 315000, 'paid_amount' => 100000, 'note' => 'Sebagian']);
+        LoanInstallment::create(['loan_id' => $this->loan->id, 'sequence' => 2, 'due_date' => '2026-05-31', 'amount' => 315000, 'paid_amount' => 100000, 'paid_at' => '2026-05-30', 'payment_method' => 'tunai', 'note' => 'Sebagian']);
     }
 
     public function test_detail_payload(): void
