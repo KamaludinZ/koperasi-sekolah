@@ -84,6 +84,27 @@
                 </div>
             </section>
 
+            <section class="rounded-xl border border-stone-200 bg-white" aria-labelledby="audit-title" data-audit-trail>
+                <h2 id="audit-title" class="px-4 pt-4 font-semibold">Jejak posting & koreksi · {{ \Illuminate\Support\Carbon::parse($period.'-01')->translatedFormat('F Y') }}</h2>
+                <ol class="mt-2 divide-y divide-stone-100">
+                    @forelse ($this->auditTrail as $a)
+                        <li class="px-4 py-2.5 text-sm" wire:key="au-{{ $a['id'] }}">
+                            <p class="flex flex-wrap items-center gap-2">
+                                <span @class(['rounded px-1.5 py-0.5 text-[11px] font-semibold', 'bg-emerald-100 text-emerald-800' => $a['event'] === 'simpanan.setoran_bulanan', 'bg-amber-100 text-amber-900' => $a['event'] === 'simpanan.koreksi'])>{{ $a['event'] === 'simpanan.koreksi' ? 'Koreksi' : 'Posting' }}</span>
+                                <span class="text-xs text-stone-500">{{ $a['at']->translatedFormat('d M Y H:i') }} · {{ $a['actor'] }}</span>
+                            </p>
+                            <p class="mt-0.5">{{ $a['description'] }}</p>
+                            @if ($a['reason'])<p class="text-xs text-stone-500">Alasan: {{ $a['reason'] }}</p>@endif
+                        </li>
+                    @empty
+                        <li class="px-4 py-6 text-center text-sm text-stone-400">Belum ada posting atau koreksi bulan ini.</li>
+                    @endforelse
+                </ol>
+                @if (\Illuminate\Support\Facades\Route::has('audit') && auth()->user()?->canOpen('audit'))
+                    <p class="px-4 pb-3 text-xs"><a href="{{ route('audit') }}" wire:navigate class="font-medium text-emerald-800 hover:underline">Buka Audit & Riwayat →</a></p>
+                @endif
+            </section>
+
             @if ($this->recap)
                 <section class="rounded-xl border border-stone-200 bg-white" aria-labelledby="recap-title">
                     <h2 id="recap-title" class="px-4 pt-4 font-semibold">Rekap per bulan · {{ $this->type->name }}</h2>

@@ -93,6 +93,23 @@ class MonthlyDues extends Component
         return $this->type ? app(SavingDueService::class)->recap($this->type) : [];
     }
 
+    /** Jejak audit posting & koreksi setoran untuk bulan + jenis yang dibuka (terbaru dulu). */
+    #[Computed]
+    public function auditTrail(): array
+    {
+        if (! $this->type) {
+            return [];
+        }
+
+        return \App\Models\ActivityLog::whereIn('event', ['simpanan.setoran_bulanan', 'simpanan.koreksi'])
+            ->latest('id')->limit(300)->get()
+            ->filter(fn ($l) => ($l->properties['period'] ?? null) === $this->period && (int) ($l->properties['saving_type_id'] ?? 0) === $this->type->id)
+            ->take(30)
+            ->map(fn ($l) => ['id' => $l->id, 'at' => $l->created_at, 'event' => $l->event, 'description' => $l->description,
+                'actor' => $l->actor_name, 'reason' => $l->reason, 'delta' => $l->properties['delta'] ?? null])
+            ->values()->all();
+    }
+
     #[Computed]
     public function canManage(): bool
     {
@@ -113,7 +130,7 @@ class MonthlyDues extends Component
                 $this->period = now()->format('Y-m');
             }
             $this->selected = [];
-            unset($this->type, $this->rows, $this->summary, $this->recap);
+            unset($this->type, $this->rows, $this->summary, $this->recap, $this->auditTrail);
             $this->loadAmounts();
         }
         if (str_starts_with($property, 'selected')) {
@@ -164,7 +181,7 @@ class MonthlyDues extends Component
         }
 
         $this->selected = [];
-        unset($this->rows, $this->summary, $this->recap);
+        unset($this->rows, $this->summary, $this->recap, $this->auditTrail);
         $this->loadAmounts();
         $month = Carbon::parse($this->period.'-01')->translatedFormat('F Y');
         if (! $post) {
@@ -221,7 +238,7 @@ class MonthlyDues extends Component
             return;
         }
         $this->correcting = null;
-        unset($this->rows, $this->summary, $this->recap);
+        unset($this->rows, $this->summary, $this->recap, $this->auditTrail);
         $this->loadAmounts();
         $this->toast('success', $due->status === 'disetor' ? 'Setoran dikoreksi; saldo disesuaikan.' : 'Posting dibatalkan; saldo dikembalikan dan catatan menjadi belum disetor.');
     }
@@ -238,7 +255,7 @@ class MonthlyDues extends Component
                 return;
             }
         }
-        unset($this->rows, $this->summary, $this->recap);
+        unset($this->rows, $this->summary, $this->recap, $this->auditTrail);
         $this->loadAmounts();
     }
 

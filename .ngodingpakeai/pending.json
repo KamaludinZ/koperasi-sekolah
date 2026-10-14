@@ -1,6 +1,6 @@
 {
   "repo": "Koperasi Sekolah",
-  "generatedForCommit": "125bb415246930ccf7b6bfa84cbefb9a7c5fe305",
+  "generatedForCommit": "841072422da78090f0c2be89d0dfaf43a21953e8",
   "files": [
     {
       "path": ".claude/skills/ngodingpakeai/SKILL.md",
@@ -796,7 +796,7 @@
     },
     {
       "path": "app/Livewire/Simpanan/DuesRecap.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 2519
     },
@@ -814,9 +814,9 @@
     },
     {
       "path": "app/Livewire/Simpanan/MonthlyDues.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 8246
+      "size": 8834
     },
     {
       "path": "app/Livewire/Simpanan/Types.php",
@@ -3124,7 +3124,7 @@
     },
     {
       "path": "resources/views/livewire/simpanan/dues-recap.blade.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 7438
     },
@@ -3142,9 +3142,9 @@
     },
     {
       "path": "resources/views/livewire/simpanan/monthly-dues.blade.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 11946
+      "size": 13211
     },
     {
       "path": "resources/views/livewire/simpanan/types.blade.php",
@@ -4296,7 +4296,7 @@
       "path": "tests/Feature/Simpanan/MonthlyDuesTest.php",
       "reason": "changed",
       "language": "php",
-      "size": 8970
+      "size": 9218
     },
     {
       "path": "tests/Feature/Simpanan/ProfileSavingTypesTest.php",

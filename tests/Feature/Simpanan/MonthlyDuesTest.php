@@ -158,4 +158,18 @@ class MonthlyDuesTest extends TestCase
         $this->expectException(ValidationException::class);
         $svc->correct($due->fresh(), 2000, 'Nominal seharusnya lebih kecil');
     }
+
+    public function test_audit_trail_panel(): void
+    {
+        $svc = app(SavingDueService::class);
+        $svc->record('2026-10', $this->wajib, [$this->pakDedi->id => 10000]);
+        $svc->post('2026-10', $this->wajib, [$this->pakDedi->id]);
+        $svc->correct(SavingDue::firstOrFail(), 12000, 'Potongan sebenarnya 12 ribu');
+        $svc->record('2026-09', $this->wajib, [$this->buSiti->id => 10000]);
+        $svc->post('2026-09', $this->wajib, [$this->buSiti->id]);
+
+        Livewire::test(MonthlyDues::class)->assertSee('data-audit-trail', false)
+            ->assertSee('Koreksi')->assertSee('Alasan: Potongan sebenarnya 12 ribu')->assertSee('Posting setoran bulanan')->assertDontSee('September 2026: 1')
+            ->set('period', '2026-09')->assertSee('Posting setoran bulanan Simpanan Wajib September 2026')->assertDontSee('Potongan sebenarnya');
+    }
 }
