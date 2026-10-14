@@ -84,6 +84,10 @@
                 </div>
             @endif
 
+            @if (auth()->user()?->hasRole(\App\Models\Role::ADMIN, \App\Models\Role::PENGURUS))
+                <livewire:anggota.portal-access :member-id="$m['id']" :key="'pa-'.$m['id']" />
+            @endif
+
             @can('menu', 'simpanan')
                 {{-- Simpanan per jenis hanya untuk pengurus/admin (kasir tidak punya menu Simpanan). --}}
                 <livewire:simpanan.member-savings :member-id="$m['id']" :key="'sv-'.$m['id']" />

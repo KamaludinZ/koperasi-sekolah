@@ -1,6 +1,6 @@
 {
   "repo": "Koperasi Sekolah",
-  "generatedForCommit": "eec71f8d74df25efa6a92a5fb89c318c94eb5d48",
+  "generatedForCommit": "a921678edcab4d7c313af2a62a8e3c37db49eb92",
   "files": [
     {
       "path": ".claude/skills/ngodingpakeai/SKILL.md",
@@ -384,7 +384,7 @@
       "path": "app/Http/Controllers/Transaksi/MemberOrderController.php",
       "reason": "changed",
       "language": "php",
-      "size": 1956
+      "size": 3245
     },
     {
       "path": "app/Http/Controllers/Transaksi/ReturnController.php",
@@ -915,6 +915,12 @@
       "size": 4529
     },
     {
+      "path": "app/Livewire/Transaksi/MemberOrders.php",
+      "reason": "new",
+      "language": "php",
+      "size": 3261
+    },
+    {
       "path": "app/Livewire/Transaksi/ReturnForm.php",
       "reason": "needs_summary",
       "language": "php",
@@ -1066,7 +1072,7 @@
     },
     {
       "path": "app/Models/Order.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 2419
     },
@@ -1428,7 +1434,7 @@
       "path": "app/Services/OrderService.php",
       "reason": "changed",
       "language": "php",
-      "size": 21674
+      "size": 24313
     },
     {
       "path": "app/Services/PasswordService.php",
@@ -2686,9 +2692,9 @@
     },
     {
       "path": "resources/views/components/transaksi/nav.blade.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 715
+      "size": 747
     },
     {
       "path": "resources/views/components/transaksi/row.blade.php",
@@ -3303,6 +3309,12 @@
       "size": 6881
     },
     {
+      "path": "resources/views/livewire/transaksi/member-orders.blade.php",
+      "reason": "new",
+      "language": "php",
+      "size": 11209
+    },
+    {
       "path": "resources/views/livewire/transaksi/partials/pagination.blade.php",
       "reason": "needs_summary",
       "language": "php",
@@ -3378,7 +3390,7 @@
       "path": "routes/web.php",
       "reason": "changed",
       "language": "php",
-      "size": 42414
+      "size": 42777
     },
     {
       "path": "tests/Concerns/MakesProductImports.php",
@@ -4398,7 +4410,7 @@
       "path": "tests/Feature/Portal/OrderPaymentTest.php",
       "reason": "changed",
       "language": "php",
-      "size": 4708
+      "size": 6638
     },
     {
       "path": "tests/Feature/Portal/OrderRollbackTest.php",
