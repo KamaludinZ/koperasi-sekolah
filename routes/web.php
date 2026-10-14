@@ -106,6 +106,7 @@ Route::get('/portal/masuk', \App\Livewire\Portal\Login::class)->middleware('gues
 Route::middleware('portal')->group(function () { // bukan auth:member — guard bawaan tetap milik petugas
     Route::get('/portal', \App\Livewire\Portal\Home::class)->name('portal');
     Route::get('/portal/simpanan', \App\Livewire\Portal\Savings::class)->name('portal.simpanan');
+    Route::get('/portal/simpanan/data', [\App\Http\Controllers\Simpanan\MemberSavingController::class, 'mine'])->name('portal.simpanan.data');
     Route::get('/portal/potong-saldo', \App\Http\Controllers\Portal\DeductionController::class)->name('portal.potong-saldo');
     Route::get('/portal/pin/status', [\App\Http\Controllers\Portal\PinController::class, 'status'])->name('portal.pin.status');
     Route::post('/portal/pesanan/{order}/bayar-saldo', [\App\Http\Controllers\Portal\OrderController::class, 'payWithBalance'])
@@ -462,6 +463,7 @@ Route::middleware(['menu:simpanan', 'peran:admin,pengurus'])->group(function () 
         ->middleware('throttle:20,1')->name('simpanan.setoran.rekap.unduh');
     Route::get('/simpanan/setoran-bulanan/unduh', \App\Http\Controllers\Simpanan\MonthlyDuesExportController::class)
         ->middleware('throttle:20,1')->name('simpanan.setoran.unduh');
+    Route::get('/simpanan/anggota/{member}/saldo', [\App\Http\Controllers\Simpanan\MemberSavingController::class, 'show'])->whereNumber('member')->name('simpanan.anggota.saldo');
     Route::get('/simpanan/jenis/data', [\App\Http\Controllers\Simpanan\SavingTypeController::class, 'index'])->name('simpanan.jenis.data');
     Route::middleware(['can:kelola-simpanan', 'throttle:30,1'])->group(function () {
         Route::post('/simpanan/jenis', [\App\Http\Controllers\Simpanan\SavingTypeController::class, 'store'])->name('simpanan.jenis.store');

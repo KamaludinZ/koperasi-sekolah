@@ -1,6 +1,6 @@
 {
   "repo": "Koperasi Sekolah",
-  "generatedForCommit": "5d78b1d46626977b50a05e207d1f663869015f4d",
+  "generatedForCommit": "fdddea8781728ee8919b04f88624e8f18d43601f",
   "files": [
     {
       "path": ".claude/skills/ngodingpakeai/SKILL.md",
@@ -313,6 +313,12 @@
       "reason": "needs_summary",
       "language": "php",
       "size": 2890
+    },
+    {
+      "path": "app/Http/Controllers/Portal/DeductionController.php",
+      "reason": "new",
+      "language": "php",
+      "size": 1699
     },
     {
       "path": "app/Http/Controllers/Portal/OrderController.php",
@@ -796,9 +802,9 @@
     },
     {
       "path": "app/Livewire/Portal/Savings.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 7190
+      "size": 5413
     },
     {
       "path": "app/Livewire/Portal/Shop.php",
@@ -1276,9 +1282,9 @@
     },
     {
       "path": "app/Services/BalanceDeductionService.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 6454
+      "size": 8750
     },
     {
       "path": "app/Services/CashMovementService.php",
@@ -3340,9 +3346,9 @@
     },
     {
       "path": "routes/web.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 40100
+      "size": 40226
     },
     {
       "path": "tests/Concerns/MakesProductImports.php",
@@ -4342,13 +4348,13 @@
     },
     {
       "path": "tests/Feature/Portal/OrderEndpointTest.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 4282
+      "size": 5333
     },
     {
       "path": "tests/Feature/Portal/OrderRollbackTest.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 3429
     },
