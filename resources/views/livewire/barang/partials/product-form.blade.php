@@ -51,7 +51,10 @@
                     <div class="mt-2 flex flex-wrap gap-2">
                         <button type="button" wire:click="useCodeAsBarcode" class="rounded-lg border border-stone-300 px-2.5 py-1 text-xs font-medium text-stone-700 hover:bg-stone-50">Pakai kode barang</button>
                         <button type="button" wire:click="generateBarcode" class="rounded-lg border border-emerald-300 bg-emerald-50 px-2.5 py-1 text-xs font-medium text-emerald-900 hover:bg-emerald-100">Buat nomor baru</button>
+                        <button type="button" x-on:click="$dispatch('open-barcode-field-scanner')" class="rounded-lg border border-stone-300 px-2.5 py-1 text-xs font-medium text-stone-700 hover:bg-stone-50">Pindai dengan kamera</button>
                     </div>
+                    <x-camera-scanner open-event="open-barcode-field-scanner" on-code="$wire.set('form.barcode', code)" single
+                                      title="Pindai barcode pabrik" hint="Arahkan kamera ke barcode pada kemasan barang." />
                 </fieldset>
 
                 <div class="grid grid-cols-2 gap-3">

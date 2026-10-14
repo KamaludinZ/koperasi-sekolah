@@ -81,4 +81,13 @@ class BarcodeFormTest extends TestCase
 
         $this->assertSame('8995556667778', Product::find($id)->barcode);
     }
+
+    public function test_form_offers_camera_scan_for_barcode_field(): void
+    {
+        Livewire::test(Index::class)->call('edit', $this->pid('ATK001'))
+            ->assertSee('data-camera-scanner="open-barcode-field-scanner"', false)
+            ->assertSee('Pindai dengan kamera')
+            ->assertSee('single: true', false);
+        $this->get('/kasir')->assertSee('data-camera-scanner="open-camera-scanner"', false);
+    }
 }

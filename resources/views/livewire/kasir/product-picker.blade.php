@@ -80,48 +80,7 @@
         @endif
     </div>
 
-    {{-- Pemindai kamera: hasil yang terbaca langsung masuk keranjang (lihat resources/js/barcode-scanner.js). --}}
-    <div x-data="barcodeScanner((code) => $wire.scanCode(code))" x-cloak
-         x-on:open-camera-scanner.window="start()"
-         x-on:keydown.window.f4.prevent="open ? stop() : start()"
-         x-on:keydown.escape.window="open && stop()"
-         x-on:scan-feedback.window="lastFeedback = $event.detail">
-        <div x-show="open" x-transition.opacity x-on:click.self="stop()" class="fixed inset-0 z-50 flex items-end justify-center bg-stone-950/60 sm:items-center" role="dialog" aria-modal="true" aria-labelledby="scan-title">
-            <div class="w-full max-w-lg overflow-hidden rounded-t-2xl bg-white shadow-xl sm:rounded-2xl">
-                <div class="flex items-center justify-between gap-3 border-b border-stone-200 px-4 py-3">
-                    <div>
-                        <h2 id="scan-title" class="font-semibold">Pindai barcode</h2>
-                        <p class="text-xs text-stone-500">Arahkan kamera ke barcode barang. Barang langsung masuk keranjang.</p>
-                    </div>
-                    <button type="button" x-on:click="stop()" class="rounded-lg p-1.5 text-stone-400 hover:bg-stone-100 hover:text-stone-600" aria-label="Tutup pemindai">
-                        <svg class="size-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg>
-                    </button>
-                </div>
-                <div class="relative aspect-[4/3] bg-stone-900" wire:ignore>
-                    <div id="camera-viewfinder" x-ref="viewfinder" class="size-full [&_video]:size-full [&_video]:object-cover"></div>
-                    <p x-show="status === 'starting'" class="absolute inset-0 grid place-items-center text-sm text-stone-300">Membuka kamera…</p>
-                    <div x-show="status === 'error'" class="absolute inset-0 grid place-items-center p-6 text-center">
-                        <div>
-                            <p class="text-sm text-white" x-text="error"></p>
-                            <button type="button" x-on:click="start()" class="mt-3 rounded-lg bg-white/10 px-3 py-1.5 text-sm font-medium text-white hover:bg-white/20">Coba lagi</button>
-                        </div>
-                    </div>
-                </div>
-                <div class="space-y-3 px-4 py-3">
-                    <p x-show="lastFeedback" aria-live="polite" class="rounded-lg px-3 py-2 text-sm"
-                       x-bind:class="{ 'bg-emerald-50 text-emerald-900': lastFeedback?.type === 'success', 'bg-red-50 text-red-800': lastFeedback?.type === 'error', 'bg-amber-50 text-amber-900': lastFeedback?.type === 'info' }"
-                       x-text="lastFeedback?.text"></p>
-                    <div class="flex flex-wrap items-center justify-between gap-2">
-                        <label x-show="cameras.length > 1" class="flex items-center gap-2 text-sm"><span class="text-stone-600">Kamera</span>
-                            <select x-on:change="switchCamera($event.target.value)" class="rounded-lg border border-stone-300 bg-white px-2 py-1 text-sm">
-                                <template x-for="c in cameras" :key="c.id"><option :value="c.id" :selected="c.id === cameraId" x-text="c.label || 'Kamera'"></option></template>
-                            </select>
-                        </label>
-                        <p class="text-xs text-stone-500">Barcode tidak terbaca? Tutup lalu ketik kode atau nama barang.</p>
-                        <button type="button" x-on:click="stop()" class="rounded-lg border border-stone-300 px-3 py-1.5 text-sm font-medium text-stone-700 hover:bg-stone-50">Selesai</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+    {{-- Pemindai kamera: hasil yang terbaca langsung masuk keranjang (F4 buka/tutup). --}}
+    <x-camera-scanner open-event="open-camera-scanner" on-code="$wire.scanCode(code)" hotkey
+                      hint="Arahkan kamera ke barcode barang. Barang langsung masuk keranjang." />
 </section>

@@ -1,6 +1,6 @@
 {
   "repo": "Koperasi Sekolah",
-  "generatedForCommit": "049cb36f84795c0afd8ff0f036b67ab5274b97d7",
+  "generatedForCommit": "8f724bf419eb4050156b0c5bdc73690eea5a41a9",
   "files": [
     {
       "path": ".claude/skills/ngodingpakeai/SKILL.md",
@@ -490,9 +490,9 @@
     },
     {
       "path": "app/Livewire/Barang/Labels.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 5006
+      "size": 5288
     },
     {
       "path": "app/Livewire/Barang/MinStockSettings.php",
@@ -1444,7 +1444,7 @@
     },
     {
       "path": "app/Support/LabelFormats.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 3828
     },
@@ -2532,7 +2532,7 @@
       "path": "resources/views/livewire/barang/labels.blade.php",
       "reason": "changed",
       "language": "php",
-      "size": 8797
+      "size": 9479
     },
     {
       "path": "resources/views/livewire/barang/min-stock-settings.blade.php",
@@ -3216,7 +3216,7 @@
       "path": "tests/Feature/Barang/LabelPrintTest.php",
       "reason": "changed",
       "language": "php",
-      "size": 3989
+      "size": 4780
     },
     {
       "path": "tests/Feature/Barang/LowStockPanelTest.php",

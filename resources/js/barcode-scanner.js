@@ -11,7 +11,10 @@ const savedCamera = () => {
     }
 };
 
-export default (onCode = () => {}, cooldown = 1500) => ({
+let seq = 0;
+
+export default (onCode = () => {}, { cooldown = 1500, single = false } = {}) => ({
+    viewfinderId: `camera-viewfinder-${++seq}`,
     open: false,
     status: 'idle', // idle | starting | scanning | error
     error: '',
@@ -38,7 +41,7 @@ export default (onCode = () => {}, cooldown = 1500) => ({
                 this.cameraId = (back || this.cameras[this.cameras.length - 1]).id;
             }
             await this.$nextTick();
-            this.scanner = new Html5Qrcode(this.$refs.viewfinder.id, {
+            this.scanner = new Html5Qrcode(this.viewfinderId, {
                 formatsToSupport: FORMATS.map((f) => Html5QrcodeSupportedFormats[f]),
                 verbose: false,
             });
@@ -58,6 +61,7 @@ export default (onCode = () => {}, cooldown = 1500) => ({
         this.last = { code, at: now };
         if (navigator.vibrate) navigator.vibrate(60);
         onCode(code);
+        if (single) this.stop();
     },
 
     async switchCamera(id) {
