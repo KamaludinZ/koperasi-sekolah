@@ -1,6 +1,6 @@
 {
   "repo": "Koperasi Sekolah",
-  "generatedForCommit": "516d62947b05898099d50b2abbf15cbfd4923a15",
+  "generatedForCommit": "9c758d69392888472bbb687ef3da8772abbee623",
   "files": [
     {
       "path": ".claude/skills/ngodingpakeai/SKILL.md",
@@ -190,7 +190,7 @@
     },
     {
       "path": "app/Livewire/Forms/LoanApplicationForm.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 4172
     },
@@ -244,9 +244,15 @@
     },
     {
       "path": "app/Livewire/Pinjaman/Applications.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 10638
+    },
+    {
+      "path": "app/Livewire/Pinjaman/Disbursements.php",
+      "reason": "new",
+      "language": "php",
+      "size": 1896
     },
     {
       "path": "app/Livewire/Pinjaman/Index.php",
@@ -310,7 +316,7 @@
     },
     {
       "path": "app/Services/LoanApplicationService.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 12631
     },
@@ -1144,9 +1150,9 @@
     },
     {
       "path": "resources/views/components/pinjaman/nav.blade.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 901
+      "size": 938
     },
     {
       "path": "resources/views/components/pinjaman/status.blade.php",
@@ -1708,9 +1714,15 @@
     },
     {
       "path": "resources/views/livewire/pinjaman/applications.blade.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 7804
+    },
+    {
+      "path": "resources/views/livewire/pinjaman/disbursements.blade.php",
+      "reason": "new",
+      "language": "php",
+      "size": 4245
     },
     {
       "path": "resources/views/livewire/pinjaman/index.blade.php",
@@ -1720,13 +1732,13 @@
     },
     {
       "path": "resources/views/livewire/pinjaman/partials/application-form.blade.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 12895
     },
     {
       "path": "resources/views/livewire/pinjaman/partials/cancel-dialog.blade.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 2095
     },
@@ -1738,9 +1750,9 @@
     },
     {
       "path": "resources/views/livewire/pinjaman/show.blade.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 10096
+      "size": 11147
     },
     {
       "path": "resources/views/livewire/portal/checkout.blade.php",
@@ -1948,9 +1960,9 @@
     },
     {
       "path": "routes/web.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 44115
+      "size": 44227
     },
     {
       "path": "tests/Concerns/MakesProductImports.php",
@@ -2295,8 +2307,14 @@
       "size": 3064
     },
     {
-      "path": "tests/Feature/Pinjaman/EditCancelTest.php",
+      "path": "tests/Feature/Pinjaman/DisbursementsPageTest.php",
       "reason": "new",
+      "language": "php",
+      "size": 2736
+    },
+    {
+      "path": "tests/Feature/Pinjaman/EditCancelTest.php",
+      "reason": "needs_summary",
       "language": "php",
       "size": 7172
     },

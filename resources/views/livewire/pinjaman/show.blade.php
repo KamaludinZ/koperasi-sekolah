@@ -88,11 +88,54 @@
         </div>
 
         <aside class="space-y-3">
+            @if ($flash)
+                <p class="rounded-xl bg-stone-100 px-4 py-3 text-sm text-stone-800" role="status">{{ $flash }}</p>
+            @endif
             @if ($l['status'] === 'disetujui')
                 <div class="rounded-xl border border-indigo-200 bg-indigo-50 px-4 py-3" data-ready-banner>
                     <p class="text-sm font-semibold text-indigo-900">Siap dicairkan</p>
                     <p class="mt-1 text-xs text-indigo-900/80">Disetujui {{ $date($l['decided_at']) }}{{ $l['decided_by'] ? ' oleh '.$l['decided_by'] : '' }}. Serahkan dana {{ $rp($l['principal']) }}; jadwal {{ $l['tenor_months'] }} angsuran terbentuk saat pencairan dicatat.</p>
+                    @can('kelola-pinjaman')
+                        @unless ($disbursing)
+                            <button type="button" wire:click="openDisburse" class="mt-3 w-full rounded-lg bg-indigo-700 py-2 text-sm font-semibold text-white hover:bg-indigo-800">Catat pencairan</button>
+                        @endunless
+                    @endcan
                 </div>
+                @if ($disbursing)
+                    @php $in = 'w-full rounded-lg border border-stone-300 bg-white px-3 py-2 text-sm outline-none focus:border-emerald-600 focus:ring-4 focus:ring-emerald-600/15'; $preview = $this->schedulePreview; @endphp
+                    <form wire:submit="disburse" class="space-y-3 rounded-xl border border-stone-200 bg-white p-4" data-disburse-form>
+                        <h2 class="text-sm font-semibold">Catat pencairan dana</h2>
+                        <label class="block">
+                            <span class="mb-1 block text-sm font-medium">Tanggal diserahkan</span>
+                            <input type="date" wire:model.live="disbursedOn" min="{{ $l['applied_at'] }}" max="{{ today()->toDateString() }}" class="{{ $in }}">
+                            @error('disbursedOn') <span class="mt-1 block text-xs text-red-600">{{ $message }}</span> @enderror
+                        </label>
+                        <label class="block">
+                            <span class="mb-1 block text-sm font-medium">Nominal diserahkan</span>
+                            <span class="relative block">
+                                <span class="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-sm text-stone-500">Rp</span>
+                                <input type="number" inputmode="numeric" min="0" step="1000" wire:model="amount" class="{{ $in }} pl-9 tabular-nums">
+                            </span>
+                            @error('amount') <span class="mt-1 block text-xs text-red-600">{{ $message }}</span> @else <span class="mt-1 block text-xs text-stone-500">Harus sama dengan pokok yang disetujui.</span> @enderror
+                        </label>
+                        <label class="block">
+                            <span class="mb-1 block text-sm font-medium">Keterangan bukti <span class="font-normal text-stone-500">(opsional)</span></span>
+                            <input type="text" wire:model="proof" maxlength="200" placeholder="Mis. kuitansi no. 017, transfer BRI" class="{{ $in }}">
+                            @error('proof') <span class="mt-1 block text-xs text-red-600">{{ $message }}</span> @enderror
+                        </label>
+                        @if ($preview)
+                            <div class="rounded-lg bg-stone-50 px-3 py-2 text-xs text-stone-600" data-schedule-preview>
+                                <p class="font-medium text-stone-700">Jadwal yang akan terbentuk ({{ count($preview) }} angsuran)</p>
+                                <p>Ke-1: {{ $date($preview[0]['due_date']) }} · {{ $rp($preview[0]['amount']) }}</p>
+                                @if (count($preview) > 1)<p>Ke-{{ count($preview) }}: {{ $date(end($preview)['due_date']) }} · {{ $rp(end($preview)['amount']) }}</p>@endif
+                            </div>
+                        @endif
+                        <div class="flex gap-2">
+                            <button type="button" wire:click="cancelDisburse" class="rounded-lg border border-stone-300 px-3 py-2 text-sm font-medium text-stone-700 hover:bg-stone-50">Batal</button>
+                            <button type="submit" wire:loading.attr="disabled" wire:target="disburse" class="flex-1 rounded-lg bg-emerald-700 py-2 text-sm font-semibold text-white hover:bg-emerald-800 disabled:opacity-60">Cairkan & bentuk jadwal</button>
+                        </div>
+                    </form>
+                @endif
             @elseif (in_array($l['status'], ['diajukan'], true))
                 <p class="rounded-xl border border-sky-200 bg-sky-50 px-4 py-3 text-sm text-sky-900">Menunggu keputusan pengurus sebelum bisa dicairkan.</p>
             @elseif (in_array($l['status'], ['ditolak', 'dibatalkan'], true))
