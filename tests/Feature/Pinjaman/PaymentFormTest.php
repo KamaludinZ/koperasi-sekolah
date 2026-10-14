@@ -74,8 +74,8 @@ class PaymentFormTest extends TestCase
     public function test_validation(): void
     {
         Livewire::test(Show::class, ['loan' => $this->loan])->call('openPayment')
-            ->set('payAmount', 900001)->set('payDate', '2026-06-30')->set('payMethod', 'kartu')->set('payNote', str_repeat('x', 201))
-            ->call('recordPayment')->assertHasErrors(['payAmount' => 'max', 'payDate' => 'after_or_equal', 'payMethod' => 'in', 'payNote' => 'max'])
+            ->set('payAmount', 900001)->set('payDate', '2026-06-30')->set('payNote', str_repeat('x', 201))
+            ->call('recordPayment')->assertHasErrors(['payAmount' => 'max', 'payDate' => 'after_or_equal', 'payNote' => 'max'])
             ->assertSee('Nominal melebihi sisa pinjaman (Rp900.000).')->assertSee('Tanggal bayar tidak boleh sebelum tanggal cair (1 Jul 2026).')
             ->set('payAmount', 0)->set('payDate', '2026-08-06')->call('recordPayment')->assertHasErrors(['payAmount' => 'min', 'payDate' => 'before_or_equal']);
         $this->assertSame(0, LoanPayment::count());
@@ -96,5 +96,41 @@ class PaymentFormTest extends TestCase
         Livewire::test(Show::class, ['loan' => $this->loan])->call('openPayment')->assertForbidden();
         Livewire::test(Show::class, ['loan' => $this->loan])->call('recordPayment')->assertForbidden();
         $this->assertSame(0, LoanPayment::count());
+    }
+
+    public function test_method_specific_reference(): void
+    {
+        $c = Livewire::test(Show::class, ['loan' => $this->loan])->call('openPayment')
+            ->assertSet('payRef', '2026-08')->assertSee('Bulan gaji yang dipotong')->assertSee('pilihan peminjam')
+            ->set('payRef', '')->call('recordPayment')->assertHasErrors('payRef')->assertSee('Pilih bulan gaji yang dipotong.')
+            ->set('payRef', '2026-12')->call('recordPayment')->assertHasErrors('payRef') // lebih dari bulan depan
+            ->set('payMethod', 'transfer')->assertSet('payRef', '')->assertSeeHtml('data-method-differs')->assertSee('No./berita transfer')
+            ->set('payRef', 'ab')->call('recordPayment')->assertHasErrors('payRef')->assertSee('Isi nomor atau berita transfer (minimal 3 karakter).')
+            ->set('payRef', 'BRI 0815')->call('recordPayment')->assertHasNoErrors();
+        $p = LoanPayment::sole();
+        $this->assertSame(['transfer', 'BRI 0815'], [$p->payment_method, $p->reference]);
+        $this->assertStringContainsString('(Transfer · BRI 0815)', ActivityLog::where('event', 'pinjaman.angsuran')->sole()->description);
+
+        $c->call('openPayment')->set('payMethod', 'tunai')->assertDontSee('No./berita transfer')->set('payAmount', 100000)->call('recordPayment')->assertHasNoErrors();
+        $this->assertNull(LoanPayment::latest('id')->first()->reference);
+
+        app(LoanPaymentService::class)->record($this->loan, ['amount' => 100000, 'paid_at' => '2026-08-05', 'payment_method' => 'potong_gaji', 'reference' => '2026-08']);
+        $this->assertSame('Gaji Agustus 2026', LoanPaymentService::referenceLabel('potong_gaji', LoanPayment::latest('id')->first()->reference));
+        $c->set('payMethod', 'bitcoin')->assertSet('payMethod', 'potong_gaji'); // metode tak dikenal kembali ke pilihan peminjam
+    }
+
+    public function test_reference_rules_in_service(): void
+    {
+        $this->assertNull(LoanPaymentService::normalizeReference('tunai', 'apa saja'));
+        $this->assertSame('TRF-1', LoanPaymentService::normalizeReference('transfer', '  TRF-1 '));
+        $this->assertSame('2026-09', LoanPaymentService::normalizeReference('potong_gaji', '2026-09'));
+        foreach ([['transfer', null], ['potong_gaji', '2026-13'], ['potong_gaji', 'Oktober']] as [$m, $r]) {
+            try {
+                LoanPaymentService::normalizeReference($m, $r);
+                $this->fail("{$m}/{$r} harus ditolak");
+            } catch (ValidationException $e) {
+                $this->assertArrayHasKey('reference', $e->errors());
+            }
+        }
     }
 }

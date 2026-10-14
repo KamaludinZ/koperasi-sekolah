@@ -60,6 +60,9 @@ class Show extends Component
 
     public string $payNote = '';
 
+    /** Rujukan sesuai metode: no. transfer / bulan gaji (Y-m). */
+    public string $payRef = '';
+
     public function mount(Loan $loan): void
     {
         $this->loanId = $loan->id;
@@ -161,8 +164,16 @@ class Show extends Component
         $this->payDate = today()->toDateString();
         $this->payMethod = $loan->payment_method;
         $this->payNote = '';
+        $this->payRef = $loan->payment_method === 'potong_gaji' ? today()->format('Y-m') : '';
         $this->disbursing = false;
         $this->paying = true;
+    }
+
+    public function updatedPayMethod(): void
+    {
+        $this->payMethod = array_key_exists($this->payMethod, Loan::METHODS) ? $this->payMethod : $this->loan()->payment_method;
+        $this->payRef = $this->payMethod === 'potong_gaji' ? today()->format('Y-m') : '';
+        $this->resetValidation('payRef');
     }
 
     public function cancelPayment(): void
@@ -186,14 +197,14 @@ class Show extends Component
     {
         abort_unless(Gate::allows('kelola-pinjaman'), 403);
         $loan = $this->loan();
-        $map = ['amount' => 'payAmount', 'paid_at' => 'payDate', 'payment_method' => 'payMethod', 'note' => 'payNote'];
+        $map = ['amount' => 'payAmount', 'paid_at' => 'payDate', 'payment_method' => 'payMethod', 'reference' => 'payRef', 'note' => 'payNote'];
         $rules = collect(\App\Services\LoanPaymentService::rules($loan))->mapWithKeys(fn ($r, $k) => [$map[$k] => $r])->all();
         $messages = collect(\App\Services\LoanPaymentService::messages($loan))->mapWithKeys(fn ($m, $k) => [str_replace(array_keys($map), array_values($map), $k) => $m])->all();
         $data = $this->validate($rules, $messages);
 
         try {
             $payment = app(\App\Services\LoanPaymentService::class)->record($loan, ['amount' => $data['payAmount'], 'paid_at' => $data['payDate'],
-                'payment_method' => $data['payMethod'], 'note' => $data['payNote'] ?? null], auth()->id());
+                'payment_method' => $data['payMethod'], 'reference' => $data['payRef'] ?? null, 'note' => $data['payNote'] ?? null], auth()->id());
         } catch (ValidationException $e) {
             $errors = $e->errors();
             if (isset($errors['loan'])) {
@@ -203,7 +214,9 @@ class Show extends Component
 
                 return;
             }
-            $this->addError('payAmount', collect($errors)->flatten()->first());
+            foreach ($errors as $key => $messages) {
+                $this->addError($map[$key] ?? 'payAmount', $messages[0]);
+            }
 
             return;
         }

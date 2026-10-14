@@ -144,13 +144,30 @@
                                 <legend class="mb-1 block text-sm font-medium">Metode bayar</legend>
                                 <div class="grid grid-cols-3 gap-2">
                                     @foreach (\App\Models\Loan::METHODS as $value => $label)
-                                        <label @class(['flex cursor-pointer items-center justify-center rounded-lg border px-2 py-2 text-xs', 'border-emerald-600 bg-emerald-50 font-semibold text-emerald-900' => $payMethod === $value, 'border-stone-300' => $payMethod !== $value])>
+                                        <label @class(['flex cursor-pointer flex-col items-center justify-center rounded-lg border px-2 py-2 text-xs', 'border-emerald-600 bg-emerald-50 font-semibold text-emerald-900' => $payMethod === $value, 'border-stone-300' => $payMethod !== $value])>
                                             <input type="radio" wire:model.live="payMethod" value="{{ $value }}" class="sr-only"> {{ $label }}
+                                            @if ($value === $l['payment_method'])<span class="text-[10px] font-normal text-stone-500">pilihan peminjam</span>@endif
                                         </label>
                                     @endforeach
                                 </div>
                                 @error('payMethod') <span class="mt-1 block text-xs text-red-600">{{ $message }}</span> @enderror
+                                @if ($payMethod !== $l['payment_method'])
+                                    <p class="mt-1 text-xs text-amber-800" data-method-differs>Berbeda dari metode pilihan peminjam ({{ $l['payment_label'] }}).</p>
+                                @endif
                             </fieldset>
+                            @if ($payMethod === 'transfer')
+                                <label class="block">
+                                    <span class="mb-1 block text-sm font-medium">No./berita transfer</span>
+                                    <input type="text" wire:model="payRef" maxlength="100" placeholder="Mis. BRI 0815 / angsuran Sari" class="{{ $in }}">
+                                    @error('payRef') <span class="mt-1 block text-xs text-red-600">{{ $message }}</span> @enderror
+                                </label>
+                            @elseif ($payMethod === 'potong_gaji')
+                                <label class="block">
+                                    <span class="mb-1 block text-sm font-medium">Bulan gaji yang dipotong</span>
+                                    <input type="month" wire:model="payRef" max="{{ today()->addMonthNoOverflow()->format('Y-m') }}" class="{{ $in }}">
+                                    @error('payRef') <span class="mt-1 block text-xs text-red-600">{{ $message }}</span> @enderror
+                                </label>
+                            @endif
                             <label class="block">
                                 <span class="mb-1 block text-sm font-medium">Catatan <span class="font-normal text-stone-500">(opsional)</span></span>
                                 <input type="text" wire:model="payNote" maxlength="200" placeholder="Mis. potong gaji Oktober, ref. transfer" class="{{ $in }}">

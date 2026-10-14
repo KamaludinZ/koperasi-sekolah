@@ -25,6 +25,8 @@ class LoanPaymentService
             'amount' => ['required', 'integer', 'min:1', 'max:'.max(1, (int) round((float) $loan->outstanding))],
             'paid_at' => ['required', 'date_format:Y-m-d', 'before_or_equal:today', 'after_or_equal:'.($loan->disbursed_at?->toDateString() ?? today()->toDateString())],
             'payment_method' => ['required', Rule::in(array_keys(Loan::METHODS))],
+            // Rujukan wajib per metode: transfer → no./berita transfer; potong gaji → bulan gaji (Y-m); tunai → tidak perlu.
+            'reference' => ['nullable', 'string', 'max:100'],
             'note' => ['nullable', 'string', 'max:200'],
         ];
     }
@@ -43,7 +45,38 @@ class LoanPaymentService
             'payment_method.required' => 'Pilih metode bayar.',
             'payment_method.in' => 'Metode bayar tidak dikenal.',
             'note.max' => 'Catatan maksimal 200 karakter.',
+            'reference.max' => 'Rujukan maksimal 100 karakter.',
         ];
+    }
+
+    /** Label isian rujukan per metode (null = tidak perlu rujukan). */
+    public const REFERENCE_LABELS = ['transfer' => 'No./berita transfer', 'potong_gaji' => 'Bulan gaji yang dipotong', 'tunai' => null];
+
+    /**
+     * Rujukan wajib & format per metode: transfer → minimal 3 karakter; potong gaji → bulan gaji Y-m (tidak lebih dari
+     * bulan depan); tunai → dikosongkan. Galat dilempar dengan kunci `reference`.
+     */
+    public static function normalizeReference(string $method, ?string $reference): ?string
+    {
+        $reference = filled($reference) ? trim($reference) : null;
+
+        return match ($method) {
+            'transfer' => mb_strlen((string) $reference) >= 3 ? $reference
+                : throw ValidationException::withMessages(['reference' => 'Isi nomor atau berita transfer (minimal 3 karakter).']),
+            'potong_gaji' => preg_match('/^\d{4}-(0[1-9]|1[0-2])$/', (string) $reference) && $reference <= today()->addMonthNoOverflow()->format('Y-m')
+                ? $reference : throw ValidationException::withMessages(['reference' => 'Pilih bulan gaji yang dipotong.']),
+            default => null,
+        };
+    }
+
+    /** Teks rujukan untuk tampilan (bulan gaji → "Gaji Oktober 2026"). */
+    public static function referenceLabel(?string $method, ?string $reference): ?string
+    {
+        if ($method === 'potong_gaji' && $reference && preg_match('/^\d{4}-\d{2}$/', $reference)) {
+            return 'Gaji '.\Illuminate\Support\Carbon::parse($reference.'-01')->locale('id')->translatedFormat('F Y');
+        }
+
+        return $reference;
     }
 
     /**
@@ -75,8 +108,9 @@ class LoanPaymentService
     public function record(Loan $loan, array $data, ?int $userId = null): LoanPayment
     {
         $note = filled($data['note'] ?? null) ? trim($data['note']) : null;
+        $reference = self::normalizeReference($data['payment_method'], $data['reference'] ?? null);
 
-        return DB::transaction(function () use ($loan, $data, $note, $userId) {
+        return DB::transaction(function () use ($loan, $data, $note, $reference, $userId) {
             $locked = Loan::whereKey($loan->id)->lockForUpdate()->firstOrFail();
             if (! in_array($locked->status, Loan::ACTIVE, true)) {
                 throw ValidationException::withMessages(['loan' => "Pinjaman {$locked->code} berstatus ".mb_strtolower(Loan::STATUSES[$locked->status] ?? $locked->status)
@@ -101,17 +135,18 @@ class LoanPaymentService
             }
 
             $payment = LoanPayment::create(['loan_id' => $locked->id, 'paid_at' => $data['paid_at'], 'amount' => $amount, 'payment_method' => $data['payment_method'],
-                'note' => $note, 'allocations' => array_map(fn ($r) => ['installment_id' => $r['installment_id'], 'sequence' => $r['sequence'], 'amount' => $r['amount']], $plan),
+                'reference' => $reference, 'note' => $note, 'allocations' => array_map(fn ($r) => ['installment_id' => $r['installment_id'], 'sequence' => $r['sequence'], 'amount' => $r['amount']], $plan),
                 'user_id' => $userId]);
             $before = $locked->status;
             $this->refreshLoan($locked);
             $locked->load('member');
 
             AuditLog::record('pinjaman.angsuran', 'pinjaman',
-                "Angsuran {$locked->code} {$locked->member->name}: ".Rupiah::format($amount).' ('.(Loan::METHODS[$data['payment_method']] ?? $data['payment_method']).') '
+                "Angsuran {$locked->code} {$locked->member->name}: ".Rupiah::format($amount).' ('.(Loan::METHODS[$data['payment_method']] ?? $data['payment_method'])
+                    .($reference ? ' · '.self::referenceLabel($data['payment_method'], $reference) : '').') '
                     .Tanggal::format($data['paid_at']).' untuk angsuran ke-'.implode(', ', array_column($plan, 'sequence')).' · sisa '.Rupiah::format($locked->outstanding),
                 LoanApplicationService::subject($locked),
-                ['payment_id' => $payment->id, 'allocations' => $payment->allocations, 'note' => $note, 'paid_at' => $data['paid_at'], 'payment_method' => $data['payment_method']],
+                ['payment_id' => $payment->id, 'allocations' => $payment->allocations, 'note' => $note, 'reference' => $reference, 'paid_at' => $data['paid_at'], 'payment_method' => $data['payment_method']],
                 $amount, action: 'diubah',
                 old: ['status' => $before, 'outstanding' => $outstanding],
                 new: ['status' => $locked->status, 'outstanding' => (int) round((float) $locked->outstanding)]);

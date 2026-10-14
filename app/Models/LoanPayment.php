@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 /** Pembayaran angsuran (uang yang benar-benar diterima) beserta alokasinya ke angsuran; koreksi menandai voided_at. */
 class LoanPayment extends Model
 {
-    protected $fillable = ['loan_id', 'paid_at', 'amount', 'payment_method', 'note', 'allocations', 'user_id', 'voided_at', 'voided_by', 'void_reason', 'replaces_id'];
+    protected $fillable = ['loan_id', 'paid_at', 'amount', 'payment_method', 'reference', 'note', 'allocations', 'user_id', 'voided_at', 'voided_by', 'void_reason', 'replaces_id'];
 
     protected function casts(): array
     {
