@@ -54,4 +54,19 @@ class PinEndpointTest extends TestCase
         auth('member')->logout();
         $this->getJson('/portal/pin/status')->assertUnauthorized();
     }
+
+    public function test_every_attempt_is_audited(): void
+    {
+        $this->postJson('/portal/pin/verifikasi', ['pin' => '246810']);
+        foreach (range(1, 3) as $i) {
+            $this->postJson('/portal/pin/verifikasi', ['pin' => '000000']);
+        }
+        $events = \App\Models\ActivityLog::where('subject_type', 'member')->where('subject_id', $this->andi->id)->where('event', 'like', 'portal.pin_%')->orderBy('id')->pluck('event')->all();
+        $this->assertSame(['portal.pin_verified', 'portal.pin_failed', 'portal.pin_failed', 'portal.pin_failed', 'portal.pin_locked'], $events);
+
+        $last = \App\Models\ActivityLog::where('event', 'portal.pin_failed')->latest('id')->first();
+        $this->assertSame(['attempt' => 3, 'left' => 0], $last->properties);
+        $this->assertSame('anggota', $last->actor_role);
+        $this->assertStringContainsString('dikunci 15 menit', \App\Models\ActivityLog::where('event', 'portal.pin_locked')->value('description'));
+    }
 }

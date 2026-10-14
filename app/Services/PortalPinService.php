@@ -9,7 +9,7 @@ use Illuminate\Validation\ValidationException;
 
 /**
  * Verifikasi PIN transaksi portal anggota (6 digit, tersandi). Salah 3 kali → transaksi dikunci 15 menit.
- * Setiap PIN salah dicatat di jejak audit.
+ * Setiap percobaan dicatat di jejak audit: benar (pin_verified), salah (pin_failed), dan terkunci (pin_locked).
  */
 class PortalPinService
 {
@@ -67,9 +67,15 @@ class PortalPinService
             RateLimiter::hit($key, self::DECAY_SECONDS);
             $left = self::MAX_ATTEMPTS - RateLimiter::attempts($key);
             AuditLog::record('portal.pin_failed', 'auth', "PIN transaksi salah untuk {$member->name}", PortalAuthService::subject($member),
-                ['attempt' => RateLimiter::attempts($key)], actor: PortalAuthService::actor($member));
+                ['attempt' => RateLimiter::attempts($key), 'left' => max(0, $left)], actor: PortalAuthService::actor($member));
+            if ($left <= 0) {
+                AuditLog::record('portal.pin_locked', 'auth', "Transaksi portal {$member->name} dikunci 15 menit karena PIN salah ".self::MAX_ATTEMPTS.' kali',
+                    PortalAuthService::subject($member), ['minutes' => intdiv(self::DECAY_SECONDS, 60)], actor: PortalAuthService::actor($member));
+            }
             throw ValidationException::withMessages(['pin' => $left > 0 ? "PIN salah. Sisa {$left} percobaan." : 'PIN salah terlalu sering. Coba lagi dalam 15 menit.']);
         }
         RateLimiter::clear($key);
+        AuditLog::record('portal.pin_verified', 'auth', "PIN transaksi {$member->name} terverifikasi", PortalAuthService::subject($member),
+            actor: PortalAuthService::actor($member));
     }
 }
