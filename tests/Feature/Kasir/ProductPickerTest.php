@@ -66,12 +66,13 @@ class ProductPickerTest extends TestCase
             ->assertSet('scan.type', 'success')->assertNotDispatched('scan-feedback')->assertSee('Ditambahkan:');
 
         $c->set('search', 'ZZZ-999')->assertSet('scan', null)->call('pickFromSearch')
-            ->assertSet('scan.type', 'error')->assertSet('search', 'ZZZ-999')->assertSee('Kode “ZZZ-999” tidak ditemukan.')->assertNotDispatched('product-picked');
+            ->assertSet('scan.type', 'error')->assertSet('search', 'ZZZ-999')->assertSee('Barcode/kode “ZZZ-999” tidak dikenali.')->assertSee('data-search-manual', false)->assertDispatched('scan-unknown', code: 'ZZZ-999')->assertNotDispatched('product-picked');
 
         \App\Models\Product::where('code', 'ATK002')->update(['stock' => 0]);
         $c->set('search', 'ATK002')->call('pickFromSearch')->assertSet('scan.type', 'error')->assertSee('stoknya habis');
 
-        $c->set('search', 'ATK')->call('pickFromSearch')->assertSet('scan.type', 'info')->assertSee('barang cocok dengan “ATK”');
+        $c->set('search', 'ATK')->call('pickFromSearch')->assertSet('scan.type', 'info')->assertSee('barang cocok dengan “ATK”')
+            ->assertNotDispatched('scan-unknown')->assertDontSee('data-search-manual', false);
     }
 
     public function test_camera_scan_adds_exact_code_without_touching_search(): void
@@ -90,6 +91,8 @@ class ProductPickerTest extends TestCase
             ->call('scanCode', 'ATK')
             ->assertNotDispatched('product-picked')
             ->assertSet('scan.type', 'error')
+            ->assertSet('scan.unknown', 'ATK')
+            ->assertDispatched('scan-unknown', code: 'ATK')
             ->call('scanCode', '   ')
             ->assertSet('scan.type', 'error');
     }

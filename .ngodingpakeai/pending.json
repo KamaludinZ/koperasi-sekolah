@@ -1,6 +1,6 @@
 {
   "repo": "Koperasi Sekolah",
-  "generatedForCommit": "c9985e340fa7757a9f4efa9be1913dc776715183",
+  "generatedForCommit": "71bb676a8b86e3709c61004103d09de33d0a8544",
   "files": [
     {
       "path": ".claude/skills/ngodingpakeai/SKILL.md",
@@ -574,9 +574,9 @@
     },
     {
       "path": "app/Livewire/Kasir/ProductPicker.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 4065
+      "size": 4547
     },
     {
       "path": "app/Livewire/Laporan/Index.php",
@@ -2134,13 +2134,13 @@
     },
     {
       "path": "resources/js/app.js",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "javascript",
       "size": 1568
     },
     {
       "path": "resources/js/barcode-reader.js",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "javascript",
       "size": 2229
     },
@@ -2230,9 +2230,9 @@
     },
     {
       "path": "resources/views/components/camera-scanner.blade.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 4174
+      "size": 4356
     },
     {
       "path": "resources/views/components/idle-warning.blade.php",
@@ -2652,7 +2652,7 @@
       "path": "resources/views/livewire/kasir/product-picker.blade.php",
       "reason": "changed",
       "language": "php",
-      "size": 7565
+      "size": 9511
     },
     {
       "path": "resources/views/livewire/laporan/index.blade.php",
@@ -3552,7 +3552,7 @@
       "path": "tests/Feature/Kasir/ProductPickerTest.php",
       "reason": "changed",
       "language": "php",
-      "size": 3827
+      "size": 4581
     },
     {
       "path": "tests/Feature/Kasir/ProductSearchTest.php",

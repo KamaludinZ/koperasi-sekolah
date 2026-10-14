@@ -106,8 +106,11 @@ class ProductPicker extends Component
         if (! $match) {
             $this->scan = count($results) > 1
                 ? ['type' => 'info', 'text' => count($results).' barang cocok dengan “'.$raw.'” — pilih salah satu.']
-                : ['type' => 'error', 'text' => 'Kode “'.$raw.'” tidak ditemukan. Periksa label atau cari dengan nama.'];
+                : ['type' => 'error', 'text' => 'Barcode/kode “'.$raw.'” tidak dikenali. Periksa label atau cari dengan kode/nama barang.', 'unknown' => $raw];
             $this->dispatch('scan-feedback', type: $this->scan['type'], text: $this->scan['text']);
+            if (isset($this->scan['unknown'])) {
+                $this->dispatch('scan-unknown', code: $raw); // tampilan memindahkan kursor ke pencarian
+            }
 
             return false;
         }

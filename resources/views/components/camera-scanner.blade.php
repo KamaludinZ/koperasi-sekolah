@@ -13,6 +13,7 @@
      @if ($hotkey) x-on:keydown.window.f4.prevent="open ? stop() : start()" @endif
      x-on:keydown.escape.window="open && stop()"
      x-on:scan-feedback.window="lastFeedback = $event.detail"
+     x-on:scan-unknown.window="open && $nextTick(() => $el.querySelector('[data-fallback-search]')?.focus())"
      data-camera-scanner="{{ $openEvent }}">
     <div x-show="open" x-transition.opacity x-on:click.self="stop()" class="fixed inset-0 z-[60] flex items-end justify-center bg-stone-950/60 sm:items-center" role="dialog" aria-modal="true" aria-label="{{ $title }}">
         <div class="w-full max-w-lg overflow-hidden rounded-t-2xl bg-white shadow-xl sm:rounded-2xl">

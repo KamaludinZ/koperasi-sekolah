@@ -1,5 +1,6 @@
 <section class="flex min-h-0 flex-col"
          x-data
+         x-on:scan-unknown.window="if (!document.querySelector('[aria-modal=&quot;true&quot;]:not([style*=&quot;display: none&quot;])')) { $refs.search.focus(); }"
          x-on:keydown.window="if ((($event.key === '/' && !['INPUT','TEXTAREA'].includes($event.target.tagName)) || $event.key === 'F2')) { $event.preventDefault(); $refs.search.focus(); $refs.search.select() }">
     <div class="space-y-3 border-b border-stone-200 bg-white/60 px-4 py-4 sm:px-6">
         <div class="flex gap-2">
@@ -24,9 +25,15 @@
         <div x-data="{ beep(type) { try { const a = new (window.AudioContext || window.webkitAudioContext)(); const o = a.createOscillator(); const g = a.createGain(); o.frequency.value = type === 'success' ? 880 : 220; g.gain.value = .05; o.connect(g); g.connect(a.destination); o.start(); o.stop(a.currentTime + (type === 'success' ? .08 : .25)); } catch (e) {} } }"
              x-on:scan-feedback.window="beep($event.detail.type)" aria-live="polite">
             @if ($scan)
-                <p wire:key="scan-{{ md5($scan['text']) }}" x-data x-init="setTimeout(() => $el.remove(), 4000)"
-                   @class(['rounded-lg px-3 py-1.5 text-sm', 'bg-emerald-50 text-emerald-900' => $scan['type'] === 'success', 'bg-red-50 text-red-800' => $scan['type'] === 'error', 'bg-amber-50 text-amber-900' => $scan['type'] === 'info'])
-                   data-scan="{{ $scan['type'] }}">{{ $scan['text'] }}</p>
+                <p wire:key="scan-{{ md5($scan['text']) }}" x-data x-init="setTimeout(() => $el.remove(), {{ isset($scan['unknown']) ? 10000 : 4000 }})"
+                   @class(['flex flex-wrap items-center gap-x-3 gap-y-1 rounded-lg px-3 py-1.5 text-sm', 'bg-emerald-50 text-emerald-900' => $scan['type'] === 'success', 'bg-red-50 text-red-800' => $scan['type'] === 'error', 'bg-amber-50 text-amber-900' => $scan['type'] === 'info'])
+                   data-scan="{{ $scan['type'] }}">
+                    <span>{{ $scan['text'] }}</span>
+                    @isset($scan['unknown'])
+                        <button type="button" x-on:click="$refs.search.focus(); $refs.search.select()" data-search-manual
+                                class="rounded-md bg-white px-2 py-0.5 text-xs font-semibold text-red-800 ring-1 ring-red-200 hover:bg-red-100">Cari manual</button>
+                    @endisset
+                </p>
             @endif
         </div>
         <div class="flex gap-2 overflow-x-auto pb-1">
