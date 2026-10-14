@@ -25,6 +25,23 @@ class SettingsEndpointTest extends TestCase
         $this->getJson('/pengaturan/data/rahasia')->assertNotFound();
     }
 
+    public function test_returns_and_credit_sections_round_trip(): void
+    {
+        $this->getJson('/pengaturan/data')->assertJsonStructure(['data' => ['credit', 'returns', 'security', 'discount']]);
+        $this->getJson('/pengaturan/data/returns')->assertOk()->assertJsonPath('data.limit_days', 3);
+
+        $this->putJson('/pengaturan/data/returns', ['limit_days' => 7, 'void_auto_max' => 0])->assertOk();
+        $this->getJson('/pengaturan/data/returns')->assertJsonPath('data.limit_days', 7)->assertJsonPath('data.void_auto_max', 0)
+            ->assertJsonPath('data.void_auto_minutes', 30);
+        $this->assertSame(7, app(SettingsService::class)->section('returns')['limit_days']);
+
+        $this->putJson('/pengaturan/data/returns', ['limit_days' => 0])->assertJsonValidationErrors('limit_days');
+        $this->putJson('/pengaturan/data/returns', ['void_auto_minutes' => 999])->assertJsonValidationErrors('void_auto_minutes');
+
+        $this->postJson('/pengaturan/data/returns/reset')->assertOk();
+        $this->getJson('/pengaturan/data/returns')->assertJsonPath('data.limit_days', 3);
+    }
+
     public function test_only_admin_can_access(): void
     {
         $this->loginAs('kasir');
