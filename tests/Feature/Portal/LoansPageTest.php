@@ -56,6 +56,28 @@ class LoansPageTest extends TestCase
         Livewire::test(Loans::class)->assertSee('Lunas 5 Sep 2026. Terima kasih!')->assertDontSeeHtml('data-total-outstanding');
     }
 
+    public function test_filter_tabs_with_counts_and_url(): void
+    {
+        Livewire::test(Loans::class)
+            ->assertSeeHtml('data-loan-tab="berjalan"')->assertSeeInOrder(['Semua', '3', 'Berjalan', '1', 'Pengajuan', '1', 'Selesai', '1'])
+            ->call('setTab', 'berjalan')->assertSet('tab', 'berjalan')
+            ->assertSeeHtml('data-my-loan="PJM-RUN"')->assertDontSeeHtml('data-my-loan="PJM-NEW"')->assertDontSeeHtml('data-my-loan="PJM-NO"')
+            ->assertSeeHtml('data-total-outstanding>Rp600.000') // ringkasan tetap dari semua pinjaman
+            ->call('setTab', 'pengajuan')->assertSeeHtml('data-my-loan="PJM-NEW"')->assertDontSeeHtml('data-my-loan="PJM-RUN"')
+            ->call('setTab', 'selesai')->assertSeeHtml('data-my-loan="PJM-NO"')->assertDontSeeHtml('data-my-loan="PJM-NEW"')
+            ->call('setTab', 'ngawur')->assertSet('tab', 'semua')->assertSeeHtml('data-my-loan="PJM-NO"');
+
+        $this->get('/portal/pinjaman?tampil=selesai')->assertOk()->assertSeeHtml('data-my-loan="PJM-NO"')->assertDontSeeHtml('data-my-loan="PJM-RUN"');
+        $this->get('/portal/pinjaman?tampil=%3Cscript%3E')->assertOk()->assertSeeHtml('data-my-loan="PJM-RUN"')->assertDontSee('<script>', false);
+    }
+
+    public function test_empty_tab_message(): void
+    {
+        Loan::where('code', 'PJM-NO')->delete();
+        Livewire::test(Loans::class)->call('setTab', 'selesai')
+            ->assertSeeHtml('data-empty="daftar-pinjaman"')->assertSee('Belum ada pinjaman yang selesai.');
+    }
+
     public function test_empty_state(): void
     {
         $fresh = Member::factory()->create();

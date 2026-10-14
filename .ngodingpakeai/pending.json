@@ -1,6 +1,6 @@
 {
   "repo": "Koperasi Sekolah",
-  "generatedForCommit": "2cf29b06f79bdf79076095a9b9d031c9333870d4",
+  "generatedForCommit": "f65734882986bc0dcae1043f0d74ae38df3dd15a",
   "files": [
     {
       "path": ".claude/skills/ngodingpakeai/SKILL.md",
@@ -292,9 +292,15 @@
     },
     {
       "path": "app/Livewire/Pinjaman/Show.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 14282
+    },
+    {
+      "path": "app/Livewire/Portal/Loans.php",
+      "reason": "new",
+      "language": "php",
+      "size": 2434
     },
     {
       "path": "app/Livewire/Transaksi/Index.php",
@@ -370,7 +376,7 @@
     },
     {
       "path": "app/Services/LoanPaymentService.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 19454
     },
@@ -1216,9 +1222,9 @@
     },
     {
       "path": "resources/views/components/layouts/portal.blade.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 4223
+      "size": 4332
     },
     {
       "path": "resources/views/components/pengadaan/nav.blade.php",
@@ -1858,7 +1864,7 @@
     },
     {
       "path": "resources/views/livewire/pinjaman/show.blade.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 38851
     },
@@ -1873,6 +1879,12 @@
       "reason": "needs_summary",
       "language": "php",
       "size": 1924
+    },
+    {
+      "path": "resources/views/livewire/portal/loans.blade.php",
+      "reason": "new",
+      "language": "php",
+      "size": 4571
     },
     {
       "path": "resources/views/livewire/portal/login.blade.php",
@@ -2068,9 +2080,9 @@
     },
     {
       "path": "routes/web.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 46744
+      "size": 46840
     },
     {
       "path": "tests/Concerns/MakesProductImports.php",
@@ -2512,7 +2524,7 @@
     },
     {
       "path": "tests/Feature/Pinjaman/PaymentCorrectionTest.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 7822
     },
@@ -2539,6 +2551,12 @@
       "reason": "needs_summary",
       "language": "php",
       "size": 3708
+    },
+    {
+      "path": "tests/Feature/Portal/LoansPageTest.php",
+      "reason": "new",
+      "language": "php",
+      "size": 3493
     },
     {
       "path": "tests/Feature/Services/TanggalTest.php",

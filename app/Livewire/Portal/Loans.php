@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
+use Livewire\Attributes\Url;
 use Livewire\Component;
 
 /**
@@ -18,6 +19,44 @@ use Livewire\Component;
 #[Title('Pinjaman Saya')]
 class Loans extends Component
 {
+    /** Tab saringan daftar: status yang masuk tiap tab (null = semua) dan pesan bila kosong. */
+    public const TABS = [
+        'semua' => ['label' => 'Semua', 'statuses' => null, 'empty' => 'Belum ada pinjaman.'],
+        'berjalan' => ['label' => 'Berjalan', 'statuses' => Loan::ACTIVE, 'empty' => 'Tidak ada pinjaman yang sedang berjalan.'],
+        'pengajuan' => ['label' => 'Pengajuan', 'statuses' => ['diajukan', 'disetujui'], 'empty' => 'Tidak ada pengajuan yang sedang diproses.'],
+        'selesai' => ['label' => 'Selesai', 'statuses' => ['lunas', 'ditolak', 'dibatalkan'], 'empty' => 'Belum ada pinjaman yang selesai.'],
+    ];
+
+    #[Url(as: 'tampil', except: 'semua')]
+    public string $tab = 'semua';
+
+    public function mount(): void
+    {
+        $this->setTab($this->tab);
+    }
+
+    public function setTab(string $tab): void
+    {
+        $this->tab = array_key_exists($tab, self::TABS) ? $tab : 'semua';
+    }
+
+    /** @return list<array> pinjaman yang lolos tab aktif */
+    #[Computed]
+    public function shown(): array
+    {
+        $statuses = self::TABS[$this->tab]['statuses'] ?? null;
+
+        return $statuses === null ? $this->loans : array_values(array_filter($this->loans, fn ($l) => in_array($l['status'], $statuses, true)));
+    }
+
+    /** @return array<string,int> jumlah pinjaman per tab */
+    #[Computed]
+    public function counts(): array
+    {
+        return collect(self::TABS)->map(fn ($t) => $t['statuses'] === null ? count($this->loans)
+            : collect($this->loans)->whereIn('status', $t['statuses'])->count())->all();
+    }
+
     /** @return list<array> pinjaman aktif & pengajuan dulu, lalu yang selesai; terbaru dulu */
     #[Computed]
     public function loans(): array
