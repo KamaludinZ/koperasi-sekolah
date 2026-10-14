@@ -132,7 +132,14 @@
                                         <td class="px-3 py-2.5">{{ $h['payment_label'] }}@if ($h['reference_label'])<span class="block text-xs text-stone-500">{{ $h['reference_label'] }}</span>@endif</td>
                                         <td class="px-3 py-2.5">ke-{{ implode(', ', $h['sequences']) }}@if ($h['note'])<span class="block text-xs text-stone-500">{{ $h['note'] }}</span>@endif
                                             @if ($h['voided'])<span class="block text-xs text-red-700 no-underline">Dikoreksi: {{ $h['void_reason'] }}</span>@endif</td>
-                                        <td class="px-4 py-2.5 text-right font-medium tabular-nums">{{ $rp($h['balance_after']) }}</td>
+                                        <td class="px-4 py-2.5 text-right font-medium tabular-nums">{{ $rp($h['balance_after']) }}
+                                            @if (! $h['voided'] && in_array($l['status'], [...\App\Models\Loan::ACTIVE, 'lunas'], true))
+                                                @can('kelola-pinjaman')
+                                                    <button type="button" wire:click="openCorrection({{ $h['id'] }})" class="block w-full text-right text-xs font-medium text-amber-800 hover:underline" data-correct="{{ $h['id'] }}">Koreksi</button>
+                                                @endcan
+                                            @endif
+                                            @if ($h['replaces_id'])<span class="block text-[11px] text-stone-500">pengganti #{{ $h['replaces_id'] }}</span>@endif
+                                        </td>
                                     </tr>
                                 @endforeach
                             </tbody>
@@ -359,4 +366,48 @@
             </section>
         </aside>
     </div>
+
+    @if ($correctingId)
+        @php $in = 'w-full rounded-lg border border-stone-300 bg-white px-3 py-2 text-sm outline-none focus:border-emerald-600 focus:ring-4 focus:ring-emerald-600/15'; @endphp
+        <div class="fixed inset-0 z-50 grid place-items-center p-4" role="dialog" aria-modal="true" aria-labelledby="corr-title" x-data x-on:keydown.escape.window="$wire.closeCorrection()">
+            <div class="absolute inset-0 bg-stone-950/50" wire:click="closeCorrection"></div>
+            <form wire:submit="saveCorrection" class="relative max-h-[90vh] w-full max-w-md space-y-3 overflow-y-auto rounded-2xl bg-white p-5 shadow-xl" data-correction-form>
+                <h2 id="corr-title" class="font-semibold">Koreksi pembayaran angsuran</h2>
+                <p class="text-xs text-stone-500">Pembayaran lama tidak dihapus: ditandai dikoreksi beserta alasannya, lalu alokasi angsuran dihitung ulang.</p>
+                <div class="grid grid-cols-2 gap-2 text-sm">
+                    @foreach (['ganti' => 'Ganti dengan data benar', 'batal' => 'Batalkan pembayaran'] as $mode => $label)
+                        <label @class(['flex cursor-pointer items-center justify-center rounded-lg border px-2 py-2 text-center', 'border-amber-600 bg-amber-50 font-semibold text-amber-900' => $corrMode === $mode, 'border-stone-300' => $corrMode !== $mode])>
+                            <input type="radio" wire:model.live="corrMode" value="{{ $mode }}" class="sr-only">{{ $label }}
+                        </label>
+                    @endforeach
+                </div>
+                @if ($corrMode === 'ganti')
+                    <div class="grid grid-cols-2 gap-3">
+                        <label class="block"><span class="mb-1 block text-sm font-medium">Nominal benar</span>
+                            <input type="number" inputmode="numeric" min="1" wire:model="corrAmount" class="{{ $in }} tabular-nums">
+                            @error('corrAmount') <span class="mt-1 block text-xs text-red-600">{{ $message }}</span> @enderror</label>
+                        <label class="block"><span class="mb-1 block text-sm font-medium">Tanggal bayar</span>
+                            <input type="date" wire:model="corrDate" max="{{ today()->toDateString() }}" class="{{ $in }}">
+                            @error('corrDate') <span class="mt-1 block text-xs text-red-600">{{ $message }}</span> @enderror</label>
+                    </div>
+                    <label class="block"><span class="mb-1 block text-sm font-medium">Metode</span>
+                        <select wire:model.live="corrMethod" class="{{ $in }}">
+                            @foreach (\App\Models\Loan::METHODS as $value => $label)<option value="{{ $value }}">{{ $label }}</option>@endforeach
+                        </select></label>
+                    @if ($corrMethod !== 'tunai')
+                        <label class="block"><span class="mb-1 block text-sm font-medium">{{ \App\Services\LoanPaymentService::REFERENCE_LABELS[$corrMethod] }}</span>
+                            <input type="{{ $corrMethod === 'potong_gaji' ? 'month' : 'text' }}" wire:model="corrRef" maxlength="100" class="{{ $in }}">
+                            @error('corrRef') <span class="mt-1 block text-xs text-red-600">{{ $message }}</span> @enderror</label>
+                    @endif
+                @endif
+                <label class="block"><span class="mb-1 block text-sm font-medium">Alasan koreksi</span>
+                    <textarea wire:model="corrReason" rows="2" maxlength="200" placeholder="Mis. salah ketik nominal, seharusnya Rp250.000" class="{{ $in }}"></textarea>
+                    @error('corrReason') <span class="mt-1 block text-xs text-red-600">{{ $message }}</span> @enderror</label>
+                <div class="flex gap-2">
+                    <button type="button" wire:click="closeCorrection" class="rounded-xl border border-stone-300 px-4 py-2.5 text-sm font-medium">Batal</button>
+                    <button type="submit" wire:loading.attr="disabled" wire:target="saveCorrection" class="flex-1 rounded-xl bg-amber-700 py-2.5 text-sm font-semibold text-white hover:bg-amber-800 disabled:opacity-60">Simpan koreksi</button>
+                </div>
+            </form>
+        </div>
+    @endif
 </div>

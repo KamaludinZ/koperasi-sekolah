@@ -60,6 +60,24 @@ class Show extends Component
 
     public string $payNote = '';
 
+    /** Dialog koreksi pembayaran: batal saja, atau ganti dengan data yang benar. */
+    #[Locked]
+    public ?int $correctingId = null;
+
+    public string $corrMode = 'ganti';
+
+    public int|string|null $corrAmount = '';
+
+    public string $corrDate = '';
+
+    public string $corrMethod = '';
+
+    public string $corrRef = '';
+
+    public string $corrNote = '';
+
+    public string $corrReason = '';
+
     /** Rujukan sesuai metode: no. transfer / bulan gaji (Y-m). */
     public string $payRef = '';
 
@@ -240,6 +258,74 @@ class Show extends Component
         $this->flash = 'Angsuran '.\App\Support\Rupiah::format($payment->amount).' dicatat untuk angsuran ke-'.implode(', ', array_column($payment->allocations, 'sequence')).'. '
             .($loan->status === 'lunas' ? 'Pinjaman lunas.' : 'Sisa '.\App\Support\Rupiah::format($loan->outstanding).'.');
         unset($this->detail, $this->paymentPreview, $this->history, $this->balance);
+    }
+
+    public function openCorrection(int $paymentId): void
+    {
+        abort_unless(Gate::allows('kelola-pinjaman'), 403);
+        $p = \App\Models\LoanPayment::where('loan_id', $this->loanId)->whereNull('voided_at')->find($paymentId);
+        if (! $p) {
+            $this->flash = 'Pembayaran tidak ditemukan atau sudah dikoreksi.';
+
+            return;
+        }
+        $this->resetValidation();
+        $this->correctingId = $p->id;
+        $this->corrMode = 'ganti';
+        $this->corrAmount = (int) round((float) $p->amount);
+        $this->corrDate = $p->paid_at->toDateString();
+        $this->corrMethod = $p->payment_method;
+        $this->corrRef = (string) $p->reference;
+        $this->corrNote = (string) $p->note;
+        $this->corrReason = '';
+        $this->paying = false;
+    }
+
+    public function closeCorrection(): void
+    {
+        $this->correctingId = null;
+    }
+
+    public function updatedCorrMethod(): void
+    {
+        $this->corrMethod = array_key_exists($this->corrMethod, Loan::METHODS) ? $this->corrMethod : $this->loan()->payment_method;
+        $this->corrRef = $this->corrMethod === 'potong_gaji' ? today()->format('Y-m') : '';
+    }
+
+    public function saveCorrection(): void
+    {
+        abort_unless(Gate::allows('kelola-pinjaman'), 403);
+        $p = $this->correctingId ? \App\Models\LoanPayment::where('loan_id', $this->loanId)->find($this->correctingId) : null;
+        if (! $p) {
+            $this->correctingId = null;
+
+            return;
+        }
+        $this->corrMode = $this->corrMode === 'batal' ? 'batal' : 'ganti';
+        $rules = ['corrReason' => ['required', 'string', 'min:5', 'max:200']];
+        if ($this->corrMode === 'ganti') {
+            $rules += ['corrAmount' => ['required', 'integer', 'min:1'], 'corrDate' => ['required', 'date_format:Y-m-d'],
+                'corrMethod' => ['required', \Illuminate\Validation\Rule::in(array_keys(Loan::METHODS))], 'corrRef' => ['nullable', 'string', 'max:100'], 'corrNote' => ['nullable', 'string', 'max:200']];
+        }
+        $this->validate($rules, ['corrReason.required' => 'Tulis alasan koreksi.', 'corrReason.min' => 'Tulis alasan koreksi (5–200 karakter).',
+            'corrAmount.required' => 'Isi nominal yang benar.', 'corrAmount.min' => 'Nominal harus lebih dari 0.', 'corrDate.required' => 'Isi tanggal bayar yang benar.']);
+
+        $map = ['reason' => 'corrReason', 'amount' => 'corrAmount', 'paid_at' => 'corrDate', 'reference' => 'corrRef', 'payment' => 'corrReason'];
+        try {
+            app(\App\Services\LoanPaymentService::class)->correct($p, $this->corrReason, $this->corrMode === 'ganti' ? [
+                'amount' => (int) $this->corrAmount, 'paid_at' => $this->corrDate, 'payment_method' => $this->corrMethod,
+                'reference' => $this->corrRef, 'note' => $this->corrNote] : null, auth()->id());
+        } catch (ValidationException $e) {
+            foreach ($e->errors() as $key => $messages) {
+                $this->addError($map[$key] ?? 'corrReason', $messages[0]);
+            }
+
+            return;
+        }
+        $loan = $this->loan();
+        $this->correctingId = null;
+        $this->flash = ($this->corrMode === 'ganti' ? 'Pembayaran dikoreksi.' : 'Pembayaran dibatalkan.').' Sisa sekarang '.\App\Support\Rupiah::format($loan->outstanding).'.';
+        unset($this->detail, $this->history, $this->balance);
     }
 
     public function openAttach(int $disbursementId): void

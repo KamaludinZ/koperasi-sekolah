@@ -155,6 +155,92 @@ class LoanPaymentService
         });
     }
 
+    /**
+     * Koreksi pembayaran: pembayaran lama ditandai batal (tidak dihapus) dengan alasan; bila $replacement diisi,
+     * dicatat pembayaran pengganti (replaces_id). Lalu semua pembayaran sah diputar ulang ke jadwal dari awal
+     * (urut tanggal bayar & urutan catat) sehingga alokasi, sisa, dan status pinjaman konsisten.
+     *
+     * @param  array{amount: int, paid_at: string, payment_method: string, reference?: ?string, note?: ?string}|null  $replacement
+     */
+    public function correct(LoanPayment $payment, string $reason, ?array $replacement = null, ?int $userId = null): ?LoanPayment
+    {
+        $reason = trim($reason);
+        if (mb_strlen($reason) < 5 || mb_strlen($reason) > 200) {
+            throw ValidationException::withMessages(['reason' => 'Tulis alasan koreksi (5–200 karakter).']);
+        }
+        $reference = $replacement ? self::normalizeReference($replacement['payment_method'], $replacement['reference'] ?? null) : null;
+
+        return DB::transaction(function () use ($payment, $reason, $replacement, $reference, $userId) {
+            $loan = Loan::whereKey($payment->loan_id)->lockForUpdate()->firstOrFail();
+            $locked = LoanPayment::whereKey($payment->id)->lockForUpdate()->firstOrFail();
+            if ($locked->voided_at) {
+                throw ValidationException::withMessages(['payment' => 'Pembayaran ini sudah dikoreksi sebelumnya; muat ulang halaman.']);
+            }
+            if (! in_array($loan->status, [...Loan::ACTIVE, 'lunas'], true)) {
+                throw ValidationException::withMessages(['payment' => "Pinjaman {$loan->code} tidak bisa dikoreksi pada status ".mb_strtolower(Loan::STATUSES[$loan->status] ?? $loan->status).'.']);
+            }
+            $before = ['status' => $loan->status, 'outstanding' => (int) round((float) $loan->outstanding)];
+            $old = self::paymentToArray($locked);
+
+            $new = null;
+            if ($replacement) {
+                $others = (int) round((float) $loan->payments()->whereNull('voided_at')->whereKeyNot($locked->id)->sum('amount'));
+                $max = $loan->totalDue() - $others;
+                $amount = (int) $replacement['amount'];
+                if ($amount < 1 || $amount > $max) {
+                    throw ValidationException::withMessages(['amount' => 'Nominal pengganti harus 1–'.Rupiah::format($max).' (sisa setelah pembayaran lain).']);
+                }
+                if ($replacement['paid_at'] > today()->toDateString() || ($loan->disbursed_at && $replacement['paid_at'] < $loan->disbursed_at->toDateString())) {
+                    throw ValidationException::withMessages(['paid_at' => 'Tanggal bayar harus antara tanggal cair dan hari ini.']);
+                }
+            }
+
+            $locked->update(['voided_at' => now(), 'voided_by' => $userId, 'void_reason' => $reason]);
+            if ($replacement) {
+                $new = LoanPayment::create(['loan_id' => $loan->id, 'paid_at' => $replacement['paid_at'], 'amount' => (int) $replacement['amount'],
+                    'payment_method' => $replacement['payment_method'], 'reference' => $reference,
+                    'note' => filled($replacement['note'] ?? null) ? trim($replacement['note']) : null,
+                    'allocations' => [], 'user_id' => $userId, 'replaces_id' => $locked->id]);
+            }
+
+            $this->replay($loan);
+            $this->refreshLoan($loan);
+            $loan->load('member');
+
+            AuditLog::record('pinjaman.angsuran_koreksi', 'pinjaman',
+                "Koreksi angsuran {$loan->code} {$loan->member->name}: ".Rupiah::format($old['amount']).' '.Tanggal::format($old['paid_at'])
+                    .($new ? ' → '.Rupiah::format($new->amount).' '.Tanggal::format($new->paid_at) : ' dibatalkan').' · '.$reason,
+                LoanApplicationService::subject($loan),
+                ['payment_id' => $locked->id, 'replacement_id' => $new?->id, 'old_payment' => $old, 'new_payment' => $new ? self::paymentToArray($new->fresh()) : null],
+                $new ? (int) $new->amount - $old['amount'] : -$old['amount'], action: 'diubah',
+                old: $before + ['payment' => ['amount' => $old['amount'], 'paid_at' => $old['paid_at'], 'payment_method' => $old['payment_method']]],
+                new: ['status' => $loan->status, 'outstanding' => (int) round((float) $loan->outstanding),
+                    'payment' => $new ? ['amount' => (int) $new->amount, 'paid_at' => $new->paid_at->toDateString(), 'payment_method' => $new->payment_method] : null],
+                reason: $reason);
+
+            return $new?->fresh();
+        });
+    }
+
+    /** Putar ulang semua pembayaran sah ke jadwal yang dikosongkan; alokasi tiap pembayaran ikut diperbarui. */
+    private function replay(Loan $loan): void
+    {
+        $installments = $loan->installments()->lockForUpdate()->get();
+        foreach ($installments as $i) {
+            $i->forceFill(['paid_amount' => 0, 'paid_at' => null, 'payment_method' => null, 'status' => 'belum'])->save();
+        }
+        $byId = $installments->keyBy('id');
+        foreach ($loan->payments()->whereNull('voided_at')->reorder()->orderBy('paid_at')->orderBy('id')->get() as $payment) {
+            $plan = self::allocate($installments, (int) round((float) $payment->amount));
+            foreach ($plan as $row) {
+                $inst = $byId[$row['installment_id']];
+                $inst->forceFill(['paid_amount' => (int) round((float) $inst->paid_amount) + $row['amount'], 'paid_at' => $payment->paid_at,
+                    'payment_method' => $payment->payment_method, 'user_id' => $payment->user_id, 'status' => $row['settles'] ? 'dibayar' : 'belum'])->save();
+            }
+            $payment->update(['allocations' => array_map(fn ($r) => ['installment_id' => $r['installment_id'], 'sequence' => $r['sequence'], 'amount' => $r['amount']], $plan)]);
+        }
+    }
+
     public static function paymentToArray(LoanPayment $p): array
     {
         return [
@@ -164,6 +250,7 @@ class LoanPaymentService
             'sequences' => array_column($p->allocations ?? [], 'sequence'), 'allocations' => $p->allocations ?? [],
             'user' => $p->user?->name, 'recorded_at' => $p->created_at?->toDateTimeString(),
             'voided' => $p->voided_at !== null, 'void_reason' => $p->void_reason, 'voided_at' => $p->voided_at?->toDateTimeString(),
+            'replaces_id' => $p->replaces_id,
         ];
     }
 
