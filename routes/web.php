@@ -474,6 +474,8 @@ Route::middleware(['menu:pinjaman', 'peran:admin,pengurus', 'can:kelola-pinjaman
     Route::post('/pinjaman/pengajuan', [\App\Http\Controllers\Pinjaman\LoanApplicationController::class, 'store'])->middleware('throttle:30,1')->name('pinjaman.pengajuan.store');
     Route::post('/pinjaman/pengajuan/{loan}/setujui', [\App\Http\Controllers\Pinjaman\LoanApplicationController::class, 'approve'])->whereNumber('loan')->middleware('throttle:30,1')->name('pinjaman.pengajuan.approve');
     Route::post('/pinjaman/pengajuan/{loan}/tolak', [\App\Http\Controllers\Pinjaman\LoanApplicationController::class, 'reject'])->whereNumber('loan')->middleware('throttle:30,1')->name('pinjaman.pengajuan.reject');
+    Route::put('/pinjaman/pengajuan/{loan}', [\App\Http\Controllers\Pinjaman\LoanApplicationController::class, 'update'])->whereNumber('loan')->middleware('throttle:30,1')->name('pinjaman.pengajuan.update');
+    Route::post('/pinjaman/pengajuan/{loan}/batal', [\App\Http\Controllers\Pinjaman\LoanApplicationController::class, 'cancel'])->whereNumber('loan')->middleware('throttle:30,1')->name('pinjaman.pengajuan.cancel');
     Route::get('/pinjaman/pencairan', \App\Livewire\Pinjaman\Disbursements::class)->name('pinjaman.pencairan');
     Route::get('/pinjaman/pencairan/{disbursement}/bukti', \App\Http\Controllers\Pinjaman\DisbursementProofController::class)
         ->whereNumber('disbursement')->middleware('throttle:60,1')->name('pinjaman.pencairan.bukti');

@@ -18,6 +18,8 @@ use Illuminate\Validation\Rule;
  * - POST /pinjaman/pengajuan/{loan}/setujui  (catatan= opsional) → disetujui
  * - POST /pinjaman/pengajuan/{loan}/tolak    (alasan= wajib)     → ditolak
  *   Hanya pengajuan berstatus "diajukan"; selain itu 422 dengan alasannya.
+ * - PUT  /pinjaman/pengajuan/{loan}         → ubah pengajuan belum cair (anggota tetap; syarat berubah → kembali diajukan)
+ * - POST /pinjaman/pengajuan/{loan}/batal   (alasan= wajib) → dibatalkan
  */
 class LoanApplicationController extends Controller
 {
@@ -87,6 +89,38 @@ class LoanApplicationController extends Controller
         return response()->json([
             'data' => LoanService::toArray($loan) + ['decided_at' => $loan->decided_at?->toDateTimeString(), 'decided_by' => $userId],
             'message' => "Pengajuan {$loan->code} ({$loan->member->name}) ".($decision === 'disetujui' ? 'disetujui dan siap dicairkan.' : 'ditolak.'),
+        ]);
+    }
+
+    public function update(Request $request, Loan $loan, LoanApplicationService $applications): JsonResponse
+    {
+        $rules = LoanApplicationService::rules();
+        unset($rules['member_id']);
+        $rules['applied_at'] = ['required', 'date_format:Y-m-d', 'before_or_equal:today'];
+        $request->mergeIfMissing(['applied_at' => $loan->applied_at->toDateString(), 'purpose' => $loan->purpose]);
+        $data = $request->validate($rules, LoanApplicationService::messages());
+
+        $before = $loan->status;
+        $loan = $applications->update($loan, $data, $request->user()?->id);
+        $reopened = $before === 'disetujui' && $loan->status === 'diajukan';
+
+        return response()->json([
+            'data' => LoanService::toArray($loan->fresh('member')),
+            'reopened' => $reopened,
+            'message' => "Pengajuan {$loan->code} diperbarui.".($reopened ? ' Syaratnya berubah, jadi perlu diputuskan ulang.' : ''),
+        ]);
+    }
+
+    public function cancel(Request $request, Loan $loan, LoanApplicationService $applications): JsonResponse
+    {
+        $data = $request->validate(['alasan' => ['required', 'string', 'min:5', 'max:200']], [
+            'alasan.required' => 'Tulis alasan pembatalan.', 'alasan.min' => 'Tulis alasan pembatalan (5–200 karakter).', 'alasan.max' => 'Alasan maksimal 200 karakter.',
+        ]);
+        $loan = $applications->cancel($loan, $data['alasan'], $request->user()?->id);
+
+        return response()->json([
+            'data' => LoanService::toArray($loan),
+            'message' => "Pengajuan {$loan->code} ({$loan->member->name}) dibatalkan.",
         ]);
     }
 }
