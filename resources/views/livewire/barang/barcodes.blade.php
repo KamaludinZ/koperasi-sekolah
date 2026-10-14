@@ -12,6 +12,7 @@
                 <h1 class="text-lg font-semibold">Barang & Stok</h1>
                 <p class="text-xs text-stone-500">Barcode tiap barang (CODE128). Barang tanpa barcode khusus memakai kode barangnya.</p>
             </div>
+            <a href="{{ route('barang.label') }}" wire:navigate class="rounded-xl bg-emerald-700 px-4 py-2.5 text-sm font-semibold text-white hover:bg-emerald-800">Cetak label</a>
         </div>
         <x-barang.nav active="barang.barcode" />
     </header>
@@ -83,6 +84,8 @@
                     <button type="button" wire:click="selectAllMatching" class="ml-2 text-xs font-medium text-emerald-800 hover:underline">Pilih semua yang cocok ({{ $this->products->total() }})</button>
                     <button type="button" wire:click="clearSelection" class="ml-2 text-xs font-medium text-stone-500 hover:underline">Batal pilih</button>
                 </p>
+                <a href="{{ route('barang.label', ['barang' => implode(',', array_slice($selected, 0, 200))]) }}" wire:navigate data-label-link
+                   class="rounded-lg border border-emerald-300 bg-emerald-50 px-3 py-2 text-sm font-medium text-emerald-900 hover:bg-emerald-100">Cetak label</a>
                 @if ($this->canManage)
                     <div class="ml-auto flex flex-wrap items-center gap-2">
                         <label class="flex items-center gap-1.5 text-xs text-stone-600"><input type="checkbox" wire:model.live="overwrite" class="accent-emerald-700"> Timpa barcode khusus</label>
