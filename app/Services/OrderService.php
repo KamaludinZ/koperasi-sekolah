@@ -244,6 +244,37 @@ class OrderService
     }
 
     /**
+     * Petugas memajukan status pesanan sesuai Order::TRANSITIONS (menunggu → diproses → siap → selesai).
+     * `selesai` hanya bila sudah lunas. Tercatat di riwayat status & audit.
+     *
+     * @throws ValidationException
+     */
+    public function transition(Order $order, string $to, \App\Models\User $by, ?string $note = null): Order
+    {
+        if ($to === 'dibatalkan') {
+            throw ValidationException::withMessages(['status' => 'Gunakan pembatalan pesanan (dengan alasan) untuk membatalkan.']);
+        }
+
+        return DB::transaction(function () use ($order, $to, $by, $note) {
+            $order = Order::whereKey($order->id)->lockForUpdate()->firstOrFail();
+            if (! $order->canMoveTo($to)) {
+                throw ValidationException::withMessages(['status' => 'Status '.mb_strtolower(Order::STATUSES[$order->status] ?? $order->status)
+                    .' tidak bisa diubah menjadi '.mb_strtolower(Order::STATUSES[$to] ?? $to).'.']);
+            }
+            if ($to === 'selesai' && $order->payment_status !== 'lunas') {
+                throw ValidationException::withMessages(['status' => 'Catat pembayaran dulu sebelum menyelesaikan pesanan.']);
+            }
+            $from = $order->status;
+            $order->forceFill(['status' => $to] + ($to === 'selesai' ? ['completed_at' => now()] : []))->save();
+            $this->log($order, $from, $to, $note !== null && trim($note) !== '' ? mb_substr(trim($note), 0, 200) : null, $by->id, $by->name);
+            AuditLog::record('order.status', 'pesanan', "Pesanan {$order->code}: ".Order::STATUSES[$from].' → '.Order::STATUSES[$to],
+                ['type' => 'order', 'id' => $order->id, 'label' => $order->code], ['from' => $from, 'to' => $to]);
+
+            return $order->refresh();
+        });
+    }
+
+    /**
      * Petugas mencatat pembayaran pesanan tunai/QRIS (saat diambil/diantar). Tunai masuk laci shift yang
      * sedang buka. Pesanan potong saldo sudah lunas sejak dibuat.
      *

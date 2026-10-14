@@ -11,6 +11,14 @@ class Order extends Model
 {
     public const STATUSES = ['menunggu' => 'Menunggu', 'diproses' => 'Diproses', 'siap' => 'Siap diambil/diantar', 'selesai' => 'Selesai', 'dibatalkan' => 'Dibatalkan'];
 
+    /** Transisi status yang sah (maju satu langkah); pembatalan lewat OrderService::cancel. */
+    public const TRANSITIONS = ['menunggu' => ['diproses'], 'diproses' => ['siap'], 'siap' => ['selesai'], 'selesai' => [], 'dibatalkan' => []];
+
+    public function canMoveTo(string $status): bool
+    {
+        return in_array($status, self::TRANSITIONS[$this->status] ?? [], true);
+    }
+
     public const FULFILLMENTS = ['ambil' => 'Ambil sendiri di koperasi', 'antar' => 'Diantar'];
 
     public const PAYMENTS = ['tabungan' => 'Potong saldo tabungan', 'simpanan' => 'Potong saldo simpanan', 'tunai' => 'Tunai di kasir', 'qris' => 'QRIS / transfer'];

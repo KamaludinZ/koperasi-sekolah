@@ -61,4 +61,33 @@ class OrderPaymentTest extends TestCase
         auth()->logout();
         $this->postJson("/pesanan/{$o->id}/bayar", ['metode' => 'tunai'])->assertUnauthorized();
     }
+
+    public function test_status_transitions_and_history(): void
+    {
+        $o = $this->place();
+        $this->postJson("/pesanan/{$o->id}/status", ['status' => 'siap'])->assertJsonValidationErrors('status'); // lompat
+        $this->postJson("/pesanan/{$o->id}/status", ['status' => 'diproses', 'catatan' => 'Sedang disiapkan'])->assertOk()->assertJsonPath('data.status', 'diproses');
+        $this->postJson("/pesanan/{$o->id}/status", ['status' => 'siap'])->assertOk();
+        $this->postJson("/pesanan/{$o->id}/status", ['status' => 'selesai'])->assertJsonValidationErrors('status'); // belum dibayar
+        $this->postJson("/pesanan/{$o->id}/bayar", ['metode' => 'tunai'])->assertOk();
+        $this->postJson("/pesanan/{$o->id}/status", ['status' => 'selesai'])->assertOk()->assertJsonPath('data.status', 'selesai');
+        $this->postJson("/pesanan/{$o->id}/status", ['status' => 'menunggu'])->assertJsonValidationErrors('status');
+        $this->postJson("/pesanan/{$o->id}/batal", ['alasan' => 'Telat'])->assertJsonValidationErrors('reason');
+
+        $o->refresh();
+        $this->assertNotNull($o->completed_at);
+        $logs = $o->statusLogs()->get();
+        $this->assertSame(['menunggu', 'diproses', 'siap', 'siap', 'selesai'], $logs->pluck('to_status')->all());
+        $this->assertSame('Sedang disiapkan', $logs[1]->note);
+        $this->assertSame(auth()->user()->name, $logs[4]->actor_name);
+        $this->assertSame(3, \App\Models\ActivityLog::where('event', 'order.status')->count());
+    }
+
+    public function test_staff_cancel_endpoint(): void
+    {
+        $o = $this->place();
+        $this->postJson("/pesanan/{$o->id}/status", ['status' => 'dibatalkan'])->assertJsonValidationErrors('status');
+        $this->postJson("/pesanan/{$o->id}/batal", [])->assertJsonValidationErrors('alasan');
+        $this->postJson("/pesanan/{$o->id}/batal", ['alasan' => 'Stok rusak'])->assertOk()->assertJsonPath('data.status', 'dibatalkan');
+    }
 }
