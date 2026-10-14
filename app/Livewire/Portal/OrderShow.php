@@ -41,6 +41,12 @@ class OrderShow extends Component
         return Order::with(['items', 'statusLogs', 'savingType:id,name'])->where('member_id', Auth::guard('member')->id())->findOrFail($this->orderId);
     }
 
+    #[Computed]
+    public function deduction(): ?array
+    {
+        return OrderService::deductionFor($this->order);
+    }
+
     public function cancel(): void
     {
         $this->resetErrorBag();
@@ -52,7 +58,7 @@ class OrderShow extends Component
             return;
         }
         $this->cancelling = false;
-        unset($this->order);
+        unset($this->order, $this->deduction);
         $this->dispatch('toast', type: 'success', message: 'Pesanan dibatalkan.'.($this->order->payment_status === 'dikembalikan' ? ' Saldo sudah dikembalikan.' : ''));
     }
 

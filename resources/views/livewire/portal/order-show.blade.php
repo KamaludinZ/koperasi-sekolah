@@ -15,6 +15,27 @@
         <p class="text-sm text-stone-500">{{ $o->created_at->translatedFormat('l, d F Y H:i') }}</p>
     </div>
 
+    @if ($d = $this->deduction)
+        <section @class(['rounded-2xl border p-4 text-sm', 'border-emerald-200 bg-emerald-50' => ! $d['refund'], 'border-stone-200 bg-white' => $d['refund']]) data-deduction-receipt aria-labelledby="ded-title">
+            <div class="flex items-center gap-3">
+                <span class="grid size-10 shrink-0 place-items-center rounded-full bg-emerald-600 text-white" aria-hidden="true">
+                    <svg class="size-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="m5 12 5 5L20 7"/></svg></span>
+                <div>
+                    <h2 id="ded-title" class="font-semibold text-emerald-900">Pembayaran berhasil</h2>
+                    <p class="text-xs text-emerald-800">Dipotong dari {{ $d['source'] }} · {{ $d['at']->translatedFormat('d M Y H:i') }} · tanpa persetujuan pengurus</p>
+                </div>
+            </div>
+            <dl class="mt-3 space-y-1">
+                <div class="flex justify-between"><dt class="text-stone-600">Saldo sebelum</dt><dd class="tabular-nums">{{ $rp($d['before']) }}</dd></div>
+                <div class="flex justify-between"><dt class="text-stone-600">Dipotong</dt><dd class="tabular-nums">−{{ $rp($d['amount']) }}</dd></div>
+                <div class="flex justify-between border-t border-emerald-200 pt-1 font-semibold"><dt>Saldo sesudah</dt><dd class="tabular-nums" data-saldo-after>{{ $rp($d['after']) }}</dd></div>
+                @if ($d['refund'])
+                    <div class="flex justify-between text-emerald-800"><dt>Dikembalikan {{ $d['refund']['at']->translatedFormat('d M H:i') }}</dt><dd class="tabular-nums">+{{ $rp($d['refund']['amount']) }}</dd></div>
+                @endif
+            </dl>
+        </section>
+    @endif
+
     @if ($o->status === 'dibatalkan')
         <p class="rounded-xl bg-red-50 px-4 py-3 text-sm text-red-800">Pesanan dibatalkan{{ $o->cancel_reason ? ': '.$o->cancel_reason : '' }}.@if ($o->payment_status === 'dikembalikan') Saldo sudah dikembalikan.@endif</p>
     @else

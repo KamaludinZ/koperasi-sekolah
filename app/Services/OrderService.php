@@ -187,6 +187,35 @@ class OrderService
         $account->forceFill(['balance' => $before + $amount])->save();
     }
 
+    /**
+     * Bukti potong saldo pesanan dari buku mutasi (tabungan / simpanan): pemotongan & pengembalian bila dibatalkan.
+     *
+     * @return array{source: string, amount: int, before: int, after: int, at: \Illuminate\Support\Carbon, refund: ?array{amount: int, after: int, at: \Illuminate\Support\Carbon}}|null
+     */
+    public static function deductionFor(Order $order): ?array
+    {
+        if ($order->payment_method === 'tabungan') {
+            $rows = SavingsTransaction::where('source_type', 'order')->where('source_id', $order->id)->orderBy('id')->get();
+            $out = $rows->firstWhere('type', SavingsTransaction::TYPE_WITHDRAWAL);
+            $back = $rows->firstWhere('type', SavingsTransaction::TYPE_DEPOSIT);
+            $source = 'Tabungan';
+        } elseif ($order->payment_method === 'simpanan') {
+            $rows = MemberSavingEntry::where('source_type', 'order')->where('source_id', $order->id)->orderBy('id')->get();
+            $out = $rows->firstWhere('type', 'potong');
+            $back = $rows->firstWhere('type', 'setor');
+            $source = $order->savingType?->name ?? 'Simpanan';
+        } else {
+            return null;
+        }
+        if (! $out) {
+            return null;
+        }
+
+        return ['source' => $source, 'amount' => (int) round((float) $out->amount), 'before' => (int) round((float) $out->balance_before),
+            'after' => (int) round((float) $out->balance_after), 'at' => $out->created_at,
+            'refund' => $back ? ['amount' => (int) round((float) $back->amount), 'after' => (int) round((float) $back->balance_after), 'at' => $back->created_at] : null];
+    }
+
     /** Ringkasan pesanan untuk tampilan portal/petugas. */
     public static function toArray(Order $o): array
     {

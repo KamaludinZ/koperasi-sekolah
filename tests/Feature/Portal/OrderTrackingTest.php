@@ -50,6 +50,8 @@ class OrderTrackingTest extends TestCase
         $o = $this->place('tabungan');
         $this->assertEquals(2000, (float) $this->andi->fresh()->balance);
 
+        $this->get('/portal/pesanan/'.$o->id)->assertSee('data-deduction-receipt', false)->assertSee('Pembayaran berhasil')
+            ->assertSee('Saldo sebelum')->assertSeeHtml('data-saldo-after>Rp2.000');
         Livewire::test(OrderShow::class, ['order' => $o->id])->call('cancel')->assertHasErrors('reason')
             ->set('reason', 'Salah pilih barang')->call('cancel')->assertHasNoErrors()->assertSee('Pesanan dibatalkan: Salah pilih barang')
             ->assertSee('Saldo sudah dikembalikan');
@@ -59,6 +61,9 @@ class OrderTrackingTest extends TestCase
         $this->assertSame($stock, Product::find($this->pid('ATK001'))->stock);
         $this->assertEquals(10000, (float) $this->andi->fresh()->balance);
         $this->assertSame(['menunggu', 'dibatalkan'], $o->statusLogs()->pluck('to_status')->all());
+        $this->assertSame(8000, \App\Services\OrderService::deductionFor($o)['refund']['amount']);
+        $this->get('/portal/pesanan/'.$o->id)->assertSee('+Rp8.000');
+        $this->assertNull(\App\Services\OrderService::deductionFor($this->place()));
     }
 
     public function test_member_cannot_cancel_processed_or_view_others(): void
