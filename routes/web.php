@@ -103,6 +103,7 @@ Route::middleware('auth:member')->group(function () {
     Route::get('/portal', \App\Livewire\Portal\Home::class)->name('portal');
     Route::get('/portal/simpanan', \App\Livewire\Portal\Savings::class)->name('portal.simpanan');
     Route::get('/portal/riwayat', \App\Livewire\Portal\Purchases::class)->name('portal.riwayat');
+    Route::get('/portal/belanja', \App\Livewire\Portal\Shop::class)->name('portal.belanja');
     Route::post('/portal/keluar', function (\Illuminate\Http\Request $request) {
         app(\App\Services\PortalAuthService::class)->logout();
         $request->session()->regenerateToken();
