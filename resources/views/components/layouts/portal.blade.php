@@ -11,6 +11,8 @@
         'portal.belanja' => ['Belanja', 'M3 3h2l.4 2M7 13h10l4-8H5.4M7 13 5.4 5M7 13l-2.3 2.3c-.6.6-.2 1.7.7 1.7H17'],
         'portal.pesanan' => ['Pesanan', 'M9 5h10M9 12h10M9 19h10M5 5h.01M5 12h.01M5 19h.01'],
     ])->filter(fn ($item, $route) => \Illuminate\Support\Facades\Route::has($route));
+    // titik merah di menu Pinjaman bila anggota punya pinjaman menunggak
+    $alerts = ['portal.pinjaman' => $member && $nav->has('portal.pinjaman') && \App\Livewire\Portal\Loans::overdueCount($member->id) > 0];
 @endphp
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}" class="h-full scroll-smooth">
@@ -35,7 +37,7 @@
                     <nav class="hidden items-center gap-1 sm:flex" aria-label="Menu portal">
                         @foreach ($nav as $route => [$label])
                             <a href="{{ route($route) }}" wire:navigate @if (request()->routeIs($route)) aria-current="page" @endif
-                               @class(['rounded-lg px-3 py-1.5 text-sm font-medium', 'bg-white/10 text-white' => request()->routeIs($route), 'text-emerald-200 hover:text-white' => ! request()->routeIs($route)])>{{ $label }}</a>
+                               @class(['rounded-lg px-3 py-1.5 text-sm font-medium', 'bg-white/10 text-white' => request()->routeIs($route), 'text-emerald-200 hover:text-white' => ! request()->routeIs($route)])>{{ $label }}@if ($alerts[$route] ?? false)<span class="ml-1 inline-block size-2 rounded-full bg-red-500 align-middle" data-nav-alert="{{ $route }}"></span><span class="sr-only"> (ada tunggakan)</span>@endif</a>
                         @endforeach
                     </nav>
                     <form method="POST" action="{{ route('portal.logout') }}">
@@ -56,9 +58,10 @@
             <div class="mx-auto grid max-w-md" style="grid-template-columns: repeat({{ $nav->count() }}, minmax(0, 1fr))">
                 @foreach ($nav as $route => [$label, $icon])
                     <a href="{{ route($route) }}" wire:navigate @if (request()->routeIs($route)) aria-current="page" @endif
-                       @class(['flex flex-col items-center gap-0.5 py-2 text-[11px] font-medium', 'text-emerald-800' => request()->routeIs($route), 'text-stone-500' => ! request()->routeIs($route)])>
+                       @class(['relative flex flex-col items-center gap-0.5 py-2 text-[11px] font-medium', 'text-emerald-800' => request()->routeIs($route), 'text-stone-500' => ! request()->routeIs($route)])>
                         <svg class="size-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="{{ $icon }}"/></svg>
                         {{ $label }}
+                        @if ($alerts[$route] ?? false)<span class="absolute top-1.5 left-1/2 ml-2 size-2 rounded-full bg-red-500 ring-2 ring-white" data-nav-alert="{{ $route }}"></span><span class="sr-only">(ada tunggakan)</span>@endif
                     </a>
                 @endforeach
             </div>

@@ -1,21 +1,25 @@
 @props(['loan'])
 {{-- Kartu satu pinjaman anggota (portal): kode, nominal, status, progres terbayar, dan pesan sesuai status. --}}
 @php $l = $loan; $rp = fn ($n) => \App\Support\Rupiah::format($n); @endphp
-<li {{ $attributes->class(['rounded-2xl border bg-white p-4', 'border-red-200' => $l['status'] === 'menunggak', 'border-stone-200' => $l['status'] !== 'menunggak']) }} data-my-loan="{{ $l['code'] }}">
+@php $overdue = $l['overdue'] ?? false; @endphp
+<li {{ $attributes->class(['rounded-2xl border bg-white p-4', 'border-2 border-red-300 ring-4 ring-red-50' => $overdue, 'border-stone-200' => ! $overdue]) }} data-my-loan="{{ $l['code'] }}" @if ($overdue) data-overdue @endif>
+    @if ($overdue)
+        <p class="-mx-4 -mt-4 mb-3 rounded-t-2xl bg-red-600 px-4 py-1.5 text-xs font-semibold text-white" data-overdue-ribbon>Menunggak{{ $l['days_late'] > 0 ? ' '.$l['days_late'].' hari' : '' }}{{ $l['late_amount'] > 0 ? ' · '.$rp($l['late_amount']) : '' }}</p>
+    @endif
     <div class="flex items-start justify-between gap-3">
         <div>
             <p class="font-mono text-xs text-stone-500">{{ $l['code'] }}</p>
             <p class="text-lg font-semibold tabular-nums">{{ $rp($l['principal']) }}</p>
             <p class="text-xs text-stone-500">Bunga {{ $rp($l['interest']) }} · {{ $l['tenor_months'] }} bulan · {{ $l['payment_label'] }}</p>
         </div>
-        <x-pinjaman.status :status="$l['status']" />
+        <x-pinjaman.status :status="$overdue ? 'menunggak' : $l['status']" />
     </div>
 
     @if ($l['progress'] !== null)
         <div class="mt-3">
             <div class="flex justify-between text-xs text-stone-500"><span>Sisa {{ $rp($l['outstanding']) }}</span><span>{{ $l['progress'] }}% terbayar</span></div>
             <div class="mt-1 h-2 overflow-hidden rounded-full bg-stone-100" role="progressbar" aria-valuenow="{{ $l['progress'] }}" aria-valuemin="0" aria-valuemax="100" aria-label="Persentase terbayar {{ $l['code'] }}">
-                <div @class(['h-full', 'bg-red-500' => $l['status'] === 'menunggak', 'bg-emerald-600' => $l['status'] !== 'menunggak']) style="width: {{ $l['progress'] }}%"></div>
+                <div @class(['h-full', 'bg-red-500' => $overdue, 'bg-emerald-600' => ! $overdue]) style="width: {{ $l['progress'] }}%"></div>
             </div>
         </div>
     @endif

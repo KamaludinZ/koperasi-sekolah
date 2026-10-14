@@ -8,6 +8,16 @@
             <p class="mt-1 text-sm text-stone-500">Pengajuan pinjaman dicatat oleh pengurus koperasi. Hubungi pengurus bila ingin mengajukan pinjaman.</p>
         </div>
     @else
+        @if ($t['overdue'] > 0)
+            <div role="alert" class="flex gap-3 rounded-2xl border-2 border-red-300 bg-red-50 p-4 text-red-900" data-overdue-alert>
+                <svg class="mt-0.5 size-5 shrink-0 text-red-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v4m0 4h.01M10.3 3.9 1.8 18a2 2 0 001.7 3h17a2 2 0 001.7-3L13.7 3.9a2 2 0 00-3.4 0z"/></svg>
+                <div class="text-sm">
+                    <p class="font-semibold">{{ $t['overdue'] }} pinjaman menunggak</p>
+                    <p>Tunggakan {{ $rp($t['late_amount']) }}{{ $t['late_since'] ? ' sejak '.\App\Support\Tanggal::format($t['late_since']).' ('.$t['days_late'].' hari)' : '' }}. Segera lakukan pembayaran atau hubungi pengurus koperasi.</p>
+                </div>
+            </div>
+        @endif
+
         @if ($t['active'] > 0)
             <section class="rounded-2xl bg-emerald-900 p-4 text-white" aria-label="Ringkasan pinjaman">
                 <p class="text-xs text-emerald-200">Sisa pinjaman berjalan</p>

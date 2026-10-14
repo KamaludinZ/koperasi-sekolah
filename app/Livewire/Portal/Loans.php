@@ -72,19 +72,35 @@ class Loans extends Component
             ->orderByDesc('applied_at')->orderByDesc('id')->get()
             ->map(function (Loan $l) use ($today, $payments) {
                 $next = $l->installments->first();
+                $late = in_array($l->status, Loan::ACTIVE, true) ? $l->installments->filter(fn ($i) => $i->due_date->lt($today)) : collect();
                 $paid = $l->totalDue() - (int) round((float) $l->outstanding);
 
                 return LoanService::toArray($l) + [
                     'progress' => in_array($l->status, [...Loan::ACTIVE, 'lunas'], true) && $l->totalDue() > 0 ? min(100, intdiv(max(0, $paid) * 100, $l->totalDue())) : null,
                     'next' => $next ? ['sequence' => $next->sequence, 'due_date' => $next->due_date->toDateString(),
                         'remaining' => (int) round((float) $next->amount - (float) $next->paid_amount), 'late' => $next->due_date->lt($today)] : null,
-                    'late_count' => $l->installments->filter(fn ($i) => $i->due_date->lt($today))->count(),
-                    'late_amount' => (int) $l->installments->filter(fn ($i) => $i->due_date->lt($today))->sum(fn ($i) => (int) round((float) $i->amount - (float) $i->paid_amount)),
+                    'late_count' => $late->count(),
+                    'late_amount' => (int) $late->sum(fn ($i) => (int) round((float) $i->amount - (float) $i->paid_amount)),
+                    // menunggak bila status sudah ditandai ATAU ada angsuran lewat jatuh tempo yang belum tercatat statusnya
+                    'overdue' => $l->status === 'menunggak' || $late->isNotEmpty(),
+                    'late_since' => $late->first()?->due_date->toDateString(),
+                    'days_late' => $late->isNotEmpty() ? (int) $late->first()->due_date->diffInDays($today) : 0,
                     'balance' => in_array($l->status, Loan::ACTIVE, true) ? $payments->balance($l) : null,
                     'payments' => $l->disbursed_at ? self::memberHistory($payments->history($l)) : [],
                     'paid_off_at' => $l->paid_off_at?->toDateString(),
                 ];
-            })->all();
+            })->sortBy(fn ($l) => $l['overdue'] ? 0 : 1)->values()->all();
+    }
+
+    /** Jumlah pinjaman anggota yang punya angsuran lewat jatuh tempo (atau berstatus menunggak) — untuk tanda di navigasi. */
+    public static function overdueCount(int $memberId): int
+    {
+        $today = today()->toDateString();
+
+        return Loan::query()->where('member_id', $memberId)->whereIn('status', Loan::ACTIVE)
+            ->where(fn ($q) => $q->where('status', 'menunggak')
+                ->orWhereHas('installments', fn ($i) => $i->where('status', '!=', 'dibayar')->where('due_date', '<', $today)))
+            ->count();
     }
 
     /**
@@ -108,7 +124,10 @@ class Loans extends Component
 
         $next = $active->filter(fn ($l) => $l['next'])->sortBy(fn ($l) => $l['next']['due_date'].sprintf('%010d', $l['id']))->first();
 
-        return ['active' => $active->count(), 'outstanding' => (int) $active->sum('outstanding'), 'late_amount' => (int) $active->sum('late_amount'),
+        $overdue = $active->where('overdue', true);
+
+        return ['overdue' => $overdue->count(), 'late_since' => $overdue->pluck('late_since')->filter()->min(), 'days_late' => (int) $overdue->max('days_late'),
+            'active' => $active->count(), 'outstanding' => (int) $active->sum('outstanding'), 'late_amount' => (int) $active->sum('late_amount'),
             'next' => $next ? $next['next'] + ['code' => $next['code']] : null];
     }
 

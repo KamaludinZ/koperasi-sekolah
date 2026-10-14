@@ -91,6 +91,32 @@ class LoansPageTest extends TestCase
             ->assertDontSeeHtml('data-loan-payments="PJM-NEW"');
     }
 
+    public function test_overdue_loan_is_prominent_even_before_status_refresh(): void
+    {
+        $this->get('/portal/pinjaman')->assertOk()->assertDontSeeHtml('data-overdue-alert')->assertDontSeeHtml('data-overdue-ribbon')->assertDontSeeHtml('data-nav-alert');
+
+        $second = Loan::factory()->create(['code' => 'PJM-TWO', 'member_id' => $this->sari->id, 'status' => 'disetujui', 'principal' => 600000, 'interest' => 0, 'tenor_months' => 2, 'applied_at' => '2026-08-01']);
+        app(LoanDisbursementService::class)->disburse($second, ['disbursed_on' => '2026-08-10', 'amount' => 600000]);
+
+        // 12 Sep: PJM-RUN ke-2 (1 Sep) lewat 11 hari; PJM-TWO ke-1 jatuh tempo 10 Sep lewat 2 hari. Status di DB masih "berjalan".
+        $this->travelTo('2026-09-12 08:00:00');
+        $this->assertSame('berjalan', Loan::where('code', 'PJM-RUN')->value('status'));
+
+        $this->get('/portal/pinjaman')->assertOk()
+            ->assertSeeHtml('data-overdue-alert')->assertSee('2 pinjaman menunggak')
+            ->assertSee('Tunggakan Rp600.000 sejak 1 Sep 2026 (11 hari)')
+            ->assertSeeInOrder(['data-my-loan="PJM-TWO"', 'Menunggak 2 hari · Rp300.000', 'data-loan-status="menunggak"'], false)
+            ->assertSeeInOrder(['data-my-loan="PJM-RUN"', 'Menunggak 11 hari · Rp300.000'], false)
+            ->assertSeeInOrder(['data-overdue-ribbon', 'data-overdue-ribbon', 'data-my-loan="PJM-NEW"'], false) // menunggak di atas
+            ->assertSeeHtml('data-nav-alert="portal.pinjaman"');
+
+        $this->assertSame(2, Loans::overdueCount($this->sari->id));
+        $this->assertSame(0, Loans::overdueCount(Member::where('name', 'Pak Lain')->value('id')));
+
+        // terlihat juga di halaman portal lain lewat titik merah navigasi
+        $this->get(route('portal'))->assertOk()->assertSeeHtml('data-nav-alert="portal.pinjaman"');
+    }
+
     public function test_filter_tabs_with_counts_and_url(): void
     {
         Livewire::test(Loans::class)
