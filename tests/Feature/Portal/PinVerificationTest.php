@@ -34,13 +34,13 @@ class PinVerificationTest extends TestCase
         $this->assertSame(1, Order::count());
     }
 
-    public function test_wrong_pin_rejected_and_locked_after_five(): void
+    public function test_wrong_pin_rejected_and_locked_after_three(): void
     {
         $c = Livewire::test(Checkout::class)->call('review');
-        $c->set('pin', '111111')->call('place')->assertHasErrors(['pin' => 'PIN salah. Sisa 4 percobaan.'])->assertSet('pin', '')->assertSet('confirming', true);
+        $c->set('pin', '111111')->call('place')->assertHasErrors(['pin' => 'PIN salah. Sisa 2 percobaan.'])->assertSet('pin', '')->assertSet('confirming', true);
         // Dialog dibuka ulang di komponen baru: sisa percobaan tetap terlihat dari server.
-        Livewire::test(Checkout::class)->call('review')->assertSee('data-pin-left="4"', false)->assertSee('Sisa 4 percobaan');
-        foreach (range(1, 4) as $i) {
+        Livewire::test(Checkout::class)->call('review')->assertSee('data-pin-left="2"', false)->assertSee('Sisa 2 percobaan');
+        foreach (range(1, 2) as $i) {
             $c->set('pin', '111111')->call('place');
         }
         $c->set('pin', '246810')->call('place')->assertHasErrors('pin')->assertSee('PIN salah terlalu sering')->assertSee('data-pin-locked', false)
@@ -48,7 +48,7 @@ class PinVerificationTest extends TestCase
         $this->travel(16)->minutes();
         Livewire::test(Checkout::class)->call('review')->assertDontSee('data-pin-locked', false)->assertSee('data-pin-input', false);
         $this->assertSame(0, Order::count());
-        $this->assertSame(5, ActivityLog::where('event', 'portal.pin_failed')->count());
+        $this->assertSame(3, ActivityLog::where('event', 'portal.pin_failed')->count());
         $c->set('pin', 'abcdef')->call('place')->assertHasErrors('pin');
     }
 

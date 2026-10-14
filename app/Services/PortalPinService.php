@@ -8,12 +8,12 @@ use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Validation\ValidationException;
 
 /**
- * Verifikasi PIN transaksi portal anggota (6 digit, tersandi). Salah 5 kali → transaksi dikunci 15 menit.
+ * Verifikasi PIN transaksi portal anggota (6 digit, tersandi). Salah 3 kali → transaksi dikunci 15 menit.
  * Setiap PIN salah dicatat di jejak audit.
  */
 class PortalPinService
 {
-    public const MAX_ATTEMPTS = 5;
+    public const MAX_ATTEMPTS = 3;
 
     public const DECAY_SECONDS = 900;
 
