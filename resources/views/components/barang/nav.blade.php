@@ -1,7 +1,7 @@
 {{-- Navigasi bagian Barang & Stok. `active` = nama route halaman ini. Halaman yang belum dibuat tampil "segera". --}}
 @props(['active'])
 @php
-    $items = ['barang' => 'Daftar barang', 'barang.riwayat-stok' => 'Riwayat stok', 'barang.saran-restok' => 'Saran restok', 'barang.kategori' => 'Kategori & impor'];
+    $items = ['barang' => 'Daftar barang', 'barang.riwayat-stok' => 'Riwayat stok', 'barang.saran-restok' => 'Saran restok', 'barang.barcode' => 'Barcode & label', 'barang.kategori' => 'Kategori & impor'];
 @endphp
 <nav class="mt-3 -mb-px flex gap-1 overflow-x-auto" aria-label="Bagian barang">
     @foreach ($items as $route => $label)

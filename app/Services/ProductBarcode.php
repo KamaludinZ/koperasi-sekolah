@@ -45,6 +45,45 @@ class ProductBarcode
         throw new \RuntimeException('Gagal membuat nomor barcode unik.');
     }
 
+    /**
+     * Ubah barcode banyak barang sekaligus.
+     * - mode `baru`: beri nomor EAN-13 internal baru; barang yang sudah punya barcode khusus dilewati kecuali $overwrite.
+     * - mode `kode`: kembalikan ke kode barang (barcode dikosongkan).
+     * Tiap perubahan tercatat per barang (MasterDataObserver) plus satu ringkasan di audit.
+     *
+     * @param  list<int>  $ids
+     * @return array{changed: int, skipped: int}
+     */
+    public function assignMany(array $ids, string $mode, bool $overwrite = false): array
+    {
+        if (! in_array($mode, ['baru', 'kode'], true)) {
+            throw new \InvalidArgumentException("Mode barcode tidak dikenal: {$mode}");
+        }
+        $ids = array_values(array_unique(array_map('intval', $ids)));
+
+        return \Illuminate\Support\Facades\DB::transaction(function () use ($ids, $mode, $overwrite) {
+            $changed = $skipped = 0;
+            foreach (Product::whereKey($ids)->orderBy('id')->lockForUpdate()->get() as $p) {
+                $keep = $mode === 'baru' ? (filled($p->barcode) && ! $overwrite) : blank($p->barcode);
+                if ($keep) {
+                    $skipped++;
+
+                    continue;
+                }
+                $p->update(['barcode' => $mode === 'baru' ? $this->generate($p->id) : null]);
+                $changed++;
+            }
+            if ($changed) {
+                AuditLog::record('product.barcode_bulk', 'barang',
+                    ($mode === 'baru' ? "Nomor barcode baru dibuat untuk {$changed} barang" : "{$changed} barang dikembalikan ke barcode kode barang")
+                        .($skipped ? " ({$skipped} dilewati)" : ''),
+                    null, ['mode' => $mode, 'overwrite' => $overwrite, 'changed' => $changed, 'skipped' => $skipped, 'ids' => $ids]);
+            }
+
+            return ['changed' => $changed, 'skipped' => $skipped];
+        });
+    }
+
     /** Lengkapi 12 digit dengan digit pemeriksa EAN-13. */
     public static function ean13(string $twelve): string
     {

@@ -1,6 +1,6 @@
 {
   "repo": "Koperasi Sekolah",
-  "generatedForCommit": "a0f0801613c36b37956ea4b2fef356b938df46d5",
+  "generatedForCommit": "a67d1bf53876534d2e649f9ef84683678c48b7ea",
   "files": [
     {
       "path": ".claude/skills/ngodingpakeai/SKILL.md",
@@ -418,9 +418,9 @@
     },
     {
       "path": "app/Livewire/Audit/Changes.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 9008
+      "size": 9032
     },
     {
       "path": "app/Livewire/Audit/Index.php",
@@ -474,7 +474,7 @@
       "path": "app/Livewire/Barang/Index.php",
       "reason": "changed",
       "language": "php",
-      "size": 5405
+      "size": 5914
     },
     {
       "path": "app/Livewire/Barang/MinStockSettings.php",
@@ -514,9 +514,9 @@
     },
     {
       "path": "app/Livewire/Forms/ProductForm.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 1792
+      "size": 1878
     },
     {
       "path": "app/Livewire/Forms/UserForm.php",
@@ -880,9 +880,9 @@
     },
     {
       "path": "app/Models/Product.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 3270
+      "size": 3292
     },
     {
       "path": "app/Models/ProductImport.php",
@@ -1191,10 +1191,16 @@
       "size": 2848
     },
     {
-      "path": "app/Services/ProductCatalog.php",
-      "reason": "needs_summary",
+      "path": "app/Services/ProductBarcode.php",
+      "reason": "new",
       "language": "php",
-      "size": 3178
+      "size": 1963
+    },
+    {
+      "path": "app/Services/ProductCatalog.php",
+      "reason": "changed",
+      "language": "php",
+      "size": 3389
     },
     {
       "path": "app/Services/ProductImportService.php",
@@ -1210,9 +1216,9 @@
     },
     {
       "path": "app/Services/ProductService.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 4444
+      "size": 5400
     },
     {
       "path": "app/Services/PromoEngine.php",
@@ -1402,7 +1408,7 @@
     },
     {
       "path": "app/Support/BarcodeImage.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 1626
     },
@@ -1510,13 +1516,13 @@
     },
     {
       "path": "composer.json",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "json",
       "size": 2977
     },
     {
       "path": "composer.lock",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": null,
       "size": 330013
     },
@@ -1983,6 +1989,12 @@
       "size": 855
     },
     {
+      "path": "database/migrations/2026_10_14_000007_add_barcode_to_products_table.php",
+      "reason": "new",
+      "language": "php",
+      "size": 980
+    },
+    {
       "path": "database/seeders/ActivityLogSeeder.php",
       "reason": "needs_summary",
       "language": "php",
@@ -2152,7 +2164,7 @@
     },
     {
       "path": "resources/views/components/barcode.blade.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 785
     },
@@ -2470,7 +2482,7 @@
     },
     {
       "path": "resources/views/livewire/barang/index.blade.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 16076
     },
@@ -2494,9 +2506,9 @@
     },
     {
       "path": "resources/views/livewire/barang/partials/product-form.blade.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 7947
+      "size": 9923
     },
     {
       "path": "resources/views/livewire/barang/restock.blade.php",
@@ -3070,9 +3082,15 @@
     },
     {
       "path": "tests/Feature/Barang/BarcodeDisplayTest.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 2002
+    },
+    {
+      "path": "tests/Feature/Barang/BarcodeFormTest.php",
+      "reason": "new",
+      "language": "php",
+      "size": 3448
     },
     {
       "path": "tests/Feature/Barang/CatalogPageTest.php",
