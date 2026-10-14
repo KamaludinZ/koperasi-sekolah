@@ -20,10 +20,19 @@
         </div>
     @endif
 
+    @if ($l['balance'] ?? null)
+        @php $b = $l['balance']; @endphp
+        <dl class="mt-3 grid grid-cols-3 gap-2 text-xs" data-loan-balance="{{ $l['code'] }}">
+            <div><dt class="text-stone-500">Sisa pokok</dt><dd class="font-medium tabular-nums">{{ $rp($b['principal_remaining']) }}</dd></div>
+            <div><dt class="text-stone-500">Sisa bunga</dt><dd class="font-medium tabular-nums">{{ $rp($b['interest_remaining']) }}</dd></div>
+            <div><dt class="text-stone-500">Angsuran lunas</dt><dd class="font-medium tabular-nums">{{ $b['installments_paid'] }} dari {{ $b['installments'] }}</dd></div>
+        </dl>
+    @endif
+
     @if ($l['next'])
         <p @class(['mt-3 rounded-lg px-3 py-2 text-sm', 'bg-red-50 text-red-800' => $l['next']['late'], 'bg-stone-50 text-stone-700' => ! $l['next']['late']])>
             Angsuran ke-{{ $l['next']['sequence'] }}: {{ $rp($l['next']['remaining']) }} · jatuh tempo @tanggal($l['next']['due_date'])
-            @if ($l['late_count'] > 0)<span class="block text-xs">{{ $l['late_count'] }} angsuran lewat jatuh tempo — segera hubungi pengurus.</span>@endif
+            @if ($l['late_count'] > 0)<span class="block text-xs">{{ $l['late_count'] }} angsuran lewat jatuh tempo, total {{ $rp($l['late_amount']) }} — segera hubungi pengurus.</span>@endif
         </p>
     @elseif ($l['status'] === 'lunas')
         <p class="mt-3 rounded-lg bg-emerald-50 px-3 py-2 text-sm text-emerald-800">Lunas @tanggal($l['paid_off_at']). Terima kasih!</p>

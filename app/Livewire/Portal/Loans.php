@@ -3,6 +3,7 @@
 namespace App\Livewire\Portal;
 
 use App\Models\Loan;
+use App\Services\LoanPaymentService;
 use App\Services\LoanService;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Computed;
@@ -64,11 +65,12 @@ class Loans extends Component
         $member = Auth::guard('member')->user();
         abort_unless($member, 401);
         $today = today();
+        $payments = app(LoanPaymentService::class);
 
         return Loan::query()->where('member_id', $member->id)->with(['installments' => fn ($q) => $q->where('status', '!=', 'dibayar')->orderBy('sequence')])
             ->orderByRaw("CASE status WHEN 'menunggak' THEN 0 WHEN 'berjalan' THEN 1 WHEN 'disetujui' THEN 2 WHEN 'diajukan' THEN 3 ELSE 4 END")
             ->orderByDesc('applied_at')->orderByDesc('id')->get()
-            ->map(function (Loan $l) use ($today) {
+            ->map(function (Loan $l) use ($today, $payments) {
                 $next = $l->installments->first();
                 $paid = $l->totalDue() - (int) round((float) $l->outstanding);
 
@@ -77,6 +79,8 @@ class Loans extends Component
                     'next' => $next ? ['sequence' => $next->sequence, 'due_date' => $next->due_date->toDateString(),
                         'remaining' => (int) round((float) $next->amount - (float) $next->paid_amount), 'late' => $next->due_date->lt($today)] : null,
                     'late_count' => $l->installments->filter(fn ($i) => $i->due_date->lt($today))->count(),
+                    'late_amount' => (int) $l->installments->filter(fn ($i) => $i->due_date->lt($today))->sum(fn ($i) => (int) round((float) $i->amount - (float) $i->paid_amount)),
+                    'balance' => in_array($l->status, Loan::ACTIVE, true) ? $payments->balance($l) : null,
                     'paid_off_at' => $l->paid_off_at?->toDateString(),
                 ];
             })->all();
@@ -87,7 +91,10 @@ class Loans extends Component
     {
         $active = collect($this->loans)->whereIn('status', Loan::ACTIVE);
 
-        return ['active' => $active->count(), 'outstanding' => (int) $active->sum('outstanding')];
+        $next = $active->filter(fn ($l) => $l['next'])->sortBy(fn ($l) => $l['next']['due_date'].sprintf('%010d', $l['id']))->first();
+
+        return ['active' => $active->count(), 'outstanding' => (int) $active->sum('outstanding'), 'late_amount' => (int) $active->sum('late_amount'),
+            'next' => $next ? $next['next'] + ['code' => $next['code']] : null];
     }
 
     public function render()

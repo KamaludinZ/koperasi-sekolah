@@ -13,6 +13,12 @@
                 <p class="text-xs text-emerald-200">Sisa pinjaman berjalan</p>
                 <p class="text-2xl font-bold tabular-nums" data-total-outstanding>{{ $rp($t['outstanding']) }}</p>
                 <p class="text-xs text-emerald-200">{{ $t['active'] }} pinjaman aktif</p>
+                @if ($t['next'])
+                    <p class="mt-3 border-t border-emerald-800 pt-3 text-sm" data-next-due>Angsuran terdekat: <span class="font-semibold tabular-nums">{{ $rp($t['next']['remaining']) }}</span> · {{ $t['next']['code'] }} ke-{{ $t['next']['sequence'] }} · jatuh tempo @tanggal($t['next']['due_date'])</p>
+                @endif
+                @if ($t['late_amount'] > 0)
+                    <p class="mt-2 rounded-lg bg-red-500/20 px-3 py-1.5 text-sm text-red-50" data-late-amount>Tunggakan {{ $rp($t['late_amount']) }} — segera hubungi pengurus.</p>
+                @endif
             </section>
         @endif
 

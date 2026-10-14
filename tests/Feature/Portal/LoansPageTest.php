@@ -50,10 +50,27 @@ class LoansPageTest extends TestCase
     public function test_overdue_and_paid_off_messages(): void
     {
         $this->travelTo('2026-09-05 10:00:00');
-        Livewire::test(Loans::class)->assertSee('1 angsuran lewat jatuh tempo — segera hubungi pengurus.');
+        Livewire::test(Loans::class)->assertSee('1 angsuran lewat jatuh tempo, total Rp300.000 — segera hubungi pengurus.')
+            ->assertSeeHtml('data-late-amount>Tunggakan Rp300.000');
 
         app(LoanPaymentService::class)->record(Loan::where('code', 'PJM-RUN')->first(), ['amount' => 600000, 'paid_at' => '2026-09-05', 'payment_method' => 'tunai']);
         Livewire::test(Loans::class)->assertSee('Lunas 5 Sep 2026. Terima kasih!')->assertDontSeeHtml('data-total-outstanding');
+    }
+
+    public function test_remaining_breakdown_and_nearest_due(): void
+    {
+        $second = Loan::factory()->create(['code' => 'PJM-TWO', 'member_id' => $this->sari->id, 'status' => 'disetujui', 'principal' => 1000000, 'interest' => 200000, 'tenor_months' => 4, 'applied_at' => '2026-07-20']);
+        app(LoanDisbursementService::class)->disburse($second, ['disbursed_on' => '2026-07-25', 'amount' => 1000000]);
+        app(LoanPaymentService::class)->record($second, ['amount' => 300000, 'paid_at' => '2026-08-05', 'payment_method' => 'tunai']);
+
+        // PJM-RUN ke-2 jatuh tempo 1 Sep, PJM-TWO ke-2 jatuh tempo 25 Sep → terdekat PJM-RUN
+        $this->get('/portal/pinjaman')->assertOk()
+            ->assertSeeHtml('data-total-outstanding>Rp1.500.000')
+            ->assertSee('Angsuran terdekat:')->assertSee('PJM-RUN ke-2 · jatuh tempo 1 Sep 2026')
+            ->assertDontSeeHtml('data-late-amount')
+            ->assertSeeInOrder(['data-loan-balance="PJM-TWO"', 'Sisa pokok', 'Rp750.000', 'Sisa bunga', 'Rp150.000', 'Angsuran lunas', '1 dari 4'], false)
+            ->assertSeeInOrder(['data-loan-balance="PJM-RUN"', 'Rp600.000', 'Rp0', '1 dari 3'], false)
+            ->assertDontSeeHtml('data-loan-balance="PJM-NEW"');
     }
 
     public function test_filter_tabs_with_counts_and_url(): void
