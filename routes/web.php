@@ -468,6 +468,7 @@ Route::middleware('menu:laporan')->group(function () {
 
 Route::middleware(['menu:pinjaman', 'peran:admin,pengurus'])->group(function () {
     Route::get('/pinjaman', \App\Livewire\Pinjaman\Index::class)->name('pinjaman');
+    Route::get('/pinjaman/{loan}', \App\Livewire\Pinjaman\Show::class)->whereNumber('loan')->name('pinjaman.show');
 });
 
 Route::middleware(['menu:simpanan', 'peran:admin,pengurus'])->group(function () {

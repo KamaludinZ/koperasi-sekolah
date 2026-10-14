@@ -3,6 +3,8 @@
 namespace App\Services;
 
 use App\Models\Loan;
+use App\Models\LoanDisbursement;
+use App\Models\LoanInstallment;
 use Illuminate\Database\Eloquent\Builder;
 
 /** Pinjaman anggota: daftar/konsol untuk pengurus & bentuk data tampilan. */
@@ -24,6 +26,48 @@ class LoanService
             ->when(($f['method'] ?? '') !== '', fn ($q) => $q->where('payment_method', $f['method']))
             ->orderByRaw("CASE status WHEN 'menunggak' THEN 0 WHEN 'diajukan' THEN 1 WHEN 'disetujui' THEN 2 WHEN 'berjalan' THEN 3 ELSE 4 END")
             ->orderByDesc('applied_at')->orderByDesc('id');
+    }
+
+    /**
+     * Rincian satu pinjaman: data pinjaman, pencairan, jadwal angsuran & ringkasan pembayaran.
+     * Angsuran "belum" yang lewat jatuh tempo ditandai `late` (status tersimpan tetap apa adanya).
+     */
+    public function detail(Loan $loan): array
+    {
+        $loan->loadMissing(['member:id,member_code,name,class,type,phone,deleted_at', 'installments.user:id,name', 'disbursements.user:id,name', 'decider:id,name']);
+        $today = now()->startOfDay();
+
+        $installments = $loan->installments->map(fn (LoanInstallment $i) => [
+            'id' => $i->id, 'sequence' => $i->sequence, 'due_date' => $i->due_date->toDateString(),
+            'amount' => (int) round((float) $i->amount), 'paid_amount' => (int) round((float) $i->paid_amount),
+            'paid_at' => $i->paid_at?->toDateString(), 'payment_method' => $i->payment_method,
+            'payment_label' => $i->payment_method ? (Loan::METHODS[$i->payment_method] ?? $i->payment_method) : null,
+            'status' => $i->status, 'status_label' => LoanInstallment::STATUSES[$i->status] ?? $i->status,
+            'late' => $i->status !== 'dibayar' && $i->due_date->lt($today), 'note' => $i->note, 'user' => $i->user?->name,
+        ])->all();
+
+        $disbursements = $loan->disbursements->map(fn (LoanDisbursement $d) => [
+            'id' => $d->id, 'disbursed_on' => $d->disbursed_on->toDateString(), 'amount' => (int) round((float) $d->amount),
+            'proof' => $d->proof, 'has_file' => filled($d->proof_file), 'user' => $d->user?->name,
+        ])->all();
+
+        $paid = array_sum(array_column($installments, 'paid_amount'));
+        $next = collect($installments)->first(fn ($i) => $i['status'] !== 'dibayar');
+
+        return [
+            'loan' => [...self::toArray($loan), 'member_phone' => $loan->member?->phone, 'decided_at' => $loan->decided_at?->toDateTimeString(),
+                'decided_by' => $loan->decider?->name, 'paid_off_at' => $loan->paid_off_at?->toDateString()],
+            'installments' => $installments,
+            'disbursements' => $disbursements,
+            'summary' => [
+                'total' => $loan->totalDue(), 'paid' => $paid,
+                'paid_count' => count(array_filter($installments, fn ($i) => $i['status'] === 'dibayar')),
+                'count' => count($installments),
+                'late_count' => count(array_filter($installments, fn ($i) => $i['late'])),
+                'next' => $next,
+                'progress' => $loan->totalDue() > 0 ? min(100, (int) floor($paid * 100 / $loan->totalDue())) : 0,
+            ],
+        ];
     }
 
     public static function toArray(Loan $l): array

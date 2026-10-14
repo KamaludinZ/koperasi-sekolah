@@ -27,7 +27,7 @@
                     <tbody class="divide-y divide-stone-100">
                         @forelse ($loans as $l)
                             <tr wire:key="loan-{{ $l['id'] }}" @class(['hover:bg-stone-50', 'bg-red-50/40' => $l['status'] === 'menunggak'])>
-                                <td class="px-4 py-2.5"><span class="font-mono text-xs font-semibold">{{ $l['code'] }}</span>
+                                <td class="px-4 py-2.5"><a href="{{ route('pinjaman.show', $l['id']) }}" wire:navigate class="font-mono text-xs font-semibold text-emerald-800 hover:underline">{{ $l['code'] }}</a>
                                     <span class="block text-xs text-stone-500">Diajukan {{ \Illuminate\Support\Carbon::parse($l['applied_at'])->translatedFormat('d M Y') }}</span></td>
                                 <td class="px-3 py-2.5">{{ $l['member']['name'] ?? '—' }}
                                     <span class="block font-mono text-xs text-stone-500">{{ $l['member']['code'] ?? '' }}{{ ! empty($l['member']['class']) ? ' · '.$l['member']['class'] : '' }}</span></td>

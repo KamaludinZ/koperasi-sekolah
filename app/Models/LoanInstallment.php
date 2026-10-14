@@ -21,4 +21,9 @@ class LoanInstallment extends Model
     {
         return $this->belongsTo(Loan::class);
     }
+
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class);
+    }
 }
