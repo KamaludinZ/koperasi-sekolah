@@ -469,6 +469,7 @@ Route::middleware('menu:laporan')->group(function () {
 // Pinjaman: hanya Pengurus & Admin pemegang menu Pinjaman (kasir & portal anggota tidak), dicek juga di setiap aksi Livewire.
 Route::middleware(['menu:pinjaman', 'peran:admin,pengurus', 'can:kelola-pinjaman'])->group(function () {
     Route::get('/pinjaman', \App\Livewire\Pinjaman\Index::class)->name('pinjaman');
+    Route::get('/pinjaman/pengajuan', \App\Livewire\Pinjaman\Applications::class)->name('pinjaman.pengajuan');
     Route::get('/pinjaman/ringkasan', [\App\Http\Controllers\Pinjaman\LoanController::class, 'summary'])->middleware('throttle:120,1')->name('pinjaman.summary');
     Route::get('/pinjaman/daftar', [\App\Http\Controllers\Pinjaman\LoanController::class, 'index'])->middleware('throttle:120,1')->name('pinjaman.list');
     Route::get('/pinjaman/{loan}/data', [\App\Http\Controllers\Pinjaman\LoanController::class, 'show'])->whereNumber('loan')->middleware('throttle:120,1')->name('pinjaman.data');
