@@ -63,6 +63,7 @@
                         </dl>
                         @if ($a['purpose'])<p class="mt-2 text-sm text-stone-700">{{ $a['purpose'] }}</p>@endif
                         @if ($a['decision_note'])<p class="mt-2 rounded-lg bg-stone-50 px-3 py-2 text-xs text-stone-600">Catatan: {{ $a['decision_note'] }}</p>@endif
+                        @if ($a['cancel_reason'])<p class="mt-2 rounded-lg bg-stone-100 px-3 py-2 text-xs text-stone-600">Alasan batal: {{ $a['cancel_reason'] }}</p>@endif
                         <p class="mt-2 text-xs text-stone-500">{{ $a['payment_label'] }} · Diajukan @tanggal($a['applied_at'])</p>
                         @if (in_array($a['status'], \App\Services\LoanApplicationService::EDITABLE, true))
                             @can('kelola-pinjaman')

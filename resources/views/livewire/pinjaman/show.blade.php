@@ -45,6 +45,9 @@
                 @if ($l['decision_note'])
                     <p class="mt-2 rounded-lg bg-stone-50 px-3 py-2 text-sm text-stone-700"><span class="text-xs text-stone-500">Catatan keputusan:</span> {{ $l['decision_note'] }}</p>
                 @endif
+                @if ($l['cancel_reason'])
+                    <p class="mt-2 rounded-lg bg-stone-100 px-3 py-2 text-sm text-stone-700" data-cancel-reason><span class="text-xs text-stone-500">Dibatalkan {{ $date($l['cancelled_at'], true) }}{{ $l['cancelled_by'] ? ' oleh '.$l['cancelled_by'] : '' }}:</span> {{ $l['cancel_reason'] }}</p>
+                @endif
             </section>
 
             <section class="overflow-hidden rounded-xl border border-stone-200 bg-white" aria-label="Jadwal angsuran">

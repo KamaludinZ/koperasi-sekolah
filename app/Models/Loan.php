@@ -24,12 +24,12 @@ class Loan extends Model
     public const ACTIVE = ['berjalan', 'menunggak'];
 
     protected $fillable = ['code', 'member_id', 'principal', 'interest', 'tenor_months', 'payment_method', 'status', 'purpose', 'decision_note',
-        'outstanding', 'applied_at', 'decided_at', 'decided_by', 'disbursed_at', 'paid_off_at', 'created_by'];
+        'outstanding', 'applied_at', 'decided_at', 'decided_by', 'cancelled_at', 'cancelled_by', 'cancel_reason', 'disbursed_at', 'paid_off_at', 'created_by'];
 
     protected function casts(): array
     {
         return ['principal' => 'decimal:2', 'interest' => 'decimal:2', 'outstanding' => 'decimal:2', 'tenor_months' => 'integer',
-            'applied_at' => 'date', 'decided_at' => 'datetime', 'disbursed_at' => 'date', 'paid_off_at' => 'datetime'];
+            'applied_at' => 'date', 'decided_at' => 'datetime', 'cancelled_at' => 'datetime', 'disbursed_at' => 'date', 'paid_off_at' => 'datetime'];
     }
 
     public function member(): BelongsTo
@@ -45,6 +45,11 @@ class Loan extends Model
     public function disbursements(): HasMany
     {
         return $this->hasMany(LoanDisbursement::class)->orderBy('disbursed_on')->orderBy('id');
+    }
+
+    public function canceller(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'cancelled_by');
     }
 
     public function creator(): BelongsTo

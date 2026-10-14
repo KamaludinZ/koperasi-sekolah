@@ -85,7 +85,8 @@ class EditCancelTest extends TestCase
             ->assertSee('Pengajuan PJM-2026-0001 (Bu Sari) dibatalkan.')
             ->call('setTab', 'dibatalkan')->assertSee('Anggota menarik pengajuan');
         $fresh = $this->loan->fresh();
-        $this->assertSame(['dibatalkan', $user->id], [$fresh->status, $fresh->decided_by]);
+        $this->assertSame(['dibatalkan', $user->id, 'Anggota menarik pengajuan', '2026-10-14 10:00:00'], [$fresh->status, $fresh->cancelled_by, $fresh->cancel_reason, $fresh->cancelled_at->toDateTimeString()]);
+        $this->get(route('pinjaman.show', $this->loan))->assertSee('data-cancel-reason', false)->assertSee('Anggota menarik pengajuan');
         $this->assertSame('diajukan', ActivityLog::where('event', 'pinjaman.dibatalkan')->first()->old_values['status']);
     }
 
@@ -128,5 +129,19 @@ class EditCancelTest extends TestCase
         $other = Loan::factory()->running()->create();
         $this->expectException(\Livewire\Features\SupportLockedProperties\CannotUpdateLockedPropertyException::class);
         Livewire::test(Applications::class)->call('edit', $this->loan->id)->set('form.loan_id', $other->id);
+    }
+
+    public function test_cancelling_approved_application_keeps_approval_record(): void
+    {
+        $approver = $this->loginAs('admin');
+        app(LoanApplicationService::class)->decide($this->loan, 'disetujui', 'Memenuhi syarat', $approver->id);
+        $this->travel(1)->hours();
+        $canceller = $this->loginAs('pengurus');
+        app(LoanApplicationService::class)->cancel($this->loan->fresh(), 'Anggota batal meminjam', $canceller->id);
+
+        $fresh = $this->loan->fresh();
+        $this->assertSame(['dibatalkan', 'Memenuhi syarat', $approver->id, '2026-10-14 10:00:00'], [$fresh->status, $fresh->decision_note, $fresh->decided_by, $fresh->decided_at->toDateTimeString()]);
+        $this->assertSame([$canceller->id, 'Anggota batal meminjam', '2026-10-14 11:00:00'], [$fresh->cancelled_by, $fresh->cancel_reason, $fresh->cancelled_at->toDateTimeString()]);
+        Livewire::test(Applications::class)->call('setTab', 'dibatalkan')->assertSee('Catatan: Memenuhi syarat')->assertSee('Alasan batal: Anggota batal meminjam');
     }
 }

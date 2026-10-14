@@ -21,7 +21,8 @@ class LoanSchemaTest extends TestCase
     public function test_tables_and_columns_exist(): void
     {
         $this->assertTrue(Schema::hasColumns('loans', ['code', 'member_id', 'principal', 'interest', 'tenor_months', 'payment_method', 'status',
-            'purpose', 'decision_note', 'outstanding', 'applied_at', 'decided_at', 'decided_by', 'disbursed_at', 'paid_off_at', 'created_by']));
+            'purpose', 'decision_note', 'outstanding', 'applied_at', 'decided_at', 'decided_by', 'cancelled_at', 'cancelled_by', 'cancel_reason',
+            'disbursed_at', 'paid_off_at', 'created_by']));
         $this->assertTrue(Schema::hasColumns('loan_disbursements', ['loan_id', 'disbursed_on', 'amount', 'proof', 'proof_file', 'user_id']));
         $this->assertTrue(Schema::hasColumns('loan_installments', ['loan_id', 'sequence', 'due_date', 'amount', 'paid_amount', 'paid_at',
             'payment_method', 'status', 'note', 'user_id']));
@@ -102,6 +103,9 @@ class LoanSchemaTest extends TestCase
             fn () => DB::table('loans')->where('id', $loan->id)->update(['status' => 'macet']),
             fn () => DB::table('loans')->where('id', $loan->id)->update(['tenor_months' => 0]),
             fn () => DB::table('loan_installments')->where('id', $inst->id)->update(['paid_amount' => 55001]),
+            fn () => DB::table('loans')->insert(['code' => 'PJM-X-1', 'member_id' => $loan->member_id, 'principal' => 1, 'tenor_months' => 1, 'payment_method' => 'tunai', 'status' => 'dibatalkan', 'applied_at' => today()]),
+            fn () => DB::table('loans')->insert(['code' => 'PJM-X-2', 'member_id' => $loan->member_id, 'principal' => 1, 'tenor_months' => 1, 'payment_method' => 'tunai', 'status' => 'disetujui', 'applied_at' => today()]),
+            fn () => DB::table('loans')->insert(['code' => 'PJM-X-3', 'member_id' => $loan->member_id, 'principal' => 1, 'tenor_months' => 1, 'payment_method' => 'tunai', 'status' => 'diajukan', 'applied_at' => today(), 'cancelled_at' => now()]),
             fn () => DB::table('loan_installments')->where('id', $inst->id)->update(['status' => 'dibayar']),
             fn () => DB::table('loan_installments')->where('id', $inst->id)->update(['payment_method' => 'kartu']),
         ];

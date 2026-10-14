@@ -29,7 +29,7 @@ class LoanFactory extends Factory
         ];
     }
 
-    /** Status yang sudah dicairkan wajib punya tanggal cair; lunas bersisa nol (sesuai CHECK PostgreSQL). */
+    /** Lengkapi kolom wajib per status sesuai CHECK PostgreSQL: tanggal cair, sisa nol saat lunas, waktu keputusan/batal. */
     public function configure(): static
     {
         return $this->afterMaking(function (Loan $loan) {
@@ -38,6 +38,13 @@ class LoanFactory extends Factory
             }
             if ($loan->status === 'lunas') {
                 $loan->outstanding = 0;
+            }
+            if (in_array($loan->status, ['disetujui', 'ditolak'], true) && ! $loan->decided_at) {
+                $loan->decided_at = now();
+            }
+            if ($loan->status === 'dibatalkan' && ! $loan->cancelled_at) {
+                $loan->cancelled_at = now();
+                $loan->cancel_reason ??= 'Dibatalkan anggota';
             }
         });
     }

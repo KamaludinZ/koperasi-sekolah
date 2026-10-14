@@ -215,7 +215,7 @@ class LoanApplicationService
         [$loan, $before] = DB::transaction(function () use ($loan, $reason, $userId) {
             $locked = $this->lockEditable($loan);
             $before = $locked->status;
-            $locked->update(['status' => 'dibatalkan', 'decision_note' => $reason, 'decided_at' => now(), 'decided_by' => $userId]);
+            $locked->update(['status' => 'dibatalkan', 'cancelled_at' => now(), 'cancelled_by' => $userId, 'cancel_reason' => $reason]);
 
             return [$locked, $before];
         });

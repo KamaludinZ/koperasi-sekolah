@@ -90,7 +90,7 @@ class LoanService
      */
     public function detail(Loan $loan): array
     {
-        $loan->loadMissing(['member:id,member_code,name,class,type,phone,deleted_at', 'installments.user:id,name', 'disbursements.user:id,name', 'decider:id,name']);
+        $loan->loadMissing(['member:id,member_code,name,class,type,phone,deleted_at', 'installments.user:id,name', 'disbursements.user:id,name', 'decider:id,name', 'canceller:id,name']);
         $today = now()->startOfDay();
 
         $installments = $loan->installments->map(fn (LoanInstallment $i) => [
@@ -116,7 +116,7 @@ class LoanService
 
         return [
             'loan' => [...self::toArray($loan), 'member_phone' => $loan->member?->phone, 'member_deleted' => (bool) $loan->member?->trashed(), 'decided_at' => $loan->decided_at?->toDateTimeString(),
-                'decided_by' => $loan->decider?->name, 'paid_off_at' => $loan->paid_off_at?->toDateString()],
+                'decided_by' => $loan->decider?->name, 'cancelled_by' => $loan->canceller?->name, 'paid_off_at' => $loan->paid_off_at?->toDateString()],
             'installments' => $installments,
             'disbursements' => $disbursements,
             'summary' => [
@@ -144,6 +144,7 @@ class LoanService
             'payment_method' => $l->payment_method, 'payment_label' => Loan::METHODS[$l->payment_method] ?? $l->payment_method,
             'status' => $l->status, 'status_label' => Loan::STATUSES[$l->status] ?? $l->status,
             'outstanding' => (int) round((float) $l->outstanding), 'purpose' => $l->purpose, 'decision_note' => $l->decision_note,
+            'cancel_reason' => $l->cancel_reason, 'cancelled_at' => $l->cancelled_at?->toDateTimeString(),
             'applied_at' => $l->applied_at?->toDateString(), 'disbursed_at' => $l->disbursed_at?->toDateString(),
         ];
     }
