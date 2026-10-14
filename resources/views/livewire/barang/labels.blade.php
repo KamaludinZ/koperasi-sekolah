@@ -70,6 +70,7 @@
                     @foreach (LabelFormats::FORMATS as $key => $def)
                         <label class="flex cursor-pointer items-center gap-2 rounded-lg border border-stone-300 px-3 py-2 text-sm has-checked:border-emerald-600 has-checked:bg-emerald-50">
                             <input type="radio" wire:model.live="format" value="{{ $key }}" class="accent-emerald-700"> {{ $def[0] }}
+                            @if ($key === LabelFormats::thermalForReceipt())<span class="ml-auto rounded bg-stone-100 px-1.5 text-[11px] text-stone-600">sesuai printer struk</span>@endif
                         </label>
                     @endforeach
                 </div>

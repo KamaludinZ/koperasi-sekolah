@@ -1,6 +1,6 @@
 {
   "repo": "Koperasi Sekolah",
-  "generatedForCommit": "d09f60b82a778a097008d552eb6032095ffd7b73",
+  "generatedForCommit": "01737f71666dd1a26f9333a5a661c4c203ef1162",
   "files": [
     {
       "path": ".claude/skills/ngodingpakeai/SKILL.md",
@@ -121,6 +121,12 @@
       "reason": "needs_summary",
       "language": "php",
       "size": 870
+    },
+    {
+      "path": "app/Http/Controllers/Barang/LabelPrintController.php",
+      "reason": "new",
+      "language": "php",
+      "size": 1580
     },
     {
       "path": "app/Http/Controllers/Barang/ProductController.php",
@@ -442,7 +448,7 @@
     },
     {
       "path": "app/Livewire/Barang/Barcodes.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 5297
     },
@@ -481,6 +487,12 @@
       "reason": "needs_summary",
       "language": "php",
       "size": 5914
+    },
+    {
+      "path": "app/Livewire/Barang/Labels.php",
+      "reason": "new",
+      "language": "php",
+      "size": 5006
     },
     {
       "path": "app/Livewire/Barang/MinStockSettings.php",
@@ -1198,7 +1210,7 @@
     },
     {
       "path": "app/Services/ProductBarcode.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 3851
     },
@@ -1429,6 +1441,12 @@
       "reason": "needs_summary",
       "language": "php",
       "size": 2585
+    },
+    {
+      "path": "app/Support/LabelFormats.php",
+      "reason": "new",
+      "language": "php",
+      "size": 3382
     },
     {
       "path": "app/Support/Menu.php",
@@ -2145,6 +2163,18 @@
       "size": 2922
     },
     {
+      "path": "resources/views/barang/label-print.blade.php",
+      "reason": "new",
+      "language": "php",
+      "size": 2042
+    },
+    {
+      "path": "resources/views/barang/partials/label-sheet.blade.php",
+      "reason": "new",
+      "language": "php",
+      "size": 1420
+    },
+    {
       "path": "resources/views/beranda.blade.php",
       "reason": "needs_summary",
       "language": "php",
@@ -2164,7 +2194,7 @@
     },
     {
       "path": "resources/views/components/barang/nav.blade.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 839
     },
@@ -2458,9 +2488,9 @@
     },
     {
       "path": "resources/views/livewire/barang/barcodes.blade.php",
-      "reason": "new",
+      "reason": "changed",
       "language": "php",
-      "size": 7224
+      "size": 7710
     },
     {
       "path": "resources/views/livewire/barang/catalog.blade.php",
@@ -2494,9 +2524,15 @@
     },
     {
       "path": "resources/views/livewire/barang/index.blade.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 16076
+      "size": 16294
+    },
+    {
+      "path": "resources/views/livewire/barang/labels.blade.php",
+      "reason": "new",
+      "language": "php",
+      "size": 8610
     },
     {
       "path": "resources/views/livewire/barang/min-stock-settings.blade.php",
@@ -2880,7 +2916,7 @@
       "path": "routes/web.php",
       "reason": "changed",
       "language": "php",
-      "size": 34171
+      "size": 34427
     },
     {
       "path": "tests/Concerns/MakesProductImports.php",
@@ -3106,7 +3142,7 @@
     },
     {
       "path": "tests/Feature/Barang/BarcodesPageTest.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 3333
     },
@@ -3175,6 +3211,12 @@
       "reason": "needs_summary",
       "language": "php",
       "size": 2426
+    },
+    {
+      "path": "tests/Feature/Barang/LabelPrintTest.php",
+      "reason": "new",
+      "language": "php",
+      "size": 3501
     },
     {
       "path": "tests/Feature/Barang/LowStockPanelTest.php",

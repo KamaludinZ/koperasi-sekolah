@@ -73,6 +73,12 @@ class LabelPrintTest extends TestCase
         $this->get("/barang/barcode/label/cetak?barang={$a}&format=thermal-58&harga=0&otomatis=1")
             ->assertOk()->assertSee('size: 58mm 30mm', false)->assertDontSee('Rp4.000')->assertSee('window.print()', false);
 
+        $this->get("/barang/barcode/label/cetak?barang={$a}:3&format=thermal-80")->assertOk()->assertSee('size: 80mm 30mm', false)->assertSee('3 label · 2 lembar');
+        $this->assertSame('thermal-58', LabelFormats::thermalForReceipt());
+        app(\App\Services\SettingsService::class)->save('receipt', ['paper' => '80mm']);
+        $this->assertSame('thermal-80', LabelFormats::thermalForReceipt());
+        $this->get('/barang/barcode/label')->assertSee('sesuai printer struk');
+
         $this->get('/barang/barcode/label/cetak?barang=abc')->assertSessionHasErrors('barang');
         $this->get('/barang/barcode/label')->assertOk()->assertSee('Belum ada barang');
     }

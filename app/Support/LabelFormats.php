@@ -20,7 +20,16 @@ class LabelFormats
         'a4-4x10' => ['A4 · 40 label (4×10, 52,5×29,7 mm)', 210, 297, 4, 10, 52.5, 29.7, 0, 0, 10],
         'thermal-50x30' => ['Printer label · 50×30 mm', 50, 30, 1, 1, 50, 30, 0, 0, 11],
         'thermal-58' => ['Printer struk 58 mm · 58×30 mm', 58, 30, 1, 1, 58, 30, 0, 0, 11],
+        'thermal-80' => ['Printer struk 80 mm · 2 label 40×30 mm', 80, 30, 2, 1, 40, 30, 0, 0, 11],
     ];
+
+    /** Format thermal yang cocok dengan lebar kertas struk di Pengaturan (58/80 mm). */
+    public static function thermalForReceipt(): string
+    {
+        $paper = (string) (app(\App\Services\SettingsService::class)->section('receipt')['paper'] ?? '58mm');
+
+        return str_starts_with($paper, '80') ? 'thermal-80' : 'thermal-58';
+    }
 
     public const DEFAULT = 'a4-3x8';
 
