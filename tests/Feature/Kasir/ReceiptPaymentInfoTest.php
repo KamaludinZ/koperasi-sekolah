@@ -34,9 +34,10 @@ class ReceiptPaymentInfoTest extends TestCase
 
     public function test_labels_cover_all_methods(): void
     {
-        $this->assertSame(['tunai', 'qris', 'tabungan', 'bon'], array_keys(CheckoutService::PAYMENT_LABELS));
+        $this->assertSame(['tunai', 'qris', 'tabungan', 'simpanan', 'bon'], array_keys(CheckoutService::PAYMENT_LABELS));
         $this->assertSame(['tunai', 'qris'], array_keys(CheckoutService::PAYMENT_METHODS)); // checkout tunai/QRIS saja sampai backend anggota siap
         $this->assertStringContainsString('Saldo tabungan', view('components.transaksi.method-badge', ['method' => 'tabungan', 'attributes' => new \Illuminate\View\ComponentAttributeBag])->render());
+        $this->assertStringContainsString('bg-teal-50', view('components.transaksi.method-badge', ['method' => 'simpanan', 'attributes' => new \Illuminate\View\ComponentAttributeBag])->render());
     }
 
     public function test_cash_receipt_shows_method_paid_and_change(): void

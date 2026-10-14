@@ -28,6 +28,7 @@ class CheckoutController extends Controller
             'payment_method' => ['required', Rule::in(CheckoutService::CHECKOUT_METHODS)],
             'member_id' => ['nullable', 'integer', 'required_if:payment_method,tabungan,bon'],
             'credit_due_at' => ['nullable', 'date_format:Y-m-d', 'required_if:payment_method,bon'],
+            'saving_type_id' => ['nullable', 'integer', 'required_if:payment_method,simpanan'],
             'credit_note' => ['nullable', 'string', 'max:100'],
             'paid' => ['nullable', 'integer', 'min:0', 'required_if:payment_method,tunai'],
             'discount' => ['nullable', 'array:type,value,reason'],
@@ -54,6 +55,7 @@ class CheckoutController extends Controller
             $data['coupon'] ?? null,
             ($data['payment_method'] === 'bon') ? ['due_at' => $data['credit_due_at'] ?? null, 'note' => $data['credit_note'] ?? null] : null,
             $ref,
+            $data['payment_method'] === 'simpanan' ? (int) $data['saving_type_id'] : null,
         );
 
         return response()->json(['data' => $transaction, 'replayed' => $existing], $existing ? 200 : 201);

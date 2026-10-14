@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\CashShift;
+use App\Models\Member;
 use App\Models\Product;
 use App\Models\Transaction;
 use App\Models\User;
@@ -34,13 +35,13 @@ class CheckoutService
     public const PAYMENT_METHODS = ['tunai' => 'Tunai', 'qris' => 'QRIS / Transfer'];
 
     /** Metode bayar atas nama anggota (saldo tabungan / bon). */
-    public const MEMBER_PAYMENT_METHODS = ['tabungan' => 'Saldo tabungan', 'bon' => 'Bon (bayar nanti)'];
+    public const MEMBER_PAYMENT_METHODS = ['tabungan' => 'Saldo tabungan', 'simpanan' => 'Saldo simpanan', 'bon' => 'Bon (bayar nanti)'];
 
     /** Label semua metode bayar untuk struk, riwayat, dan lencana. */
     public const PAYMENT_LABELS = self::PAYMENT_METHODS + self::MEMBER_PAYMENT_METHODS;
 
     /** Metode yang bisa disimpan lewat checkout. */
-    public const CHECKOUT_METHODS = ['tunai', 'qris', 'tabungan', 'bon'];
+    public const CHECKOUT_METHODS = ['tunai', 'qris', 'tabungan', 'simpanan', 'bon'];
 
     /**
      * @param  array<int, int>  $items  [productId => quantity]
@@ -53,7 +54,7 @@ class CheckoutService
      *
      * @throws ValidationException bila keranjang kosong, stok kurang, atau bayar kurang
      */
-    public function checkout(array $items, string $paymentMethod, ?int $paid, ?int $userId = null, ?int $memberId = null, ?array $manualDiscount = null, ?string $couponCode = null, ?array $credit = null, ?string $clientRef = null): Transaction
+    public function checkout(array $items, string $paymentMethod, ?int $paid, ?int $userId = null, ?int $memberId = null, ?array $manualDiscount = null, ?string $couponCode = null, ?array $credit = null, ?string $clientRef = null, ?int $savingTypeId = null): Transaction
     {
         if ($clientRef !== null && ($existing = Transaction::where('client_ref', $clientRef)->first())) {
             return $existing->load('items'); // permintaan ulang → tidak membuat penjualan dobel
@@ -74,8 +75,11 @@ class CheckoutService
         if ($paymentMethod === 'bon') {
             MemberCreditService::validDueDate($credit['due_at'] ?? null); // gagal cepat sebelum mengunci stok
         }
+        if ($paymentMethod === 'simpanan' && ! $savingTypeId) {
+            throw ValidationException::withMessages(['saving_type_id' => 'Pilih simpanan yang dipotong.']);
+        }
 
-        return DB::transaction(function () use ($items, $paymentMethod, $paid, $userId, $memberId, $manualDiscount, $couponCode, $credit, $clientRef) {
+        return DB::transaction(function () use ($items, $paymentMethod, $paid, $userId, $memberId, $manualDiscount, $couponCode, $credit, $clientRef, $savingTypeId) {
             // Kunci baris barang (urut id agar tidak deadlock) supaya stok tidak terjual ganda.
             $products = Product::active()
                 ->with('category:id,name')
@@ -144,12 +148,18 @@ class CheckoutService
                 'paid' => $paid,
                 'change' => $paid - $total,
                 'payment_method' => $paymentMethod,
+                'saving_type_id' => $paymentMethod === 'simpanan' ? $savingTypeId : null,
                 'item_count' => array_sum(array_column($lines, 'quantity')),
             ]);
 
             if ($paymentMethod === 'tabungan') {
                 // Saldo dipotong di transaksi DB yang sama: saldo kurang → seluruh penjualan dibatalkan.
                 $this->savings->charge($memberId, $total, $transaction, $userId);
+            }
+            if ($paymentMethod === 'simpanan') {
+                // Potong saldo simpanan (jenis yang boleh ditarik) di transaksi DB yang sama.
+                app(BalanceDeductionService::class)->deduct(Member::findOrFail($memberId), $savingTypeId, $total,
+                    "Belanja {$transaction->invoice_number}", ['transaction', $transaction->id], $userId);
             }
             if ($paymentMethod === 'bon') {
                 // Bon dicek batasnya & dicatat di transaksi DB yang sama.

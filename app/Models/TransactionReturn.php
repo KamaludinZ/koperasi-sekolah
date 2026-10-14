@@ -20,7 +20,7 @@ class TransactionReturn extends Model
 
     public const STATUSES = ['menunggu' => 'Menunggu', 'disetujui' => 'Disetujui', 'ditolak' => 'Ditolak'];
 
-    public const REFUND_METHODS = ['tunai' => 'Uang tunai', 'qris' => 'Transfer balik', 'tabungan' => 'Masuk saldo tabungan', 'bon' => 'Mengurangi bon'];
+    public const REFUND_METHODS = ['tunai' => 'Uang tunai', 'qris' => 'Transfer balik', 'tabungan' => 'Masuk saldo tabungan', 'simpanan' => 'Masuk saldo simpanan', 'bon' => 'Mengurangi bon'];
 
     public const RETURN_REASONS = ['rusak' => 'Barang rusak/cacat', 'salah_ambil' => 'Salah ambil barang', 'kedaluwarsa' => 'Kedaluwarsa', 'lainnya' => 'Lainnya'];
 

@@ -30,7 +30,7 @@ class MemberPaymentMethodsTest extends TestCase
 
     public function test_methods_listed_and_member_search(): void
     {
-        $this->assertSame(['tunai', 'qris', 'tabungan', 'bon'], array_keys(Cart::PAYMENT_METHODS));
+        $this->assertSame(['tunai', 'qris', 'tabungan', 'simpanan', 'bon'], array_keys(Cart::PAYMENT_METHODS));
         Member::factory()->create(['name' => 'Andi Pratama', 'member_code' => 'S-2026-001', 'balance' => 20000]);
         Member::factory()->create(['name' => 'Andi Nonaktif', 'is_active' => false]);
 

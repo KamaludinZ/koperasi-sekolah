@@ -53,8 +53,8 @@
                     @error('paymentMethod') <p class="mt-2 rounded-lg bg-amber-50 px-3 py-2 text-sm text-amber-900" role="alert">{{ $message }}</p> @enderror
                 </fieldset>
 
-                {{-- Anggota (wajib untuk tabungan & bon) --}}
-                <div x-show="method === 'tabungan' || method === 'bon'" x-cloak class="space-y-3">
+                {{-- Anggota (wajib untuk tabungan, simpanan & bon) --}}
+                <div x-show="method === 'tabungan' || method === 'simpanan' || method === 'bon'" x-cloak class="space-y-3">
                     @php $m = $this->member; @endphp
                     @if ($m)
                         <div class="rounded-xl border border-stone-200 p-3">
@@ -111,6 +111,43 @@
                                         <span>Anggota sudah menyetujui saldo tabungannya dipotong {{ $rp($tabTotal) }}.</span>
                                     </label>
                                     @error('savingsConsent') <p class="text-xs text-red-600" role="alert">{{ $message }}</p> @enderror
+                                @endif
+                            </div>
+                            {{-- Potong saldo simpanan (jenis yang boleh ditarik) --}}
+                            @php $simTotal = $summary['totals']['simpanan']['payable'] ?? $summary['total']; $sel = $this->selectedSaving();
+                                 $simShort = $sel ? max(0, $simTotal - $sel['balance']) : 0; @endphp
+                            <div x-show="method === 'simpanan'" class="mt-3 space-y-2 border-t border-stone-100 pt-3" data-simpanan-breakdown>
+                                @if ($m['savings'])
+                                    <label class="block text-xs"><span class="mb-1 block font-medium text-stone-700">Simpanan yang dipotong</span>
+                                        <select wire:model.live="savingTypeId" class="w-full rounded-lg border border-stone-300 bg-white px-2.5 py-1.5 text-sm">
+                                            <option value="">Pilih simpanan…</option>
+                                            @foreach ($m['savings'] as $sv)<option value="{{ $sv['id'] }}">{{ $sv['name'] }} · saldo {{ $rp($sv['balance']) }}</option>@endforeach
+                                        </select></label>
+                                    @error('savingTypeId') <p class="text-xs text-red-600" role="alert">{{ $message }}</p> @enderror
+                                    @if ($sel)
+                                        <dl class="space-y-1 text-xs">
+                                            <div class="flex justify-between"><dt class="text-stone-500">Saldo {{ $sel['name'] }}</dt><dd class="tabular-nums">{{ $rp($sel['balance']) }}</dd></div>
+                                            <div class="flex justify-between"><dt class="text-stone-500">Dipotong untuk belanja</dt><dd class="tabular-nums text-red-700">−{{ $rp($simTotal) }}</dd></div>
+                                            <div class="flex justify-between border-t border-dashed border-stone-200 pt-1 text-sm font-semibold">
+                                                <dt>{{ $simShort ? 'Kekurangan' : 'Saldo setelah bayar' }}</dt>
+                                                <dd @class(['tabular-nums', 'text-red-700' => $simShort, 'text-emerald-800' => ! $simShort])>{{ $rp($simShort ?: $sel['balance'] - $simTotal) }}</dd>
+                                            </div>
+                                        </dl>
+                                        @if ($simShort)
+                                            <div class="flex items-center justify-between gap-2 rounded-lg bg-red-50 px-3 py-2 text-xs text-red-800" role="status">
+                                                <span>Saldo kurang {{ $rp($simShort) }}.</span>
+                                                <button type="button" wire:click="switchToCash" class="shrink-0 rounded-md bg-white px-2 py-1 font-semibold text-red-800 ring-1 ring-red-200 hover:bg-red-100">Bayar tunai</button>
+                                            </div>
+                                        @else
+                                            <label class="flex cursor-pointer items-start gap-2 text-sm">
+                                                <input type="checkbox" wire:model="savingsConsent" class="mt-0.5 size-4 accent-emerald-700">
+                                                <span>Anggota sudah menyetujui saldo {{ $sel['name'] }} dipotong {{ $rp($simTotal) }}.</span>
+                                            </label>
+                                            @error('savingsConsent') <p class="text-xs text-red-600" role="alert">{{ $message }}</p> @enderror
+                                        @endif
+                                    @endif
+                                @else
+                                    <p class="rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-900">Anggota belum punya saldo simpanan yang bisa dipakai bayar.</p>
                                 @endif
                             </div>
                             @php $bonTotal = $summary['totals']['bon']['payable'] ?? $summary['total']; $cr = $m['credit']; $bonAfter = $cr['outstanding'] + $bonTotal; @endphp

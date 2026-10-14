@@ -50,7 +50,10 @@ class Cart extends Component
     public const PAYMENT_METHODS = CheckoutService::PAYMENT_LABELS;
 
     /** Metode yang memerlukan anggota. */
-    public const MEMBER_METHODS = ['tabungan', 'bon'];
+    public const MEMBER_METHODS = ['tabungan', 'simpanan', 'bon'];
+
+    /** Jenis simpanan yang dipotong (metode `simpanan`). */
+    public ?int $savingTypeId = null;
 
     /** Pilihan jatuh tempo bon (hari). */
     public const BON_TERMS = [7 => '1 minggu', 14 => '2 minggu', 30 => '1 bulan'];
@@ -318,19 +321,27 @@ class Cart extends Component
         return mb_strlen(trim($this->memberSearch)) >= 2 ? app(MemberService::class)->search($this->memberSearch, 6) : [];
     }
 
-    /** Anggota terpilih + saldo tabungan & status bon. */
+    /** Anggota terpilih + saldo tabungan, simpanan yang bisa dipotong, & status bon. */
     #[Computed]
     public function member(): ?array
     {
         $m = $this->memberId ? Member::active()->find($this->memberId) : null;
 
-        return $m ? MemberService::toArray($m) + ['credit' => app(MemberCreditService::class)->summary($m)] : null;
+        return $m ? MemberService::toArray($m) + ['credit' => app(MemberCreditService::class)->summary($m),
+            'savings' => app(\App\Services\OrderService::class)->balanceOptions($m)['simpanan']] : null;
+    }
+
+    /** Simpanan terpilih (id, nama, saldo) untuk metode `simpanan`. */
+    public function selectedSaving(): ?array
+    {
+        return collect($this->member['savings'] ?? [])->firstWhere('id', $this->savingTypeId);
     }
 
     public function selectMember(int $id): void
     {
         $this->memberId = Member::active()->whereKey($id)->exists() ? $id : null;
         $this->memberSearch = '';
+        $this->savingTypeId = null;
         $this->savingsConsent = false;
         $this->bonConsent = false;
         $this->resetValidation('memberId');
@@ -339,7 +350,7 @@ class Cart extends Component
 
     public function clearMember(): void
     {
-        $this->reset('memberId', 'memberSearch', 'savingsConsent', 'bonConsent');
+        $this->reset('memberId', 'memberSearch', 'savingsConsent', 'bonConsent', 'savingTypeId');
         unset($this->member);
     }
 
@@ -383,11 +394,12 @@ class Cart extends Component
     }
 
     /** Kekurangan bila saldo/batas bon tidak cukup (0 = cukup). */
-    public static function shortfall(string $method, ?array $member, int $total): int
+    public static function shortfall(string $method, ?array $member, int $total, ?int $savingTypeId = null): int
     {
         return match (true) {
             ! $member => 0,
             $method === 'tabungan' => max(0, $total - (int) $member['balance']),
+            $method === 'simpanan' => max(0, $total - (int) (collect($member['savings'] ?? [])->firstWhere('id', $savingTypeId)['balance'] ?? 0)),
             $method === 'bon' => max(0, $total - $member['credit']['available']),
             default => 0,
         };
@@ -416,8 +428,15 @@ class Cart extends Component
 
                 return;
             }
-            if ($short = self::shortfall($this->paymentMethod, $member, $summary['total'])) {
-                $this->addError('memberId', ($this->paymentMethod === 'tabungan' ? 'Saldo tabungan kurang ' : 'Melebihi sisa batas bon sebesar ').\App\Support\Rupiah::format($short).'.');
+            if ($this->paymentMethod === 'simpanan' && ! $this->selectedSaving()) {
+                $this->addError('savingTypeId', 'Pilih simpanan anggota yang dipotong.');
+
+                return;
+            }
+            if ($short = self::shortfall($this->paymentMethod, $member, $summary['total'], $this->savingTypeId)) {
+                $this->addError('memberId', match ($this->paymentMethod) {
+                    'tabungan' => 'Saldo tabungan kurang ', 'simpanan' => 'Saldo '.$this->selectedSaving()['name'].' kurang ', default => 'Melebihi sisa batas bon sebesar ',
+                }.\App\Support\Rupiah::format($short).'.');
 
                 return;
             }
@@ -440,8 +459,8 @@ class Cart extends Component
                     'bonConsent.accepted' => 'Pastikan anggota sudah menyetujui bon dan jatuh temponya.',
                 ]);
             }
-            if ($this->paymentMethod === 'tabungan' && ! $this->savingsConsent) {
-                $this->addError('savingsConsent', 'Pastikan anggota menyetujui pemotongan saldo tabungannya.');
+            if (in_array($this->paymentMethod, ['tabungan', 'simpanan'], true) && ! $this->savingsConsent) {
+                $this->addError('savingsConsent', 'Pastikan anggota menyetujui pemotongan saldo '.($this->paymentMethod === 'tabungan' ? 'tabungannya.' : 'simpanannya.'));
 
                 return;
             }
@@ -459,12 +478,14 @@ class Cart extends Component
             // Diskon dicek ulang di server (isi keranjang bisa berubah setelah diskon persen diterapkan).
             $memberId = in_array($this->paymentMethod, self::MEMBER_METHODS, true) ? $this->memberId : null;
             $credit = $this->paymentMethod === 'bon' ? ['due_at' => $this->bonDueDate(), 'note' => trim($this->bonNote) ?: null] : null;
-            $transaction = $checkout->checkout($this->items, $this->paymentMethod, $this->paid, auth()->id(), $memberId, $this->discount, $this->appliedCoupon, $credit);
+            $transaction = $checkout->checkout($this->items, $this->paymentMethod, $this->paid, auth()->id(), $memberId, $this->discount, $this->appliedCoupon, $credit,
+                null, $this->paymentMethod === 'simpanan' ? $this->savingTypeId : null);
         } catch (ValidationException $e) {
             foreach ($e->errors() as $field => $messages) {
                 $this->addError(match ($field) {
                     'payment_method' => 'paymentMethod',
                     'member_id' => 'memberId',
+                    'saving_type_id' => 'savingTypeId',
                     'credit_due_at' => 'bonDueAt',
                     'discount', 'coupon' => 'paid', // tampil di panel bayar
                     default => $field,

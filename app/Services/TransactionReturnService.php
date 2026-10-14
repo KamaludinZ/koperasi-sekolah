@@ -46,6 +46,7 @@ class TransactionReturnService
     {
         $keys = match ($t->payment_method) {
             'tabungan' => ['tabungan', 'tunai'],
+            'simpanan' => ['simpanan', 'tunai'],
             'bon' => ['bon'],
             'qris' => ['qris', 'tunai'],
             default => ['tunai'],
@@ -513,6 +514,11 @@ class TransactionReturnService
 
         if ($r->refund_method === 'tabungan') {
             $this->savings->refund($t->member_id, $amount, 'return', $r->id, $label, $userId);
+
+            return;
+        }
+        if ($r->refund_method === 'simpanan' && $t->saving_type_id) {
+            app(BalanceDeductionService::class)->refund(\App\Models\Member::withTrashed()->findOrFail($t->member_id), $t->saving_type_id, $amount, $label, ['return', $r->id], $userId);
 
             return;
         }
