@@ -13,6 +13,15 @@
         <x-simpanan.nav active="simpanan.setoran" />
     </header>
     <div class="space-y-4 px-4 py-5 sm:px-6">
+        @if ($m['periods'])
+            @php $last = end($m['periods']); $t = $m['totals'][$last['key']]; @endphp
+            <section class="grid grid-cols-2 gap-3 lg:grid-cols-4" aria-label="Ringkasan {{ $last['full'] }}">
+                <div class="rounded-xl border border-stone-200 bg-white px-4 py-3"><p class="text-xs text-stone-500">Bulan ini</p><p class="text-lg font-semibold">{{ $last['full'] }}</p></div>
+                <div class="rounded-xl border border-stone-200 bg-white px-4 py-3"><p class="text-xs text-stone-500">Sudah disetor</p><p class="text-2xl font-bold text-emerald-800 tabular-nums" data-month-paid>{{ $t['paid'] }} <span class="text-sm font-normal text-stone-500">/ {{ $t['eligible'] }}</span></p></div>
+                <div @class(['rounded-xl border px-4 py-3', 'border-red-200 bg-red-50' => $t['missing'], 'border-stone-200 bg-white' => ! $t['missing']])><p class="text-xs text-stone-600">Belum disetor</p><p class="text-2xl font-bold tabular-nums">{{ $t['missing'] }}</p></div>
+                <div class="rounded-xl border border-stone-200 bg-white px-4 py-3"><p class="text-xs text-stone-500">Total setoran</p><p class="text-xl font-bold tabular-nums" data-month-amount>{{ \App\Support\Rupiah::format($t['amount']) }}</p></div>
+            </section>
+        @endif
         <div class="flex flex-wrap items-center gap-2">
             <select wire:model.live="typeId" aria-label="Jenis simpanan" class="rounded-lg border border-stone-300 bg-white px-3 py-2 text-sm">
                 @foreach ($this->types as $t)<option value="{{ $t->id }}">{{ $t->name }}</option>@endforeach
@@ -54,6 +63,16 @@
                             <tr><td colspan="{{ count($m['periods']) + 2 }}" class="px-4 py-10 text-center text-stone-400">{{ $onlyMissing ? 'Semua setoran lengkap.' : 'Tidak ada anggota guru/karyawan aktif.' }}</td></tr>
                         @endforelse
                     </tbody>
+                    @if ($m['rows'])
+                        <tfoot class="border-t-2 border-stone-200 bg-stone-50 text-xs">
+                            <tr><th class="px-4 py-2 text-left font-medium text-stone-600">Sudah disetor</th>
+                                @foreach ($m['periods'] as $p)<td class="px-2 py-2 text-center font-semibold tabular-nums">{{ $m['totals'][$p['key']]['paid'] }}/{{ $m['totals'][$p['key']]['eligible'] }}</td>@endforeach
+                                <td></td></tr>
+                            <tr><th class="px-4 py-2 text-left font-medium text-stone-600">Total</th>
+                                @foreach ($m['periods'] as $p)<td class="px-2 py-2 text-center whitespace-nowrap tabular-nums" data-total="{{ $p['key'] }}">{{ number_format($m['totals'][$p['key']]['amount'] / 1000, 0, ',', '.') }}rb</td>@endforeach
+                                <td></td></tr>
+                        </tfoot>
+                    @endif
                 </table>
             </div>
         </section>

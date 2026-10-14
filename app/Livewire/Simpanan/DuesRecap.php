@@ -49,7 +49,7 @@ class DuesRecap extends Component
     {
         $type = $this->typeId ? SavingType::find($this->typeId) : null;
         if (! $type) {
-            return ['periods' => [], 'rows' => []];
+            return ['periods' => [], 'rows' => [], 'totals' => []];
         }
         $m = app(SavingDueService::class)->matrix($type, $this->months);
         if ($this->onlyMissing) {

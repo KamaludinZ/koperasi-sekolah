@@ -1,6 +1,6 @@
 {
   "repo": "Koperasi Sekolah",
-  "generatedForCommit": "0a83657e1633b627401c7f58217ff518222227e4",
+  "generatedForCommit": "ab08327f42ffd54f7958c1865e7b58d0e2bae306",
   "files": [
     {
       "path": ".claude/skills/ngodingpakeai/SKILL.md",
@@ -796,7 +796,7 @@
     },
     {
       "path": "app/Livewire/Simpanan/DuesRecap.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 1889
     },
@@ -814,9 +814,9 @@
     },
     {
       "path": "app/Livewire/Simpanan/MonthlyDues.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 6311
+      "size": 7791
     },
     {
       "path": "app/Livewire/Simpanan/Types.php",
@@ -1336,9 +1336,9 @@
     },
     {
       "path": "app/Services/MemberSavingService.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 15300
+      "size": 18052
     },
     {
       "path": "app/Services/MemberService.php",
@@ -1494,7 +1494,7 @@
       "path": "app/Services/SavingDueService.php",
       "reason": "changed",
       "language": "php",
-      "size": 11383
+      "size": 13351
     },
     {
       "path": "app/Services/SavingTypeService.php",
@@ -3124,7 +3124,7 @@
     },
     {
       "path": "resources/views/livewire/simpanan/dues-recap.blade.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 4656
     },
@@ -3144,7 +3144,7 @@
       "path": "resources/views/livewire/simpanan/monthly-dues.blade.php",
       "reason": "changed",
       "language": "php",
-      "size": 9474
+      "size": 11631
     },
     {
       "path": "resources/views/livewire/simpanan/types.blade.php",
@@ -3250,7 +3250,7 @@
     },
     {
       "path": "routes/web.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 38458
     },
@@ -4296,7 +4296,7 @@
       "path": "tests/Feature/Simpanan/MonthlyDuesTest.php",
       "reason": "changed",
       "language": "php",
-      "size": 6102
+      "size": 8190
     },
     {
       "path": "tests/Feature/Simpanan/ProfileSavingTypesTest.php",

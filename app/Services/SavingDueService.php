@@ -216,7 +216,8 @@ class SavingDueService
      * Matriks status per guru untuk $months bulan terakhir (lama → baru): disetor (ada mutasi setor bulan itu),
      * belum (dicatat, belum diposting), kosong (belum dicatat), atau null (belum bergabung).
      *
-     * @return array{periods: list<array{key: string, label: string}>, rows: list<array{member_id: int, code: string, name: string, cells: array<string, ?string>, missing: int}>}
+     * @return array{periods: list<array{key: string, label: string, full: string}>, rows: list<array{member_id: int, code: string, name: string, cells: array<string, ?string>, missing: int}>,
+     *     totals: array<string, array{eligible: int, paid: int, missing: int, amount: int}>}
      */
     public function matrix(SavingType $type, int $months = 6): array
     {
@@ -240,7 +241,18 @@ class SavingDueService
                 'missing' => count(array_filter($cells, fn ($c) => $c !== null && $c !== 'disetor'))];
         })->values()->all();
 
-        return ['periods' => $periods->map(fn ($d) => ['key' => $d->format('Y-m'), 'label' => $d->translatedFormat('M y')])->all(), 'rows' => $rows];
+        // Total per bulan: anggota sudah disetor & nominal bersih bulan itu (setor − koreksi).
+        $amounts = MemberSavingEntry::where('saving_type_id', $type->id)->whereIn('period', $keys)->whereIn('member_id', $ids)
+            ->selectRaw("period, SUM(CASE WHEN type = 'setor' THEN amount ELSE -amount END) AS net")->groupBy('period')->pluck('net', 'period');
+        $totals = [];
+        foreach ($keys as $k) {
+            $eligible = count(array_filter($rows, fn ($r) => $r['cells'][$k] !== null));
+            $paidCount = count(array_filter($rows, fn ($r) => $r['cells'][$k] === 'disetor'));
+            $totals[$k] = ['eligible' => $eligible, 'paid' => $paidCount, 'missing' => $eligible - $paidCount, 'amount' => (int) round((float) ($amounts[$k] ?? 0))];
+        }
+
+        return ['periods' => $periods->map(fn ($d) => ['key' => $d->format('Y-m'), 'label' => $d->translatedFormat('M y'), 'full' => $d->translatedFormat('F Y')])->all(),
+            'rows' => $rows, 'totals' => $totals];
     }
 
     private function assertTypeAndPeriod(SavingType $type, string $period): void

@@ -109,7 +109,9 @@ class MonthlyDuesTest extends TestCase
         $this->assertSame(['2026-08' => 'kosong', '2026-09' => 'disetor', '2026-10' => 'belum'], $dedi['cells']);
         $this->assertSame(2, $dedi['missing']);
 
-        $this->get('/simpanan/setoran-bulanan/rekap')->assertOk()->assertSee('Pak Dedi')->assertSee('data-cell="disetor"', false)->assertDontSee('Andi Siswa');
+        $this->assertSame(['eligible' => 2, 'paid' => 1, 'missing' => 1, 'amount' => 10000], $m['totals']['2026-09']);
+        $this->get('/simpanan/setoran-bulanan/rekap')->assertOk()->assertSee('Pak Dedi')->assertSee('data-cell="disetor"', false)->assertDontSee('Andi Siswa')
+            ->assertSee('Oktober 2026')->assertSeeHtml('data-month-paid>0')->assertSeeHtml('data-total="2026-09">10rb');
         $this->buSiti->joined_at = '2026-10-01';
         $this->buSiti->save();
         $siti = collect($svc->matrix($this->wajib, 3)['rows'])->firstWhere('member_id', $this->buSiti->id);
