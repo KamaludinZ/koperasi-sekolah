@@ -44,4 +44,24 @@ class SavingBalanceEndpointTest extends TestCase
         auth('member')->logout();
         $this->getJson('/portal/simpanan/data')->assertUnauthorized();
     }
+
+    public function test_deposit_withdraw_endpoint_with_strict_validation(): void
+    {
+        $url = "/simpanan/anggota/{$this->m->id}/mutasi";
+        $wajib = SavingType::where('code', 'WAJIB')->value('id');
+        $sukarela = SavingType::where('code', 'SUKARELA')->value('id');
+
+        $this->postJson($url, ['jenis_id' => $wajib, 'arah' => 'setor', 'bulan' => 2])->assertCreated()
+            ->assertJsonCount(2, 'data')->assertJsonPath('data.0.period', '2026-09')->assertJsonPath('data.1.period', '2026-10');
+        $this->postJson($url, ['jenis_id' => $sukarela, 'arah' => 'tarik', 'nominal' => 9000])->assertJsonValidationErrors('amount');
+        $this->postJson($url, ['jenis_id' => $wajib, 'arah' => 'tarik', 'nominal' => 1000])->assertJsonValidationErrors('type');
+        $this->postJson($url, ['jenis_id' => $sukarela, 'arah' => 'tarik', 'nominal' => 2000], ['Idempotency-Key' => 'tarik-1'])->assertCreated()
+            ->assertJsonPath('data.0.balance_after', 5000);
+        $this->postJson($url, ['jenis_id' => $sukarela, 'arah' => 'tarik', 'nominal' => 2000], ['Idempotency-Key' => 'tarik-1'])->assertOk()->assertJsonPath('replayed', true);
+        $this->assertSame(5000, (int) $this->m->savingAccounts()->where('saving_type_id', $sukarela)->value('balance'));
+        $this->postJson($url, ['jenis_id' => 999, 'arah' => 'setor'])->assertJsonValidationErrors('jenis_id');
+
+        $this->loginAs('kasir');
+        $this->postJson($url, ['jenis_id' => $sukarela, 'arah' => 'setor', 'nominal' => 1000])->assertForbidden();
+    }
 }

@@ -463,6 +463,8 @@ Route::middleware(['menu:simpanan', 'peran:admin,pengurus'])->group(function () 
         ->middleware('throttle:20,1')->name('simpanan.setoran.rekap.unduh');
     Route::get('/simpanan/setoran-bulanan/unduh', \App\Http\Controllers\Simpanan\MonthlyDuesExportController::class)
         ->middleware('throttle:20,1')->name('simpanan.setoran.unduh');
+    Route::post('/simpanan/anggota/{member}/mutasi', [\App\Http\Controllers\Simpanan\MemberSavingController::class, 'store'])
+        ->whereNumber('member')->middleware(['can:kelola-simpanan', 'throttle:60,1'])->name('simpanan.anggota.mutasi');
     Route::get('/simpanan/anggota/{member}/saldo', [\App\Http\Controllers\Simpanan\MemberSavingController::class, 'show'])->whereNumber('member')->name('simpanan.anggota.saldo');
     Route::get('/simpanan/jenis/data', [\App\Http\Controllers\Simpanan\SavingTypeController::class, 'index'])->name('simpanan.jenis.data');
     Route::middleware(['can:kelola-simpanan', 'throttle:30,1'])->group(function () {
