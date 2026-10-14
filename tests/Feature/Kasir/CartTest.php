@@ -89,4 +89,17 @@ class CartTest extends TestCase
         $c->call('increment', $this->pid('ATK001'))->call('increment', $this->pid('ATK001'))
             ->assertSee('Stok habis setelah ini (3 pcs)')->assertSeeHtml('data-stock-note="max"');
     }
+
+    public function test_scan_feedback_reports_added_quantity_or_stock_limit(): void
+    {
+        $id = $this->pid('ATK001');
+        \App\Models\Product::whereKey($id)->update(['stock' => 2]);
+
+        $c = Livewire::test(Cart::class)->dispatch('product-picked', productId: $id)
+            ->assertDispatched('scan-feedback', type: 'success', text: 'Ditambahkan: Buku Tulis 38 Lembar (×1 di keranjang)');
+        $c->dispatch('product-picked', productId: $id)->assertDispatched('scan-feedback', type: 'success', text: 'Ditambahkan: Buku Tulis 38 Lembar (×2 di keranjang)');
+        $c->dispatch('product-picked', productId: $id)
+            ->assertDispatched('scan-feedback', type: 'error', text: 'Stok Buku Tulis 38 Lembar hanya tersisa 2 pcs.')
+            ->assertSet('items', [$id => 2]);
+    }
 }

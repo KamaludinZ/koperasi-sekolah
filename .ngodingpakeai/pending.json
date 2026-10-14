@@ -1,6 +1,6 @@
 {
   "repo": "Koperasi Sekolah",
-  "generatedForCommit": "8f724bf419eb4050156b0c5bdc73690eea5a41a9",
+  "generatedForCommit": "7620f5a709e4c02bc31a8deb8fac80ce7559faf9",
   "files": [
     {
       "path": ".claude/skills/ngodingpakeai/SKILL.md",
@@ -490,7 +490,7 @@
     },
     {
       "path": "app/Livewire/Barang/Labels.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 5288
     },
@@ -2140,9 +2140,9 @@
     },
     {
       "path": "resources/js/barcode-scanner.js",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "javascript",
-      "size": 3422
+      "size": 3535
     },
     {
       "path": "resources/js/bootstrap.js",
@@ -2221,6 +2221,12 @@
       "reason": "needs_summary",
       "language": "php",
       "size": 527
+    },
+    {
+      "path": "resources/views/components/camera-scanner.blade.php",
+      "reason": "new",
+      "language": "php",
+      "size": 4174
     },
     {
       "path": "resources/views/components/idle-warning.blade.php",
@@ -2530,7 +2536,7 @@
     },
     {
       "path": "resources/views/livewire/barang/labels.blade.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 9479
     },
@@ -2554,9 +2560,9 @@
     },
     {
       "path": "resources/views/livewire/barang/partials/product-form.blade.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 9923
+      "size": 10412
     },
     {
       "path": "resources/views/livewire/barang/restock.blade.php",
@@ -2638,9 +2644,9 @@
     },
     {
       "path": "resources/views/livewire/kasir/product-picker.blade.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 10872
+      "size": 7299
     },
     {
       "path": "resources/views/livewire/laporan/index.blade.php",
@@ -3136,9 +3142,9 @@
     },
     {
       "path": "tests/Feature/Barang/BarcodeFormTest.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 3448
+      "size": 3881
     },
     {
       "path": "tests/Feature/Barang/BarcodesPageTest.php",
@@ -3214,7 +3220,7 @@
     },
     {
       "path": "tests/Feature/Barang/LabelPrintTest.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 4780
     },

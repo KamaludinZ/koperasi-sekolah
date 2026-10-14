@@ -63,7 +63,7 @@ class ProductPickerTest extends TestCase
     public function test_scan_feedback_for_success_unknown_out_of_stock_and_ambiguous(): void
     {
         $c = Livewire::test(ProductPicker::class)->set('search', 'ATK001')->call('pickFromSearch')
-            ->assertSet('scan.type', 'success')->assertDispatched('scan-feedback', type: 'success')->assertSee('Ditambahkan:');
+            ->assertSet('scan.type', 'success')->assertNotDispatched('scan-feedback')->assertSee('Ditambahkan:');
 
         $c->set('search', 'ZZZ-999')->assertSet('scan', null)->call('pickFromSearch')
             ->assertSet('scan.type', 'error')->assertSet('search', 'ZZZ-999')->assertSee('Kode “ZZZ-999” tidak ditemukan.')->assertNotDispatched('product-picked');
@@ -80,7 +80,7 @@ class ProductPickerTest extends TestCase
             ->set('search', 'pulpen')
             ->call('scanCode', ' atk001 ')
             ->assertDispatched('product-picked', productId: $this->pid('ATK001'))
-            ->assertDispatched('scan-feedback', type: 'success', text: 'Ditambahkan: Buku Tulis 38 Lembar')
+            ->assertSet('scan.text', 'Ditambahkan: Buku Tulis 38 Lembar')
             ->assertSet('search', 'pulpen');
     }
 

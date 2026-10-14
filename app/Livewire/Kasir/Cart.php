@@ -102,7 +102,15 @@ class Cart extends Component
     #[On('product-picked')]
     public function add(int $productId): void
     {
-        $this->setQty($productId, ($this->items[$productId] ?? 0) + 1);
+        $before = $this->items[$productId] ?? 0;
+        $this->setQty($productId, $before + 1);
+
+        // Umpan balik untuk pemindai (kamera/reader): stok di keranjang sudah habis, atau jumlah terbaru.
+        $after = $this->items[$productId] ?? 0;
+        $name = $this->catalog()[$productId]['name'] ?? app(ProductCatalog::class)->find($productId)['name'] ?? 'Barang';
+        $after > $before
+            ? $this->dispatch('scan-feedback', type: 'success', text: "Ditambahkan: {$name} (×{$after} di keranjang)")
+            : $this->dispatch('scan-feedback', type: 'error', text: $this->notice ?? "{$name} tidak bisa ditambahkan.");
     }
 
     public function increment(int $productId): void

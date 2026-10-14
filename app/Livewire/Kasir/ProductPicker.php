@@ -106,8 +106,8 @@ class ProductPicker extends Component
         }
 
         $this->pick($match['id']);
+        // Bunyi & pesan sukses dikirim keranjang (Cart::add) setelah jumlah benar-benar bertambah.
         $this->scan = ['type' => 'success', 'text' => "Ditambahkan: {$match['name']}"];
-        $this->dispatch('scan-feedback', type: 'success', text: $this->scan['text']);
 
         return true;
     }
