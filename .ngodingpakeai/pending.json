@@ -1,6 +1,6 @@
 {
   "repo": "Koperasi Sekolah",
-  "generatedForCommit": "196219cc30e78d696ef99cfc60920a4b2d886943",
+  "generatedForCommit": "81b770bcbb805df8ad3e83267329952b68ce3412",
   "files": [
     {
       "path": ".claude/skills/ngodingpakeai/SKILL.md",
@@ -724,7 +724,7 @@
     },
     {
       "path": "app/Livewire/Portal/Purchases.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 4138
     },
@@ -733,6 +733,12 @@
       "reason": "needs_summary",
       "language": "php",
       "size": 4633
+    },
+    {
+      "path": "app/Livewire/Portal/Shop.php",
+      "reason": "new",
+      "language": "php",
+      "size": 2164
     },
     {
       "path": "app/Livewire/Promo/Index.php",
@@ -1549,6 +1555,12 @@
       "reason": "needs_summary",
       "language": "php",
       "size": 502
+    },
+    {
+      "path": "app/Support/PortalCart.php",
+      "reason": "new",
+      "language": "php",
+      "size": 2469
     },
     {
       "path": "app/Support/PriceCalculator.php",
@@ -2368,7 +2380,7 @@
     },
     {
       "path": "resources/views/components/layouts/portal.blade.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 4223
     },
@@ -2938,7 +2950,7 @@
     },
     {
       "path": "resources/views/livewire/portal/purchases.blade.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 5396
     },
@@ -2947,6 +2959,12 @@
       "reason": "needs_summary",
       "language": "php",
       "size": 6515
+    },
+    {
+      "path": "resources/views/livewire/portal/shop.blade.php",
+      "reason": "new",
+      "language": "php",
+      "size": 7781
     },
     {
       "path": "resources/views/livewire/promo/index.blade.php",
@@ -3078,7 +3096,7 @@
       "path": "routes/web.php",
       "reason": "changed",
       "language": "php",
-      "size": 35476
+      "size": 35569
     },
     {
       "path": "tests/Concerns/MakesProductImports.php",
@@ -4042,7 +4060,7 @@
     },
     {
       "path": "tests/Feature/Portal/PurchasesPageTest.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 2564
     },
@@ -4051,6 +4069,12 @@
       "reason": "needs_summary",
       "language": "php",
       "size": 3141
+    },
+    {
+      "path": "tests/Feature/Portal/ShopPageTest.php",
+      "reason": "new",
+      "language": "php",
+      "size": 2483
     },
     {
       "path": "tests/Feature/Promo/IndexTest.php",

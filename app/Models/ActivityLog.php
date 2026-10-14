@@ -30,6 +30,7 @@ class ActivityLog extends Model
         'pengaturan' => 'Pengaturan',
         'pengumuman' => 'Pengumuman',
         'pengadaan' => 'Pengadaan',
+        'pesanan' => 'Pesanan anggota',
     ];
 
     /** Aksi pada data master (kolom `action`); null untuk aktivitas lain. */

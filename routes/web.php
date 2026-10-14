@@ -93,7 +93,7 @@ Route::get('/qris/{file}', function (string $file) {
     return $disk->response(\App\Services\QrisImageService::path($file), $file, [
         'Cache-Control' => 'private, max-age=86400', 'X-Content-Type-Options' => 'nosniff', 'Content-Security-Policy' => "default-src 'none'",
     ]);
-})->middleware('auth')->where('file', \App\Services\QrisImageService::FILE_PATTERN)->name('qris.image');
+})->middleware('auth:web,member')->where('file', \App\Services\QrisImageService::FILE_PATTERN)->name('qris.image'); // petugas & anggota portal
 
 Route::get('/masuk', Login::class)->name('login');
 
@@ -104,6 +104,7 @@ Route::middleware('auth:member')->group(function () {
     Route::get('/portal/simpanan', \App\Livewire\Portal\Savings::class)->name('portal.simpanan');
     Route::get('/portal/riwayat', \App\Livewire\Portal\Purchases::class)->name('portal.riwayat');
     Route::get('/portal/belanja', \App\Livewire\Portal\Shop::class)->name('portal.belanja');
+    Route::get('/portal/checkout', \App\Livewire\Portal\Checkout::class)->name('portal.checkout');
     Route::post('/portal/keluar', function (\Illuminate\Http\Request $request) {
         app(\App\Services\PortalAuthService::class)->logout();
         $request->session()->regenerateToken();
