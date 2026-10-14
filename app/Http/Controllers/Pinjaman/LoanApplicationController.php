@@ -15,6 +15,9 @@ use Illuminate\Validation\Rule;
  * Pengajuan pinjaman (JSON, Admin & Pengurus):
  * - GET  /pinjaman/pengajuan/data?tahap=diajukan|disetujui|ditolak|dibatalkan&q=&page= → daftar per tahap + jumlah per tahap
  * - POST /pinjaman/pengajuan → catat pengajuan baru (201). Bunga: `interest` (rupiah) atau `interest_rate` (persen dari pokok).
+ * - POST /pinjaman/pengajuan/{loan}/setujui  (catatan= opsional) → disetujui
+ * - POST /pinjaman/pengajuan/{loan}/tolak    (alasan= wajib)     → ditolak
+ *   Hanya pengajuan berstatus "diajukan"; selain itu 422 dengan alasannya.
  */
 class LoanApplicationController extends Controller
 {
@@ -59,5 +62,31 @@ class LoanApplicationController extends Controller
             'data' => LoanService::toArray($loan),
             'message' => "Pengajuan {$loan->code} untuk {$loan->member->name} dicatat dan menunggu keputusan.",
         ], 201);
+    }
+
+    public function approve(Request $request, Loan $loan, LoanApplicationService $applications): JsonResponse
+    {
+        $data = $request->validate(['catatan' => ['nullable', 'string', 'max:200']], ['catatan.max' => 'Catatan maksimal 200 karakter.']);
+
+        return $this->decide($applications, $loan, 'disetujui', $data['catatan'] ?? null, $request->user()?->id);
+    }
+
+    public function reject(Request $request, Loan $loan, LoanApplicationService $applications): JsonResponse
+    {
+        $data = $request->validate(['alasan' => ['required', 'string', 'min:5', 'max:200']], [
+            'alasan.required' => 'Tulis alasan penolakan.', 'alasan.min' => 'Tulis alasan penolakan (minimal 5 karakter).', 'alasan.max' => 'Alasan maksimal 200 karakter.',
+        ]);
+
+        return $this->decide($applications, $loan, 'ditolak', $data['alasan'], $request->user()?->id);
+    }
+
+    private function decide(LoanApplicationService $applications, Loan $loan, string $decision, ?string $note, ?int $userId): JsonResponse
+    {
+        $loan = $applications->decide($loan, $decision, $note, $userId);
+
+        return response()->json([
+            'data' => LoanService::toArray($loan) + ['decided_at' => $loan->decided_at?->toDateTimeString(), 'decided_by' => $userId],
+            'message' => "Pengajuan {$loan->code} ({$loan->member->name}) ".($decision === 'disetujui' ? 'disetujui dan siap dicairkan.' : 'ditolak.'),
+        ]);
     }
 }

@@ -1,6 +1,6 @@
 {
   "repo": "Koperasi Sekolah",
-  "generatedForCommit": "1088ab2223229c1985c7429428214ecdfd6edc12",
+  "generatedForCommit": "e24fb990e8c617f39643cc6cb7c1cb7930a1fb61",
   "files": [
     {
       "path": ".claude/skills/ngodingpakeai/SKILL.md",
@@ -133,6 +133,12 @@
       "reason": "needs_summary",
       "language": "php",
       "size": 1542
+    },
+    {
+      "path": "app/Http/Controllers/Pinjaman/LoanApplicationController.php",
+      "reason": "new",
+      "language": "php",
+      "size": 3224
     },
     {
       "path": "app/Http/Controllers/Pinjaman/LoanController.php",
@@ -286,7 +292,7 @@
     },
     {
       "path": "app/Models/Loan.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 3166
     },
@@ -322,7 +328,7 @@
     },
     {
       "path": "app/Services/LoanApplicationService.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 12635
     },
@@ -334,7 +340,7 @@
     },
     {
       "path": "app/Services/LoanService.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 9393
     },
@@ -496,7 +502,7 @@
     },
     {
       "path": "database/factories/LoanFactory.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 2225
     },
@@ -910,7 +916,7 @@
     },
     {
       "path": "database/migrations/2026_10_16_000001_add_cancellation_to_loans.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 2726
     },
@@ -1732,7 +1738,7 @@
     },
     {
       "path": "resources/views/livewire/pinjaman/applications.blade.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 7976
     },
@@ -1768,7 +1774,7 @@
     },
     {
       "path": "resources/views/livewire/pinjaman/show.blade.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 22439
     },
@@ -1978,9 +1984,9 @@
     },
     {
       "path": "routes/web.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 44455
+      "size": 44817
     },
     {
       "path": "tests/Concerns/MakesProductImports.php",
@@ -2104,7 +2110,7 @@
     },
     {
       "path": "tests/Feature/Database/LoanSchemaTest.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 7134
     },
@@ -2295,6 +2301,12 @@
       "size": 3913
     },
     {
+      "path": "tests/Feature/Pinjaman/ApplicationEndpointTest.php",
+      "reason": "new",
+      "language": "php",
+      "size": 4878
+    },
+    {
       "path": "tests/Feature/Pinjaman/ApplicationFormTest.php",
       "reason": "needs_summary",
       "language": "php",
@@ -2344,7 +2356,7 @@
     },
     {
       "path": "tests/Feature/Pinjaman/EditCancelTest.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 8474
     },
