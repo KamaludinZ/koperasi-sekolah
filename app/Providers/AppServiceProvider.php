@@ -48,6 +48,7 @@ class AppServiceProvider extends ServiceProvider
 
         // Format rupiah seragam: @rupiah($n) → "Rp12.500" (lihat App\Support\Rupiah).
         \Illuminate\Support\Facades\Blade::directive('rupiah', fn ($expr) => "<?php echo e(\\App\\Support\\Rupiah::format({$expr})); ?>");
+        \Illuminate\Support\Facades\Blade::directive('tanggal', fn ($expr) => "<?php echo e(\\App\\Support\\Tanggal::format({$expr})); ?>");
 
         // Semua URL yang dibuat aplikasi memakai https bila HTTPS dipaksa.
         if (config('koperasi.force_https')) {

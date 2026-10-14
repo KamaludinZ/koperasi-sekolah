@@ -45,7 +45,7 @@ class DetailPageTest extends TestCase
             ->assertSee('Rp840.000')->assertSee('1/5 angsuran')
             ->assertSee('data-installment-status="dibayar"', false)
             ->assertSee('data-installment-status="terlambat"', false) // ke-2 jatuh tempo 25 Apr, lewat dari 20 Mei
-            ->assertSee('1 angsuran lewat jatuh tempo.')
+            ->assertSee('1 angsuran lewat jatuh tempo.')->assertSee('1 Feb 2026')->assertSee('25 Apr 2026')->assertSee('Rp210.000')
             ->assertSeeInOrder(['data-installment="1"', 'data-installment="2"', 'data-installment="5"'], false);
     }
 

@@ -29,7 +29,7 @@ class ConsolePageTest extends TestCase
 
     public function test_empty_and_access(): void
     {
-        $this->get('/pinjaman')->assertOk()->assertSee('Belum ada pinjaman anggota.');
+        $this->get('/pinjaman')->assertOk()->assertSee('Belum ada pinjaman anggota')->assertSee('data-empty="pinjaman"', false)->assertDontSee('Semua metode');
         $this->loginAs('pengurus');
         $this->get('/pinjaman')->assertOk();
         $this->loginAs('kasir');

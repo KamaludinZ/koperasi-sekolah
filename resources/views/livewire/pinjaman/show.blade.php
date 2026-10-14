@@ -1,6 +1,6 @@
 @php
     $rp = fn ($n) => \App\Support\Rupiah::format($n);
-    $date = fn ($d) => $d ? \Illuminate\Support\Carbon::parse($d)->translatedFormat('d M Y') : '—';
+    $date = fn ($d, $time = false) => \App\Support\Tanggal::format($d, $time);
     ['loan' => $l, 'installments' => $rows, 'disbursements' => $disb, 'summary' => $sum] = $this->detail;
 @endphp
 <div class="flex min-h-0 flex-1 flex-col overflow-y-auto">
@@ -30,7 +30,7 @@
                     <div><dt class="text-xs text-stone-500">Metode bayar</dt><dd class="font-medium">{{ $l['payment_label'] }}</dd></div>
                     <div><dt class="text-xs text-stone-500">Diajukan</dt><dd class="font-medium">{{ $date($l['applied_at']) }}</dd></div>
                     @if ($l['decided_at'])
-                        <div><dt class="text-xs text-stone-500">Diputuskan</dt><dd class="font-medium">{{ $date($l['decided_at']) }}{{ $l['decided_by'] ? ' · '.$l['decided_by'] : '' }}</dd></div>
+                        <div><dt class="text-xs text-stone-500">Diputuskan</dt><dd class="font-medium">{{ $date($l['decided_at'], true) }}{{ $l['decided_by'] ? ' · '.$l['decided_by'] : '' }}</dd></div>
                     @endif
                     @if ($l['disbursed_at'])
                         <div><dt class="text-xs text-stone-500">Dicairkan</dt><dd class="font-medium">{{ $date($l['disbursed_at']) }}</dd></div>

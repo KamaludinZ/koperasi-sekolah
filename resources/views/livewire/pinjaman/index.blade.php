@@ -1,4 +1,4 @@
-@php $rp = fn ($n) => \App\Support\Rupiah::format($n); $loans = $this->loans; @endphp
+@php $rp = fn ($n) => \App\Support\Rupiah::format($n); $loans = $this->loans; $filtered = $search !== '' || $status !== '' || $method !== ''; $none = ! $filtered && $loans->total() === 0; @endphp
 <div class="flex min-h-0 flex-1 flex-col overflow-y-auto">
     <header class="border-b border-stone-200 bg-white px-4 pt-4 sm:px-6">
         <div>
@@ -35,6 +35,16 @@
             </div>
         </section>
 
+        @if ($none)
+            <div class="rounded-xl border border-dashed border-stone-300 bg-white px-6 py-14 text-center" data-empty="pinjaman">
+                <svg class="mx-auto size-10 text-stone-300" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="6" width="18" height="13" rx="2"/><path d="M3 10h18M7 15h3"/></svg>
+                <p class="mt-3 text-sm font-medium text-stone-700">Belum ada pinjaman anggota</p>
+                <p class="mx-auto mt-1 max-w-sm text-sm text-stone-500">Pengajuan pinjaman dari anggota akan tampil di sini beserta status, angsuran, dan sisanya.</p>
+                @if (\Illuminate\Support\Facades\Route::has('pinjaman.pengajuan'))
+                    <a href="{{ route('pinjaman.pengajuan') }}" wire:navigate class="mt-4 inline-block rounded-lg bg-emerald-700 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-800">Catat pengajuan</a>
+                @endif
+            </div>
+        @else
         @php $select = 'rounded-lg border border-stone-300 bg-white px-3 py-2 text-sm outline-none focus:border-emerald-600 focus:ring-4 focus:ring-emerald-600/15'; @endphp
         <div class="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center">
             <label class="relative flex-1 sm:min-w-56">
@@ -55,7 +65,7 @@
                     <option value="{{ $value }}">{{ $label }}</option>
                 @endforeach
             </select>
-            @if ($search !== '' || $status !== '' || $method !== '')
+            @if ($filtered)
                 <button type="button" wire:click="resetFilters" class="px-1 text-sm font-medium text-emerald-700 hover:underline">Hapus filter</button>
             @endif
         </div>
@@ -79,7 +89,7 @@
                         @forelse ($loans as $l)
                             <tr wire:key="loan-{{ $l['id'] }}" @class(['hover:bg-stone-50', 'bg-red-50/40' => $l['status'] === 'menunggak'])>
                                 <td class="px-4 py-2.5"><a href="{{ route('pinjaman.show', $l['id']) }}" wire:navigate class="font-mono text-xs font-semibold text-emerald-800 hover:underline">{{ $l['code'] }}</a>
-                                    <span class="block text-xs text-stone-500">Diajukan {{ \Illuminate\Support\Carbon::parse($l['applied_at'])->translatedFormat('d M Y') }}</span></td>
+                                    <span class="block text-xs text-stone-500">Diajukan @tanggal($l['applied_at'])</span></td>
                                 <td class="px-3 py-2.5">{{ $l['member']['name'] ?? '—' }}
                                     <span class="block font-mono text-xs text-stone-500">{{ $l['member']['code'] ?? '' }}{{ ! empty($l['member']['class']) ? ' · '.$l['member']['class'] : '' }}</span></td>
                                 <td class="px-3 py-2.5 text-right tabular-nums">{{ $rp($l['principal']) }}</td>
@@ -91,17 +101,14 @@
                             </tr>
                         @empty
                             <tr><td colspan="8" class="px-4 py-12 text-center text-stone-400">
-                                @if ($search !== '' || $status !== '' || $method !== '')
-                                    Tidak ada pinjaman yang cocok. <button type="button" wire:click="resetFilters" class="font-medium text-emerald-700 hover:underline">Hapus filter</button>
-                                @else
-                                    Belum ada pinjaman anggota.
-                                @endif
+                                Tidak ada pinjaman yang cocok. <button type="button" wire:click="resetFilters" class="font-medium text-emerald-700 hover:underline">Hapus filter</button>
                             </td></tr>
                         @endforelse
                     </tbody>
                 </table>
             </div>
         </section>
+        @endif
         @if ($loans->hasPages())
             <div class="flex items-center justify-between text-sm">
                 <button type="button" wire:click="previousPage" @disabled($loans->onFirstPage()) class="rounded-lg border border-stone-300 px-3 py-1.5 disabled:opacity-40">Sebelumnya</button>
