@@ -1,6 +1,6 @@
 {
   "repo": "Koperasi Sekolah",
-  "generatedForCommit": "8780fae3d251380a4c198fb84cf17f0c0fd65dcb",
+  "generatedForCommit": "11106a8728d46922c537fe22291c57f870699953",
   "files": [
     {
       "path": ".claude/skills/ngodingpakeai/SKILL.md",
@@ -190,7 +190,7 @@
     },
     {
       "path": "app/Livewire/Forms/LoanApplicationForm.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 3268
     },
@@ -246,7 +246,7 @@
       "path": "app/Livewire/Pinjaman/Applications.php",
       "reason": "changed",
       "language": "php",
-      "size": 4850
+      "size": 7087
     },
     {
       "path": "app/Livewire/Pinjaman/Index.php",
@@ -310,9 +310,9 @@
     },
     {
       "path": "app/Services/LoanApplicationService.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 5871
+      "size": 7922
     },
     {
       "path": "app/Services/LoanService.php",
@@ -1708,9 +1708,9 @@
     },
     {
       "path": "resources/views/livewire/pinjaman/applications.blade.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 6374
+      "size": 7214
     },
     {
       "path": "resources/views/livewire/pinjaman/index.blade.php",
@@ -1720,9 +1720,15 @@
     },
     {
       "path": "resources/views/livewire/pinjaman/partials/application-form.blade.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 12680
+    },
+    {
+      "path": "resources/views/livewire/pinjaman/partials/decision-dialog.blade.php",
+      "reason": "new",
+      "language": "php",
+      "size": 2489
     },
     {
       "path": "resources/views/livewire/pinjaman/show.blade.php",
@@ -2254,7 +2260,7 @@
     },
     {
       "path": "tests/Feature/Pinjaman/ApplicationFormTest.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 7885
     },
@@ -2269,6 +2275,12 @@
       "reason": "needs_summary",
       "language": "php",
       "size": 5264
+    },
+    {
+      "path": "tests/Feature/Pinjaman/DecisionTest.php",
+      "reason": "new",
+      "language": "php",
+      "size": 5188
     },
     {
       "path": "tests/Feature/Pinjaman/DetailPageTest.php",

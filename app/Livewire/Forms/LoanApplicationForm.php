@@ -8,6 +8,10 @@ use Livewire\Form;
 /** Form pengajuan pinjaman (anggota, nominal, bunga, tenor, metode, keperluan). Aturan dari LoanApplicationService. */
 class LoanApplicationForm extends Form
 {
+    /** Diisi saat mengubah pengajuan (null = pengajuan baru). */
+    #[\Livewire\Attributes\Locked]
+    public ?int $loan_id = null;
+
     public ?int $member_id = null;
 
     public int|string|null $principal = '';
@@ -31,7 +35,13 @@ class LoanApplicationForm extends Form
 
     protected function rules(): array
     {
-        return [...LoanApplicationService::rules(),
+        $base = LoanApplicationService::rules();
+        if ($this->loan_id !== null) {
+            unset($base['member_id']); // anggota tidak bisa diganti saat mengubah
+            $base['applied_at'] = ['required', 'date_format:Y-m-d', 'before_or_equal:today'];
+        }
+
+        return [...$base,
             'interest_mode' => ['required', 'in:nominal,persen'],
             'interest_rate' => ['exclude_unless:interest_mode,persen', 'required', 'numeric', 'min:0', 'max:100', 'decimal:0,2'],
         ];
@@ -72,6 +82,19 @@ class LoanApplicationForm extends Form
         $this->resetValidation();
         $this->applied_at = today()->toDateString();
         $this->interest = 0;
+    }
+
+    public function load(\App\Models\Loan $loan): void
+    {
+        $this->blank();
+        $this->loan_id = $loan->id;
+        $this->member_id = $loan->member_id;
+        $this->principal = (int) round((float) $loan->principal);
+        $this->interest = (int) round((float) $loan->interest);
+        $this->tenor_months = $loan->tenor_months;
+        $this->payment_method = $loan->payment_method;
+        $this->purpose = $loan->purpose ?? '';
+        $this->applied_at = $loan->applied_at->toDateString();
     }
 
     /** Pratinjau total & angsuran per bulan dari isian saat ini (0 bila belum lengkap). */

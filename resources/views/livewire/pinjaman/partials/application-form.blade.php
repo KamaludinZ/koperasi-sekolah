@@ -13,7 +13,7 @@
 
         <form wire:submit="save" class="relative flex h-full w-full max-w-md flex-col bg-white shadow-xl">
             <div class="flex items-center justify-between border-b border-stone-200 px-5 py-4">
-                <h2 id="loan-form-title" class="font-semibold">Catat pengajuan pinjaman</h2>
+                <h2 id="loan-form-title" class="font-semibold">{{ $form->loan_id ? 'Ubah pengajuan pinjaman' : 'Catat pengajuan pinjaman' }}</h2>
                 <button type="button" wire:click="cancel" class="text-stone-400 hover:text-stone-600" aria-label="Tutup">
                     <svg class="size-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></svg>
                 </button>
@@ -29,9 +29,11 @@
                                 <p class="truncate text-sm font-semibold">{{ $m['name'] }}</p>
                                 <p class="font-mono text-xs text-stone-600">{{ $m['member_code'] }}{{ $m['class'] ? ' · '.$m['class'] : '' }}</p>
                             </div>
-                            <button type="button" wire:click="clearMember" class="text-sm font-medium text-emerald-800 hover:underline">Ganti</button>
+                            @unless ($form->loan_id)
+                                <button type="button" wire:click="clearMember" class="text-sm font-medium text-emerald-800 hover:underline">Ganti</button>
+                            @endunless
                         </div>
-                        @if ($m['loans']['open_count'] > 0)
+                        @if (! $form->loan_id && $m['loans']['open_count'] > 0)
                             <p @class(['mt-2 rounded-lg px-3 py-2 text-xs', 'bg-red-50 text-red-800' => $m['loans']['has_overdue'], 'bg-amber-50 text-amber-900' => ! $m['loans']['has_overdue']]) role="note">
                                 Anggota ini masih punya {{ $m['loans']['open_count'] }} pinjaman terbuka ({{ implode(', ', $m['loans']['codes']) }}){{ $m['loans']['active_outstanding'] > 0 ? ', sisa '.$rp($m['loans']['active_outstanding']) : '' }}{{ $m['loans']['has_overdue'] ? ', termasuk yang menunggak' : '' }}.
                             </p>
@@ -145,7 +147,7 @@
             <div class="flex gap-2 border-t border-stone-200 px-5 py-4">
                 <button type="button" wire:click="cancel" class="rounded-xl border border-stone-300 px-4 py-2.5 text-sm font-medium text-stone-700 hover:bg-stone-50">Batal</button>
                 <button type="submit" wire:loading.attr="disabled" wire:target="save"
-                        class="flex-1 rounded-xl bg-emerald-700 py-2.5 text-sm font-semibold text-white hover:bg-emerald-800 disabled:opacity-60">Simpan pengajuan</button>
+                        class="flex-1 rounded-xl bg-emerald-700 py-2.5 text-sm font-semibold text-white hover:bg-emerald-800 disabled:opacity-60">{{ $form->loan_id ? 'Simpan perubahan' : 'Simpan pengajuan' }}</button>
             </div>
         </form>
     </div>

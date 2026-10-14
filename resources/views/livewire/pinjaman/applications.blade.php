@@ -64,11 +64,15 @@
                         @if ($a['purpose'])<p class="mt-2 text-sm text-stone-700">{{ $a['purpose'] }}</p>@endif
                         @if ($a['decision_note'])<p class="mt-2 rounded-lg bg-stone-50 px-3 py-2 text-xs text-stone-600">Catatan: {{ $a['decision_note'] }}</p>@endif
                         <p class="mt-2 text-xs text-stone-500">{{ $a['payment_label'] }} · Diajukan @tanggal($a['applied_at'])</p>
-                        @if ($a['status'] === 'diajukan')
+                        @if (in_array($a['status'], \App\Services\LoanApplicationService::EDITABLE, true))
                             @can('kelola-pinjaman')
-                                <div class="mt-3 flex gap-2 border-t border-stone-100 pt-3">
-                                    <button type="button" wire:click="openDecision({{ $a['id'] }}, 'ditolak')" class="rounded-lg border border-stone-300 px-3 py-1.5 text-sm font-medium text-stone-700 hover:bg-stone-50">Tolak</button>
-                                    <button type="button" wire:click="openDecision({{ $a['id'] }}, 'disetujui')" class="ml-auto rounded-lg bg-emerald-700 px-4 py-1.5 text-sm font-semibold text-white hover:bg-emerald-800">Setujui</button>
+                                <div class="mt-3 flex flex-wrap items-center gap-2 border-t border-stone-100 pt-3">
+                                    <button type="button" wire:click="edit({{ $a['id'] }})" class="text-sm font-medium text-emerald-800 hover:underline">Ubah</button>
+                                    <button type="button" wire:click="openCancel({{ $a['id'] }})" class="text-sm font-medium text-red-700 hover:underline">Batalkan</button>
+                                    @if ($a['status'] === 'diajukan')
+                                        <button type="button" wire:click="openDecision({{ $a['id'] }}, 'ditolak')" class="ml-auto rounded-lg border border-stone-300 px-3 py-1.5 text-sm font-medium text-stone-700 hover:bg-stone-50">Tolak</button>
+                                        <button type="button" wire:click="openDecision({{ $a['id'] }}, 'disetujui')" class="rounded-lg bg-emerald-700 px-4 py-1.5 text-sm font-semibold text-white hover:bg-emerald-800">Setujui</button>
+                                    @endif
                                 </div>
                             @endcan
                         @endif
@@ -87,4 +91,5 @@
 
     @include('livewire.pinjaman.partials.application-form')
     @include('livewire.pinjaman.partials.decision-dialog')
+    @include('livewire.pinjaman.partials.cancel-dialog')
 </div>

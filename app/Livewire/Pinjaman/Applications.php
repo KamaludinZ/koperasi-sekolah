@@ -55,6 +55,12 @@ class Applications extends Component
 
     public string $decisionNote = '';
 
+    /** Dialog pembatalan pengajuan. */
+    #[\Livewire\Attributes\Locked]
+    public ?int $cancellingId = null;
+
+    public string $cancelReason = '';
+
     public function updated(string $property): void
     {
         if (in_array($property, ['tab', 'search'], true)) {
@@ -102,13 +108,16 @@ class Applications extends Component
     #[Computed]
     public function selectedMember(): ?array
     {
-        $m = $this->form->member_id ? Member::active()->find($this->form->member_id) : null;
+        $m = $this->form->member_id ? ($this->form->loan_id ? Member::withTrashed()->find($this->form->member_id) : Member::active()->find($this->form->member_id)) : null;
 
         return $m ? MemberService::toArray($m) + ['loans' => app(LoanApplicationService::class)->memberContext($m)] : null;
     }
 
     public function selectMember(int $id): void
     {
+        if ($this->form->loan_id !== null) {
+            return; // anggota pengajuan yang diubah tetap
+        }
         $this->form->member_id = Member::active()->whereKey($id)->exists() ? $id : null;
         $this->memberSearch = '';
         $this->resetValidation('form.member_id');
@@ -117,6 +126,9 @@ class Applications extends Component
 
     public function clearMember(): void
     {
+        if ($this->form->loan_id !== null) {
+            return;
+        }
         $this->form->member_id = null;
         unset($this->selectedMember);
     }
@@ -187,18 +199,107 @@ class Applications extends Component
         $this->resetValidation(['form.interest', 'form.interest_rate']);
     }
 
+    public function edit(int $loanId): void
+    {
+        abort_unless(Gate::allows('kelola-pinjaman'), 403);
+        $loan = Loan::whereKey($loanId)->whereIn('status', LoanApplicationService::EDITABLE)->first();
+        if (! $loan) {
+            $this->flash = 'Pinjaman ini sudah dicairkan, ditolak, atau dibatalkan sehingga tidak bisa diubah.';
+            unset($this->applications, $this->counts);
+
+            return;
+        }
+        $this->form->load($loan);
+        $this->memberSearch = '';
+        $this->flash = null;
+        $this->creating = true;
+        unset($this->selectedMember);
+    }
+
     public function save(): void
     {
         abort_unless(Gate::allows('kelola-pinjaman'), 403);
         $data = $this->form->validated();
-        $loan = app(LoanApplicationService::class)->create($data, auth()->id());
+        $svc = app(LoanApplicationService::class);
 
+        if ($this->form->loan_id !== null) {
+            $loan = Loan::find($this->form->loan_id);
+            if (! $loan) {
+                $this->creating = false;
+
+                return;
+            }
+            $before = $loan->status;
+            try {
+                $loan = $svc->update($loan, $data, auth()->id());
+            } catch (\Illuminate\Validation\ValidationException $e) {
+                $this->addError('form.principal', collect($e->errors())->flatten()->first());
+
+                return;
+            }
+            $this->creating = false;
+            $this->flash = "Pengajuan {$loan->code} diperbarui.".($before === 'disetujui' && $loan->status === 'diajukan' ? ' Syaratnya berubah, jadi perlu diputuskan ulang.' : '');
+            unset($this->applications, $this->counts);
+
+            return;
+        }
+
+        $loan = $svc->create($data, auth()->id());
         $this->creating = false;
         $this->tab = 'diajukan';
         $this->search = '';
         $this->resetPage();
         $this->flash = "Pengajuan {$loan->code} untuk {$loan->member->name} dicatat dan menunggu keputusan.";
         unset($this->applications, $this->counts);
+    }
+
+    public function openCancel(int $loanId): void
+    {
+        abort_unless(Gate::allows('kelola-pinjaman'), 403);
+        $loan = Loan::whereKey($loanId)->whereIn('status', LoanApplicationService::EDITABLE)->first();
+        if (! $loan) {
+            $this->flash = 'Pinjaman ini sudah dicairkan, ditolak, atau dibatalkan.';
+
+            return;
+        }
+        $this->cancellingId = $loan->id;
+        $this->cancelReason = '';
+        $this->resetValidation('cancelReason');
+    }
+
+    public function closeCancel(): void
+    {
+        $this->cancellingId = null;
+    }
+
+    #[Computed]
+    public function cancelling(): ?array
+    {
+        $loan = $this->cancellingId ? Loan::with('member:id,member_code,name,class,type,deleted_at')->find($this->cancellingId) : null;
+
+        return $loan ? LoanService::toArray($loan) : null;
+    }
+
+    public function confirmCancel(): void
+    {
+        abort_unless(Gate::allows('kelola-pinjaman'), 403);
+        $loan = $this->cancellingId ? Loan::find($this->cancellingId) : null;
+        if (! $loan) {
+            $this->closeCancel();
+
+            return;
+        }
+        $this->resetValidation('cancelReason');
+        try {
+            $loan = app(LoanApplicationService::class)->cancel($loan, $this->cancelReason, auth()->id());
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            $this->addError('cancelReason', collect($e->errors())->flatten()->first());
+
+            return;
+        }
+        $this->closeCancel();
+        $this->flash = "Pengajuan {$loan->code} ({$loan->member->name}) dibatalkan.";
+        unset($this->applications, $this->counts, $this->cancelling);
     }
 
     /** @return array<string, int> jumlah per tab */

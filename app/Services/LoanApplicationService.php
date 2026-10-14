@@ -153,6 +153,92 @@ class LoanApplicationService
         return $loan;
     }
 
+    /** Status pengajuan yang masih boleh diubah/dibatalkan (belum dicairkan). */
+    public const EDITABLE = ['diajukan', 'disetujui'];
+
+    /** Kolom yang bila berubah membuat pengajuan yang sudah disetujui kembali menunggu keputusan. */
+    private const TERMS = ['principal', 'interest', 'tenor_months', 'payment_method'];
+
+    /**
+     * Ubah pengajuan yang belum dicairkan. Anggota tidak bisa diganti (batalkan & catat baru).
+     * Pengajuan "disetujui" yang syaratnya (nominal/bunga/tenor/metode) berubah kembali ke "diajukan".
+     *
+     * @param  array  $data  data tervalidasi (rules()); member_id diabaikan
+     */
+    public function update(Loan $loan, array $data, ?int $userId = null): Loan
+    {
+        $new = [
+            'principal' => (int) $data['principal'], 'interest' => (int) $data['interest'], 'tenor_months' => (int) $data['tenor_months'],
+            'payment_method' => $data['payment_method'], 'purpose' => filled($data['purpose'] ?? null) ? trim($data['purpose']) : null,
+            'applied_at' => $data['applied_at'],
+        ];
+
+        [$loan, $old, $changed, $reopened] = DB::transaction(function () use ($loan, $new) {
+            $locked = $this->lockEditable($loan);
+            $old = [
+                'principal' => (int) round((float) $locked->principal), 'interest' => (int) round((float) $locked->interest),
+                'tenor_months' => $locked->tenor_months, 'payment_method' => $locked->payment_method, 'purpose' => $locked->purpose,
+                'applied_at' => $locked->applied_at->toDateString(),
+            ];
+            $changed = array_keys(array_filter($new, fn ($v, $k) => $old[$k] !== $v, ARRAY_FILTER_USE_BOTH));
+            if (! $changed) {
+                return [$locked, $old, [], false];
+            }
+            $reopened = $locked->status === 'disetujui' && array_intersect($changed, self::TERMS);
+            $locked->update($new + ($reopened ? ['status' => 'diajukan', 'decided_at' => null, 'decided_by' => null, 'decision_note' => null] : []));
+
+            return [$locked, $old, $changed, (bool) $reopened];
+        });
+
+        if ($changed) {
+            $loan->load('member');
+            $labels = ['principal' => 'nominal', 'interest' => 'bunga', 'tenor_months' => 'tenor', 'payment_method' => 'metode bayar', 'purpose' => 'keperluan', 'applied_at' => 'tanggal'];
+            AuditLog::record('pinjaman.diubah', 'pinjaman',
+                "Pengajuan {$loan->code} {$loan->member->name} diubah: ".implode(', ', array_map(fn ($k) => $labels[$k], $changed))
+                    .($reopened ? ' (kembali menunggu persetujuan)' : ''),
+                self::subject($loan), ['member_id' => $loan->member_id, 'reopened' => $reopened], (int) $new['principal'], action: 'diubah',
+                old: array_intersect_key($old, array_flip($changed)) + ($reopened ? ['status' => 'disetujui'] : []),
+                new: array_intersect_key($new, array_flip($changed)) + ($reopened ? ['status' => 'diajukan'] : []));
+        }
+
+        return $loan;
+    }
+
+    /** Batalkan pengajuan yang belum dicairkan (alasan wajib). */
+    public function cancel(Loan $loan, ?string $reason, ?int $userId = null): Loan
+    {
+        $reason = filled($reason) ? trim($reason) : '';
+        if (mb_strlen($reason) < 5 || mb_strlen($reason) > 200) {
+            throw ValidationException::withMessages(['reason' => 'Tulis alasan pembatalan (5–200 karakter).']);
+        }
+
+        [$loan, $before] = DB::transaction(function () use ($loan, $reason, $userId) {
+            $locked = $this->lockEditable($loan);
+            $before = $locked->status;
+            $locked->update(['status' => 'dibatalkan', 'decision_note' => $reason, 'decided_at' => now(), 'decided_by' => $userId]);
+
+            return [$locked, $before];
+        });
+
+        $loan->load('member');
+        AuditLog::record('pinjaman.dibatalkan', 'pinjaman', "Pengajuan {$loan->code} {$loan->member->name} dibatalkan: {$reason}",
+            self::subject($loan), ['member_id' => $loan->member_id], (int) round((float) $loan->principal), action: 'diubah',
+            old: ['status' => $before], new: ['status' => 'dibatalkan'], reason: $reason);
+
+        return $loan;
+    }
+
+    private function lockEditable(Loan $loan): Loan
+    {
+        $locked = Loan::whereKey($loan->id)->lockForUpdate()->firstOrFail();
+        if (! in_array($locked->status, self::EDITABLE, true)) {
+            throw ValidationException::withMessages(['loan' => "Pinjaman {$locked->code} sudah ".mb_strtolower(Loan::STATUSES[$locked->status] ?? $locked->status)
+                .'; hanya pengajuan yang belum dicairkan yang bisa diubah atau dibatalkan.']);
+        }
+
+        return $locked;
+    }
+
     public static function subject(Loan $loan): array
     {
         return ['type' => 'loan', 'id' => $loan->id, 'label' => "{$loan->code} · ".($loan->member?->name ?? '—')];
