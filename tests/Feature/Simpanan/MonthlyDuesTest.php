@@ -209,4 +209,22 @@ class MonthlyDuesTest extends TestCase
         auth()->logout();
         $this->get('/simpanan/setoran-bulanan/rekap')->assertRedirect('/masuk');
     }
+
+    public function test_json_sheet_and_recap(): void
+    {
+        $svc = app(SavingDueService::class);
+        $svc->record('2026-10', $this->wajib, [$this->pakDedi->id => 15000, $this->buSiti->id => 10000]);
+        $svc->post('2026-10', $this->wajib, [$this->pakDedi->id]);
+
+        $this->getJson('/simpanan/setoran-bulanan/data?bulan=2026-10&jenis='.$this->wajib->id)->assertOk()
+            ->assertJsonPath('meta', ['period' => '2026-10', 'members' => 2, 'posted' => 1, 'posted_amount' => 15000, 'pending' => 1, 'missing' => 1])
+            ->assertJsonPath('data.0.name', 'Bu Siti')->assertJsonPath('data.0.status', 'belum');
+        $this->getJson('/simpanan/setoran-bulanan/rekap/data?jenis='.$this->wajib->id.'&rentang=3')->assertOk()
+            ->assertJsonPath('data.months.0.posted_amount', 15000)->assertJsonCount(3, 'data.periods')
+            ->assertJsonPath('data.totals.2026-10.paid', 1);
+        $this->getJson('/simpanan/setoran-bulanan/data?bulan=2026-1&jenis='.$this->wajib->id)->assertJsonValidationErrors('bulan');
+        $this->getJson('/simpanan/setoran-bulanan/rekap/data?jenis='.$this->wajib->id.'&rentang=5')->assertJsonValidationErrors('rentang');
+        $this->loginAs('kasir');
+        $this->getJson('/simpanan/setoran-bulanan/data?bulan=2026-10&jenis='.$this->wajib->id)->assertForbidden();
+    }
 }
