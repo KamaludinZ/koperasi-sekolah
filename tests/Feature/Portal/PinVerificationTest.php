@@ -44,7 +44,9 @@ class PinVerificationTest extends TestCase
             $c->set('pin', '111111')->call('place');
         }
         $c->set('pin', '246810')->call('place')->assertHasErrors('pin')->assertSee('PIN salah terlalu sering')->assertSee('data-pin-locked', false)
-            ->assertSee('data-countdown', false)->assertSee('15:00')->assertDontSee('data-pin-input', false);
+            ->assertSee('data-countdown', false)->assertDontSee('data-pin-input', false);
+        // Hitung mundur ~15 menit (bisa 14:5x bila detik berganti saat dirender).
+        $this->assertMatchesRegularExpression('/data-countdown>(15:00|14:5\d)</', $c->html());
         $this->travel(16)->minutes();
         Livewire::test(Checkout::class)->call('review')->assertDontSee('data-pin-locked', false)->assertSee('data-pin-input', false);
         $this->assertSame(0, Order::count());

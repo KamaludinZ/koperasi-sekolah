@@ -1,6 +1,6 @@
 {
   "repo": "Koperasi Sekolah",
-  "generatedForCommit": "fc00c2f980b8b9ac44eca47c0b15afc2fc397645",
+  "generatedForCommit": "3d88e2c0009eef327c91510088a83b25034075ab",
   "files": [
     {
       "path": ".claude/skills/ngodingpakeai/SKILL.md",
@@ -315,8 +315,14 @@
       "size": 2890
     },
     {
-      "path": "app/Http/Controllers/Portal/PinController.php",
+      "path": "app/Http/Controllers/Portal/OrderController.php",
       "reason": "new",
+      "language": "php",
+      "size": 2636
+    },
+    {
+      "path": "app/Http/Controllers/Portal/PinController.php",
+      "reason": "needs_summary",
       "language": "php",
       "size": 1524
     },
@@ -1402,7 +1408,7 @@
     },
     {
       "path": "app/Services/PortalPinService.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 3334
     },
@@ -3330,7 +3336,7 @@
       "path": "routes/web.php",
       "reason": "changed",
       "language": "php",
-      "size": 39716
+      "size": 39875
     },
     {
       "path": "tests/Concerns/MakesProductImports.php",
@@ -4323,6 +4329,12 @@
       "size": 4624
     },
     {
+      "path": "tests/Feature/Portal/OrderEndpointTest.php",
+      "reason": "new",
+      "language": "php",
+      "size": 2869
+    },
+    {
       "path": "tests/Feature/Portal/OrderTrackingTest.php",
       "reason": "needs_summary",
       "language": "php",
@@ -4336,7 +4348,7 @@
     },
     {
       "path": "tests/Feature/Portal/PinEndpointTest.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 2260
     },
