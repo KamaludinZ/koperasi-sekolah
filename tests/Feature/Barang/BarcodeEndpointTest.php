@@ -44,4 +44,17 @@ class BarcodeEndpointTest extends TestCase
         $this->putJson('/barang/'.$ids[0].'/barcode', ['mode' => 'baru'])->assertForbidden();
         $this->postJson('/barang/barcode/massal', ['ids' => $ids, 'mode' => 'baru'])->assertForbidden();
     }
+
+    public function test_bulk_all_without_barcode(): void
+    {
+        Product::whereKey($this->pid('ATK001'))->update(['barcode' => '8991234567890']);
+        Product::whereKey($this->pid('ATK002'))->update(['is_active' => false]);
+        $expected = Product::active()->whereNull('barcode')->count();
+
+        $this->postJson('/barang/barcode/massal', ['semua' => true, 'mode' => 'baru'])->assertOk()
+            ->assertJsonPath('data.changed', $expected)->assertJsonPath('data.remaining', 0);
+        $this->assertSame('8991234567890', Product::find($this->pid('ATK001'))->barcode);
+        $this->assertNull(Product::find($this->pid('ATK002'))->barcode);
+        $this->postJson('/barang/barcode/massal', ['semua' => true, 'mode' => 'kode'])->assertJsonValidationErrors('mode');
+    }
 }

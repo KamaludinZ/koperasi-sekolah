@@ -14,6 +14,8 @@ use Illuminate\Validation\Rule;
  * Barcode barang (JSON, Admin & Pengurus):
  * - PUT  /barang/{product}/barcode {mode: nilai|baru|kode, barcode?} → ubah satu barang
  * - POST /barang/barcode/massal {ids[], mode: baru|kode, timpa?}     → buat nomor baru / kembali ke kode (maks. 500)
+ * - POST /barang/barcode/massal {semua: true, mode: baru}            → nomor baru untuk semua barang aktif yang belum
+ *                                                                      punya barcode khusus (maks. 2.000, diproses bertahap)
  */
 class BarcodeController extends Controller
 {
@@ -34,6 +36,18 @@ class BarcodeController extends Controller
 
     public function bulk(Request $request, ProductBarcode $barcodes): JsonResponse
     {
+        if ($request->boolean('semua')) {
+            $request->validate(['mode' => ['required', Rule::in(['baru'])]], ['mode.in' => 'Mode semua hanya untuk membuat nomor baru.']);
+            $ids = Product::active()->whereNull('barcode')->orderBy('id')->limit(2000)->pluck('id')->all();
+            $result = ['changed' => 0, 'skipped' => 0];
+            foreach (array_chunk($ids, 200) as $chunk) {
+                $r = $barcodes->assignMany($chunk, 'baru');
+                $result = ['changed' => $result['changed'] + $r['changed'], 'skipped' => $result['skipped'] + $r['skipped']];
+            }
+
+            return response()->json(['data' => $result + ['remaining' => Product::active()->whereNull('barcode')->count()]]);
+        }
+
         $data = $request->validate([
             'ids' => ['required', 'array', 'min:1', 'max:500'],
             'ids.*' => ['integer', 'distinct'],
