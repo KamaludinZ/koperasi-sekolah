@@ -96,6 +96,18 @@ Route::get('/qris/{file}', function (string $file) {
 })->middleware('auth')->where('file', \App\Services\QrisImageService::FILE_PATTERN)->name('qris.image');
 
 Route::get('/masuk', Login::class)->name('login');
+
+// Portal anggota (guard `member`, terpisah dari petugas).
+Route::get('/portal/masuk', \App\Livewire\Portal\Login::class)->middleware('guest:member')->name('portal.login');
+Route::middleware('auth:member')->group(function () {
+    Route::get('/portal', \App\Livewire\Portal\Home::class)->name('portal');
+    Route::post('/portal/keluar', function (\Illuminate\Http\Request $request) {
+        app(\App\Services\PortalAuthService::class)->logout();
+        $request->session()->regenerateToken();
+
+        return redirect()->route('portal.login');
+    })->name('portal.logout');
+});
 Route::post('/masuk', LoginController::class)->middleware('throttle:30,1')->name('login.store');
 Route::post('/keluar', LogoutController::class)->name('logout');
 // Akun sendiri: cukup sudah masuk (semua peran).

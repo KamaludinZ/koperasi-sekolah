@@ -20,7 +20,7 @@ class EnsureActiveSession
 {
     public function handle(Request $request, Closure $next): Response
     {
-        $user = Auth::user();
+        $user = Auth::guard('web')->user(); // hanya sesi petugas; portal anggota memakai guard `member`
         if (! $user || ! $request->hasSession()) {
             return $next($request);
         }

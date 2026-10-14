@@ -6,6 +6,8 @@ use App\Models\Concerns\Auditable;
 use App\Models\Concerns\SoftDeletesWithReason;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Auth\Authenticatable;
+use Illuminate\Contracts\Auth\Authenticatable as AuthenticatableContract;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
@@ -13,8 +15,9 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * Anggota koperasi (siswa/guru). `balance` = saldo tabungan saat ini;
  * hanya boleh diubah lewat layanan tabungan agar selalu cocok dengan mutasinya.
  */
-class Member extends Model
+class Member extends Model implements AuthenticatableContract
 {
+    use Authenticatable; // guard `member` (portal anggota)
     use Auditable;
     use HasFactory;
     use SoftDeletesWithReason;
@@ -37,6 +40,9 @@ class Member extends Model
         'is_active' => true,
     ];
 
+    /** Kata sandi portal tidak pernah ikut terserialisasi (JSON/array). */
+    protected $hidden = ['password', 'remember_token'];
+
     protected function casts(): array
     {
         return [
@@ -44,7 +50,20 @@ class Member extends Model
             'credit_limit' => 'integer',
             'is_active' => 'boolean',
             'joined_at' => 'date',
+            'password' => 'hashed',
+            'portal_last_login_at' => 'datetime',
         ];
+    }
+
+    /** Anggota tidak memakai "ingat saya" (tidak ada kolom remember_token). */
+    public function getRememberTokenName()
+    {
+        return '';
+    }
+
+    public function hasPortalAccess(): bool
+    {
+        return $this->is_active && ! $this->trashed() && filled($this->getAttributes()['password'] ?? null);
     }
 
     public function credits(): HasMany

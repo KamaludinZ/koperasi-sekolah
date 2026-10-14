@@ -13,7 +13,7 @@ class Petugas
 {
     public static function current(): ?array
     {
-        $user = Auth::user();
+        $user = Auth::guard('web')->user(); // anggota portal (guard `member`) bukan petugas
 
         return $user ? AuthService::toArray($user->loadMissing('role')) : null;
     }

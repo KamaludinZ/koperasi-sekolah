@@ -19,6 +19,10 @@ return Application::configure(basePath: dirname(__DIR__))
         // Sesi petugas: keluarkan akun nonaktif / sesi yang terlalu lama tidak aktif.
         $middleware->web(append: [\App\Http\Middleware\EnsureActiveSession::class, \App\Http\Middleware\TrackSlowRequests::class]);
 
+        // Tamu di portal anggota diarahkan ke halaman masuk anggota, bukan login petugas.
+        $middleware->redirectGuestsTo(fn (Illuminate\Http\Request $request) => $request->is('portal', 'portal/*') ? route('portal.login') : route('login'));
+        $middleware->redirectUsersTo(fn (Illuminate\Http\Request $request) => $request->is('portal', 'portal/*') ? route('portal') : '/');
+
         // Pembatas akses di rute: menu:<kunci> (wajib masuk + hak menu), peran:<nama,...>.
         $middleware->alias([
             'menu' => \App\Http\Middleware\EnsureMenuAccess::class,

@@ -44,6 +44,11 @@ return [
             // "Ingat saya" berlaku maksimal 30 hari (bawaan Laravel: 5 tahun).
             'remember' => (int) env('AUTH_REMEMBER_MINUTES', 60 * 24 * 30),
         ],
+        // Portal anggota (/portal): akun anggota, terpisah dari petugas.
+        'member' => [
+            'driver' => 'session',
+            'provider' => 'members',
+        ],
     ],
 
     /*
@@ -67,6 +72,11 @@ return [
         'users' => [
             'driver' => 'eloquent',
             'model' => env('AUTH_MODEL', User::class),
+        ],
+
+        'members' => [
+            'driver' => 'eloquent',
+            'model' => App\Models\Member::class,
         ],
 
         // 'users' => [
