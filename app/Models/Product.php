@@ -22,11 +22,11 @@ class Product extends Model
     /** Audit data master; stok dicatat terpisah lewat riwayat stok. */
     public const AUDIT = [
         'type' => 'product', 'category' => 'barang', 'noun' => 'barang',
-        'fields' => ['code', 'name', 'category_id', 'price', 'cost_price', 'min_stock', 'unit', 'is_active'],
+        'fields' => ['code', 'barcode', 'name', 'category_id', 'price', 'cost_price', 'min_stock', 'unit', 'is_active'],
     ];
 
     protected $fillable = [
-        'code', 'name', 'category_id', 'price', 'cost_price',
+        'code', 'barcode', 'name', 'category_id', 'price', 'cost_price',
         'stock', 'min_stock', 'unit', 'is_active',
     ];
 

@@ -32,6 +32,28 @@
                     </label>
                 </div>
 
+                {{-- Barcode: kosong = mengikuti kode barang; bisa diisi barcode pabrik atau dibuat nomor internal baru. --}}
+                <fieldset class="rounded-xl border border-stone-200 p-3" data-barcode-field>
+                    <legend class="px-1 text-sm font-medium">Barcode</legend>
+                    <div class="flex items-start gap-3">
+                        <label class="block min-w-0 flex-1">
+                            <span class="sr-only">Nilai barcode</span>
+                            <input type="text" wire:model.live.debounce.400ms="form.barcode" maxlength="64" placeholder="Kosong = pakai kode barang"
+                                   aria-describedby="barcode-help" class="{{ $input }} font-mono">
+                        </label>
+                        @php $preview = trim((string) $form->barcode) !== '' ? trim((string) $form->barcode) : mb_strtoupper(trim($form->code)); @endphp
+                        @if ($preview !== '')
+                            <x-barcode :value="$preview" :height="36" class="w-32 shrink-0" />
+                        @endif
+                    </div>
+                    @error('form.barcode') <span class="mt-1 block text-xs text-red-600">{{ $message }}</span> @enderror
+                    <p id="barcode-help" class="mt-1 text-xs text-stone-500">Isi dengan barcode pabrik (scan ke kolom ini), atau biarkan kosong agar label memakai kode barang.</p>
+                    <div class="mt-2 flex flex-wrap gap-2">
+                        <button type="button" wire:click="useCodeAsBarcode" class="rounded-lg border border-stone-300 px-2.5 py-1 text-xs font-medium text-stone-700 hover:bg-stone-50">Pakai kode barang</button>
+                        <button type="button" wire:click="generateBarcode" class="rounded-lg border border-emerald-300 bg-emerald-50 px-2.5 py-1 text-xs font-medium text-emerald-900 hover:bg-emerald-100">Buat nomor baru</button>
+                    </div>
+                </fieldset>
+
                 <div class="grid grid-cols-2 gap-3">
                     <label class="block">
                         <span class="mb-1 block text-sm font-medium">Kategori</span>

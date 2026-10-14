@@ -136,6 +136,20 @@ class Index extends Component
         $this->viewing = null;
     }
 
+    /** Kosongkan barcode → label & scan memakai kode barang. */
+    public function useCodeAsBarcode(): void
+    {
+        $this->form->barcode = '';
+        $this->resetValidation('form.barcode');
+    }
+
+    /** Isi barcode dengan nomor EAN-13 internal baru (belum disimpan sampai form disimpan). */
+    public function generateBarcode(): void
+    {
+        $this->form->barcode = app(\App\Services\ProductBarcode::class)->generate($this->form->id);
+        $this->resetValidation('form.barcode');
+    }
+
     public function create(): void
     {
         $this->form->blank();

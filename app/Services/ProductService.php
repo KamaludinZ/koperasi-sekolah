@@ -27,6 +27,13 @@ class ProductService
                     ->exists();
                 if ($taken) {
                     $fail('Kode barang sudah dipakai barang lain.');
+                } elseif (Product::whereRaw('LOWER(barcode) = ?', [mb_strtolower((string) $value)])->when($ignoreId, fn ($q) => $q->whereKeyNot($ignoreId))->exists()) {
+                    $fail('Kode ini sudah dipakai sebagai barcode barang lain.');
+                }
+            }],
+            'barcode' => ['nullable', 'string', 'max:64', 'regex:'.ProductBarcode::PATTERN, function ($attr, $value, $fail) use ($ignoreId) {
+                if (filled($value) && ProductBarcode::taken((string) $value, $ignoreId)) {
+                    $fail('Barcode sudah dipakai barang lain.');
                 }
             }],
             'name' => ['required', 'string', 'max:150'],
@@ -51,6 +58,8 @@ class ProductService
             'name.max' => 'Maksimal :max karakter.',
             'alpha_dash' => 'Hanya huruf, angka, - dan _.',
             'category.exists' => 'Pilih kategori yang tersedia.',
+            'barcode.regex' => 'Barcode 3–64 karakter: huruf, angka, - . / +.',
+            'barcode.max' => 'Maksimal :max karakter.',
         ];
     }
 
@@ -97,6 +106,8 @@ class ProductService
     private function attributes(array $data): array
     {
         return [
+            // Barcode hanya diubah bila dikirim (endpoint lama tanpa kolom ini tidak menghapusnya).
+            ...(array_key_exists('barcode', $data) ? ['barcode' => ProductBarcode::normalize($data['barcode'], $data['code'])] : []),
             'code' => mb_strtoupper(trim($data['code'])),
             'name' => trim($data['name']),
             'category_id' => Category::where('name', $data['category'])->value('id'),

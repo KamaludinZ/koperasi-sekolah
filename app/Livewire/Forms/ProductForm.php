@@ -17,6 +17,9 @@ class ProductForm extends Form
 
     public string $code = '';
 
+    /** Kosong = barcode mengikuti kode barang. */
+    public ?string $barcode = '';
+
     public string $name = '';
 
     public string $category = '';

@@ -45,8 +45,10 @@ class ProductCatalog
     /** Cari satu barang aktif berdasarkan kode persis (tidak peka huruf besar/kecil). */
     public function findByCode(string $code): ?array
     {
+        $code = mb_strtolower(trim($code));
+        // Kode barang atau nilai barcode (hasil scan); keduanya unik lintas barang.
         $product = Product::active()->with('category:id,name')
-            ->whereRaw('LOWER(code) = ?', [mb_strtolower(trim($code))])
+            ->where(fn ($q) => $q->whereRaw('LOWER(code) = ?', [$code])->orWhereRaw('LOWER(barcode) = ?', [$code]))
             ->first();
 
         return $product ? self::toArray($product) : null;
@@ -85,6 +87,7 @@ class ProductCatalog
         return [
             'id' => $p->id,
             'code' => $p->code,
+            'barcode' => $p->barcode,
             'name' => $p->name,
             'category' => $p->category?->name,
             'price' => (int) round((float) $p->price),

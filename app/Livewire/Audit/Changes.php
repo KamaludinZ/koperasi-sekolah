@@ -44,7 +44,7 @@ class Changes extends Component
     ];
 
     public const FIELDS = [
-        'code' => 'Kode', 'name' => 'Nama', 'contact' => 'Kontak', 'address' => 'Alamat', 'terms_days' => 'Tempo (hari)', 'note' => 'Catatan', 'color' => 'Warna', 'description' => 'Keterangan', 'urutan' => 'Urutan', 'category_id' => 'Kategori', 'price' => 'Harga jual', 'cost_price' => 'Harga modal',
+        'code' => 'Kode', 'barcode' => 'Barcode', 'name' => 'Nama', 'contact' => 'Kontak', 'address' => 'Alamat', 'terms_days' => 'Tempo (hari)', 'note' => 'Catatan', 'color' => 'Warna', 'description' => 'Keterangan', 'urutan' => 'Urutan', 'category_id' => 'Kategori', 'price' => 'Harga jual', 'cost_price' => 'Harga modal',
         'min_stock' => 'Batas minimum', 'unit' => 'Satuan', 'is_active' => 'Aktif', 'member_code' => 'Kode anggota',
         'type' => 'Jenis', 'class' => 'Kelas', 'phone' => 'No. HP', 'email' => 'Email',
         'profile.app_name' => 'Nama aplikasi', 'profile.name' => 'Nama koperasi', 'profile.short_name' => 'Nama singkat',
