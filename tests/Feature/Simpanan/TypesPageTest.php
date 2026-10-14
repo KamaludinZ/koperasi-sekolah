@@ -44,6 +44,14 @@ class TypesPageTest extends TestCase
         $c->assertSee('Nonaktif');
     }
 
+    public function test_form_shows_rule_summary(): void
+    {
+        Livewire::test(Types::class)->call('edit', SavingType::where('code', 'WAJIB')->value('id'))
+            ->assertSee('Anggota menyetor Rp10.000 tiap bulan; saldo ditahan selama masih menjadi anggota.')
+            ->set('form.withdrawable', true)->set('form.period', 'bebas')->set('form.amount', 0)
+            ->assertSee('Anggota menyetor nominal bebas kapan saja; saldo boleh ditarik kapan saja.');
+    }
+
     public function test_kasir_has_no_access_and_pengurus_can_manage(): void
     {
         $this->seed(UserSeeder::class);

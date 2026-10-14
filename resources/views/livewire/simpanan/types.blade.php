@@ -87,21 +87,23 @@
                     </fieldset>
                     <div class="grid grid-cols-2 gap-3">
                         <label class="block"><span class="mb-1 block font-medium">Nominal setor (Rp)</span>
-                            <input type="number" min="0" step="1000" wire:model="form.amount" class="{{ $input }} tabular-nums">
+                            <input type="number" min="0" step="1000" wire:model.live.debounce.400ms="form.amount" class="{{ $input }} tabular-nums">
                             <span class="mt-1 block text-xs text-stone-500">0 = bebas</span>
                             @error('form.amount') <span class="mt-1 block text-xs text-red-600">{{ $message }}</span> @enderror</label>
                         <label class="block"><span class="mb-1 block font-medium">Periode setor</span>
-                            <select wire:model="form.period" class="{{ $input }}">
+                            <select wire:model.live="form.period" class="{{ $input }}">
                                 @foreach (SavingType::PERIODS as $k => $label)<option value="{{ $k }}">{{ $label }}</option>@endforeach
                             </select>
                             @error('form.period') <span class="mt-1 block text-xs text-red-600">{{ $message }}</span> @enderror</label>
                     </div>
-                    <label class="flex items-start gap-2"><input type="checkbox" wire:model="form.withdrawable" class="mt-0.5 accent-emerald-700">
+                    <label class="flex items-start gap-2"><input type="checkbox" wire:model.live="form.withdrawable" class="mt-0.5 accent-emerald-700">
                         <span><span class="font-medium">Boleh ditarik</span><span class="block text-xs text-stone-500">Matikan untuk simpanan yang ditahan selama masih menjadi anggota (pokok & wajib).</span></span></label>
                     <label class="block"><span class="mb-1 block font-medium">Keterangan <span class="font-normal text-stone-500">(opsional)</span></span>
                         <input type="text" wire:model="form.description" maxlength="200" class="{{ $input }}">
                         @error('form.description') <span class="mt-1 block text-xs text-red-600">{{ $message }}</span> @enderror</label>
                     <label class="flex items-center gap-2"><input type="checkbox" wire:model="form.is_active" class="accent-emerald-700"> Aktif (bisa dipakai untuk setoran baru)</label>
+                    <p class="rounded-lg bg-stone-50 px-3 py-2 text-xs text-stone-600" data-rule-summary
+                       wire:key="rule-{{ ($form['amount'] ?? 0).($form['period'] ?? '').(int) ($form['withdrawable'] ?? 0) }}">{{ \App\Services\SavingTypeService::ruleSentence((int) ($form['amount'] ?? 0), (string) ($form['period'] ?? 'bebas'), (bool) ($form['withdrawable'] ?? false)) }}</p>
                 </div>
                 <div class="flex justify-end gap-2 border-t border-stone-200 px-5 py-3">
                     <button type="button" wire:click="cancel" class="rounded-lg px-4 py-2 text-sm font-medium text-stone-600 hover:bg-stone-100">Batal</button>

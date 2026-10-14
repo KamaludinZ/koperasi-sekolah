@@ -75,6 +75,19 @@ class SavingTypeService
         return $type->refresh();
     }
 
+    /** Kalimat aturan untuk petugas, mis. "Anggota menyetor Rp10.000 tiap bulan; ditahan selama masih anggota." */
+    public static function ruleSentence(int $amount, string $period, bool $withdrawable): string
+    {
+        $nominal = $amount > 0 ? \App\Support\Rupiah::format($amount) : 'nominal bebas';
+        $when = match ($period) {
+            'sekali' => 'sekali saat mendaftar',
+            'bulanan' => 'tiap bulan',
+            default => 'kapan saja',
+        };
+
+        return "Anggota menyetor {$nominal} {$when}; ".($withdrawable ? 'saldo boleh ditarik kapan saja.' : 'saldo ditahan selama masih menjadi anggota.');
+    }
+
     public static function toArray(SavingType $t): array
     {
         return [

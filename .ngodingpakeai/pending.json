@@ -1,6 +1,6 @@
 {
   "repo": "Koperasi Sekolah",
-  "generatedForCommit": "49206b1a737177fd90fec1a53089ff1005883498",
+  "generatedForCommit": "b0a672cfc788ea653506ae74f512ad3121c6be00",
   "files": [
     {
       "path": ".claude/skills/ngodingpakeai/SKILL.md",
@@ -574,7 +574,7 @@
     },
     {
       "path": "app/Livewire/Kasir/ProductPicker.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 4753
     },
@@ -723,6 +723,12 @@
       "size": 2768
     },
     {
+      "path": "app/Livewire/Simpanan/Types.php",
+      "reason": "new",
+      "language": "php",
+      "size": 3688
+    },
+    {
       "path": "app/Livewire/Sistem/Backups.php",
       "reason": "needs_summary",
       "language": "php",
@@ -796,9 +802,9 @@
     },
     {
       "path": "app/Models/ActivityLog.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 3582
+      "size": 3628
     },
     {
       "path": "app/Models/Backup.php",
@@ -957,6 +963,12 @@
       "size": 1140
     },
     {
+      "path": "app/Models/SavingType.php",
+      "reason": "new",
+      "language": "php",
+      "size": 1520
+    },
+    {
       "path": "app/Models/SavingsTransaction.php",
       "reason": "needs_summary",
       "language": "php",
@@ -1048,9 +1060,9 @@
     },
     {
       "path": "app/Providers/AppServiceProvider.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 4624
+      "size": 4860
     },
     {
       "path": "app/Rules/SafeUpload.php",
@@ -1323,6 +1335,12 @@
       "size": 16826
     },
     {
+      "path": "app/Services/SavingTypeService.php",
+      "reason": "new",
+      "language": "php",
+      "size": 3535
+    },
+    {
       "path": "app/Services/SavingsPaymentService.php",
       "reason": "needs_summary",
       "language": "php",
@@ -1450,9 +1468,9 @@
     },
     {
       "path": "app/Support/Menu.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 7674
+      "size": 7962
     },
     {
       "path": "app/Support/MockData.php",
@@ -2019,6 +2037,12 @@
       "size": 980
     },
     {
+      "path": "database/migrations/2026_10_14_000008_create_saving_types_table.php",
+      "reason": "new",
+      "language": "php",
+      "size": 3600
+    },
+    {
       "path": "database/seeders/ActivityLogSeeder.php",
       "reason": "needs_summary",
       "language": "php",
@@ -2230,7 +2254,7 @@
     },
     {
       "path": "resources/views/components/camera-scanner.blade.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 4466
     },
@@ -2293,6 +2317,12 @@
       "reason": "needs_summary",
       "language": "php",
       "size": 675
+    },
+    {
+      "path": "resources/views/components/simpanan/nav.blade.php",
+      "reason": "new",
+      "language": "php",
+      "size": 839
     },
     {
       "path": "resources/views/components/sistem/backup-status.blade.php",
@@ -2650,7 +2680,7 @@
     },
     {
       "path": "resources/views/livewire/kasir/product-picker.blade.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 10172
     },
@@ -2829,6 +2859,12 @@
       "size": 12154
     },
     {
+      "path": "resources/views/livewire/simpanan/types.blade.php",
+      "reason": "new",
+      "language": "php",
+      "size": 9645
+    },
+    {
       "path": "resources/views/livewire/sistem/backups.blade.php",
       "reason": "needs_summary",
       "language": "php",
@@ -2926,9 +2962,9 @@
     },
     {
       "path": "routes/web.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 34427
+      "size": 34611
     },
     {
       "path": "tests/Concerns/MakesProductImports.php",
@@ -3118,9 +3154,9 @@
     },
     {
       "path": "tests/Feature/Auth/RoleMenuTest.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 3342
+      "size": 3366
     },
     {
       "path": "tests/Feature/Auth/RoleMiddlewareTest.php",
@@ -3550,7 +3586,7 @@
     },
     {
       "path": "tests/Feature/Kasir/ProductPickerTest.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 4880
     },
@@ -3895,6 +3931,12 @@
       "reason": "needs_summary",
       "language": "php",
       "size": 4433
+    },
+    {
+      "path": "tests/Feature/Simpanan/TypesPageTest.php",
+      "reason": "new",
+      "language": "php",
+      "size": 2354
     },
     {
       "path": "tests/Feature/Sistem/BackupCommandTest.php",
