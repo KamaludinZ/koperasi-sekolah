@@ -227,4 +227,23 @@ class MonthlyDuesTest extends TestCase
         $this->loginAs('kasir');
         $this->getJson('/simpanan/setoran-bulanan/data?bulan=2026-10&jenis='.$this->wajib->id)->assertForbidden();
     }
+
+    public function test_correction_endpoint_with_audit(): void
+    {
+        $svc = app(SavingDueService::class);
+        $svc->record('2026-10', $this->wajib, [$this->pakDedi->id => 10000]);
+        $svc->post('2026-10', $this->wajib, [$this->pakDedi->id]);
+        $due = SavingDue::firstOrFail();
+
+        $this->postJson("/simpanan/setoran-bulanan/{$due->id}/koreksi", ['nominal' => 20000])->assertJsonValidationErrors('alasan');
+        $this->postJson("/simpanan/setoran-bulanan/{$due->id}/koreksi", ['nominal' => 20000, 'alasan' => 'Salah ketik nominal'])->assertOk()
+            ->assertJsonPath('data.amount', 20000)->assertJsonPath('data.amount_before', 10000)->assertJsonPath('data.status', 'disetor');
+        $log = ActivityLog::where('event', 'simpanan.koreksi')->latest('id')->first();
+        $this->assertSame(['Salah ketik nominal', 10000, '2026-10'], [$log->reason, $log->amount, $log->properties['period']]);
+
+        $this->postJson("/simpanan/setoran-bulanan/{$due->id}/koreksi", ['nominal' => 0, 'alasan' => 'Batal potong gaji'])->assertJsonPath('data.status', 'belum');
+        $this->postJson("/simpanan/setoran-bulanan/{$due->id}/koreksi", ['nominal' => 0, 'alasan' => 'Batal potong gaji'])->assertJsonValidationErrors('amount');
+        $this->loginAs('kasir');
+        $this->postJson("/simpanan/setoran-bulanan/{$due->id}/koreksi", ['nominal' => 5000, 'alasan' => 'Coba kasir'])->assertForbidden();
+    }
 }

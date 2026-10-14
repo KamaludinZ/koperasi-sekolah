@@ -13,6 +13,7 @@ use Illuminate\Validation\Rule;
  * Setoran bulanan potong gaji (JSON, Admin & Pengurus):
  * - GET /simpanan/setoran-bulanan/data?bulan=YYYY-MM&jenis=      → lembar satu bulan (guru aktif) + ringkasan
  * - GET /simpanan/setoran-bulanan/rekap/data?jenis=&rentang=3|6|12 → rekap per bulan + matriks status per guru
+ * - POST /simpanan/setoran-bulanan/{due}/koreksi {nominal, alasan}  → koreksi setoran (0 = batalkan posting); tercatat di audit
  */
 class MonthlyDuesController extends Controller
 {
@@ -28,6 +29,21 @@ class MonthlyDuesController extends Controller
         return response()->json(['data' => $rows->values(), 'meta' => [
             'period' => $data['bulan'], 'members' => $rows->count(), 'posted' => $posted->count(), 'posted_amount' => (int) $posted->sum('amount'),
             'pending' => $rows->where('status', 'belum')->count(), 'missing' => $rows->count() - $posted->count(),
+        ]]);
+    }
+
+    public function correct(Request $request, \App\Models\SavingDue $due, SavingDueService $dues): JsonResponse
+    {
+        $data = $request->validate([
+            'nominal' => ['required', 'integer', 'min:0'],
+            'alasan' => ['required', 'string', 'min:5', 'max:150'],
+        ], ['alasan.required' => 'Tulis alasan koreksi.', 'alasan.min' => 'Alasan minimal 5 karakter.']);
+        $before = (int) round((float) $due->amount);
+        $due = $dues->correct($due, (int) $data['nominal'], $data['alasan'], $request->user());
+
+        return response()->json(['data' => [
+            'id' => $due->id, 'member_id' => $due->member_id, 'period' => $due->period, 'status' => $due->status,
+            'amount' => (int) round((float) $due->amount), 'amount_before' => $before, 'note' => $due->note,
         ]]);
     }
 

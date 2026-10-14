@@ -1,6 +1,6 @@
 {
   "repo": "Koperasi Sekolah",
-  "generatedForCommit": "812b6cf3e55be6e71a213f0bc71ed30005e4b328",
+  "generatedForCommit": "da6fffdfc1f62dc45bd94a759929b975fb61f702",
   "files": [
     {
       "path": ".claude/skills/ngodingpakeai/SKILL.md",
@@ -319,6 +319,12 @@
       "reason": "needs_summary",
       "language": "php",
       "size": 3378
+    },
+    {
+      "path": "app/Http/Controllers/Simpanan/MonthlyDuesController.php",
+      "reason": "new",
+      "language": "php",
+      "size": 2163
     },
     {
       "path": "app/Http/Controllers/Simpanan/MonthlyDuesExportController.php",
@@ -778,7 +784,7 @@
     },
     {
       "path": "app/Livewire/Portal/Savings.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 7190
     },
@@ -3136,7 +3142,7 @@
     },
     {
       "path": "resources/views/livewire/portal/savings.blade.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 7060
     },
@@ -3292,9 +3298,9 @@
     },
     {
       "path": "routes/web.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 38646
+      "size": 38964
     },
     {
       "path": "tests/Concerns/MakesProductImports.php",
@@ -4312,7 +4318,7 @@
     },
     {
       "path": "tests/Feature/Portal/SavingsPageTest.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 4171
     },
@@ -4348,9 +4354,9 @@
     },
     {
       "path": "tests/Feature/Simpanan/MonthlyDuesTest.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 12266
+      "size": 13604
     },
     {
       "path": "tests/Feature/Simpanan/ProfileSavingTypesTest.php",
