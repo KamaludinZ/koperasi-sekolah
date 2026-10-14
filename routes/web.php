@@ -107,6 +107,7 @@ Route::middleware('portal')->group(function () { // bukan auth:member — guard 
     Route::get('/portal', \App\Livewire\Portal\Home::class)->name('portal');
     Route::get('/portal/simpanan', \App\Livewire\Portal\Savings::class)->name('portal.simpanan');
     Route::get('/portal/pin/status', [\App\Http\Controllers\Portal\PinController::class, 'status'])->name('portal.pin.status');
+    Route::post('/portal/pesanan', [\App\Http\Controllers\Portal\OrderController::class, 'store'])->middleware('throttle:20,1')->name('portal.pesanan.store');
     Route::post('/portal/pin/verifikasi', [\App\Http\Controllers\Portal\PinController::class, 'verify'])->middleware('throttle:20,1')->name('portal.pin.verify');
     Route::get('/portal/riwayat', \App\Livewire\Portal\Purchases::class)->name('portal.riwayat');
     Route::get('/portal/belanja', \App\Livewire\Portal\Shop::class)->name('portal.belanja');
