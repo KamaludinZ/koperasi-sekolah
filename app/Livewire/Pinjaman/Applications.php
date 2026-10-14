@@ -46,6 +46,15 @@ class Applications extends Component
 
     public ?string $flash = null;
 
+    /** Dialog keputusan: id pengajuan & jenis keputusan (disetujui/ditolak). */
+    #[\Livewire\Attributes\Locked]
+    public ?int $decidingId = null;
+
+    #[\Livewire\Attributes\Locked]
+    public string $decision = '';
+
+    public string $decisionNote = '';
+
     public function updated(string $property): void
     {
         if (in_array($property, ['tab', 'search'], true)) {
@@ -110,6 +119,60 @@ class Applications extends Component
     {
         $this->form->member_id = null;
         unset($this->selectedMember);
+    }
+
+    public function openDecision(int $loanId, string $decision): void
+    {
+        abort_unless(Gate::allows('kelola-pinjaman'), 403);
+        $loan = Loan::whereKey($loanId)->where('status', 'diajukan')->first();
+        if (! $loan || ! in_array($decision, ['disetujui', 'ditolak'], true)) {
+            $this->flash = 'Pengajuan ini sudah diputuskan atau tidak ditemukan.';
+            unset($this->applications, $this->counts);
+
+            return;
+        }
+        $this->decidingId = $loan->id;
+        $this->decision = $decision;
+        $this->decisionNote = '';
+        $this->resetValidation('decisionNote');
+    }
+
+    public function closeDecision(): void
+    {
+        $this->decidingId = null;
+        $this->decision = '';
+    }
+
+    #[Computed]
+    public function deciding(): ?array
+    {
+        $loan = $this->decidingId ? Loan::with('member:id,member_code,name,class,type,deleted_at')->find($this->decidingId) : null;
+
+        return $loan ? LoanService::toArray($loan) : null;
+    }
+
+    public function decide(): void
+    {
+        abort_unless(Gate::allows('kelola-pinjaman'), 403);
+        $loan = $this->decidingId ? Loan::find($this->decidingId) : null;
+        if (! $loan) {
+            $this->closeDecision();
+
+            return;
+        }
+        $this->resetValidation('decisionNote');
+        try {
+            $loan = app(LoanApplicationService::class)->decide($loan, $this->decision, $this->decisionNote, auth()->id());
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            $errors = $e->errors();
+            $this->addError('decisionNote', $errors['note'][0] ?? $errors['decision'][0] ?? 'Keputusan gagal disimpan.');
+
+            return;
+        }
+
+        $this->closeDecision();
+        $this->flash = "Pengajuan {$loan->code} ({$loan->member->name}) ".($loan->status === 'disetujui' ? 'disetujui dan siap dicairkan.' : 'ditolak.');
+        unset($this->applications, $this->counts, $this->deciding);
     }
 
     public function setTenor(int $months): void

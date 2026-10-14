@@ -8,6 +8,7 @@ use App\Support\Rupiah;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 
 /** Pengajuan pinjaman anggota yang dicatat pengurus: validasi, kode otomatis, dan jejak audit. */
 class LoanApplicationService
@@ -112,6 +113,42 @@ class LoanApplicationService
             (int) $data['principal'], action: 'dibuat',
             new: ['principal' => (int) $data['principal'], 'interest' => (int) $data['interest'], 'tenor_months' => (int) $data['tenor_months'],
                 'payment_method' => $loan->payment_method, 'purpose' => $purpose, 'applied_at' => $data['applied_at']]);
+
+        return $loan;
+    }
+
+    /**
+     * Putuskan pengajuan: `disetujui` (catatan opsional) atau `ditolak` (alasan wajib). Hanya pengajuan berstatus
+     * `diajukan`; baris dikunci agar dua pengurus tidak memutuskan bersamaan.
+     */
+    public function decide(Loan $loan, string $decision, ?string $note, ?int $userId = null): Loan
+    {
+        $note = filled($note) ? trim($note) : null;
+        if (! in_array($decision, ['disetujui', 'ditolak'], true)) {
+            throw ValidationException::withMessages(['decision' => 'Keputusan tidak dikenal.']);
+        }
+        if ($decision === 'ditolak' && mb_strlen((string) $note) < 5) {
+            throw ValidationException::withMessages(['note' => 'Tulis alasan penolakan (minimal 5 karakter).']);
+        }
+        if (mb_strlen((string) $note) > 200) {
+            throw ValidationException::withMessages(['note' => 'Catatan maksimal 200 karakter.']);
+        }
+
+        $loan = DB::transaction(function () use ($loan, $decision, $note, $userId) {
+            $locked = Loan::whereKey($loan->id)->lockForUpdate()->firstOrFail();
+            if ($locked->status !== 'diajukan') {
+                throw ValidationException::withMessages(['decision' => "Pengajuan {$locked->code} sudah ".mb_strtolower(Loan::STATUSES[$locked->status] ?? $locked->status).'; muat ulang halaman.']);
+            }
+            $locked->update(['status' => $decision, 'decision_note' => $note, 'decided_at' => now(), 'decided_by' => $userId]);
+
+            return $locked;
+        });
+
+        $loan->load('member');
+        AuditLog::record("pinjaman.{$decision}", 'pinjaman',
+            'Pengajuan '.$loan->code.' '.$loan->member->name.' '.($decision === 'disetujui' ? 'disetujui' : 'ditolak').($note ? ": {$note}" : ''),
+            self::subject($loan), ['member_id' => $loan->member_id], (int) round((float) $loan->principal), action: 'diubah',
+            old: ['status' => 'diajukan'], new: ['status' => $decision, 'decision_note' => $note], reason: $note);
 
         return $loan;
     }

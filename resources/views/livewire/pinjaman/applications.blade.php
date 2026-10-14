@@ -64,6 +64,14 @@
                         @if ($a['purpose'])<p class="mt-2 text-sm text-stone-700">{{ $a['purpose'] }}</p>@endif
                         @if ($a['decision_note'])<p class="mt-2 rounded-lg bg-stone-50 px-3 py-2 text-xs text-stone-600">Catatan: {{ $a['decision_note'] }}</p>@endif
                         <p class="mt-2 text-xs text-stone-500">{{ $a['payment_label'] }} · Diajukan @tanggal($a['applied_at'])</p>
+                        @if ($a['status'] === 'diajukan')
+                            @can('kelola-pinjaman')
+                                <div class="mt-3 flex gap-2 border-t border-stone-100 pt-3">
+                                    <button type="button" wire:click="openDecision({{ $a['id'] }}, 'ditolak')" class="rounded-lg border border-stone-300 px-3 py-1.5 text-sm font-medium text-stone-700 hover:bg-stone-50">Tolak</button>
+                                    <button type="button" wire:click="openDecision({{ $a['id'] }}, 'disetujui')" class="ml-auto rounded-lg bg-emerald-700 px-4 py-1.5 text-sm font-semibold text-white hover:bg-emerald-800">Setujui</button>
+                                </div>
+                            @endcan
+                        @endif
                     </li>
                 @endforeach
             </ul>
@@ -78,4 +86,5 @@
     </div>
 
     @include('livewire.pinjaman.partials.application-form')
+    @include('livewire.pinjaman.partials.decision-dialog')
 </div>
