@@ -2,7 +2,9 @@
     $rp = fn ($n) => \App\Support\Rupiah::format($n);
     $cart = $this->cart;
     $b = $this->balances;
-    $total = $cart['total'];
+    $price = $this->price;
+    $total = $price['payable'];
+    $balanceTotal = $this->balanceTotal;
     $option = 'flex cursor-pointer items-start gap-3 rounded-xl border border-stone-300 bg-white px-4 py-3 has-checked:border-emerald-600 has-checked:bg-emerald-50 has-disabled:cursor-not-allowed has-disabled:opacity-50';
 @endphp
 <form wire:submit="place" class="space-y-5">
@@ -18,7 +20,15 @@
                 <li class="flex justify-between gap-3 py-2 text-sm" wire:key="co-{{ $l['id'] }}"><span>{{ $l['name'] }} <span class="text-stone-500">× {{ $l['qty'] }}</span></span><span class="tabular-nums">{{ $rp($l['subtotal']) }}</span></li>
             @endforeach
         </ul>
-        <div class="flex justify-between border-t border-stone-200 px-4 py-3 text-base font-semibold"><span>Total</span><span class="tabular-nums" data-total>{{ $rp($total) }}</span></div>
+        <dl class="space-y-1 border-t border-stone-200 px-4 py-3 text-sm">
+            @if ($price['tax'] || $price['rounding'] || $price['tax_included'])
+                <div class="flex justify-between"><dt class="text-stone-500">Subtotal</dt><dd class="tabular-nums">{{ $rp($price['subtotal']) }}</dd></div>
+            @endif
+            @if ($price['tax'])<div class="flex justify-between"><dt class="text-stone-500">{{ $price['tax_label'] }}</dt><dd class="tabular-nums">{{ $rp($price['tax']) }}</dd></div>@endif
+            @if ($price['rounding'])<div class="flex justify-between"><dt class="text-stone-500">Pembulatan</dt><dd class="tabular-nums">{{ $rp($price['rounding']) }}</dd></div>@endif
+            <div class="flex justify-between text-base font-semibold"><dt>Total</dt><dd class="tabular-nums" data-total>{{ $rp($total) }}</dd></div>
+            @if ($price['tax_included'])<p class="text-xs text-stone-500">Sudah termasuk {{ $price['tax_label'] }} {{ $rp($price['tax_included']) }}.</p>@endif
+        </dl>
         @error('cart') <p class="px-4 pb-3 text-sm text-red-700" role="alert">{{ $message }}</p> @enderror
     </section>
 
@@ -38,9 +48,9 @@
 
     <fieldset class="space-y-2">
         <legend class="mb-1 font-semibold">Pembayaran</legend>
-        <label class="{{ $option }}"><input type="radio" wire:model.live="payment" value="tabungan" @disabled($b['tabungan'] < $total) class="mt-1 accent-emerald-700">
-            <span><span class="block font-medium">{{ $payments['tabungan'] }}</span><span class="text-sm text-stone-500">Saldo {{ $rp($b['tabungan']) }}{{ $b['tabungan'] < $total ? ' — tidak cukup' : ' · langsung lunas' }}</span></span></label>
-        @php $enough = collect($b['simpanan'])->filter(fn ($t) => $t['balance'] >= $total); @endphp
+        <label class="{{ $option }}"><input type="radio" wire:model.live="payment" value="tabungan" @disabled($b['tabungan'] < $balanceTotal) class="mt-1 accent-emerald-700">
+            <span><span class="block font-medium">{{ $payments['tabungan'] }}</span><span class="text-sm text-stone-500">Saldo {{ $rp($b['tabungan']) }}{{ $b['tabungan'] < $balanceTotal ? ' — tidak cukup' : ' · langsung lunas' }}</span></span></label>
+        @php $enough = collect($b['simpanan'])->filter(fn ($t) => $t['balance'] >= $balanceTotal); @endphp
         <label class="{{ $option }}"><input type="radio" wire:model.live="payment" value="simpanan" @disabled($enough->isEmpty()) class="mt-1 accent-emerald-700">
             <span class="flex-1"><span class="block font-medium">{{ $payments['simpanan'] }}</span>
                 <span class="text-sm text-stone-500">{{ $b['simpanan'] ? collect($b['simpanan'])->map(fn ($t) => $t['name'].' '.$rp($t['balance']))->join(' · ') : 'Tidak ada simpanan yang bisa dipakai' }}</span>

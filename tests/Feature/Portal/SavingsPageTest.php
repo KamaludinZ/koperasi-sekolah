@@ -26,7 +26,7 @@ class SavingsPageTest extends TestCase
         app(SavingsService::class)->deposit($this->andi, 25000, 'Setoran awal');
         app(MemberSavingService::class)->deposit($this->andi, SavingType::where('code', 'POKOK')->first(), 50000);
         app(SavingsService::class)->deposit($budi, 99000, 'Punya Budi');
-        $this->actingAs($this->andi, 'member');
+        $this->actingAsMember($this->andi);
     }
 
     public function test_shows_only_own_balances_and_history(): void

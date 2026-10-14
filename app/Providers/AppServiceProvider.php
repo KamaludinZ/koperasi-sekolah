@@ -61,7 +61,7 @@ class AppServiceProvider extends ServiceProvider
 
         // Aksi Livewire (POST /livewire/update) ikut dicek dengan pembatas rute halaman asalnya.
         // Termasuk "can:" pada rute halaman (mis. form pengadaan khusus kelola-pengadaan).
-        Livewire::addPersistentMiddleware([EnsureMenuAccess::class, EnsureRole::class, \Illuminate\Auth\Middleware\Authorize::class]);
+        Livewire::addPersistentMiddleware([EnsureMenuAccess::class, EnsureRole::class, \Illuminate\Auth\Middleware\Authorize::class, \App\Http\Middleware\EnsurePortalMember::class]);
 
         // @can('menu', 'laporan') di view / Gate::allows('menu', 'laporan') di kode.
         Gate::define('menu', fn (User $user, string $menu) => $user->canOpen($menu));

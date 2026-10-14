@@ -24,7 +24,7 @@ class OrderTrackingTest extends TestCase
         parent::setUp();
         $this->seed(ProductSeeder::class);
         $this->andi = Member::factory()->create(['name' => 'Andi', 'password' => '246810']);
-        $this->actingAs($this->andi, 'member');
+        $this->actingAsMember($this->andi);
     }
 
     private function place(string $payment = 'tunai', ?Member $m = null): Order

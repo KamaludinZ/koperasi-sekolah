@@ -84,4 +84,15 @@ class LoginTest extends TestCase
         $this->assertNotSame('246810', $this->member->getAttributes()['password']);
         $this->assertArrayNotHasKey('password', $this->member->toArray());
     }
+
+    public function test_portal_does_not_switch_default_guard_and_kicks_deactivated_member(): void
+    {
+        $this->actingAsMember($this->member);
+        $this->get('/portal')->assertOk();
+        $this->assertNull(auth()->user()); // guard bawaan tetap milik petugas
+
+        $this->member->update(['is_active' => false]);
+        $this->get('/portal')->assertRedirect('/portal/masuk');
+        $this->assertFalse(Auth::guard('member')->check());
+    }
 }

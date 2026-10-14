@@ -54,6 +54,20 @@ class Checkout extends Component
         return PortalCart::summary();
     }
 
+    /** Rincian harga sesuai cara bayar terpilih (pajak & pembulatan seperti di kasir). */
+    #[Computed]
+    public function price(): array
+    {
+        return app(OrderService::class)->quote($this->cart['total'], $this->payment);
+    }
+
+    /** Total yang harus dibayar bila memakai saldo (non-tunai). */
+    #[Computed]
+    public function balanceTotal(): int
+    {
+        return app(OrderService::class)->quote($this->cart['total'], 'tabungan')['payable'];
+    }
+
     #[Computed]
     public function balances(): array
     {
@@ -69,7 +83,7 @@ class Checkout extends Component
     public function updatedPayment(): void
     {
         if ($this->payment === 'simpanan' && ! $this->savingTypeId) {
-            $this->savingTypeId = collect($this->balances['simpanan'])->firstWhere(fn ($t) => $t['balance'] >= $this->cart['total'])['id'] ?? null;
+            $this->savingTypeId = collect($this->balances['simpanan'])->firstWhere(fn ($t) => $t['balance'] >= $this->balanceTotal)['id'] ?? null;
         }
         $this->resetValidation(['payment', 'savingTypeId']);
     }

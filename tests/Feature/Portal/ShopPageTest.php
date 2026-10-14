@@ -19,7 +19,7 @@ class ShopPageTest extends TestCase
     {
         parent::setUp();
         $this->seed(ProductSeeder::class);
-        $this->actingAs(Member::factory()->create(), 'member');
+        $this->actingAsMember(Member::factory()->create());
     }
 
     public function test_catalog_search_and_category(): void
@@ -59,7 +59,7 @@ class ShopPageTest extends TestCase
         Product::whereKey($id)->update(['is_active' => false]);
         $this->assertSame(0, PortalCart::summary()['count']);
 
-        $this->actingAs(Member::factory()->create(), 'member');
+        $this->actingAsMember(Member::factory()->create());
         $this->assertSame([], PortalCart::items());
     }
 }

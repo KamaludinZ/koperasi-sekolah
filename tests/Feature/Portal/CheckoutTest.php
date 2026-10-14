@@ -31,7 +31,7 @@ class CheckoutTest extends TestCase
         $this->seed(ProductSeeder::class);
         $this->travelTo('2026-10-14 09:00:00');
         $this->andi = Member::factory()->create(['name' => 'Andi', 'class' => '7A', 'password' => '246810', 'joined_at' => '2026-10-01']);
-        $this->actingAs($this->andi, 'member');
+        $this->actingAsMember($this->andi);
         PortalCart::set($this->pid('ATK001'), 2); // 2 × Rp4.000
     }
 
@@ -55,6 +55,7 @@ class CheckoutTest extends TestCase
         $this->assertSame('menunggu', $order->statusLogs[0]->to_status);
         $this->assertSame([], PortalCart::items());
         $this->assertSame('anggota', ActivityLog::where('event', 'order.placed')->value('actor_role'));
+        $this->assertNull(\App\Models\StockMovement::where('note', 'Pesanan '.$order->code)->value('user_id')); // bukan id anggota
     }
 
     public function test_pay_with_tabungan_or_simpanan(): void
@@ -76,6 +77,18 @@ class CheckoutTest extends TestCase
         Livewire::test(Checkout::class)->set('payment', 'simpanan')->assertSet('savingTypeId', $sukarela->id)->call('place')->assertHasNoErrors();
         $entry = MemberSavingEntry::where('type', 'potong')->firstOrFail();
         $this->assertSame([3000, 7000, 'order'], [(int) $entry->amount, (int) $entry->balance_after, $entry->source_type]);
+    }
+
+    public function test_tax_and_cash_rounding_follow_settings(): void
+    {
+        app(\App\Services\SettingsService::class)->save('tax', ['enabled' => true, 'rate' => 11, 'included' => false, 'label' => 'PPN',
+            'rounding' => 'up', 'rounding_unit' => 500, 'cash_only' => true]);
+        // Rp8.000 + PPN 11% = Rp8.880 → tunai dibulatkan ke atas per Rp500 = Rp9.000
+        Livewire::test(Checkout::class)->set('payment', 'tunai')->assertSee('PPN')->assertSee('Rp880')->assertSee('Rp120')->assertSeeHtml('data-total>Rp9.000')
+            ->set('payment', 'qris')->assertSeeHtml('data-total>Rp8.880')
+            ->set('payment', 'tunai')->call('place')->assertHasNoErrors();
+        $o = Order::firstOrFail();
+        $this->assertSame([8000, 880, 120, 9000], [(int) $o->subtotal, (int) $o->tax, (int) $o->rounding, (int) $o->total]);
     }
 
     public function test_validation_stock_and_idempotency(): void

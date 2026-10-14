@@ -10,6 +10,7 @@ use App\Models\OrderStatusLog;
 use App\Models\Product;
 use App\Models\SavingsTransaction;
 use App\Models\SavingType;
+use App\Support\PriceCalculator;
 use App\Support\Rupiah;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Support\Facades\DB;
@@ -26,7 +27,21 @@ class OrderService
 
     public const MAX_QTY = 100;
 
-    public function __construct(private StockService $stock) {}
+    public function __construct(private StockService $stock, private SettingsService $settings) {}
+
+    /**
+     * Rincian harga pesanan dengan aturan pajak & pembulatan kasir (Pengaturan → Pajak). Pembulatan
+     * "hanya tunai" berlaku untuk bayar tunai; metode lain dianggap non-tunai.
+     *
+     * @return array{subtotal: int, tax: int, tax_included: int, total: int, rounding: int, payable: int, tax_label: ?string}
+     */
+    public function quote(int $subtotal, string $paymentMethod): array
+    {
+        $tax = $this->settings->tax();
+
+        return PriceCalculator::compute($subtotal, $tax, $paymentMethod === 'tunai' ? 'tunai' : 'nontunai')
+            + ['tax_label' => ($tax['enabled'] ?? false) ? ($tax['label'] ?? 'Pajak') : null];
+    }
 
     /**
      * @param  array<int, int>  $cart  [productId => qty]
@@ -71,13 +86,16 @@ class OrderService
                 $price = (int) round((float) $p->price);
                 $lines[] = ['product' => $p, 'qty' => $qty, 'price' => $price, 'subtotal' => $price * $qty];
             }
-            $total = array_sum(array_column($lines, 'subtotal'));
+            $subtotal = array_sum(array_column($lines, 'subtotal'));
+            $price = $this->quote($subtotal, $choice['payment_method']);
+            $total = $price['payable'];
 
             $order = $this->createWithCode([
                 'member_id' => $locked->id, 'status' => 'menunggu',
                 'fulfillment' => $choice['fulfillment'], 'delivery_to' => $choice['delivery_to'],
                 'payment_method' => $choice['payment_method'], 'saving_type_id' => $choice['saving_type_id'], 'payment_status' => 'belum',
-                'subtotal' => $total, 'discount' => 0, 'total' => $total, 'item_count' => array_sum(array_column($lines, 'qty')),
+                'subtotal' => $subtotal, 'discount' => 0, 'tax' => $price['tax'], 'tax_included' => $price['tax_included'], 'rounding' => $price['rounding'],
+                'total' => $total, 'item_count' => array_sum(array_column($lines, 'qty')),
                 'note' => $choice['note'], 'client_ref' => $clientRef,
             ]);
             foreach ($lines as $l) {

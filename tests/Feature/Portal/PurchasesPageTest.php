@@ -32,7 +32,7 @@ class PurchasesPageTest extends TestCase
             ->create(['member_id' => $this->andi->id, 'invoice_number' => 'INV-20261011-0001', 'voided_at' => now(), 'void_reason' => 'Salah input']);
         Transaction::factory()->withItems([$this->pid('ATK001') => 1])->at('2026-01-05 08:00:00')->create(['member_id' => $this->andi->id, 'invoice_number' => 'INV-20260105-0001']);
         $this->other = Transaction::factory()->withItems([$this->pid('ATK003') => 1])->at('2026-10-12 08:00:00')->create(['member_id' => $budi->id, 'invoice_number' => 'INV-20261012-0001']);
-        $this->actingAs($this->andi, 'member');
+        $this->actingAsMember($this->andi);
     }
 
     public function test_lists_own_transactions_with_status(): void

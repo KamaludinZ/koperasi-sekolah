@@ -99,7 +99,7 @@ Route::get('/masuk', Login::class)->name('login');
 
 // Portal anggota (guard `member`, terpisah dari petugas).
 Route::get('/portal/masuk', \App\Livewire\Portal\Login::class)->middleware('guest:member')->name('portal.login');
-Route::middleware('auth:member')->group(function () {
+Route::middleware('portal')->group(function () { // bukan auth:member — guard bawaan tetap milik petugas
     Route::get('/portal', \App\Livewire\Portal\Home::class)->name('portal');
     Route::get('/portal/simpanan', \App\Livewire\Portal\Savings::class)->name('portal.simpanan');
     Route::get('/portal/riwayat', \App\Livewire\Portal\Purchases::class)->name('portal.riwayat');

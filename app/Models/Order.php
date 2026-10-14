@@ -18,11 +18,11 @@ class Order extends Model
     public const PAYMENT_STATUSES = ['belum' => 'Belum dibayar', 'lunas' => 'Lunas', 'dikembalikan' => 'Dikembalikan'];
 
     protected $fillable = ['code', 'member_id', 'status', 'fulfillment', 'delivery_to', 'payment_method', 'saving_type_id', 'payment_status',
-        'subtotal', 'discount', 'total', 'item_count', 'note', 'cancel_reason', 'transaction_id', 'client_ref', 'paid_at', 'completed_at'];
+        'subtotal', 'discount', 'tax', 'tax_included', 'rounding', 'total', 'item_count', 'note', 'cancel_reason', 'transaction_id', 'client_ref', 'paid_at', 'completed_at'];
 
     protected function casts(): array
     {
-        return ['subtotal' => 'decimal:2', 'discount' => 'decimal:2', 'total' => 'decimal:2', 'item_count' => 'integer',
+        return ['subtotal' => 'decimal:2', 'discount' => 'decimal:2', 'tax' => 'decimal:2', 'tax_included' => 'decimal:2', 'rounding' => 'decimal:2', 'total' => 'decimal:2', 'item_count' => 'integer',
             'paid_at' => 'datetime', 'completed_at' => 'datetime'];
     }
 

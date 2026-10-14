@@ -27,6 +27,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'menu' => \App\Http\Middleware\EnsureMenuAccess::class,
             'peran' => \App\Http\Middleware\EnsureRole::class,
+            'portal' => \App\Http\Middleware\EnsurePortalMember::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

@@ -26,6 +26,17 @@ abstract class TestCase extends BaseTestCase
     }
 
     /** Masuk sebagai akun demo peran tertentu (admin, kasir, pengurus) atau email tertentu. */
+    /** Masuk portal sebagai anggota tanpa mengganti guard bawaan (sama seperti middleware `portal`). */
+    protected function actingAsMember(\App\Models\Member $member): static
+    {
+        if (blank($member->getAttributes()['password'] ?? null)) {
+            $member->forceFill(['password' => 'rahasia123'])->save(); // akses portal butuh kata sandi
+        }
+        $this->app['auth']->guard('member')->setUser($member);
+
+        return $this;
+    }
+
     protected function loginAs(string $roleOrEmail): User
     {
         $this->seed(UserSeeder::class);
