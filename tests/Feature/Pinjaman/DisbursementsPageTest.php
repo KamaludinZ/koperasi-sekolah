@@ -21,14 +21,14 @@ class DisbursementsPageTest extends TestCase
         Loan::factory()->create(['code' => 'PJM-2026-0001', 'status' => 'disetujui', 'decided_at' => '2026-10-10 09:00:00']);
         Loan::factory()->create(['code' => 'PJM-2026-0003']); // diajukan: belum siap
         $run = Loan::factory()->running()->create(['code' => 'PJM-2026-0009', 'principal' => 700000, 'interest' => 0, 'outstanding' => 700000]);
-        LoanDisbursement::create(['loan_id' => $run->id, 'disbursed_on' => '2026-10-01', 'amount' => 700000, 'proof' => 'Kuitansi 88', 'proof_file' => 'x.jpg']);
+        LoanDisbursement::create(['loan_id' => $run->id, 'disbursed_on' => '2026-10-01', 'amount' => 700000, 'proof' => 'Kuitansi 88', 'proof_file' => 'pinjaman/bukti/x.jpg']);
 
         $this->get('/pinjaman/pencairan')->assertOk()->assertSee('Pencairan Pinjaman')
             ->assertSeeInOrder(['data-ready="PJM-2026-0001"', 'data-ready="PJM-2026-0002"'], false) // terlama disetujui dulu
             ->assertSee('Bu Sari')->assertSee('Rp1.500.000')->assertSee('Cair awal bulan')
             ->assertDontSee('data-ready="PJM-2026-0003"', false)
             ->assertSee('data-disbursement="PJM-2026-0009"', false)->assertSee('Kuitansi 88')->assertSee('ada lampiran')
-            ->assertDontSee('x.jpg');
+            ->assertDontSee('pinjaman/bukti/x.jpg');
     }
 
     public function test_empty_states_nav_and_detail_banner(): void

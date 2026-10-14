@@ -23,7 +23,7 @@ class LoanSchemaTest extends TestCase
         $this->assertTrue(Schema::hasColumns('loans', ['code', 'member_id', 'principal', 'interest', 'tenor_months', 'payment_method', 'status',
             'purpose', 'decision_note', 'outstanding', 'applied_at', 'decided_at', 'decided_by', 'cancelled_at', 'cancelled_by', 'cancel_reason',
             'disbursed_at', 'paid_off_at', 'created_by']));
-        $this->assertTrue(Schema::hasColumns('loan_disbursements', ['loan_id', 'disbursed_on', 'amount', 'proof', 'proof_file', 'user_id']));
+        $this->assertTrue(Schema::hasColumns('loan_disbursements', ['loan_id', 'disbursed_on', 'amount', 'proof', 'proof_file', 'proof_mime', 'proof_size', 'user_id']));
         $this->assertTrue(Schema::hasColumns('loan_installments', ['loan_id', 'sequence', 'due_date', 'amount', 'paid_amount', 'paid_at',
             'payment_method', 'status', 'note', 'user_id']));
     }
@@ -120,5 +120,28 @@ class LoanSchemaTest extends TestCase
         DB::table('loan_installments')->where('id', $inst->id)->update(['status' => 'dibayar', 'paid_amount' => 55000, 'paid_at' => today()]);
         DB::table('loans')->where('id', $loan->id)->update(['outstanding' => 55000]);
         $this->assertSame('dibayar', $inst->fresh()->status);
+    }
+
+    public function test_one_disbursement_per_loan_and_proof_path_guard(): void
+    {
+        $loan = Loan::factory()->running()->create(['principal' => 100000, 'interest' => 0, 'outstanding' => 100000, 'tenor_months' => 1]);
+        \App\Models\LoanDisbursement::create(['loan_id' => $loan->id, 'disbursed_on' => today(), 'amount' => 100000]);
+        try {
+            DB::transaction(fn () => \App\Models\LoanDisbursement::create(['loan_id' => $loan->id, 'disbursed_on' => today(), 'amount' => 100000]));
+            $this->fail('Pencairan kedua untuk pinjaman yang sama harus ditolak.');
+        } catch (QueryException) {
+            $this->assertSame(1, $loan->disbursements()->count());
+        }
+
+        if (DB::getDriverName() === 'pgsql') {
+            foreach (['../../.env', 'pinjaman/bukti/../../x.jpg', 'lain/x.jpg'] as $path) {
+                try {
+                    DB::transaction(fn () => DB::table('loan_disbursements')->where('loan_id', $loan->id)->update(['proof_file' => $path]));
+                    $this->fail("Path {$path} harus ditolak.");
+                } catch (QueryException) {
+                }
+            }
+            DB::table('loan_disbursements')->where('loan_id', $loan->id)->update(['proof_file' => 'pinjaman/bukti/ok.jpg', 'proof_size' => 10]);
+        }
     }
 }

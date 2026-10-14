@@ -103,12 +103,15 @@ class Show extends Component
         ], collect(LoanDisbursementService::messages($loan))->mapWithKeys(fn ($m, $k) => [str_replace('disbursed_on', 'disbursedOn', $k) => $m])->all()
             + \App\Services\UploadPolicy::proofMessages('proofFile'));
 
-        $path = $this->proofFile ? LoanDisbursementService::storeProof($this->proofFile) : null;
+        $file = $this->proofFile ? LoanDisbursementService::storeProof($this->proofFile) : null;
         try {
-            $loan = app(LoanDisbursementService::class)->disburse($loan, ['disbursed_on' => $data['disbursedOn'], 'amount' => $data['amount'], 'proof' => $data['proof'] ?? null], auth()->id(), $path);
-        } catch (ValidationException $e) {
-            if ($path) {
-                \Illuminate\Support\Facades\Storage::disk('local')->delete($path); // pencairan batal → berkas tidak tertinggal
+            $loan = app(LoanDisbursementService::class)->disburse($loan, ['disbursed_on' => $data['disbursedOn'], 'amount' => $data['amount'], 'proof' => $data['proof'] ?? null], auth()->id(), $file);
+        } catch (\Throwable $e) {
+            if ($file) {
+                \Illuminate\Support\Facades\Storage::disk('local')->delete($file['proof_file']); // pencairan batal → berkas tidak tertinggal
+            }
+            if (! $e instanceof ValidationException) {
+                throw $e;
             }
             $errors = $e->errors();
             if (isset($errors['loan'])) { // status berubah di tempat lain: tutup form & tampilkan alasannya
@@ -163,8 +166,8 @@ class Show extends Component
         }
         $this->validate(['attachProof' => ['nullable', 'string', 'max:200'], 'attachFile' => \App\Services\UploadPolicy::proofRules()],
             ['attachProof.max' => 'Keterangan bukti maksimal 200 karakter.'] + \App\Services\UploadPolicy::proofMessages('attachFile'));
-        $path = $this->attachFile ? LoanDisbursementService::storeProof($this->attachFile) : null;
-        app(LoanDisbursementService::class)->attachProof($d, $this->attachProof, $path);
+        $file = $this->attachFile ? LoanDisbursementService::storeProof($this->attachFile) : null;
+        app(LoanDisbursementService::class)->attachProof($d, $this->attachProof, $file);
 
         $this->attachingId = null;
         $this->attachFile = null;

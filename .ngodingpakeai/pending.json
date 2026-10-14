@@ -1,6 +1,6 @@
 {
   "repo": "Koperasi Sekolah",
-  "generatedForCommit": "b551baaf0802f317490182175340b9a0f96c4dcf",
+  "generatedForCommit": "0a1aa3532d76b696970efcdf1282a2f1fef6c727",
   "files": [
     {
       "path": ".claude/skills/ngodingpakeai/SKILL.md",
@@ -136,7 +136,7 @@
     },
     {
       "path": "app/Http/Controllers/Pinjaman/LoanApplicationController.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 6746
     },
@@ -202,9 +202,9 @@
     },
     {
       "path": "app/Livewire/Forms/LoanApplicationForm.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 4172
+      "size": 4359
     },
     {
       "path": "app/Livewire/Forms/UserForm.php",
@@ -256,9 +256,9 @@
     },
     {
       "path": "app/Livewire/Pinjaman/Applications.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 10638
+      "size": 10726
     },
     {
       "path": "app/Livewire/Pinjaman/Disbursements.php",
@@ -292,9 +292,9 @@
     },
     {
       "path": "app/Models/Loan.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 3166
+      "size": 4591
     },
     {
       "path": "app/Models/LoanDisbursement.php",
@@ -328,9 +328,9 @@
     },
     {
       "path": "app/Services/LoanApplicationService.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 12635
+      "size": 13609
     },
     {
       "path": "app/Services/LoanDisbursementService.php",
@@ -922,9 +922,9 @@
     },
     {
       "path": "database/seeders/LoanSeeder.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 4368
+      "size": 4512
     },
     {
       "path": "database/seeders/NotificationSeeder.php",
@@ -1984,7 +1984,7 @@
     },
     {
       "path": "routes/web.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 45674
     },
@@ -2362,15 +2362,15 @@
     },
     {
       "path": "tests/Feature/Pinjaman/EditCancelEndpointTest.php",
-      "reason": "new",
+      "reason": "changed",
       "language": "php",
-      "size": 4542
+      "size": 4621
     },
     {
       "path": "tests/Feature/Pinjaman/EditCancelTest.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 8474
+      "size": 8553
     },
     {
       "path": "tests/Feature/Pinjaman/LoanDetailEndpointTest.php",
@@ -2389,6 +2389,12 @@
       "reason": "needs_summary",
       "language": "php",
       "size": 3693
+    },
+    {
+      "path": "tests/Feature/Pinjaman/StatusTransitionTest.php",
+      "reason": "new",
+      "language": "php",
+      "size": 3708
     },
     {
       "path": "tests/Feature/Services/TanggalTest.php",

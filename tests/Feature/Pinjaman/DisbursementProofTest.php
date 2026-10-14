@@ -43,6 +43,8 @@ class DisbursementProofTest extends TestCase
         $this->assertMatchesRegularExpression('#^pinjaman/bukti/[A-Za-z0-9]{40}\.jpg$#', $d->proof_file);
         Storage::disk('local')->assertExists($d->proof_file);
         $this->assertStringNotContainsString('serah-terima', $d->proof_file); // nama asli tidak dipakai
+        $this->assertSame('image/jpeg', $d->proof_mime);
+        $this->assertGreaterThan(0, $d->proof_size);
 
         $res = $this->get(route('pinjaman.pencairan.bukti', $d))->assertOk()->assertHeader('X-Content-Type-Options', 'nosniff');
         $this->assertStringContainsString('attachment; filename=bukti-pencairan-PJM-2026-0001.jpg', $res->headers->get('Content-Disposition'));
@@ -95,10 +97,21 @@ class DisbursementProofTest extends TestCase
 
     public function test_download_guards(): void
     {
-        $d = LoanDisbursement::create(['loan_id' => $this->loan->id, 'disbursed_on' => '2026-10-14', 'amount' => 600000, 'proof_file' => '../../.env']);
-        $this->get(route('pinjaman.pencairan.bukti', $d))->assertNotFound();
-        $d->update(['proof_file' => 'pinjaman/bukti/../../x.jpg']);
-        $this->get(route('pinjaman.pencairan.bukti', $d))->assertNotFound();
+        $d = LoanDisbursement::create(['loan_id' => $this->loan->id, 'disbursed_on' => '2026-10-14', 'amount' => 600000]);
+        // Path keluar folder bukti: di PostgreSQL ditolak CHECK; di mana pun controller tetap menolak (404).
+        foreach (['../../.env', 'pinjaman/bukti/../../x.jpg'] as $bad) {
+            if (\Illuminate\Support\Facades\DB::getDriverName() === 'pgsql') {
+                try {
+                    \Illuminate\Support\Facades\DB::transaction(fn () => $d->update(['proof_file' => $bad]));
+                    $this->fail("Path {$bad} harus ditolak database.");
+                } catch (\Illuminate\Database\QueryException) {
+                }
+                $d->refresh();
+                continue;
+            }
+            $d->update(['proof_file' => $bad]);
+            $this->get(route('pinjaman.pencairan.bukti', $d))->assertNotFound();
+        }
 
         Storage::disk('local')->put('pinjaman/bukti/ok.jpg', 'x');
         $d->update(['proof_file' => 'pinjaman/bukti/ok.jpg']);

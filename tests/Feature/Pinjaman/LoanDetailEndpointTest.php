@@ -22,7 +22,7 @@ class LoanDetailEndpointTest extends TestCase
         $member = Member::factory()->teacher()->create(['name' => 'Bu Sari', 'phone' => '0812-0000-1111']);
         $this->loan = Loan::factory()->running()->create(['code' => 'PJM-2026-0007', 'member_id' => $member->id, 'principal' => 900000, 'interest' => 45000,
             'outstanding' => 630000, 'tenor_months' => 3, 'disbursed_at' => '2026-03-10', 'payment_method' => 'potong_gaji']);
-        LoanDisbursement::create(['loan_id' => $this->loan->id, 'disbursed_on' => '2026-03-10', 'amount' => 900000, 'proof' => 'Kuitansi 12', 'proof_file' => 'pinjaman/bukti.jpg']);
+        LoanDisbursement::create(['loan_id' => $this->loan->id, 'disbursed_on' => '2026-03-10', 'amount' => 900000, 'proof' => 'Kuitansi 12', 'proof_file' => 'pinjaman/bukti/rahasia123.jpg']);
         // ke-1 dibayar; ke-2 dibayar sebagian & lewat 10 hari; ke-3 jatuh tempo hari ini (belum terlambat)
         LoanInstallment::create(['loan_id' => $this->loan->id, 'sequence' => 1, 'due_date' => '2026-04-10', 'amount' => 315000, 'paid_amount' => 315000,
             'paid_at' => '2026-04-09', 'payment_method' => 'potong_gaji', 'status' => 'dibayar']);
@@ -46,7 +46,7 @@ class LoanDetailEndpointTest extends TestCase
         $this->assertSame([false, true, false], array_column($rows, 'late')); // jatuh tempo hari ini belum terlambat
         $this->assertSame([0, 10, 0], array_column($rows, 'days_late'));
         $this->assertSame([0, 215000, 315000], array_column($rows, 'remaining'));
-        $this->assertStringNotContainsString('pinjaman/bukti.jpg', $res->getContent()); // path berkas tidak dibocorkan
+        $this->assertStringNotContainsString('rahasia123', $res->getContent()); // path berkas tidak dibocorkan
     }
 
     public function test_installments_endpoint_filters(): void
