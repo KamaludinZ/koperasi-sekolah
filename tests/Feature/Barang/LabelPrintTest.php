@@ -95,4 +95,21 @@ class LabelPrintTest extends TestCase
         $this->get('/barang/barcode/label/cetak?barang=abc')->assertSessionHasErrors('barang');
         $this->get('/barang/barcode/label')->assertOk()->assertSee('Belum ada barang');
     }
+
+    public function test_pdf_download(): void
+    {
+        $a = $this->pid('ATK001');
+        $res = $this->get("/barang/barcode/label/unduh?barang={$a}:30&format=a4-3x8")->assertOk()->assertHeader('Content-Type', 'application/pdf');
+        $pdf = $res->getContent();
+        $this->assertStringStartsWith('%PDF', $pdf);
+        $this->assertSame(2, preg_match_all('#/Type\s*/Page[^s]#', $pdf));
+        $this->assertStringContainsString('label-barcode-a4-3x8-', $res->headers->get('Content-Disposition'));
+
+        $thermal = $this->get("/barang/barcode/label/unduh?barang={$a}:3&format=thermal-50x30")->assertOk()->getContent();
+        $this->assertSame(3, preg_match_all('#/Type\s*/Page[^s]#', $thermal));
+        $this->assertSame(1, preg_match('#/MediaBox \[0\.000 0\.000 141\.7\d+ 85\.0#', $thermal), 'Ukuran halaman 50×30 mm'); // ≈ 141,7 × 85 pt
+
+        $this->get('/barang/barcode/label/unduh?barang=999999')->assertStatus(422);
+        Livewire::withQueryParams(['barang' => "{$a}:2"])->test(Labels::class)->assertSee('data-pdf-labels', false)->assertSee('label/unduh', false);
+    }
 }

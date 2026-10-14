@@ -1,6 +1,6 @@
 {
   "repo": "Koperasi Sekolah",
-  "generatedForCommit": "f2022698e8f5110c519a2add506c69dc85111a2d",
+  "generatedForCommit": "bb3f8abe1bf65c943516fda0b53ec1e1b357d1fc",
   "files": [
     {
       "path": ".claude/skills/ngodingpakeai/SKILL.md",
@@ -112,7 +112,7 @@
     },
     {
       "path": "app/Http/Controllers/Barang/BarcodeController.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 2946
     },
@@ -226,9 +226,9 @@
     },
     {
       "path": "app/Http/Controllers/Kasir/ProductSearchController.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 1458
+      "size": 1486
     },
     {
       "path": "app/Http/Controllers/Kasir/TransactionReceiptController.php",
@@ -1354,9 +1354,9 @@
     },
     {
       "path": "app/Services/ProductCatalog.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 3389
+      "size": 3699
     },
     {
       "path": "app/Services/ProductImportService.php",
@@ -3412,7 +3412,7 @@
     },
     {
       "path": "tests/Feature/Barang/BarcodeEndpointTest.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 3274
     },
@@ -3427,6 +3427,12 @@
       "reason": "needs_summary",
       "language": "php",
       "size": 1745
+    },
+    {
+      "path": "tests/Feature/Barang/BarcodeResourceTest.php",
+      "reason": "new",
+      "language": "php",
+      "size": 1479
     },
     {
       "path": "tests/Feature/Barang/BarcodesPageTest.php",

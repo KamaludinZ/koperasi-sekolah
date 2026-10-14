@@ -106,6 +106,7 @@
                 @endif
                 @if ($url = $this->printUrl)
                     <a href="{{ $url }}" target="_blank" rel="noopener" data-print-labels class="mt-4 block rounded-xl bg-emerald-700 px-4 py-2.5 text-center text-sm font-semibold text-white hover:bg-emerald-800">Cetak label</a>
+                    <a href="{{ $this->pdfUrl }}" data-pdf-labels class="mt-2 block rounded-xl border border-stone-300 px-4 py-2.5 text-center text-sm font-medium text-stone-700 hover:bg-stone-50">Unduh PDF</a>
                 @else
                     <span class="mt-4 block cursor-not-allowed rounded-xl bg-emerald-700 px-4 py-2.5 text-center text-sm font-semibold text-white opacity-50">Cetak label</span>
                 @endif

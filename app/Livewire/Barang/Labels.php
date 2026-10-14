@@ -95,6 +95,15 @@ class Labels extends Component
         ]) : null;
     }
 
+    #[Computed]
+    public function pdfUrl(): ?string
+    {
+        return $this->items ? route('barang.label.pdf', [
+            'barang' => LabelFormats::encodeItems($this->items), 'format' => $this->format,
+            'nama' => (int) $this->showName, 'harga' => (int) $this->showPrice,
+        ]) : null;
+    }
+
     public function updated(string $property): void
     {
         if (str_starts_with($property, 'rows')) {
@@ -105,7 +114,7 @@ class Labels extends Component
         if ($property === 'format' && ! array_key_exists($this->format, LabelFormats::FORMATS)) {
             $this->format = LabelFormats::DEFAULT;
         }
-        unset($this->products, $this->items, $this->sheet, $this->printUrl);
+        unset($this->products, $this->items, $this->sheet, $this->printUrl, $this->pdfUrl);
         $this->previewTo($this->previewPage);
     }
 
@@ -122,14 +131,14 @@ class Labels extends Component
         $i = array_search($id, array_column($this->rows, 'id'), true);
         $i === false ? $this->rows[] = ['id' => $id, 'copies' => 1] : $this->rows[$i]['copies']++;
         $this->search = '';
-        unset($this->products, $this->items, $this->sheet, $this->printUrl);
+        unset($this->products, $this->items, $this->sheet, $this->printUrl, $this->pdfUrl);
     }
 
     public function remove(int $index): void
     {
         unset($this->rows[$index]);
         $this->rows = array_values($this->rows);
-        unset($this->products, $this->items, $this->sheet, $this->printUrl);
+        unset($this->products, $this->items, $this->sheet, $this->printUrl, $this->pdfUrl);
     }
 
     /** Bagi satu lembar rata ke semua barang: salinan = label per lembar / jumlah barang (min. 1). */
@@ -140,13 +149,13 @@ class Labels extends Component
         foreach ($this->rows as $i => $r) {
             $this->rows[$i]['copies'] = max(1, intdiv($per, $n));
         }
-        unset($this->items, $this->sheet, $this->printUrl);
+        unset($this->items, $this->sheet, $this->printUrl, $this->pdfUrl);
     }
 
     public function clear(): void
     {
         $this->rows = [];
-        unset($this->products, $this->items, $this->sheet, $this->printUrl);
+        unset($this->products, $this->items, $this->sheet, $this->printUrl, $this->pdfUrl);
     }
 
     public function render()
