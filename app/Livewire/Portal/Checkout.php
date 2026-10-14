@@ -67,6 +67,28 @@ class Checkout extends Component
         return app(OrderService::class)->quote($this->cart['total'], $this->payment);
     }
 
+    /**
+     * Rincian potong saldo untuk pilihan bayar saat ini (null bila bukan potong saldo):
+     * sumber, saldo sebelum/sesudah, kekurangan.
+     */
+    #[Computed]
+    public function deduction(): ?array
+    {
+        if (! in_array($this->payment, ['tabungan', 'simpanan'], true)) {
+            return null;
+        }
+        $b = $this->balances;
+        [$source, $before] = $this->payment === 'tabungan'
+            ? ['Tabungan', $b['tabungan']]
+            : (($t = collect($b['simpanan'])->firstWhere('id', $this->savingTypeId)) ? [$t['name'], $t['balance']] : [null, 0]);
+        if ($source === null) {
+            return null;
+        }
+        $total = $this->balanceTotal;
+
+        return ['source' => $source, 'before' => $before, 'amount' => $total, 'after' => $before - $total, 'short' => max(0, $total - $before)];
+    }
+
     /** Total yang harus dibayar bila memakai saldo (non-tunai). */
     #[Computed]
     public function balanceTotal(): int

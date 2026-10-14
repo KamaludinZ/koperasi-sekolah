@@ -91,6 +91,14 @@ class CheckoutTest extends TestCase
         $this->assertSame([8000, 880, 120, 9000], [(int) $o->subtotal, (int) $o->tax, (int) $o->rounding, (int) $o->total]);
     }
 
+    public function test_deduction_preview_before_after(): void
+    {
+        app(SavingsService::class)->deposit($this->andi, 20000);
+        Livewire::test(Checkout::class)->assertDontSee('data-deduction', false)
+            ->set('payment', 'tabungan')->assertSee('data-deduction', false)->assertSee('Saldo Tabungan')->assertSee('−Rp8.000')
+            ->assertSeeHtml('data-after>Rp12.000')->assertSee('tanpa menunggu persetujuan pengurus');
+    }
+
     public function test_validation_stock_and_idempotency(): void
     {
         Livewire::test(Checkout::class)->set('fulfillment', 'antar')->set('deliveryTo', '')->set('pin', '123456')->call('place')->assertHasErrors('deliveryTo');

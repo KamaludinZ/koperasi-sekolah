@@ -76,6 +76,20 @@
                 <figcaption class="mt-2 text-sm text-stone-600">Bayar tepat <strong class="tabular-nums">{{ $rp($total) }}</strong></figcaption>
             </figure>
         @endif
+        @if ($d = $this->deduction)
+            <div @class(['rounded-xl border px-4 py-3 text-sm', 'border-emerald-200 bg-emerald-50' => ! $d['short'], 'border-red-200 bg-red-50' => $d['short']]) data-deduction>
+                <dl class="space-y-1">
+                    <div class="flex justify-between"><dt class="text-stone-600">Saldo {{ $d['source'] }}</dt><dd class="tabular-nums">{{ $rp($d['before']) }}</dd></div>
+                    <div class="flex justify-between"><dt class="text-stone-600">Dipotong</dt><dd class="tabular-nums">−{{ $rp($d['amount']) }}</dd></div>
+                    <div class="flex justify-between border-t border-stone-200 pt-1 font-semibold">
+                        <dt>{{ $d['short'] ? 'Kurang' : 'Saldo setelah bayar' }}</dt>
+                        <dd @class(['tabular-nums', 'text-red-700' => $d['short']]) data-after>{{ $rp($d['short'] ?: $d['after']) }}</dd>
+                    </div>
+                </dl>
+                <p class="mt-2 text-xs {{ $d['short'] ? 'text-red-800' : 'text-emerald-900' }}">
+                    {{ $d['short'] ? 'Saldo tidak cukup — pilih cara bayar lain.' : 'Langsung diproses tanpa menunggu persetujuan pengurus; pesanan otomatis lunas.' }}</p>
+            </div>
+        @endif
         @error('payment') <p class="text-sm text-red-700" role="alert">{{ $message }}</p> @enderror
     </fieldset>
 
