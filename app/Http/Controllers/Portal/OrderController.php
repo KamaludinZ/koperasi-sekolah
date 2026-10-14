@@ -13,7 +13,8 @@ use Illuminate\Validation\Rule;
 
 /**
  * POST /portal/pesanan (JSON, wajib masuk portal)
- * {items: [{product_id, quantity}], fulfillment, delivery_to?, payment_method, saving_type_id?, note?}
+ * {items: [{product_id, quantity}] | dari_keranjang: true, fulfillment, delivery_to?, payment_method, saving_type_id?, note?}
+ * Dengan `dari_keranjang`, isi diambil dari keranjang sesi (/portal/keranjang) dan dikosongkan setelah berhasil.
  * Wajib token PIN sekali pakai (header X-Pin-Token atau pin_token) dari POST /portal/pin/verifikasi.
  * Header Idempotency-Key mencegah pesanan dobel (kunci sama → pesanan yang sama, 200).
  */
@@ -38,8 +39,10 @@ class OrderController extends Controller
 
     public function store(Request $request, OrderService $orders, PortalPinService $pins): JsonResponse
     {
+        $fromCart = $request->boolean('dari_keranjang');
         $data = $request->validate([
-            'items' => ['required', 'array', 'min:1', 'max:'.OrderService::MAX_LINES],
+            'dari_keranjang' => ['nullable', 'boolean'],
+            'items' => [$fromCart ? 'prohibited' : 'required', 'array', 'min:1', 'max:'.OrderService::MAX_LINES],
             'items.*.product_id' => ['required', 'integer', 'distinct'],
             'items.*.quantity' => ['required', 'integer', 'min:1', 'max:'.OrderService::MAX_QTY],
             'fulfillment' => ['required', Rule::in(array_keys(Order::FULFILLMENTS))],
@@ -62,7 +65,11 @@ class OrderController extends Controller
             return response()->json(['message' => 'Verifikasi PIN dulu sebelum mengirim pesanan.', 'errors' => ['pin' => ['PIN belum diverifikasi atau sudah kedaluwarsa.']]], 403);
         }
 
-        $order = $orders->place($member, collect($data['items'])->pluck('quantity', 'product_id')->all(), $data, $ref);
+        $cart = $fromCart ? \App\Support\PortalCart::items() : collect($data['items'])->pluck('quantity', 'product_id')->all();
+        $order = $orders->place($member, $cart, $data, $ref);
+        if ($fromCart) {
+            \App\Support\PortalCart::clear(); // pesanan dibuat dari keranjang → keranjang dikosongkan
+        }
 
         return response()->json(['data' => OrderService::toArray($order), 'replayed' => false], 201);
     }

@@ -1,6 +1,6 @@
 {
   "repo": "Koperasi Sekolah",
-  "generatedForCommit": "a7b09feb66b2ca229199d02f6f944185baeb442b",
+  "generatedForCommit": "24d7a2ad8ecd6f559d2d13b67822468da80df085",
   "files": [
     {
       "path": ".claude/skills/ngodingpakeai/SKILL.md",
@@ -321,6 +321,12 @@
       "size": 1699
     },
     {
+      "path": "app/Http/Controllers/Portal/HistoryController.php",
+      "reason": "new",
+      "language": "php",
+      "size": 4479
+    },
+    {
       "path": "app/Http/Controllers/Portal/OrderController.php",
       "reason": "needs_summary",
       "language": "php",
@@ -340,7 +346,7 @@
     },
     {
       "path": "app/Http/Controllers/Simpanan/MemberSavingController.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 5571
     },
@@ -3360,7 +3366,7 @@
       "path": "routes/web.php",
       "reason": "changed",
       "language": "php",
-      "size": 40946
+      "size": 41391
     },
     {
       "path": "tests/Concerns/MakesProductImports.php",
@@ -4359,6 +4365,12 @@
       "size": 7997
     },
     {
+      "path": "tests/Feature/Portal/HistoryEndpointTest.php",
+      "reason": "new",
+      "language": "php",
+      "size": 3058
+    },
+    {
       "path": "tests/Feature/Portal/LoginTest.php",
       "reason": "needs_summary",
       "language": "php",
@@ -4456,7 +4468,7 @@
     },
     {
       "path": "tests/Feature/Simpanan/SavingBalanceEndpointTest.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 4373
     },

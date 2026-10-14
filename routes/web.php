@@ -115,6 +115,9 @@ Route::middleware('portal')->group(function () { // bukan auth:member — guard 
     Route::get('/portal/pin/status', [\App\Http\Controllers\Portal\PinController::class, 'status'])->name('portal.pin.status');
     Route::post('/portal/pesanan/{order}/bayar-saldo', [\App\Http\Controllers\Portal\OrderController::class, 'payWithBalance'])
         ->whereNumber('order')->middleware('throttle:20,1')->name('portal.pesanan.bayar-saldo');
+    Route::get('/portal/keranjang', [\App\Http\Controllers\Portal\CartController::class, 'show'])->name('portal.keranjang');
+    Route::put('/portal/keranjang', [\App\Http\Controllers\Portal\CartController::class, 'update'])->middleware('throttle:120,1')->name('portal.keranjang.update');
+    Route::delete('/portal/keranjang', [\App\Http\Controllers\Portal\CartController::class, 'clear'])->name('portal.keranjang.clear');
     Route::post('/portal/pesanan', [\App\Http\Controllers\Portal\OrderController::class, 'store'])->middleware('throttle:20,1')->name('portal.pesanan.store');
     Route::post('/portal/pin/verifikasi', [\App\Http\Controllers\Portal\PinController::class, 'verify'])->middleware('throttle:20,1')->name('portal.pin.verify');
     Route::get('/portal/riwayat', \App\Livewire\Portal\Purchases::class)->name('portal.riwayat');

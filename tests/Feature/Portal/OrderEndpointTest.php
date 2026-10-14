@@ -100,4 +100,24 @@ class OrderEndpointTest extends TestCase
         auth('member')->logout();
         $this->getJson('/portal/potong-saldo')->assertUnauthorized();
     }
+
+    public function test_cart_endpoints_and_order_from_cart(): void
+    {
+        Product::whereKey($this->pid('ATK001'))->update(['stock' => 3]);
+        $this->putJson('/portal/keranjang', ['product_id' => $this->pid('ATK001'), 'quantity' => 5])->assertOk()
+            ->assertJsonPath('meta', ['quantity' => 3, 'limited' => true])->assertJsonPath('data.total', 12000);
+        $this->putJson('/portal/keranjang', ['product_id' => $this->pid('ATK002'), 'quantity' => 1])->assertJsonPath('data.count', 4);
+        $this->getJson('/portal/keranjang')->assertJsonCount(2, 'data.lines');
+
+        $this->postJson('/portal/pesanan', ['dari_keranjang' => true, 'items' => [['product_id' => 1, 'quantity' => 1]], 'fulfillment' => 'ambil', 'payment_method' => 'tunai'],
+            ['X-Pin-Token' => $this->token()])->assertJsonValidationErrors('items');
+        $this->postJson('/portal/pesanan', ['dari_keranjang' => true, 'fulfillment' => 'ambil', 'payment_method' => 'tunai'], ['X-Pin-Token' => $this->token()])
+            ->assertCreated()->assertJsonPath('data.total', 15000)->assertJsonPath('data.item_count', 4);
+        $this->getJson('/portal/keranjang')->assertJsonPath('data.count', 0);
+
+        $this->postJson('/portal/pesanan', ['dari_keranjang' => true, 'fulfillment' => 'ambil', 'payment_method' => 'tunai'], ['X-Pin-Token' => $this->token()])
+            ->assertJsonValidationErrors('cart'); // keranjang kosong
+        $this->putJson('/portal/keranjang', ['product_id' => $this->pid('ATK002'), 'quantity' => 2]);
+        $this->deleteJson('/portal/keranjang')->assertJsonPath('data.count', 0);
+    }
 }
