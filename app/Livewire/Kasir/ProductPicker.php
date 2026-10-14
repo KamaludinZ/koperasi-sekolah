@@ -63,35 +63,53 @@ class ProductPicker extends Component
     public function pickFromSearch(): void
     {
         $raw = trim($this->search);
-        $term = mb_strtolower($raw);
-        if ($term === '') {
+        if ($raw === '') {
             return;
         }
+        if ($this->addByCode($raw, $this->products)) {
+            $this->search = '';
+            unset($this->products);
+        }
+    }
 
-        $results = $this->products;
-        $match = app(ProductCatalog::class)->findByCode($term)
+    /**
+     * Hasil pindai kamera (atau barcode reader): hanya kode yang cocok persis yang dimasukkan ke
+     * keranjang; kolom cari tidak disentuh supaya ketikan kasir tidak hilang.
+     */
+    public function scanCode(string $code): void
+    {
+        $code = mb_substr(trim($code), 0, 64);
+        if ($code !== '') {
+            $this->addByCode($code, []);
+        }
+    }
+
+    /** @param  list<array>  $results  hasil pencarian untuk cadangan bila kode tidak cocok persis */
+    private function addByCode(string $raw, array $results): bool
+    {
+        $match = app(ProductCatalog::class)->findByCode(mb_strtolower($raw))
             ?? (count($results) === 1 ? $results[0] : null);
 
         if (! $match) {
             $this->scan = count($results) > 1
                 ? ['type' => 'info', 'text' => count($results).' barang cocok dengan “'.$raw.'” — pilih salah satu.']
                 : ['type' => 'error', 'text' => 'Kode “'.$raw.'” tidak ditemukan. Periksa label atau cari dengan nama.'];
-            $this->dispatch('scan-feedback', type: $this->scan['type']);
+            $this->dispatch('scan-feedback', type: $this->scan['type'], text: $this->scan['text']);
 
-            return;
+            return false;
         }
         if ($match['stock'] < 1) {
             $this->scan = ['type' => 'error', 'text' => "{$match['name']} stoknya habis."];
-            $this->dispatch('scan-feedback', type: 'error');
+            $this->dispatch('scan-feedback', type: 'error', text: $this->scan['text']);
 
-            return;
+            return false;
         }
 
         $this->pick($match['id']);
         $this->scan = ['type' => 'success', 'text' => "Ditambahkan: {$match['name']}"];
-        $this->dispatch('scan-feedback', type: 'success');
-        $this->search = '';
-        unset($this->products);
+        $this->dispatch('scan-feedback', type: 'success', text: $this->scan['text']);
+
+        return true;
     }
 
     /** Ketikan baru menghapus umpan balik scan sebelumnya. */

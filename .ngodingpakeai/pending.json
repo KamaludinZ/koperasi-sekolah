@@ -1,6 +1,6 @@
 {
   "repo": "Koperasi Sekolah",
-  "generatedForCommit": "bc4323903deb1a67a91364a833b9c294cdb11883",
+  "generatedForCommit": "a2d2242a28618dca06e2c9fb604151d8771c06bc",
   "files": [
     {
       "path": ".claude/skills/ngodingpakeai/SKILL.md",
@@ -2836,7 +2836,7 @@
     },
     {
       "path": "routes/web.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 34088
     },
@@ -3598,7 +3598,7 @@
     },
     {
       "path": "tests/Feature/Notifikasi/PublicAnnouncementsPageTest.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 2038
     },
@@ -3742,9 +3742,9 @@
     },
     {
       "path": "tests/Feature/Pengaturan/SettingsEndpointTest.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 5667
+      "size": 6778
     },
     {
       "path": "tests/Feature/Pengaturan/SettingsServiceTest.php",

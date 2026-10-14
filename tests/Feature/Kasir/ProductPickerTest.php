@@ -73,4 +73,32 @@ class ProductPickerTest extends TestCase
 
         $c->set('search', 'ATK')->call('pickFromSearch')->assertSet('scan.type', 'info')->assertSee('barang cocok dengan “ATK”');
     }
+
+    public function test_camera_scan_adds_exact_code_without_touching_search(): void
+    {
+        Livewire::test(ProductPicker::class)
+            ->set('search', 'pulpen')
+            ->call('scanCode', ' atk001 ')
+            ->assertDispatched('product-picked', productId: $this->pid('ATK001'))
+            ->assertDispatched('scan-feedback', type: 'success', text: 'Ditambahkan: Buku Tulis 38 Lembar')
+            ->assertSet('search', 'pulpen');
+    }
+
+    public function test_camera_scan_needs_an_exact_code(): void
+    {
+        Livewire::test(ProductPicker::class)
+            ->call('scanCode', 'ATK')
+            ->assertNotDispatched('product-picked')
+            ->assertSet('scan.type', 'error')
+            ->call('scanCode', '   ')
+            ->assertSet('scan.type', 'error');
+    }
+
+    public function test_page_has_camera_scanner(): void
+    {
+        $this->get('/kasir')->assertOk()
+            ->assertSee('data-camera-scan', false)
+            ->assertSee('barcodeScanner', false)
+            ->assertSee('Pindai barcode');
+    }
 }

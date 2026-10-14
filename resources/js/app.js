@@ -1,6 +1,7 @@
 import './bootstrap';
 import salesChart from './sales-chart';
 import registerCopy from './clipboard';
+import barcodeScanner from './barcode-scanner';
 
 /** Format rupiah seragam (sama dengan App\Support\Rupiah): Rp12.500, minus memakai "−". */
 window.rupiah = (n, signed = false) => {
@@ -10,6 +11,7 @@ window.rupiah = (n, signed = false) => {
 
 document.addEventListener('alpine:init', () => {
     window.Alpine.data('salesChart', salesChart);
+    window.Alpine.data('barcodeScanner', barcodeScanner);
     registerCopy(window.Alpine);
 });
 
