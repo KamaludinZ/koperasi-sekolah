@@ -189,7 +189,23 @@
                     @forelse ($disb as $d)
                         <li class="px-4 py-2.5" wire:key="disb-{{ $d['id'] }}">
                             <p class="flex justify-between"><span>{{ $date($d['disbursed_on']) }}</span><span class="font-medium tabular-nums">{{ $rp($d['amount']) }}</span></p>
-                            <p class="text-xs text-stone-500">{{ $d['proof'] ?? 'Tanpa keterangan bukti' }}{{ $d['user'] ? ' · '.$d['user'] : '' }}</p>
+                            <dl class="mt-1 space-y-0.5 text-xs text-stone-600" data-proof-detail>
+                                <div><dt class="inline text-stone-500">Keterangan:</dt> <dd class="inline">{{ $d['proof'] ?? '—' }}</dd></div>
+                                <div><dt class="inline text-stone-500">Diserahkan oleh:</dt> <dd class="inline">{{ $d['user'] ?? '—' }}</dd></div>
+                                <div><dt class="inline text-stone-500">Dicatat:</dt> <dd class="inline">{{ $date($d['recorded_at'], true) }}</dd></div>
+                            </dl>
+                            @if ($d['file_type'] === 'image')
+                                <a href="{{ route('pinjaman.pencairan.bukti', ['disbursement' => $d['id'], 'lihat' => 1]) }}" target="_blank" rel="noopener" class="mt-2 block overflow-hidden rounded-lg border border-stone-200" aria-label="Lihat bukti serah terima ukuran penuh">
+                                    <img src="{{ route('pinjaman.pencairan.bukti', ['disbursement' => $d['id'], 'lihat' => 1]) }}" alt="Bukti serah terima {{ $l['code'] }}" loading="lazy" class="max-h-48 w-full object-contain bg-stone-50" data-proof-image>
+                                </a>
+                            @elseif ($d['file_type'] === 'pdf')
+                                <p class="mt-2 flex items-center gap-2 rounded-lg border border-stone-200 bg-stone-50 px-3 py-2 text-xs text-stone-600" data-proof-pdf>
+                                    <svg class="size-4 shrink-0 text-red-700" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/></svg>
+                                    Dokumen PDF — unduh untuk melihat.
+                                </p>
+                            @elseif (! $d['has_file'])
+                                <p class="mt-2 text-xs text-amber-800">Belum ada foto/scan bukti serah terima.</p>
+                            @endif
                             <div class="mt-1 flex flex-wrap gap-3 text-xs">
                                 @if ($d['has_file'])
                                     <a href="{{ route('pinjaman.pencairan.bukti', $d['id']) }}" class="font-medium text-emerald-800 hover:underline" data-proof-download>Unduh bukti</a>

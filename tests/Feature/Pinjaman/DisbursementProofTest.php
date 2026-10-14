@@ -110,4 +110,31 @@ class DisbursementProofTest extends TestCase
         $this->get(route('pinjaman.pencairan.bukti', $d))->assertForbidden();
         Livewire::test(Show::class, ['loan' => $this->loan])->call('openAttach', $d->id)->assertForbidden();
     }
+
+    public function test_proof_details_and_inline_preview(): void
+    {
+        $user = $this->loginAs('pengurus');
+        Livewire::test(Show::class, ['loan' => $this->loan])->call('openDisburse')
+            ->set('proof', 'Kuitansi 017')->set('proofFile', UploadedFile::fake()->image('foto.png', 400, 300))->call('disburse');
+        $d = LoanDisbursement::firstOrFail();
+
+        $this->get(route('pinjaman.show', $this->loan))->assertOk()
+            ->assertSeeInOrder(['data-proof-detail', 'Kuitansi 017', $user->name, '14 Okt 2026 10.00'], false)
+            ->assertSee('data-proof-image', false)->assertSee(route('pinjaman.pencairan.bukti', ['disbursement' => $d->id, 'lihat' => 1]), false);
+
+        $res = $this->get(route('pinjaman.pencairan.bukti', ['disbursement' => $d->id, 'lihat' => 1]))->assertOk()
+            ->assertHeader('Content-Type', 'image/png')->assertHeader('X-Content-Type-Options', 'nosniff');
+        $this->assertStringStartsWith('inline', $res->headers->get('Content-Disposition'));
+        $this->assertStringContainsString('sandbox', $res->headers->get('Content-Security-Policy'));
+
+        // PDF tidak pernah ditampilkan langsung.
+        $d->update(['proof_file' => 'pinjaman/bukti/doc.pdf']);
+        Storage::disk('local')->put('pinjaman/bukti/doc.pdf', '%PDF-1.4');
+        $pdf = $this->get(route('pinjaman.pencairan.bukti', ['disbursement' => $d->id, 'lihat' => 1]))->assertOk();
+        $this->assertStringStartsWith('attachment', $pdf->headers->get('Content-Disposition'));
+        $this->get(route('pinjaman.show', $this->loan))->assertSee('data-proof-pdf', false)->assertDontSee('data-proof-image', false);
+
+        $d->update(['proof_file' => null]);
+        $this->get(route('pinjaman.show', $this->loan))->assertSee('Belum ada foto/scan bukti serah terima.');
+    }
 }

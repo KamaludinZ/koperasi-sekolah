@@ -107,6 +107,8 @@ class LoanService
         $disbursements = $loan->disbursements->map(fn (LoanDisbursement $d) => [
             'id' => $d->id, 'disbursed_on' => $d->disbursed_on->toDateString(), 'amount' => (int) round((float) $d->amount),
             'proof' => $d->proof, 'has_file' => filled($d->proof_file), 'user' => $d->user?->name,
+            'file_type' => $d->proof_file ? (strtolower(pathinfo($d->proof_file, PATHINFO_EXTENSION)) === 'pdf' ? 'pdf' : 'image') : null,
+            'recorded_at' => $d->created_at?->toDateTimeString(),
         ])->all();
 
         $paid = array_sum(array_column($installments, 'paid_amount'));
