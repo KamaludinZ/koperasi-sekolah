@@ -470,6 +470,8 @@ Route::middleware('menu:laporan')->group(function () {
 Route::middleware(['menu:pinjaman', 'peran:admin,pengurus', 'can:kelola-pinjaman'])->group(function () {
     Route::get('/pinjaman', \App\Livewire\Pinjaman\Index::class)->name('pinjaman');
     Route::get('/pinjaman/pengajuan', \App\Livewire\Pinjaman\Applications::class)->name('pinjaman.pengajuan');
+    Route::get('/pinjaman/pengajuan/data', [\App\Http\Controllers\Pinjaman\LoanApplicationController::class, 'index'])->middleware('throttle:120,1')->name('pinjaman.pengajuan.data');
+    Route::post('/pinjaman/pengajuan', [\App\Http\Controllers\Pinjaman\LoanApplicationController::class, 'store'])->middleware('throttle:30,1')->name('pinjaman.pengajuan.store');
     Route::get('/pinjaman/pencairan', \App\Livewire\Pinjaman\Disbursements::class)->name('pinjaman.pencairan');
     Route::get('/pinjaman/pencairan/{disbursement}/bukti', \App\Http\Controllers\Pinjaman\DisbursementProofController::class)
         ->whereNumber('disbursement')->middleware('throttle:60,1')->name('pinjaman.pencairan.bukti');
