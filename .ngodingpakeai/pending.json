@@ -1,6 +1,6 @@
 {
   "repo": "Koperasi Sekolah",
-  "generatedForCommit": "841072422da78090f0c2be89d0dfaf43a21953e8",
+  "generatedForCommit": "e8b07729912bdc790af540176dd8604d80da253a",
   "files": [
     {
       "path": ".claude/skills/ngodingpakeai/SKILL.md",
@@ -816,7 +816,7 @@
       "path": "app/Livewire/Simpanan/MonthlyDues.php",
       "reason": "changed",
       "language": "php",
-      "size": 8834
+      "size": 9739
     },
     {
       "path": "app/Livewire/Simpanan/Types.php",
@@ -3144,7 +3144,7 @@
       "path": "resources/views/livewire/simpanan/monthly-dues.blade.php",
       "reason": "changed",
       "language": "php",
-      "size": 13211
+      "size": 15048
     },
     {
       "path": "resources/views/livewire/simpanan/types.blade.php",
@@ -4296,7 +4296,7 @@
       "path": "tests/Feature/Simpanan/MonthlyDuesTest.php",
       "reason": "changed",
       "language": "php",
-      "size": 9218
+      "size": 10089
     },
     {
       "path": "tests/Feature/Simpanan/ProfileSavingTypesTest.php",

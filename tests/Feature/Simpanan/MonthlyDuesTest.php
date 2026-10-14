@@ -172,4 +172,28 @@ class MonthlyDuesTest extends TestCase
             ->assertSee('Koreksi')->assertSee('Alasan: Potongan sebenarnya 12 ribu')->assertSee('Posting setoran bulanan')->assertDontSee('September 2026: 1')
             ->set('period', '2026-09')->assertSee('Posting setoran bulanan Simpanan Wajib September 2026')->assertDontSee('Potongan sebenarnya');
     }
+
+    public function test_download_csv_and_pdf(): void
+    {
+        $svc = app(SavingDueService::class);
+        $svc->record('2026-10', $this->wajib, [$this->pakDedi->id => 15000]);
+        $svc->post('2026-10', $this->wajib, [$this->pakDedi->id]);
+        $q = ['bulan' => '2026-10', 'jenis' => $this->wajib->id];
+
+        $csv = $this->get(route('simpanan.setoran.unduh', $q + ['format' => 'csv']))->assertOk()
+            ->assertHeader('Content-Type', 'text/csv; charset=UTF-8')->assertDownload('setoran-wajib-2026-10.csv')->streamedContent();
+        $this->assertStringStartsWith("\xEF\xBB\xBF", $csv);
+        $this->assertStringContainsString('"Pak Dedi";15000;"Sudah disetor"', $csv);
+        $this->assertStringContainsString('"Bu Siti";;"Belum dicatat"', $csv);
+        $this->assertStringContainsString('"Sudah disetor";"1 / 2";15000', $csv);
+
+        $pdf = $this->get(route('simpanan.setoran.unduh', $q + ['format' => 'pdf']))->assertOk()->assertHeader('Content-Type', 'application/pdf')->getContent();
+        $this->assertStringStartsWith('%PDF', $pdf);
+
+        $this->get(route('simpanan.setoran.unduh', ['bulan' => '2026-13', 'jenis' => $this->wajib->id]))->assertSessionHasErrors('bulan');
+        $this->get(route('simpanan.setoran.unduh', ['bulan' => '2026-10', 'jenis' => SavingType::where('code', 'POKOK')->value('id')]))->assertSessionHasErrors('jenis');
+        $this->get('/simpanan/setoran-bulanan')->assertSee('data-download="pdf"', false);
+        $this->loginAs('kasir');
+        $this->get(route('simpanan.setoran.unduh', $q))->assertForbidden();
+    }
 }

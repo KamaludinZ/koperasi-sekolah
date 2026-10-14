@@ -11,7 +11,13 @@
                 <h1 class="text-lg font-semibold">Simpanan Anggota</h1>
                 <p class="text-xs text-stone-500">Setoran simpanan bulanan guru/karyawan dari potong gaji. Catat nominal, lalu posting agar saldo bertambah.</p>
             </div>
-            <a href="{{ route('simpanan.setoran.rekap', ['jenis' => $typeId]) }}" wire:navigate class="rounded-xl border border-stone-300 bg-white px-4 py-2.5 text-sm font-medium text-stone-700 hover:bg-stone-50">Rekap status</a>
+            <div class="flex flex-wrap gap-2">
+                @if ($typeId)
+                    <a href="{{ route('simpanan.setoran.unduh', ['bulan' => $period, 'jenis' => $typeId, 'format' => 'csv']) }}" data-download="csv" class="rounded-xl border border-stone-300 bg-white px-3 py-2.5 text-sm font-medium text-stone-700 hover:bg-stone-50">Unduh CSV</a>
+                    <a href="{{ route('simpanan.setoran.unduh', ['bulan' => $period, 'jenis' => $typeId, 'format' => 'pdf']) }}" data-download="pdf" class="rounded-xl border border-stone-300 bg-white px-3 py-2.5 text-sm font-medium text-stone-700 hover:bg-stone-50">Unduh PDF</a>
+                @endif
+                <a href="{{ route('simpanan.setoran.rekap', ['jenis' => $typeId]) }}" wire:navigate class="rounded-xl border border-stone-300 bg-white px-4 py-2.5 text-sm font-medium text-stone-700 hover:bg-stone-50">Rekap status</a>
+            </div>
         </div>
         <x-simpanan.nav active="simpanan.setoran" />
     </header>
