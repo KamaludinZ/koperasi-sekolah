@@ -50,7 +50,7 @@
                 <p class="text-xs text-stone-400">Coba kata kunci lain atau periksa kode barang.</p>
             </div>
         @else
-            <p class="mb-3 text-xs text-stone-500">{{ count($this->products) }} barang · tekan Enter untuk memilih hasil tunggal atau kode yang cocok</p>
+            <p class="mb-3 text-xs text-stone-500">{{ count($this->products) }} barang · tekan Enter untuk memilih hasil tunggal atau kode yang cocok · barcode reader bisa langsung dipakai</p>
             <ul class="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4">
                 @foreach ($this->products as $product)
                     @php
@@ -79,6 +79,9 @@
             </ul>
         @endif
     </div>
+
+    {{-- Barcode reader (mode keyboard): pindai kapan saja tanpa mengklik kolom cari. --}}
+    <div x-data="barcodeReader((code) => $wire.scanCode(code))" x-on:keydown.window="onKey($event)" data-barcode-reader hidden></div>
 
     {{-- Pemindai kamera: hasil yang terbaca langsung masuk keranjang (F4 buka/tutup). --}}
     <x-camera-scanner open-event="open-camera-scanner" on-code="$wire.scanCode(code)" hotkey

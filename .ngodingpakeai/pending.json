@@ -1,6 +1,6 @@
 {
   "repo": "Koperasi Sekolah",
-  "generatedForCommit": "7620f5a709e4c02bc31a8deb8fac80ce7559faf9",
+  "generatedForCommit": "bef5cbb123b8c5bf9e631242cd229a1d93d9daa7",
   "files": [
     {
       "path": ".claude/skills/ngodingpakeai/SKILL.md",
@@ -562,9 +562,9 @@
     },
     {
       "path": "app/Livewire/Kasir/Cart.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 20542
+      "size": 21111
     },
     {
       "path": "app/Livewire/Kasir/Index.php",
@@ -574,9 +574,9 @@
     },
     {
       "path": "app/Livewire/Kasir/ProductPicker.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 4051
+      "size": 4065
     },
     {
       "path": "app/Livewire/Laporan/Index.php",
@@ -2140,7 +2140,7 @@
     },
     {
       "path": "resources/js/barcode-scanner.js",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "javascript",
       "size": 3535
     },
@@ -2224,7 +2224,7 @@
     },
     {
       "path": "resources/views/components/camera-scanner.blade.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 4174
     },
@@ -2560,7 +2560,7 @@
     },
     {
       "path": "resources/views/livewire/barang/partials/product-form.blade.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 10412
     },
@@ -2644,7 +2644,7 @@
     },
     {
       "path": "resources/views/livewire/kasir/product-picker.blade.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 7299
     },
@@ -3142,7 +3142,7 @@
     },
     {
       "path": "tests/Feature/Barang/BarcodeFormTest.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 3881
     },
@@ -3490,9 +3490,9 @@
     },
     {
       "path": "tests/Feature/Kasir/CartTest.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 3305
+      "size": 4111
     },
     {
       "path": "tests/Feature/Kasir/CheckoutIdempotencyTest.php",
@@ -3544,9 +3544,9 @@
     },
     {
       "path": "tests/Feature/Kasir/ProductPickerTest.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 3773
+      "size": 3725
     },
     {
       "path": "tests/Feature/Kasir/ProductSearchTest.php",

@@ -99,6 +99,8 @@ class ProductPickerTest extends TestCase
         $this->get('/kasir')->assertOk()
             ->assertSee('data-camera-scan', false)
             ->assertSee('barcodeScanner', false)
+            ->assertSee('data-barcode-reader', false)
+            ->assertSee('barcodeReader', false)
             ->assertSee('Pindai barcode');
     }
 }
