@@ -340,6 +340,8 @@ Route::middleware('menu:barang')->group(function () {
 });
 
 Route::middleware('menu:transaksi')->group(function () {
+    Route::post('/pesanan/{order}/bayar', [\App\Http\Controllers\Transaksi\MemberOrderController::class, 'pay'])
+        ->whereNumber('order')->middleware('throttle:60,1')->name('pesanan.bayar');
     Route::get('/transaksi', Transaksi\Index::class)->name('transaksi');
     Route::get('/transaksi/daftar', [TransactionListController::class, 'index'])
         ->middleware('throttle:120,1')

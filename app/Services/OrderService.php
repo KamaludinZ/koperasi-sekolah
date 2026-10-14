@@ -243,6 +243,44 @@ class OrderService
         });
     }
 
+    /**
+     * Petugas mencatat pembayaran pesanan tunai/QRIS (saat diambil/diantar). Tunai masuk laci shift yang
+     * sedang buka. Pesanan potong saldo sudah lunas sejak dibuat.
+     *
+     * @throws ValidationException
+     */
+    public function markPaid(Order $order, string $method, \App\Models\User $by): Order
+    {
+        if (! in_array($method, ['tunai', 'qris'], true)) {
+            throw ValidationException::withMessages(['metode' => 'Pilih tunai atau QRIS.']);
+        }
+
+        return DB::transaction(function () use ($order, $method, $by) {
+            $order = Order::with('member')->whereKey($order->id)->lockForUpdate()->firstOrFail();
+            if ($order->payment_status !== 'belum' || $order->status === 'dibatalkan') {
+                throw ValidationException::withMessages(['order' => 'Pesanan ini sudah dibayar atau dibatalkan.']);
+            }
+            if (! in_array($order->payment_method, ['tunai', 'qris'], true)) {
+                throw ValidationException::withMessages(['order' => 'Pesanan ini dibayar dengan potong saldo.']);
+            }
+            // Pembulatan "hanya tunai" ikut cara bayar yang sebenarnya.
+            $price = $this->quote((int) round((float) $order->subtotal) - (int) round((float) $order->discount), $method);
+            $order->forceFill(['payment_method' => $method, 'tax' => $price['tax'], 'tax_included' => $price['tax_included'],
+                'rounding' => $price['rounding'], 'total' => $price['payable'], 'payment_status' => 'lunas', 'paid_at' => now()])->save();
+            $total = (int) round((float) $order->total);
+
+            if ($method === 'tunai' && ($shift = \App\Models\CashShift::open()->lockForUpdate()->first())) {
+                $shift->movements()->create(['type' => \App\Models\CashMovement::TYPE_IN, 'category' => 'lainnya', 'amount' => $total,
+                    'reason' => "Pesanan portal {$order->code} · {$order->member->name}", 'user_id' => $by->id]);
+            }
+            $this->log($order, $order->status, $order->status, 'Dibayar '.($method === 'tunai' ? 'tunai' : 'QRIS/transfer').' · '.Rupiah::format($total), $by->id, $by->name);
+            AuditLog::record('order.paid', 'pesanan', "Pesanan {$order->code} dibayar {$method}: ".Rupiah::format($total),
+                ['type' => 'order', 'id' => $order->id, 'label' => $order->code], ['method' => $method], $total);
+
+            return $order->refresh();
+        });
+    }
+
     /** Saldo yang bisa dipakai bayar: tabungan + jenis simpanan aktif yang boleh ditarik. */
     public function balanceOptions(Member $member): array
     {
