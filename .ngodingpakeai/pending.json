@@ -1,6 +1,6 @@
 {
   "repo": "Koperasi Sekolah",
-  "generatedForCommit": "b0a672cfc788ea653506ae74f512ad3121c6be00",
+  "generatedForCommit": "54939d531f0f6e6c67418813505ee02538ad910d",
   "files": [
     {
       "path": ".claude/skills/ngodingpakeai/SKILL.md",
@@ -724,7 +724,7 @@
     },
     {
       "path": "app/Livewire/Simpanan/Types.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 3688
     },
@@ -802,7 +802,7 @@
     },
     {
       "path": "app/Models/ActivityLog.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 3628
     },
@@ -964,7 +964,7 @@
     },
     {
       "path": "app/Models/SavingType.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 1520
     },
@@ -1060,7 +1060,7 @@
     },
     {
       "path": "app/Providers/AppServiceProvider.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 4860
     },
@@ -1336,9 +1336,9 @@
     },
     {
       "path": "app/Services/SavingTypeService.php",
-      "reason": "new",
+      "reason": "changed",
       "language": "php",
-      "size": 3535
+      "size": 4177
     },
     {
       "path": "app/Services/SavingsPaymentService.php",
@@ -1468,7 +1468,7 @@
     },
     {
       "path": "app/Support/Menu.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 7962
     },
@@ -2038,7 +2038,7 @@
     },
     {
       "path": "database/migrations/2026_10_14_000008_create_saving_types_table.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 3600
     },
@@ -2320,7 +2320,7 @@
     },
     {
       "path": "resources/views/components/simpanan/nav.blade.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 839
     },
@@ -2860,9 +2860,9 @@
     },
     {
       "path": "resources/views/livewire/simpanan/types.blade.php",
-      "reason": "new",
+      "reason": "changed",
       "language": "php",
-      "size": 9645
+      "size": 10073
     },
     {
       "path": "resources/views/livewire/sistem/backups.blade.php",
@@ -2962,7 +2962,7 @@
     },
     {
       "path": "routes/web.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 34611
     },
@@ -3154,7 +3154,7 @@
     },
     {
       "path": "tests/Feature/Auth/RoleMenuTest.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 3366
     },
@@ -3934,9 +3934,9 @@
     },
     {
       "path": "tests/Feature/Simpanan/TypesPageTest.php",
-      "reason": "new",
+      "reason": "changed",
       "language": "php",
-      "size": 2354
+      "size": 2833
     },
     {
       "path": "tests/Feature/Sistem/BackupCommandTest.php",

@@ -63,6 +63,17 @@ class Member extends Model
     }
 
     /** Mutasi tabungan (setor/tarik). */
+    /** Saldo simpanan per jenis (pokok/wajib/sukarela). */
+    public function savingAccounts(): HasMany
+    {
+        return $this->hasMany(MemberSavingAccount::class);
+    }
+
+    public function savingEntries(): HasMany
+    {
+        return $this->hasMany(MemberSavingEntry::class);
+    }
+
     public function savings(): HasMany
     {
         return $this->hasMany(SavingsTransaction::class);

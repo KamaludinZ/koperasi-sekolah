@@ -46,6 +46,13 @@ class Show extends Component
     public ?array $lastRepayment = null;
 
     #[Computed]
+    public function savingTypes(): ?array
+    {
+        // Rincian simpanan per jenis hanya untuk pengurus/admin (kasir tidak punya menu Simpanan).
+        return auth()->user()?->can('menu', 'simpanan') ? app(\App\Services\MemberSavingService::class)->summary($this->member()) : null;
+    }
+
+    #[Computed]
     public function credit(): array
     {
         return app(MemberCreditService::class)->summary($this->member());

@@ -84,6 +84,10 @@
                 </div>
             @endif
 
+            @if ($sv = $this->savingTypes)
+                @include('livewire.anggota.partials.saving-types-card', ['sv' => $sv])
+            @endif
+
             @include('livewire.anggota.partials.bon-card')
         </aside>
     </div>
