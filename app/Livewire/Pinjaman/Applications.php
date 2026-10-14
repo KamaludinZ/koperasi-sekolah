@@ -112,10 +112,22 @@ class Applications extends Component
         unset($this->selectedMember);
     }
 
+    public function setTenor(int $months): void
+    {
+        $this->form->tenor_months = in_array($months, LoanApplicationForm::TENOR_PRESETS, true) ? $months : $this->form->tenor_months;
+        $this->resetValidation('form.tenor_months');
+    }
+
+    public function updatedFormInterestMode(): void
+    {
+        $this->form->interest_mode = in_array($this->form->interest_mode, ['nominal', 'persen'], true) ? $this->form->interest_mode : 'nominal';
+        $this->resetValidation(['form.interest', 'form.interest_rate']);
+    }
+
     public function save(): void
     {
         abort_unless(Gate::allows('kelola-pinjaman'), 403);
-        $data = $this->form->validate();
+        $data = $this->form->validated();
         $loan = app(LoanApplicationService::class)->create($data, auth()->id());
 
         $this->creating = false;

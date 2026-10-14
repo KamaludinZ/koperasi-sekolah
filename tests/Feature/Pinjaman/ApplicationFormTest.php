@@ -52,6 +52,7 @@ class ApplicationFormTest extends TestCase
     {
         $inactive = Member::factory()->teacher()->inactive()->create();
         Livewire::test(Applications::class)->call('create')
+            ->assertSet('form.interest', 0)->set('form.interest', '')
             ->set('form.applied_at', '2026-10-20')->set('form.payment_method', 'kartu')
             ->call('save')->assertHasErrors(['form.member_id' => 'required', 'form.principal' => 'required', 'form.interest' => 'required',
                 'form.tenor_months' => 'required', 'form.payment_method', 'form.applied_at'])
@@ -98,5 +99,36 @@ class ApplicationFormTest extends TestCase
         $this->loginAs('kasir');
         Livewire::test(Applications::class)->call('create')->assertForbidden();
         Livewire::test(Applications::class)->call('save')->assertForbidden();
+    }
+
+    public function test_interest_as_percent_and_tenor_presets(): void
+    {
+        $m = Member::factory()->teacher()->create();
+        $c = Livewire::test(Applications::class)->call('create')->call('selectMember', $m->id)
+            ->set('form.principal', 1500000)->set('form.interest_mode', 'persen')->set('form.interest_rate', 4.5)
+            ->assertSeeHtml('data-interest-converted')->assertSee('= Rp67.500 untuk seluruh tenor')
+            ->call('setTenor', 6)->assertSet('form.tenor_months', 6)
+            ->assertSee('Rp1.567.500')->assertSee('Rp261.250')->assertSee('Bunga setara 4,50% dari pokok (± 0,75% per bulan).')
+            ->call('setTenor', 7)->assertSet('form.tenor_months', 6) // hanya pilihan cepat yang dikenal
+            ->call('save')->assertHasNoErrors();
+
+        $loan = Loan::firstOrFail();
+        $this->assertSame([1500000, 67500, 6], [(int) $loan->principal, (int) $loan->interest, $loan->tenor_months]);
+    }
+
+    public function test_free_tenor_and_percent_validation(): void
+    {
+        $m = Member::factory()->teacher()->create();
+        Livewire::test(Applications::class)->call('create')->call('selectMember', $m->id)->set('form.principal', 1000000)
+            ->set('form.interest_mode', 'persen')->set('form.interest_rate', '')->set('form.tenor_months', 7)
+            ->call('save')->assertHasErrors(['form.interest_rate' => 'required'])->assertSee('Isi persen bunga.')
+            ->set('form.interest_rate', 120)->call('save')->assertHasErrors(['form.interest_rate' => 'max'])
+            ->set('form.interest_rate', 2.555)->call('save')->assertHasErrors(['form.interest_rate' => 'decimal'])
+            ->set('form.interest_rate', -1)->call('save')->assertHasErrors(['form.interest_rate' => 'min'])
+            ->set('form.interest_mode', 'curang')->assertSet('form.interest_mode', 'nominal') // nilai tak dikenal dinormalkan
+            ->set('form.interest_mode', 'nominal')->set('form.interest', 0)->set('form.tenor_months', 7) // tenor bebas, bunga 0
+            ->call('save')->assertHasNoErrors();
+
+        $this->assertSame([0, 7], [(int) Loan::first()->interest, Loan::first()->tenor_months]);
     }
 }

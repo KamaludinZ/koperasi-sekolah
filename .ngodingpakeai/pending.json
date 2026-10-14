@@ -1,6 +1,6 @@
 {
   "repo": "Koperasi Sekolah",
-  "generatedForCommit": "263fed0eaf582332d3ad5c41a342df38cf9f7a4d",
+  "generatedForCommit": "9a816be032d9617c4fb5e7d62b3f35c501e08a7f",
   "files": [
     {
       "path": ".claude/skills/ngodingpakeai/SKILL.md",
@@ -189,6 +189,12 @@
       "size": 1176
     },
     {
+      "path": "app/Livewire/Forms/LoanApplicationForm.php",
+      "reason": "new",
+      "language": "php",
+      "size": 1390
+    },
+    {
       "path": "app/Livewire/Forms/UserForm.php",
       "reason": "needs_summary",
       "language": "php",
@@ -238,9 +244,9 @@
     },
     {
       "path": "app/Livewire/Pinjaman/Applications.php",
-      "reason": "new",
+      "reason": "changed",
       "language": "php",
-      "size": 2041
+      "size": 4317
     },
     {
       "path": "app/Livewire/Pinjaman/Index.php",
@@ -301,6 +307,12 @@
       "reason": "needs_summary",
       "language": "php",
       "size": 2211
+    },
+    {
+      "path": "app/Services/LoanApplicationService.php",
+      "reason": "new",
+      "language": "php",
+      "size": 5871
     },
     {
       "path": "app/Services/LoanService.php",
@@ -1696,15 +1708,21 @@
     },
     {
       "path": "resources/views/livewire/pinjaman/applications.blade.php",
-      "reason": "new",
+      "reason": "changed",
       "language": "php",
-      "size": 5568
+      "size": 6374
     },
     {
       "path": "resources/views/livewire/pinjaman/index.blade.php",
       "reason": "needs_summary",
       "language": "php",
       "size": 10595
+    },
+    {
+      "path": "resources/views/livewire/pinjaman/partials/application-form.blade.php",
+      "reason": "new",
+      "language": "php",
+      "size": 9690
     },
     {
       "path": "resources/views/livewire/pinjaman/show.blade.php",
@@ -1918,7 +1936,7 @@
     },
     {
       "path": "routes/web.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 44115
     },
@@ -2235,8 +2253,14 @@
       "size": 3788
     },
     {
-      "path": "tests/Feature/Pinjaman/ApplicationsPageTest.php",
+      "path": "tests/Feature/Pinjaman/ApplicationFormTest.php",
       "reason": "new",
+      "language": "php",
+      "size": 5647
+    },
+    {
+      "path": "tests/Feature/Pinjaman/ApplicationsPageTest.php",
+      "reason": "needs_summary",
       "language": "php",
       "size": 2883
     },

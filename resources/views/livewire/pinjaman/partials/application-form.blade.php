@@ -66,27 +66,55 @@
                         </span>
                         @if ($err('principal'))<span class="mt-1 block text-xs text-red-600">{{ $err('principal') }}</span>@endif
                     </label>
-                    <label class="block">
-                        <span class="mb-1 block text-sm font-medium">Bunga (nominal)</span>
-                        <span class="relative block">
-                            <span class="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-sm text-stone-500">Rp</span>
-                            <input type="number" inputmode="numeric" min="0" step="1000" wire:model.live.debounce.400ms="form.interest" placeholder="0" class="{{ $input }} pl-9 tabular-nums">
-                        </span>
-                        @if ($err('interest'))<span class="mt-1 block text-xs text-red-600">{{ $err('interest') }}</span>@else<span class="mt-1 block text-xs text-stone-500">Sesuai kesepakatan; isi 0 bila tanpa bunga.</span>@endif
-                    </label>
-                    <label class="block">
+                    <div class="col-span-2">
+                        <div class="mb-1 flex items-center justify-between">
+                            <span class="text-sm font-medium">Bunga</span>
+                            <span class="inline-flex rounded-lg bg-stone-100 p-0.5 text-xs" role="radiogroup" aria-label="Cara isi bunga">
+                                @foreach (['nominal' => 'Rupiah', 'persen' => 'Persen'] as $mode => $label)
+                                    <label @class(['cursor-pointer rounded-md px-2 py-1', 'bg-white font-semibold shadow-sm' => $form->interest_mode === $mode])>
+                                        <input type="radio" wire:model.live="form.interest_mode" value="{{ $mode }}" class="sr-only">{{ $label }}
+                                    </label>
+                                @endforeach
+                            </span>
+                        </div>
+                        @if ($form->interest_mode === 'persen')
+                            <span class="relative block">
+                                <input type="number" inputmode="decimal" min="0" max="100" step="0.01" wire:model.live.debounce.400ms="form.interest_rate" placeholder="Mis. 5" aria-label="Persen bunga dari pokok" class="{{ $input }} pr-24 tabular-nums">
+                                <span class="pointer-events-none absolute top-1/2 right-3 -translate-y-1/2 text-sm text-stone-500">% dari pokok</span>
+                            </span>
+                            @if ($err('interest_rate'))<span class="mt-1 block text-xs text-red-600">{{ $err('interest_rate') }}</span>@else<span class="mt-1 block text-xs text-stone-500" data-interest-converted>= {{ $rp($preview['interest']) }} untuk seluruh tenor</span>@endif
+                        @else
+                            <span class="relative block">
+                                <span class="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-sm text-stone-500">Rp</span>
+                                <input type="number" inputmode="numeric" min="0" step="1000" wire:model.live.debounce.400ms="form.interest" placeholder="0" aria-label="Nominal bunga" class="{{ $input }} pl-9 tabular-nums">
+                            </span>
+                            <span class="mt-1 block text-xs text-stone-500">Sesuai kesepakatan untuk seluruh tenor; isi 0 bila tanpa bunga.</span>
+                        @endif
+                        @if ($err('interest'))<span class="mt-1 block text-xs text-red-600">{{ $err('interest') }}</span>@endif
+                    </div>
+                    <div class="col-span-2">
                         <span class="mb-1 block text-sm font-medium">Tenor</span>
-                        <span class="relative block">
-                            <input type="number" inputmode="numeric" min="1" max="120" wire:model.live.debounce.400ms="form.tenor_months" class="{{ $input }} pr-14 tabular-nums">
-                            <span class="pointer-events-none absolute top-1/2 right-3 -translate-y-1/2 text-sm text-stone-500">bulan</span>
-                        </span>
-                        @if ($err('tenor_months'))<span class="mt-1 block text-xs text-red-600">{{ $err('tenor_months') }}</span>@endif
-                    </label>
+                        <div class="flex gap-2">
+                            <span class="relative block w-32 shrink-0">
+                                <input type="number" inputmode="numeric" min="1" max="120" wire:model.live.debounce.400ms="form.tenor_months" aria-label="Tenor dalam bulan" class="{{ $input }} pr-14 tabular-nums">
+                                <span class="pointer-events-none absolute top-1/2 right-3 -translate-y-1/2 text-sm text-stone-500">bulan</span>
+                            </span>
+                            <div class="flex flex-wrap gap-1" aria-label="Pilihan tenor cepat">
+                                @foreach (\App\Livewire\Forms\LoanApplicationForm::TENOR_PRESETS as $t)
+                                    <button type="button" wire:click="setTenor({{ $t }})" @class(['rounded-lg border px-2.5 py-1.5 text-xs font-medium tabular-nums', 'border-emerald-600 bg-emerald-50 text-emerald-900' => (int) $form->tenor_months === $t, 'border-stone-300 text-stone-600 hover:bg-stone-50' => (int) $form->tenor_months !== $t])>{{ $t }}</button>
+                                @endforeach
+                            </div>
+                        </div>
+                        @if ($err('tenor_months'))<span class="mt-1 block text-xs text-red-600">{{ $err('tenor_months') }}</span>@else<span class="mt-1 block text-xs text-stone-500">Bebas 1–120 bulan sesuai kesepakatan.</span>@endif
+                    </div>
                 </div>
 
                 <div class="rounded-lg bg-stone-50 px-3 py-2 text-sm" data-preview>
                     <div class="flex justify-between"><span class="text-stone-500">Total dikembalikan</span><span class="font-semibold tabular-nums">{{ $rp($preview['total']) }}</span></div>
                     <div class="flex justify-between"><span class="text-stone-500">Angsuran ± per bulan</span><span class="font-semibold tabular-nums">{{ $rp($preview['monthly']) }}</span></div>
+                    @if ($preview['rate'] > 0)
+                        <p class="mt-1 text-xs text-stone-500" data-rate>Bunga setara {{ number_format($preview['rate'], 2, ',', '.') }}% dari pokok{{ $preview['rate_monthly'] > 0 ? ' (± '.number_format($preview['rate_monthly'], 2, ',', '.').'% per bulan)' : '' }}.</p>
+                    @endif
                 </div>
 
                 <fieldset>
