@@ -169,22 +169,8 @@ class OrderService
 
     private function refundBalance(Member $locked, Order $order, ?int $userId): void
     {
-        $amount = (int) round((float) $order->total);
-        if ($order->payment_method === 'tabungan') {
-            $before = (int) round((float) $locked->balance);
-            $locked->savings()->create(['type' => SavingsTransaction::TYPE_DEPOSIT, 'amount' => $amount, 'balance_before' => $before,
-                'balance_after' => $before + $amount, 'note' => "Pengembalian pesanan {$order->code}", 'source_type' => 'order', 'source_id' => $order->id, 'user_id' => $userId]);
-            $locked->forceFill(['balance' => $before + $amount])->save();
-
-            return;
-        }
-        $account = MemberSavingAccount::firstOrCreate(['member_id' => $locked->id, 'saving_type_id' => $order->saving_type_id], ['balance' => 0]);
-        $account = MemberSavingAccount::whereKey($account->id)->lockForUpdate()->first();
-        $before = (int) round((float) $account->balance);
-        MemberSavingEntry::create(['member_id' => $locked->id, 'saving_type_id' => $order->saving_type_id, 'type' => 'setor', 'amount' => $amount,
-            'balance_before' => $before, 'balance_after' => $before + $amount, 'note' => "Pengembalian pesanan {$order->code}",
-            'source_type' => 'order', 'source_id' => $order->id, 'user_id' => $userId]);
-        $account->forceFill(['balance' => $before + $amount])->save();
+        app(BalanceDeductionService::class)->refund($locked, $order->payment_method === 'tabungan' ? null : $order->saving_type_id,
+            (int) round((float) $order->total), "Pengembalian pesanan {$order->code}", ['order', $order->id], $userId);
     }
 
     /**
@@ -274,39 +260,11 @@ class OrderService
             'payment_method' => $payment, 'saving_type_id' => $typeId, 'note' => $note !== '' ? $note : null];
     }
 
-    /** Potong saldo tabungan/simpanan untuk pesanan (anggota sudah dikunci). */
+    /** Potong saldo tabungan/simpanan untuk pesanan lewat BalanceDeductionService (atomik, tanpa persetujuan). */
     private function chargeBalance(Member $locked, Order $order): void
     {
-        $amount = (int) round((float) $order->total);
-        if ($order->payment_method === 'tabungan') {
-            $before = (int) round((float) $locked->balance);
-            if ($amount > $before) {
-                throw ValidationException::withMessages(['payment_method' => 'Saldo tabungan kurang '.Rupiah::format($amount - $before).' (saldo '.Rupiah::format($before).').']);
-            }
-            $entry = $locked->savings()->create(['type' => SavingsTransaction::TYPE_WITHDRAWAL, 'amount' => $amount, 'balance_before' => $before,
-                'balance_after' => $before - $amount, 'note' => "Pesanan {$order->code}", 'source_type' => 'order', 'source_id' => $order->id]);
-            $locked->forceFill(['balance' => $before - $amount])->save();
-            AuditLog::record('savings.order', 'tabungan', "Bayar pesanan {$order->code} dengan tabungan {$locked->name}: ".Rupiah::format($amount),
-                ['type' => 'member', 'id' => $locked->id, 'label' => "{$locked->member_code} · {$locked->name}"],
-                ['savings_id' => $entry->id, 'order_id' => $order->id, 'balance_before' => $before, 'balance_after' => $before - $amount], $amount,
-                actor: PortalAuthService::actor($locked));
-
-            return;
-        }
-
-        $account = MemberSavingAccount::where('member_id', $locked->id)->where('saving_type_id', $order->saving_type_id)->lockForUpdate()->first();
-        $before = (int) round((float) ($account?->balance ?? 0));
-        $type = SavingType::find($order->saving_type_id);
-        if (! $account || $amount > $before) {
-            throw ValidationException::withMessages(['payment_method' => "Saldo {$type->name} kurang ".Rupiah::format($amount - $before).' (saldo '.Rupiah::format($before).').']);
-        }
-        $entry = MemberSavingEntry::create(['member_id' => $locked->id, 'saving_type_id' => $type->id, 'type' => 'potong', 'amount' => $amount,
-            'balance_before' => $before, 'balance_after' => $before - $amount, 'note' => "Pesanan {$order->code}", 'source_type' => 'order', 'source_id' => $order->id]);
-        $account->forceFill(['balance' => $before - $amount])->save();
-        AuditLog::record('simpanan.potong', 'simpanan', "Bayar pesanan {$order->code} dengan {$type->name} {$locked->name}: ".Rupiah::format($amount),
-            ['type' => 'member', 'id' => $locked->id, 'label' => "{$locked->member_code} · {$locked->name}"],
-            ['saving_type_id' => $type->id, 'entry_ids' => [$entry->id], 'order_id' => $order->id, 'balance_before' => $before, 'balance_after' => $before - $amount], $amount,
-            actor: PortalAuthService::actor($locked));
+        app(BalanceDeductionService::class)->deduct($locked, $order->payment_method === 'tabungan' ? null : $order->saving_type_id,
+            (int) round((float) $order->total), "Pesanan {$order->code}", ['order', $order->id], null, PortalAuthService::actor($locked));
     }
 
     public function log(Order $order, ?string $from, string $to, ?string $note, ?int $userId, string $actor): void
