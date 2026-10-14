@@ -196,4 +196,17 @@ class MonthlyDuesTest extends TestCase
         $this->loginAs('kasir');
         $this->get(route('simpanan.setoran.unduh', $q))->assertForbidden();
     }
+
+    public function test_recap_only_for_pengurus_and_admin(): void
+    {
+        $this->loginAs('kasir');
+        foreach (['/simpanan/setoran-bulanan', '/simpanan/setoran-bulanan/rekap'] as $url) {
+            $this->get($url)->assertForbidden();
+        }
+        $this->loginAs('pengurus');
+        $this->get('/simpanan/setoran-bulanan/rekap')->assertOk()->assertSee('Pak Dedi');
+        $this->get('/simpanan/setoran-bulanan')->assertOk()->assertSee('Posting ke saldo');
+        auth()->logout();
+        $this->get('/simpanan/setoran-bulanan/rekap')->assertRedirect('/masuk');
+    }
 }
