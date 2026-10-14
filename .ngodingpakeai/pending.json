@@ -1,6 +1,6 @@
 {
   "repo": "Koperasi Sekolah",
-  "generatedForCommit": "3eaf58124e2251c087eb20959ab7a3640cfef53e",
+  "generatedForCommit": "054571bfe4289b31adc295ccbde1e745154f3c52",
   "files": [
     {
       "path": ".claude/skills/ngodingpakeai/SKILL.md",
@@ -1102,13 +1102,13 @@
     },
     {
       "path": "app/Models/SavingDue.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 1120
     },
     {
       "path": "app/Models/SavingDueCorrection.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 947
     },
@@ -1516,7 +1516,7 @@
     },
     {
       "path": "app/Services/SavingDueService.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 15234
     },
@@ -1642,9 +1642,9 @@
     },
     {
       "path": "app/Support/DatabaseIndexes.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 2585
+      "size": 2984
     },
     {
       "path": "app/Support/LabelFormats.php",
@@ -2272,9 +2272,15 @@
     },
     {
       "path": "database/migrations/2026_10_14_000015_create_saving_due_corrections_table.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 1631
+    },
+    {
+      "path": "database/migrations/2026_10_14_000016_add_saving_report_indexes.php",
+      "reason": "new",
+      "language": "php",
+      "size": 1203
     },
     {
       "path": "database/seeders/ActivityLogSeeder.php",
@@ -4366,7 +4372,7 @@
     },
     {
       "path": "tests/Feature/Simpanan/MonthlyDuesTest.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 16565
     },
@@ -4375,6 +4381,12 @@
       "reason": "needs_summary",
       "language": "php",
       "size": 3376
+    },
+    {
+      "path": "tests/Feature/Simpanan/SavingIndexesTest.php",
+      "reason": "new",
+      "language": "php",
+      "size": 827
     },
     {
       "path": "tests/Feature/Simpanan/SavingTypeEndpointTest.php",

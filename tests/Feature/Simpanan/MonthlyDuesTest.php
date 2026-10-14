@@ -276,4 +276,19 @@ class MonthlyDuesTest extends TestCase
         $this->assertNotNull($log[1]->entry_id);
         $this->assertSame(auth()->id(), $log[2]->user_id);
     }
+
+    public function test_recap_export_csv_and_pdf(): void
+    {
+        app(MemberSavingService::class)->depositForPeriod($this->pakDedi, $this->wajib, 10000, '2026-10');
+        $q = ['jenis' => $this->wajib->id, 'rentang' => 3];
+        $csv = $this->get(route('simpanan.setoran.rekap.unduh', $q + ['format' => 'csv']))->assertOk()->assertDownload('rekap-setoran-wajib-202610.csv')->streamedContent();
+        $this->assertStringContainsString('"Agustus 2026";"September 2026";"Oktober 2026"', $csv);
+        $this->assertStringContainsString('"Pak Dedi";Belum;Belum;Sudah;2', $csv);
+        $this->assertStringContainsString(';"Total (Rp)";0;0;10000', $csv);
+
+        $pdf = $this->get(route('simpanan.setoran.rekap.unduh', ['jenis' => $this->wajib->id, 'rentang' => 12, 'format' => 'pdf']))->assertOk()->getContent();
+        $this->assertStringStartsWith('%PDF', $pdf);
+        $this->get(route('simpanan.setoran.rekap.unduh', ['jenis' => $this->wajib->id, 'rentang' => 4]))->assertSessionHasErrors('rentang');
+        $this->get('/simpanan/setoran-bulanan/rekap')->assertSee('data-download="pdf"', false);
+    }
 }

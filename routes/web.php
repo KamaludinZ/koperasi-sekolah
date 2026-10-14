@@ -452,6 +452,8 @@ Route::middleware(['menu:simpanan', 'peran:admin,pengurus'])->group(function () 
     Route::get('/simpanan/setoran-bulanan/rekap/data', [\App\Http\Controllers\Simpanan\MonthlyDuesController::class, 'recap'])->name('simpanan.setoran.rekap.data');
     Route::post('/simpanan/setoran-bulanan/{due}/koreksi', [\App\Http\Controllers\Simpanan\MonthlyDuesController::class, 'correct'])
         ->whereNumber('due')->middleware(['can:kelola-simpanan', 'throttle:30,1'])->name('simpanan.setoran.koreksi');
+    Route::get('/simpanan/setoran-bulanan/rekap/unduh', [\App\Http\Controllers\Simpanan\MonthlyDuesExportController::class, 'recap'])
+        ->middleware('throttle:20,1')->name('simpanan.setoran.rekap.unduh');
     Route::get('/simpanan/setoran-bulanan/unduh', \App\Http\Controllers\Simpanan\MonthlyDuesExportController::class)
         ->middleware('throttle:20,1')->name('simpanan.setoran.unduh');
     Route::get('/simpanan/jenis/data', [\App\Http\Controllers\Simpanan\SavingTypeController::class, 'index'])->name('simpanan.jenis.data');
