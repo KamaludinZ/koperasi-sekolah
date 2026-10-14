@@ -54,6 +54,11 @@ class Menu
             'description' => 'Anggota & tabungan',
             'icon' => 'M17 20h5v-2a4 4 0 00-5-3.9M9 20H2v-2a4 4 0 014-4h3a4 4 0 014 4v2zM12 7a3 3 0 11-6 0 3 3 0 016 0zm8 2a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z',
         ],
+        'simpanan' => [
+            'label' => 'Simpanan', 'route' => 'simpanan', 'group' => 'data',
+            'description' => 'Simpanan pokok, wajib & sukarela anggota',
+            'icon' => 'M12 3v18M17 7H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6',
+        ],
         'laporan' => [
             'label' => 'Laporan', 'route' => 'laporan', 'group' => 'pengurus',
             'description' => 'Rekap penjualan & unduhan',
@@ -86,9 +91,9 @@ class Menu
      * Pengurus: memantau data, laporan & rekap kas, pengadaan barang, tanpa layar kasir.
      */
     public const DEFAULT_PERMISSIONS = [
-        'admin' => ['kasir', 'transaksi', 'kas', 'barang', 'pengadaan', 'promo', 'anggota', 'laporan', 'audit', 'pengguna', 'sistem', 'pengaturan'],
+        'admin' => ['kasir', 'transaksi', 'kas', 'barang', 'pengadaan', 'promo', 'anggota', 'simpanan', 'laporan', 'audit', 'pengguna', 'sistem', 'pengaturan'],
         'kasir' => ['kasir', 'transaksi', 'kas', 'barang', 'promo', 'anggota'],
-        'pengurus' => ['laporan', 'transaksi', 'kas', 'barang', 'pengadaan', 'promo', 'anggota', 'audit'], // urutan pertama = halaman awal setelah masuk
+        'pengurus' => ['laporan', 'transaksi', 'kas', 'barang', 'pengadaan', 'promo', 'anggota', 'simpanan', 'audit'], // urutan pertama = halaman awal setelah masuk
     ];
 
     public static function allows(?string $role, string $menu): bool

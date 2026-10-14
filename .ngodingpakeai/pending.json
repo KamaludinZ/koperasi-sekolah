@@ -1,6 +1,6 @@
 {
   "repo": "Koperasi Sekolah",
-  "generatedForCommit": "71bb676a8b86e3709c61004103d09de33d0a8544",
+  "generatedForCommit": "49206b1a737177fd90fec1a53089ff1005883498",
   "files": [
     {
       "path": ".claude/skills/ngodingpakeai/SKILL.md",
@@ -576,7 +576,7 @@
       "path": "app/Livewire/Kasir/ProductPicker.php",
       "reason": "changed",
       "language": "php",
-      "size": 4547
+      "size": 4753
     },
     {
       "path": "app/Livewire/Laporan/Index.php",
@@ -2232,7 +2232,7 @@
       "path": "resources/views/components/camera-scanner.blade.php",
       "reason": "changed",
       "language": "php",
-      "size": 4356
+      "size": 4466
     },
     {
       "path": "resources/views/components/idle-warning.blade.php",
@@ -2652,7 +2652,7 @@
       "path": "resources/views/livewire/kasir/product-picker.blade.php",
       "reason": "changed",
       "language": "php",
-      "size": 9511
+      "size": 10172
     },
     {
       "path": "resources/views/livewire/laporan/index.blade.php",
@@ -3552,7 +3552,7 @@
       "path": "tests/Feature/Kasir/ProductPickerTest.php",
       "reason": "changed",
       "language": "php",
-      "size": 4581
+      "size": 4880
     },
     {
       "path": "tests/Feature/Kasir/ProductSearchTest.php",

@@ -54,6 +54,7 @@ use App\Livewire\Laporan;
 use App\Livewire\Notifikasi;
 use App\Livewire\Pengadaan;
 use App\Livewire\Pengaturan;
+use App\Livewire\Simpanan;
 use App\Livewire\Sistem;
 use App\Livewire\Pengguna;
 use App\Livewire\Promo;
@@ -408,6 +409,10 @@ Route::middleware('menu:laporan')->group(function () {
 
         return \Illuminate\Support\Facades\Storage::disk('local')->download($export->file_path, $export->file_name);
     })->whereNumber('export')->middleware('throttle:30,1')->name('laporan.unduhan');
+});
+
+Route::middleware(['menu:simpanan', 'peran:admin,pengurus'])->group(function () {
+    Route::get('/simpanan', Simpanan\Types::class)->name('simpanan');
 });
 
 Route::middleware(['menu:pengguna', 'peran:admin'])->group(function () {
