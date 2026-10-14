@@ -23,6 +23,9 @@ class DatabaseIndexes
         'activity_logs' => ['created_at' => 'Jejak audit per tanggal', 'category' => 'Saring kategori audit', 'subject_type' => 'Riwayat objek'],
         'member_credits' => ['member_id' => 'Bon per anggota', 'status' => 'Bon belum lunas'],
         'transaction_returns' => ['status' => 'Antrean persetujuan', 'transaction_id' => 'Retur per transaksi'],
+        'member_saving_entries' => ['member_id' => 'Mutasi & bulan terbayar per anggota', 'saving_type_id' => 'Rekap per jenis simpanan', 'created_at' => 'Mutasi simpanan per tanggal'],
+        'saving_dues' => ['saving_type_id' => 'Rekap setoran bulanan per jenis', 'period' => 'Lembar setoran per bulan'],
+        'orders' => ['member_id' => 'Pesanan per anggota', 'status' => 'Antrean pesanan'],
     ];
 
     /** @return list<array{table: string, rows: int, checks: list<array{column: string, purpose: string, ok: bool, index: ?string}>}> */
