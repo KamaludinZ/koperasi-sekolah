@@ -112,4 +112,18 @@ class LabelPrintTest extends TestCase
         $this->get('/barang/barcode/label/unduh?barang=999999')->assertStatus(422);
         Livewire::withQueryParams(['barang' => "{$a}:2"])->test(Labels::class)->assertSee('data-pdf-labels', false)->assertSee('label/unduh', false);
     }
+
+    public function test_label_data_endpoint(): void
+    {
+        $a = $this->pid('ATK001');
+        $b = $this->pid('ATK002');
+        $this->getJson("/barang/barcode/label/data?barang={$a}:3,{$b}:2&format=a4-4x10")->assertOk()
+            ->assertJsonPath('data.format.key', 'a4-4x10')->assertJsonPath('data.format.per_page', 40)->assertJsonPath('data.format.label_w', 52.5)
+            ->assertJsonPath('data.total', 5)->assertJsonCount(1, 'data.pages')->assertJsonCount(5, 'data.pages.0')
+            ->assertJsonPath('data.pages.0.0.barcode', 'ATK001')->assertJsonPath('data.pages.0.3.name', 'Pulpen Hitam')
+            ->assertJsonPath('data.pages.0.0.image', route('barang.barcode.image', [$a, 'svg']))
+            ->assertJsonCount(count(LabelFormats::FORMATS), 'meta.formats')->assertJsonPath('meta.thermal_for_receipt', 'thermal-58');
+        $this->getJson('/barang/barcode/label/data?barang=x')->assertJsonValidationErrors('barang');
+        $this->getJson("/barang/barcode/label/data?barang={$a}&format=a5")->assertJsonValidationErrors('format');
+    }
 }

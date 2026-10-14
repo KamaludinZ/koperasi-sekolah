@@ -1,6 +1,6 @@
 {
   "repo": "Koperasi Sekolah",
-  "generatedForCommit": "bb3f8abe1bf65c943516fda0b53ec1e1b357d1fc",
+  "generatedForCommit": "c155c9291b9bf17f24a2e37827b4fe7c2feb8e20",
   "files": [
     {
       "path": ".claude/skills/ngodingpakeai/SKILL.md",
@@ -136,9 +136,9 @@
     },
     {
       "path": "app/Http/Controllers/Barang/LabelPrintController.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 1580
+      "size": 2464
     },
     {
       "path": "app/Http/Controllers/Barang/ProductController.php",
@@ -226,7 +226,7 @@
     },
     {
       "path": "app/Http/Controllers/Kasir/ProductSearchController.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 1486
     },
@@ -508,9 +508,9 @@
     },
     {
       "path": "app/Livewire/Barang/Labels.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 5288
+      "size": 5679
     },
     {
       "path": "app/Livewire/Barang/MinStockSettings.php",
@@ -1275,6 +1275,12 @@
       "size": 16009
     },
     {
+      "path": "app/Services/LabelPdfService.php",
+      "reason": "new",
+      "language": "php",
+      "size": 1452
+    },
+    {
       "path": "app/Services/LoginLockoutService.php",
       "reason": "needs_summary",
       "language": "php",
@@ -1354,7 +1360,7 @@
     },
     {
       "path": "app/Services/ProductCatalog.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 3699
     },
@@ -2349,6 +2355,12 @@
       "size": 2922
     },
     {
+      "path": "resources/views/barang/label-pdf.blade.php",
+      "reason": "new",
+      "language": "php",
+      "size": 2049
+    },
+    {
       "path": "resources/views/barang/label-print.blade.php",
       "reason": "needs_summary",
       "language": "php",
@@ -2740,9 +2752,9 @@
     },
     {
       "path": "resources/views/livewire/barang/labels.blade.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 9479
+      "size": 9690
     },
     {
       "path": "resources/views/livewire/barang/min-stock-settings.blade.php",
@@ -3190,9 +3202,9 @@
     },
     {
       "path": "routes/web.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 36993
+      "size": 37171
     },
     {
       "path": "tests/Concerns/MakesProductImports.php",
@@ -3430,7 +3442,7 @@
     },
     {
       "path": "tests/Feature/Barang/BarcodeResourceTest.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 1479
     },
@@ -3508,9 +3520,9 @@
     },
     {
       "path": "tests/Feature/Barang/LabelPrintTest.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 4780
+      "size": 5883
     },
     {
       "path": "tests/Feature/Barang/LowStockPanelTest.php",

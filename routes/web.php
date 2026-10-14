@@ -270,6 +270,8 @@ Route::middleware('menu:barang')->group(function () {
     Route::get('/barang/barcode/label', Barang\Labels::class)->name('barang.label');
     Route::get('/barang/barcode/label/cetak', \App\Http\Controllers\Barang\LabelPrintController::class)
         ->middleware('throttle:30,1')->name('barang.label.cetak');
+    Route::get('/barang/barcode/label/data', [\App\Http\Controllers\Barang\LabelPrintController::class, 'data'])
+        ->middleware('throttle:60,1')->name('barang.label.data');
     Route::get('/barang/barcode/label/unduh', [\App\Http\Controllers\Barang\LabelPrintController::class, 'pdf'])
         ->middleware('throttle:10,1')->name('barang.label.pdf');
     Route::get('/barang/kategori/data', [CategoryController::class, 'index'])->name('barang.kategori.data');

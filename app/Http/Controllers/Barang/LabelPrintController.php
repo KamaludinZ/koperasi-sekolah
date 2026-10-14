@@ -15,6 +15,28 @@ use Illuminate\View\View;
  */
 class LabelPrintController extends Controller
 {
+    /**
+     * GET /barang/barcode/label/data?barang=&format= → data label (JSON): ukuran format (mm), label per lembar
+     * (kode, nama, harga, nilai barcode, URL gambar), total, dan daftar format yang tersedia.
+     */
+    public function data(Request $request): \Illuminate\Http\JsonResponse
+    {
+        $data = $this->validated($request);
+        $f = LabelFormats::get($data['format'] ?? LabelFormats::DEFAULT);
+        $sheet = LabelFormats::sheets(LabelFormats::parseItems($data['barang']), $f['key']);
+
+        return response()->json([
+            'data' => [
+                'format' => $f,
+                'pages' => array_map(fn ($page) => array_map(fn ($l) => $l + ['image' => route('barang.barcode.image', [$l['id'], 'svg'])], $page), $sheet['pages']),
+                'total' => $sheet['total'],
+                'truncated' => $sheet['truncated'],
+            ],
+            'meta' => ['formats' => collect(LabelFormats::FORMATS)->map(fn ($def, $key) => ['key' => $key, 'label' => $def[0]])->values(),
+                'max_labels' => LabelFormats::MAX_LABELS, 'thermal_for_receipt' => LabelFormats::thermalForReceipt()],
+        ]);
+    }
+
     /** GET /barang/barcode/label/unduh?barang=&format=&nama=&harga= → PDF label siap cetak. */
     public function pdf(Request $request, \App\Services\LabelPdfService $labels): \Symfony\Component\HttpFoundation\Response
     {
