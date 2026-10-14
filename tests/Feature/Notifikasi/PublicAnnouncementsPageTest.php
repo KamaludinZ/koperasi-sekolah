@@ -30,6 +30,20 @@ class PublicAnnouncementsPageTest extends TestCase
         $this->get('/')->assertOk()->assertSee(route('pengumuman.publik'))->assertSee('Lihat semua (6)');
     }
 
+    public function test_public_json_without_login_hides_internal_fields(): void
+    {
+        $this->announce('Libur koperasi');
+        $this->announce('Rahasia internal', public: false);
+        $this->announce('Sudah kedaluwarsa', expires: now()->subDay()->toDateString());
+
+        $res = $this->getJson('/pengumuman/data')->assertOk()
+            ->assertJsonCount(1, 'data')
+            ->assertJsonPath('data.0.title', 'Libur koperasi')
+            ->assertJsonPath('data.0.message', 'Isi Libur koperasi');
+        $this->assertSame(['id', 'title', 'message', 'expires_at', 'created_at'], array_keys($res->json('data.0')));
+        $this->assertStringContainsString('public', $res->headers->get('Cache-Control'));
+    }
+
     public function test_empty_state(): void
     {
         $this->get('/pengumuman')->assertOk()->assertSee('Belum ada pengumuman saat ini.');

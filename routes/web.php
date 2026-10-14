@@ -79,6 +79,11 @@ Route::get('/pengumuman', fn () => view('pengumuman', [
     'profile' => \App\Support\MockData::profile(),
     'announcements' => app(\App\Services\AnnouncementService::class)->publicList(100),
 ]))->name('pengumuman.publik');
+// Pengumuman publik (JSON, tanpa login): hanya isi yang memang ditandai tampil di beranda & masih berlaku.
+Route::get('/pengumuman/data', fn () => response()->json([
+    'data' => collect(app(\App\Services\AnnouncementService::class)->publicList(100))
+        ->map(fn ($a) => \Illuminate\Support\Arr::only($a, ['id', 'title', 'message', 'expires_at', 'created_at']))->values(),
+])->header('Cache-Control', 'public, max-age=60'))->middleware('throttle:60,1')->name('pengumuman.publik.data');
 Route::get('/logo/{file}', [LogoController::class, 'show'])->where('file', LogoService::FILE_PATTERN)->name('logo');
 Route::get('/qris/{file}', function (string $file) {
     $disk = \Illuminate\Support\Facades\Storage::disk(\App\Services\QrisImageService::DISK);
