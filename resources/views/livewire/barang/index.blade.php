@@ -104,7 +104,7 @@
                 <table class="w-full text-sm">
                     <thead class="bg-stone-50 text-left text-xs font-medium text-stone-500">
                         <tr>
-                            <th class="px-4 py-2.5">Kode</th>
+                            <th class="px-4 py-2.5">Kode / barcode</th>
                             <th class="px-4 py-2.5">Nama barang</th>
                             <th class="px-4 py-2.5">Kategori</th>
                             <th class="px-4 py-2.5 text-right">Harga beli</th>
@@ -119,9 +119,12 @@
                                 @class(['hover:bg-stone-50',
                                         'bg-red-50/50 shadow-[inset_3px_0_0_var(--color-red-500)]' => $p['stock'] <= 0 && $p['is_active'],
                                         'bg-stone-50 text-stone-400 shadow-[inset_3px_0_0_var(--color-stone-300)]' => ! $p['is_active']])>
-                                <td class="px-4 py-3 font-mono text-xs text-stone-500">{{ $p['code'] }}</td>
+                                <td class="px-4 py-3 font-mono text-xs text-stone-500">
+                                    {{ $p['code'] }}
+                                    @if (($bc = \App\Support\BarcodeImage::value($p)) !== $p['code'])<span class="block text-[11px] text-stone-400" title="Barcode">▮▯ {{ $bc }}</span>@endif
+                                </td>
                                 <td @class(['px-4 py-3 font-medium', 'line-through decoration-stone-300' => ! $p['is_active']])>
-                                    {{ $p['name'] }}
+                                    <button type="button" wire:click="show({{ $p['id'] }})" class="text-left hover:text-emerald-800 hover:underline">{{ $p['name'] }}</button>
                                     @unless ($p['is_active'])<span class="ml-1 inline-block rounded bg-stone-200 px-1.5 py-0.5 text-[11px] font-medium text-stone-600 no-underline">Nonaktif · tidak dijual</span>@endunless
                                 </td>
                                 <td class="px-4 py-3 text-stone-600">{{ $p['category'] }}</td>
@@ -164,6 +167,41 @@
             @include('livewire.barang.partials.pagination', ['paginator' => $this->paginated])
         @endif
     </div>
+
+    @if ($d = $this->detail)
+        <div class="fixed inset-0 z-40 flex justify-end" role="dialog" aria-modal="true" aria-labelledby="product-detail-title"
+             x-data x-on:keydown.escape.window="$wire.closeDetail()">
+            <div class="absolute inset-0 bg-stone-950/50" wire:click="closeDetail"></div>
+            <div class="relative flex h-full w-full max-w-md flex-col bg-white shadow-xl">
+                <div class="flex items-start justify-between gap-3 border-b border-stone-200 px-5 py-4">
+                    <div class="min-w-0">
+                        <p class="font-mono text-xs text-stone-500">{{ $d['code'] }} · {{ $d['category'] ?? 'Tanpa kategori' }}</p>
+                        <h2 id="product-detail-title" class="font-semibold">{{ $d['name'] }}
+                            @unless ($d['is_active'])<span class="ml-1 rounded bg-stone-200 px-1.5 py-0.5 text-[11px] font-medium text-stone-600">Nonaktif</span>@endunless</h2>
+                    </div>
+                    <button type="button" wire:click="closeDetail" class="text-stone-400 hover:text-stone-600" aria-label="Tutup">
+                        <svg class="size-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg>
+                    </button>
+                </div>
+                <div class="min-h-0 flex-1 space-y-5 overflow-y-auto px-5 py-5 text-sm">
+                    <section aria-label="Barcode" class="rounded-xl border border-stone-200 p-4 text-center">
+                        <x-barcode :value="$d['barcode']" class="w-full max-w-64" />
+                        <p class="mt-2 text-xs text-stone-500">CODE128 · {{ $d['barcode'] === $d['code'] ? 'mengikuti kode barang' : 'barcode khusus' }}</p>
+                    </section>
+                    <dl class="grid grid-cols-[8rem_1fr] gap-x-3 gap-y-2">
+                        <dt class="text-stone-500">Harga jual</dt><dd class="font-semibold tabular-nums">{{ $rp($d['price']) }}</dd>
+                        <dt class="text-stone-500">Harga beli</dt><dd class="tabular-nums">{{ $rp($d['cost_price']) }}</dd>
+                        <dt class="text-stone-500">Stok</dt><dd><x-stock-badge :stock="$d['stock']" :min="$d['min_stock']" :unit="$d['unit']" /> <span class="text-xs text-stone-500">min. {{ $d['min_stock'] }}</span></dd>
+                        <dt class="text-stone-500">Terakhir diubah</dt><dd>{{ $d['updated_at'] ? \Illuminate\Support\Carbon::parse($d['updated_at'])->translatedFormat('d M Y H:i') : '—' }}</dd>
+                    </dl>
+                </div>
+                <div class="flex flex-wrap gap-2 border-t border-stone-200 px-5 py-3">
+                    <a href="{{ route('barang.riwayat-stok', ['barang' => $d['id'], 'periode' => 'semua']) }}" wire:navigate class="rounded-lg border border-stone-300 px-3 py-2 text-sm font-medium text-stone-700 hover:bg-stone-50">Riwayat stok</a>
+                    <button type="button" wire:click="edit({{ $d['id'] }})" class="ml-auto rounded-lg bg-emerald-700 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-800">Ubah barang</button>
+                </div>
+            </div>
+        </div>
+    @endif
 
     @include('livewire.barang.partials.product-form')
     <livewire:barang.min-stock-settings />

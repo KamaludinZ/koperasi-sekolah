@@ -1,6 +1,6 @@
 {
   "repo": "Koperasi Sekolah",
-  "generatedForCommit": "a2d2242a28618dca06e2c9fb604151d8771c06bc",
+  "generatedForCommit": "2b9b85e49714743caea3b05b8a82aaf6751e74d4",
   "files": [
     {
       "path": ".claude/skills/ngodingpakeai/SKILL.md",
@@ -556,9 +556,9 @@
     },
     {
       "path": "app/Livewire/Kasir/ProductPicker.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 3362
+      "size": 4051
     },
     {
       "path": "app/Livewire/Laporan/Index.php",
@@ -2050,15 +2050,15 @@
     },
     {
       "path": "package-lock.json",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "json",
-      "size": 92765
+      "size": 93103
     },
     {
       "path": "package.json",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "json",
-      "size": 472
+      "size": 505
     },
     {
       "path": "phpunit.xml",
@@ -2092,9 +2092,15 @@
     },
     {
       "path": "resources/js/app.js",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "javascript",
-      "size": 1360
+      "size": 1466
+    },
+    {
+      "path": "resources/js/barcode-scanner.js",
+      "reason": "new",
+      "language": "javascript",
+      "size": 3422
     },
     {
       "path": "resources/js/bootstrap.js",
@@ -2560,9 +2566,9 @@
     },
     {
       "path": "resources/views/livewire/kasir/product-picker.blade.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 6226
+      "size": 10872
     },
     {
       "path": "resources/views/livewire/laporan/index.blade.php",
@@ -3436,9 +3442,9 @@
     },
     {
       "path": "tests/Feature/Kasir/ProductPickerTest.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 2716
+      "size": 3773
     },
     {
       "path": "tests/Feature/Kasir/ProductSearchTest.php",
@@ -3742,7 +3748,7 @@
     },
     {
       "path": "tests/Feature/Pengaturan/SettingsEndpointTest.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 6778
     },

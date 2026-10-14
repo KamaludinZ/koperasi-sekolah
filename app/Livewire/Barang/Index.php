@@ -49,6 +49,10 @@ class Index extends Component
 
     public ?string $flash = null;
 
+    /** Barang yang sedang dilihat di panel detail. */
+    #[Url(as: 'lihat', except: null)]
+    public ?int $viewing = null;
+
     public const STATUSES = [
         '' => 'Semua status',
         'menipis' => 'Stok menipis',
@@ -103,6 +107,35 @@ class Index extends Component
         $this->resetPage();
     }
 
+    /** @return array<string, mixed>|null barang di panel detail (dengan nilai barcode) */
+    #[Computed]
+    public function detail(): ?array
+    {
+        $p = $this->viewing ? Product::with('category')->find($this->viewing) : null;
+        if (! $p) {
+            return null;
+        }
+
+        return [
+            'id' => $p->id, 'code' => $p->code, 'name' => $p->name, 'category' => $p->category?->name,
+            'unit' => $p->unit, 'price' => (int) $p->price, 'cost_price' => (int) $p->cost_price,
+            'stock' => (int) $p->stock, 'min_stock' => (int) $p->min_stock, 'is_active' => (bool) $p->is_active,
+            'barcode' => \App\Support\BarcodeImage::value($p),
+            'updated_at' => $p->updated_at?->toDateTimeString(),
+        ];
+    }
+
+    public function show(int $productId): void
+    {
+        $this->viewing = $productId;
+        unset($this->detail);
+    }
+
+    public function closeDetail(): void
+    {
+        $this->viewing = null;
+    }
+
     public function create(): void
     {
         $this->form->blank();
@@ -120,6 +153,7 @@ class Index extends Component
 
         $this->form->load($product);
         $this->flash = null;
+        $this->viewing = null;
         $this->editing = true;
     }
 
