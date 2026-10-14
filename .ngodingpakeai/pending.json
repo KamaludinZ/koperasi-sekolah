@@ -1,6 +1,6 @@
 {
   "repo": "Koperasi Sekolah",
-  "generatedForCommit": "bef5cbb123b8c5bf9e631242cd229a1d93d9daa7",
+  "generatedForCommit": "c9985e340fa7757a9f4efa9be1913dc776715183",
   "files": [
     {
       "path": ".claude/skills/ngodingpakeai/SKILL.md",
@@ -562,7 +562,7 @@
     },
     {
       "path": "app/Livewire/Kasir/Cart.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 21111
     },
@@ -574,7 +574,7 @@
     },
     {
       "path": "app/Livewire/Kasir/ProductPicker.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 4065
     },
@@ -2134,9 +2134,15 @@
     },
     {
       "path": "resources/js/app.js",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "javascript",
-      "size": 1466
+      "size": 1568
+    },
+    {
+      "path": "resources/js/barcode-reader.js",
+      "reason": "new",
+      "language": "javascript",
+      "size": 2229
     },
     {
       "path": "resources/js/barcode-scanner.js",
@@ -2644,9 +2650,9 @@
     },
     {
       "path": "resources/views/livewire/kasir/product-picker.blade.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 7299
+      "size": 7565
     },
     {
       "path": "resources/views/livewire/laporan/index.blade.php",
@@ -3490,7 +3496,7 @@
     },
     {
       "path": "tests/Feature/Kasir/CartTest.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 4111
     },
@@ -3546,7 +3552,7 @@
       "path": "tests/Feature/Kasir/ProductPickerTest.php",
       "reason": "changed",
       "language": "php",
-      "size": 3725
+      "size": 3827
     },
     {
       "path": "tests/Feature/Kasir/ProductSearchTest.php",

@@ -72,6 +72,19 @@ class ProductPicker extends Component
         }
     }
 
+    /** Pilih dari pencarian cadangan di panel kamera, lalu kosongkan kolom cari. */
+    public function pickFallback(int $productId): void
+    {
+        $product = app(ProductCatalog::class)->find($productId);
+        if (! $product || $product['stock'] < 1) {
+            return;
+        }
+        $this->pick($productId);
+        $this->scan = ['type' => 'success', 'text' => "Ditambahkan: {$product['name']}"];
+        $this->search = '';
+        unset($this->products);
+    }
+
     /**
      * Hasil pindai kamera (atau barcode reader): hanya kode yang cocok persis yang dimasukkan ke
      * keranjang; kolom cari tidak disentuh supaya ketikan kasir tidak hilang.

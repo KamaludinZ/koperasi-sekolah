@@ -85,5 +85,29 @@
 
     {{-- Pemindai kamera: hasil yang terbaca langsung masuk keranjang (F4 buka/tutup). --}}
     <x-camera-scanner open-event="open-camera-scanner" on-code="$wire.scanCode(code)" hotkey
-                      hint="Arahkan kamera ke barcode barang. Barang langsung masuk keranjang." />
+                      hint="Arahkan kamera ke barcode barang. Barang langsung masuk keranjang.">
+        <x-slot:fallback>
+            {{-- Cadangan bila barcode tidak terbaca / barang belum punya barcode. --}}
+            <label class="block text-sm"><span class="mb-1 block font-medium text-stone-700">Tidak terbaca? Cari kode atau nama</span>
+                <input type="search" wire:model.live.debounce.200ms="search" wire:keydown.enter.prevent="pickFromSearch" autocomplete="off"
+                       placeholder="mis. ATK001 atau pulpen" data-fallback-search
+                       class="w-full rounded-lg border border-stone-300 bg-white px-3 py-2 text-sm outline-none focus:border-emerald-600 focus:ring-4 focus:ring-emerald-600/15">
+            </label>
+            @if (mb_strlen(trim($search)) >= 1)
+                <ul class="mt-2 max-h-48 divide-y divide-stone-100 overflow-y-auto rounded-lg border border-stone-200" aria-label="Hasil pencarian cadangan">
+                    @forelse (array_slice($this->products, 0, 5) as $p)
+                        <li wire:key="fb-{{ $p['id'] }}">
+                            <button type="button" wire:click="pickFallback({{ $p['id'] }})" @disabled($p['stock'] < 1)
+                                    class="flex w-full items-center justify-between gap-3 px-3 py-2 text-left text-sm hover:bg-emerald-50 disabled:cursor-not-allowed disabled:opacity-50">
+                                <span><span class="font-mono text-xs text-stone-500">{{ $p['code'] }}</span> {{ $p['name'] }}</span>
+                                <span class="shrink-0 text-xs text-stone-500 tabular-nums">{{ $p['stock'] < 1 ? 'Habis' : \App\Support\Rupiah::format($p['price']) }}</span>
+                            </button>
+                        </li>
+                    @empty
+                        <li class="px-3 py-3 text-center text-sm text-stone-500">Barang tidak ditemukan.</li>
+                    @endforelse
+                </ul>
+            @endif
+        </x-slot:fallback>
+    </x-camera-scanner>
 </section>

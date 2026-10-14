@@ -39,13 +39,16 @@
                 <p x-show="lastFeedback" aria-live="polite" class="rounded-lg px-3 py-2 text-sm"
                    x-bind:class="{ 'bg-emerald-50 text-emerald-900': lastFeedback?.type === 'success', 'bg-red-50 text-red-800': lastFeedback?.type === 'error', 'bg-amber-50 text-amber-900': lastFeedback?.type === 'info' }"
                    x-text="lastFeedback?.text"></p>
+                @isset($fallback)
+                    <div class="border-t border-stone-100 pt-3">{{ $fallback }}</div>
+                @endisset
                 <div class="flex flex-wrap items-center justify-between gap-2">
                     <label x-show="cameras.length > 1" class="flex items-center gap-2 text-sm"><span class="text-stone-600">Kamera</span>
                         <select x-on:change="switchCamera($event.target.value)" class="rounded-lg border border-stone-300 bg-white px-2 py-1 text-sm">
                             <template x-for="c in cameras" :key="c.id"><option :value="c.id" :selected="c.id === cameraId" x-text="c.label || 'Kamera'"></option></template>
                         </select>
                     </label>
-                    <p class="text-xs text-stone-500">Barcode tidak terbaca? Tutup lalu ketik kodenya.</p>
+                    @unless (isset($fallback))<p class="text-xs text-stone-500">Barcode tidak terbaca? Tutup lalu ketik kodenya.</p>@endunless
                     <button type="button" x-on:click="stop()" class="rounded-lg border border-stone-300 px-3 py-1.5 text-sm font-medium text-stone-700 hover:bg-stone-50">Selesai</button>
                 </div>
             </div>

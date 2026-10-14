@@ -103,4 +103,20 @@ class ProductPickerTest extends TestCase
             ->assertSee('barcodeReader', false)
             ->assertSee('Pindai barcode');
     }
+
+    public function test_fallback_search_in_camera_panel(): void
+    {
+        $c = Livewire::test(ProductPicker::class)
+            ->assertSee('data-fallback-search', false)
+            ->assertDontSee('Hasil pencarian cadangan')
+            ->set('search', 'pulpen')
+            ->assertSee('Hasil pencarian cadangan')
+            ->call('pickFallback', $this->pid('ATK002'))
+            ->assertDispatched('product-picked', productId: $this->pid('ATK002'))
+            ->assertSet('search', '');
+
+        \App\Models\Product::where('code', 'ATK003')->update(['stock' => 0]);
+        $c->call('pickFallback', $this->pid('ATK003'))->assertNotDispatched('product-picked');
+        $c->set('search', 'zzzz')->assertSee('Barang tidak ditemukan.');
+    }
 }
