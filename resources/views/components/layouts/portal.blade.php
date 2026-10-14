@@ -6,6 +6,7 @@
     $nav = collect([
         'portal' => ['Beranda', 'M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z'],
         'portal.simpanan' => ['Simpanan', 'M12 3v18M17 7H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6'],
+        'portal.pinjaman' => ['Pinjaman', 'M3 7h18v10H3zM7 12h.01M12 9.5a2.5 2.5 0 110 5 2.5 2.5 0 010-5z'],
         'portal.riwayat' => ['Riwayat', 'M12 8v4l3 2M3.05 11a9 9 0 11.5 4M3 4v5h5'],
         'portal.belanja' => ['Belanja', 'M3 3h2l.4 2M7 13h10l4-8H5.4M7 13 5.4 5M7 13l-2.3 2.3c-.6.6-.2 1.7.7 1.7H17'],
         'portal.pesanan' => ['Pesanan', 'M9 5h10M9 12h10M9 19h10M5 5h.01M5 12h.01M5 19h.01'],
