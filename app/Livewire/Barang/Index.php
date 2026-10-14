@@ -6,6 +6,7 @@ use App\Livewire\Forms\ProductForm;
 use App\Models\Product;
 use App\Services\ProductCatalog;
 use App\Services\ProductListing;
+use Illuminate\Support\Facades\Gate;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\On;
@@ -150,8 +151,15 @@ class Index extends Component
         $this->resetValidation('form.barcode');
     }
 
+    /** Tambah/ubah barang khusus Admin & Pengurus; kasir hanya melihat. */
+    private function guard(): void
+    {
+        abort_unless(Gate::allows('kelola-katalog'), 403);
+    }
+
     public function create(): void
     {
+        $this->guard();
         $this->form->blank();
         $this->flash = null;
         $this->editing = true;
@@ -159,6 +167,7 @@ class Index extends Component
 
     public function edit(int $productId): void
     {
+        $this->guard();
         $model = Product::with('category:id,name')->find($productId);
         $product = $model ? ProductCatalog::toArray($model) : null;
         if (! $product) {
@@ -173,6 +182,7 @@ class Index extends Component
 
     public function save(): void
     {
+        $this->guard();
         $isNew = $this->form->id === null;
         $product = $this->form->save();
 

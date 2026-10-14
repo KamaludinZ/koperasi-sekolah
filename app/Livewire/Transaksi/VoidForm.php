@@ -8,6 +8,7 @@ use App\Services\TransactionReturnService;
 use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
+use Livewire\Attributes\Locked;
 use Livewire\Attributes\Title;
 use Livewire\Component;
 
@@ -30,6 +31,7 @@ class VoidForm extends Component
         'bon' => 'Catatan bon anggota dihapus.',
     ];
 
+    #[Locked]
     public int $transactionId;
 
     public string $reason = '';

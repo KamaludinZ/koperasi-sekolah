@@ -75,7 +75,7 @@ class MemberController extends Controller
 
     public function store(Request $request, MemberService $members): JsonResponse
     {
-        $data = $request->validate(MemberService::rules(), MemberService::messages());
+        $data = MemberService::restrictFields($request->validate(MemberService::rules(), MemberService::messages()));
 
         return response()->json(['data' => MemberService::toArray($members->create($data))], 201);
     }
@@ -87,7 +87,7 @@ class MemberController extends Controller
 
     public function update(Request $request, Member $member, MemberService $members): JsonResponse
     {
-        $data = $request->validate(MemberService::rules($member->id), MemberService::messages());
+        $data = MemberService::restrictFields($request->validate(MemberService::rules($member->id), MemberService::messages()));
 
         return response()->json(['data' => MemberService::toArray($members->update($member, $data))]);
     }

@@ -8,6 +8,7 @@ use App\Services\TransactionReturnService;
 use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
+use Livewire\Attributes\Locked;
 use Livewire\Attributes\Title;
 use Livewire\Component;
 
@@ -23,6 +24,7 @@ class ReturnForm extends Component
 {
     public const CONDITIONS = ['layak' => 'Masih layak jual — kembali ke stok', 'rusak' => 'Rusak/kedaluwarsa — tidak kembali ke stok'];
 
+    #[Locked]
     public int $transactionId;
 
     /** @var array<int, int|string> id item transaksi → jumlah diretur */

@@ -1,4 +1,4 @@
-@php $rp = fn ($n) => 'Rp'.number_format($n, 0, ',', '.'); @endphp
+@php $rp = fn ($n) => 'Rp'.number_format($n, 0, ',', '.'); $canManage = Gate::allows('kelola-katalog'); @endphp
 <div class="flex min-h-0 flex-1 flex-col overflow-y-auto">
     <header class="border-b border-stone-200 bg-white px-4 pt-4 sm:px-6">
         <div class="flex flex-wrap items-center justify-between gap-3">
@@ -6,6 +6,7 @@
                 <h1 class="text-lg font-semibold">Barang & Stok</h1>
                 <p class="text-xs text-stone-500">Daftar barang koperasi beserta harga dan sisa stok.</p>
             </div>
+            @can('kelola-katalog')
             <div class="flex gap-2">
             <button type="button" x-on:click="$dispatch('open-min-stock-settings')"
                     class="inline-flex items-center gap-2 rounded-xl border border-stone-300 bg-white px-3.5 py-2.5 text-sm font-medium text-stone-700 hover:bg-stone-50">
@@ -18,6 +19,7 @@
                 Tambah barang
             </button>
             </div>
+            @endcan
         </div>
         <x-barang.nav active="barang" />
     </header>
@@ -133,7 +135,7 @@
                                 <td class="px-4 py-3 text-right"><x-stock-badge :stock="$p['stock']" :min="$p['min_stock']" :unit="$p['unit']" /></td>
                                 <td class="px-4 py-3 text-right">
                                     <a href="{{ route('barang.riwayat-stok', ['barang' => $p['id'], 'periode' => 'semua']) }}" wire:navigate class="mr-3 text-sm font-medium text-stone-600 hover:underline">Riwayat</a>
-                                    <button type="button" wire:click="edit({{ $p['id'] }})" class="text-sm font-medium text-emerald-700 hover:underline">Ubah</button>
+                                    @can('kelola-katalog')<button type="button" wire:click="edit({{ $p['id'] }})" class="text-sm font-medium text-emerald-700 hover:underline">Ubah</button>@endcan
                                 </td>
                             </tr>
                         @endforeach
@@ -144,7 +146,7 @@
             {{-- Kartu (ponsel) --}}
             <ul class="space-y-2 md:hidden">
                 @foreach ($this->paginated as $p)
-                    <li wire:key="card-{{ $p['id'] }}" wire:click="edit({{ $p['id'] }})"
+                    <li wire:key="card-{{ $p['id'] }}" wire:click="{{ $canManage ? 'edit' : 'show' }}({{ $p['id'] }})"
                         @class(['cursor-pointer rounded-xl border px-4 py-3 active:bg-stone-50',
                                 'border-stone-200 bg-white' => $p['is_active'] && $p['stock'] > 0,
                                 'border-red-200 bg-red-50/50' => $p['is_active'] && $p['stock'] <= 0,
@@ -198,12 +200,16 @@
                 <div class="flex flex-wrap gap-2 border-t border-stone-200 px-5 py-3">
                     <a href="{{ route('barang.riwayat-stok', ['barang' => $d['id'], 'periode' => 'semua']) }}" wire:navigate class="rounded-lg border border-stone-300 px-3 py-2 text-sm font-medium text-stone-700 hover:bg-stone-50">Riwayat stok</a>
                     <a href="{{ route('barang.label', ['barang' => $d['id']]) }}" wire:navigate class="rounded-lg border border-stone-300 px-3 py-2 text-sm font-medium text-stone-700 hover:bg-stone-50">Cetak label</a>
+                    @can('kelola-katalog')
                     <button type="button" wire:click="edit({{ $d['id'] }})" class="ml-auto rounded-lg bg-emerald-700 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-800">Ubah barang</button>
+                    @endcan
                 </div>
             </div>
         </div>
     @endif
 
     @include('livewire.barang.partials.product-form')
-    <livewire:barang.min-stock-settings />
+    @can('kelola-katalog')
+        <livewire:barang.min-stock-settings />
+    @endcan
 </div>

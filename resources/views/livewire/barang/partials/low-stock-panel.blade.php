@@ -38,10 +38,12 @@
                     </li>
                 @endforeach
             </ul>
+@can('kelola-katalog')
             <p class="border-t border-amber-200 px-4 py-2 text-xs text-amber-900">
                 Batas terlalu tinggi/rendah?
                 <button type="button" x-on:click="$dispatch('open-min-stock-settings')" class="font-semibold underline hover:no-underline">Atur batas minimum</button>
             </p>
+            @endcan
             @if (count($this->lowStock) > $shown)
                 <button type="button" x-on:click="all = !all"
                         class="w-full border-t border-amber-200 px-4 py-2 text-xs font-semibold text-amber-900 hover:bg-amber-100"

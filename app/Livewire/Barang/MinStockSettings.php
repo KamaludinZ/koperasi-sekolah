@@ -6,6 +6,7 @@ use App\Models\Product;
 use App\Services\MinStockService;
 use App\Services\ProductCatalog;
 use App\Services\ProductListing;
+use Illuminate\Support\Facades\Gate;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\On;
 use Livewire\Component;
@@ -33,6 +34,7 @@ class MinStockSettings extends Component
     #[On('open-min-stock-settings')]
     public function show(): void
     {
+        abort_unless(Gate::allows('kelola-katalog'), 403);
         $this->resetValidation();
         $this->minStocks = Product::pluck('min_stock', 'id')->all();
         $this->defaultMinStock = app(MinStockService::class)->defaultMinStock();
@@ -64,6 +66,7 @@ class MinStockSettings extends Component
 
     public function save(): void
     {
+        abort_unless(Gate::allows('kelola-katalog'), 403);
         $this->validate([
             'minStocks' => ['array'],
             'minStocks.*' => ['required', 'integer', 'min:0', 'max:100000'],

@@ -7,6 +7,7 @@ use App\Services\ProductImportService;
 use App\Support\ProductImportFormat;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
+use Livewire\Attributes\Locked;
 use Livewire\Attributes\Title;
 use Livewire\Component;
 
@@ -20,6 +21,7 @@ use Livewire\Component;
 #[Title('Rincian Impor')]
 class ImportDetail extends Component
 {
+    #[Locked]
     public int $importId;
 
     public function mount(int $import): void

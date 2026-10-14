@@ -67,7 +67,7 @@ class MemberForm extends Form
 
     public function save(): array
     {
-        $data = $this->validate();
+        $data = MemberService::restrictFields($this->validate());
         $service = app(MemberService::class);
 
         $member = $this->id === null

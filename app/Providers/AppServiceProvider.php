@@ -77,6 +77,9 @@ class AppServiceProvider extends ServiceProvider
         // Kategori barang & impor barang dikelola Admin dan Pengurus (kasir hanya melihat).
         Gate::define('kelola-katalog', fn (User $user) => $user->hasRole(Role::ADMIN, Role::PENGURUS) && $user->canOpen('barang'));
 
+        // Hapus anggota & batas bon khusus: Admin & Pengurus (kasir cukup daftar/ubah data dasar, setor/tarik).
+        Gate::define('kelola-anggota', fn (User $user) => $user->hasRole(Role::ADMIN, Role::PENGURUS) && $user->canOpen('anggota'));
+
         // Pengadaan (supplier, pesanan, penerimaan, hutang): Admin & Pengurus pemegang menu Pengadaan.
         // Jenis & mutasi simpanan anggota hanya untuk pengurus/admin (kasir tidak punya menu ini).
         Gate::define('kelola-simpanan', fn (User $user) => $user->hasRole(Role::ADMIN, Role::PENGURUS) && $user->canOpen('simpanan'));

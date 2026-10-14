@@ -189,6 +189,16 @@ class MemberService
         ];
     }
 
+    /** Batas bon khusus hanya boleh diatur pemegang `kelola-anggota`; dari petugas lain diabaikan (nilai lama tetap). */
+    public static function restrictFields(array $data): array
+    {
+        if (! \Illuminate\Support\Facades\Gate::allows('kelola-anggota')) {
+            unset($data['credit_limit']);
+        }
+
+        return $data;
+    }
+
     private function normalize(array $data): array
     {
         $out = collect($data)->only(['member_code', 'name', 'type', 'class', 'phone', 'is_active', 'credit_limit'])->all();

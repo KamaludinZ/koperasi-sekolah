@@ -34,6 +34,10 @@ class ForceHttps
         $headers->set('X-Frame-Options', 'SAMEORIGIN');
         $headers->set('Referrer-Policy', 'strict-origin-when-cross-origin');
         $headers->set('Permissions-Policy', 'camera=(self), microphone=(), geolocation=()');
+        // CSP ringan yang tidak mengganggu Alpine/Livewire: cegah clickjacking, <base> & form ke domain lain, plugin.
+        if (! $headers->has('Content-Security-Policy')) {
+            $headers->set('Content-Security-Policy', "frame-ancestors 'self'; base-uri 'self'; form-action 'self'; object-src 'none'");
+        }
         if ($force && $request->secure() && ($age = (int) config('koperasi.hsts_max_age')) > 0) {
             $headers->set('Strict-Transport-Security', "max-age={$age}; includeSubDomains");
         }

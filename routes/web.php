@@ -322,7 +322,7 @@ Route::middleware('menu:barang')->group(function () {
         ->middleware('throttle:120,1')
         ->name('barang.list');
     Route::post('/barang', [ProductController::class, 'store'])
-        ->middleware('throttle:60,1')
+        ->middleware(['can:kelola-katalog', 'throttle:60,1'])
         ->name('barang.store');
     Route::get('/barang/saran-restok/data', [ProductController::class, 'restock'])->middleware('throttle:120,1')->name('barang.saran-restok.data');
     Route::get('/barang/riwayat-stok/data', [ProductController::class, 'allMovements'])->middleware('throttle:120,1')->name('barang.riwayat-stok.data');
@@ -330,12 +330,12 @@ Route::middleware('menu:barang')->group(function () {
     Route::get('/barang/{product}/riwayat-stok', [ProductController::class, 'movements'])->whereNumber('product')->middleware('throttle:120,1')->name('barang.movements');
     Route::put('/barang/{product}', [ProductController::class, 'update'])
         ->whereNumber('product')
-        ->middleware('throttle:60,1')
+        ->middleware(['can:kelola-katalog', 'throttle:60,1'])
         ->name('barang.update');
     Route::get('/barang/stok-menipis', [StockAlertController::class, 'lowStock'])->name('barang.low-stock');
     Route::get('/barang/batas-minimum', [StockAlertController::class, 'minStocks'])->name('barang.min-stock');
     Route::put('/barang/batas-minimum', [StockAlertController::class, 'updateMinStocks'])
-        ->middleware('throttle:30,1')
+        ->middleware(['can:kelola-katalog', 'throttle:30,1'])
         ->name('barang.min-stock.update');
 });
 
@@ -423,7 +423,7 @@ Route::middleware('menu:anggota')->group(function () {
         ->name('anggota.status');
     Route::delete('/anggota/{member}', [MemberController::class, 'destroy'])
         ->whereNumber('member')
-        ->middleware('throttle:30,1')
+        ->middleware(['can:kelola-anggota', 'throttle:30,1'])
         ->name('anggota.destroy');
     Route::get('/anggota/{member}/tabungan', [SavingsController::class, 'index'])
         ->whereNumber('member')

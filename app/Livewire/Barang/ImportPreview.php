@@ -8,6 +8,7 @@ use App\Services\ProductImportService;
 use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
+use Livewire\Attributes\Locked;
 use Livewire\Attributes\Title;
 use Livewire\Component;
 
@@ -25,6 +26,7 @@ class ImportPreview extends Component
 
     public const FILTERS = ['semua' => 'Semua', 'masalah' => 'Bermasalah', 'baru' => 'Baru', 'perbarui' => 'Diperbarui', 'lewati' => 'Dilewati'];
 
+    #[Locked]
     public int $importId;
 
     public string $filter = 'semua';

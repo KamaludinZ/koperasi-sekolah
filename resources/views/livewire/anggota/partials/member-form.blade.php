@@ -60,6 +60,7 @@
                     @error('form.phone') <span class="mt-1 block text-xs text-red-600">{{ $message }}</span> @enderror
                 </label>
 
+                @can('kelola-anggota')
                 @php $defaultLimit = (int) (app(\App\Services\SettingsService::class)->credit()['limit_'.$form->type] ?? 0); @endphp
                 <label class="block">
                     <span class="mb-1 block text-sm font-medium">Batas bon khusus <span class="font-normal text-stone-500">(opsional)</span></span>
@@ -73,6 +74,7 @@
                         <span class="mt-1 block text-xs text-stone-500">Kosongkan untuk memakai batas bawaan {{ mb_strtolower(\App\Models\Member::TYPES[$form->type] ?? '') }} (Rp{{ number_format($defaultLimit, 0, ',', '.') }}). Isi 0 untuk melarang bon.</span>
                     @enderror
                 </label>
+                @endcan
 
                 <label class="flex items-start gap-3 rounded-xl border border-stone-200 p-4">
                     <input type="checkbox" wire:model="form.is_active" class="mt-0.5 size-4 accent-emerald-700">

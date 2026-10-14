@@ -11,6 +11,7 @@ use Illuminate\Validation\ValidationException;
 use Illuminate\Support\Carbon;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
+use Livewire\Attributes\Locked;
 use Livewire\Attributes\Url;
 use Livewire\Component;
 
@@ -22,6 +23,7 @@ use Livewire\Component;
 #[Layout('components.layouts.app')]
 class Show extends Component
 {
+    #[Locked]
     public array $profile;
 
     public function mount(Member $member): void
