@@ -66,4 +66,21 @@ class OrderEndpointTest extends TestCase
         auth('member')->logout();
         $this->postJson('/portal/pesanan', $this->payload())->assertUnauthorized();
     }
+
+    public function test_pay_pending_order_with_balance(): void
+    {
+        $id = $this->postJson('/portal/pesanan', $this->payload(), ['X-Pin-Token' => $this->token()])->assertCreated()->json('data.id');
+        $this->postJson("/portal/pesanan/{$id}/bayar-saldo", [])->assertForbidden(); // tanpa PIN
+        $this->postJson("/portal/pesanan/{$id}/bayar-saldo", [], ['X-Pin-Token' => $this->token()])->assertJsonValidationErrors('payment_method'); // saldo 0
+
+        app(SavingsService::class)->deposit($this->andi, 10000);
+        $this->postJson("/portal/pesanan/{$id}/bayar-saldo", [], ['X-Pin-Token' => $this->token()])->assertOk()
+            ->assertJsonPath('data.payment_status', 'lunas')->assertJsonPath('data.payment_method', 'tabungan')->assertJsonPath('data.deduction.after', 2000);
+        $this->assertEquals(2000, (float) $this->andi->fresh()->balance);
+        $this->postJson("/portal/pesanan/{$id}/bayar-saldo", [], ['X-Pin-Token' => $this->token()])->assertJsonValidationErrors('order');
+
+        $other = \App\Models\Member::factory()->create(['password' => 'rahasia123', 'pin' => '111222']);
+        $foreign = app(\App\Services\OrderService::class)->place($other, [$this->pid('ATK002') => 1], ['fulfillment' => 'ambil', 'payment_method' => 'tunai']);
+        $this->postJson("/portal/pesanan/{$foreign->id}/bayar-saldo", [], ['X-Pin-Token' => $this->token()])->assertNotFound();
+    }
 }

@@ -19,6 +19,23 @@ use Illuminate\Validation\Rule;
  */
 class OrderController extends Controller
 {
+    /**
+     * POST /portal/pesanan/{order}/bayar-saldo {simpanan_id?} + token PIN → lunasi pesanan yang belum dibayar
+     * dengan potong saldo tabungan (tanpa simpanan_id) atau simpanan; tanpa persetujuan pengurus.
+     */
+    public function payWithBalance(Request $request, Order $order, OrderService $orders, PortalPinService $pins): JsonResponse
+    {
+        $data = $request->validate(['simpanan_id' => ['nullable', 'integer'], 'pin_token' => ['nullable', 'string', 'max:100']]);
+        $member = Auth::guard('member')->user();
+        abort_unless($order->member_id === $member->id, 404);
+        if (! $pins->consumeToken($member, $request->header('X-Pin-Token') ?? ($data['pin_token'] ?? null))) {
+            return response()->json(['message' => 'Verifikasi PIN dulu sebelum membayar.', 'errors' => ['pin' => ['PIN belum diverifikasi atau sudah kedaluwarsa.']]], 403);
+        }
+        $order = $orders->payWithBalance($order, $member, $data['simpanan_id'] ?? null);
+
+        return response()->json(['data' => OrderService::toArray($order) + ['deduction' => OrderService::deductionFor($order)]]);
+    }
+
     public function store(Request $request, OrderService $orders, PortalPinService $pins): JsonResponse
     {
         $data = $request->validate([

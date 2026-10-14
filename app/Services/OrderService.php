@@ -215,6 +215,34 @@ class OrderService
         ];
     }
 
+    /**
+     * Lunasi pesanan yang belum dibayar (tunai/QRIS) dengan potong saldo tabungan ($savingTypeId null) atau
+     * simpanan. Tanpa persetujuan pengurus; saldo kurang → ditolak. Total dihitung ulang sebagai non-tunai.
+     *
+     * @throws ValidationException
+     */
+    public function payWithBalance(Order $order, Member $member, ?int $savingTypeId): Order
+    {
+        return DB::transaction(function () use ($order, $member, $savingTypeId) {
+            $order = Order::whereKey($order->id)->lockForUpdate()->firstOrFail();
+            if ($order->member_id !== $member->id) {
+                throw ValidationException::withMessages(['order' => 'Pesanan tidak ditemukan.']);
+            }
+            if ($order->payment_status !== 'belum' || in_array($order->status, ['selesai', 'dibatalkan'], true)) {
+                throw ValidationException::withMessages(['order' => 'Pesanan ini sudah dibayar atau tidak bisa dibayar lagi.']);
+            }
+            // Pembulatan "hanya tunai" tidak berlaku untuk potong saldo.
+            $price = $this->quote((int) round((float) $order->subtotal) - (int) round((float) $order->discount), 'tabungan');
+            $order->forceFill(['payment_method' => $savingTypeId ? 'simpanan' : 'tabungan', 'saving_type_id' => $savingTypeId,
+                'tax' => $price['tax'], 'tax_included' => $price['tax_included'], 'rounding' => $price['rounding'], 'total' => $price['payable']])->save();
+            $this->chargeBalance($member, $order);
+            $order->forceFill(['payment_status' => 'lunas', 'paid_at' => now()])->save();
+            $this->log($order, $order->status, $order->status, 'Dibayar dengan potong saldo '.($savingTypeId ? SavingType::find($savingTypeId)?->name : 'tabungan'), null, $member->name);
+
+            return $order->refresh();
+        });
+    }
+
     /** Saldo yang bisa dipakai bayar: tabungan + jenis simpanan aktif yang boleh ditarik. */
     public function balanceOptions(Member $member): array
     {
