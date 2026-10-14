@@ -5,6 +5,8 @@ namespace Tests\Feature\Pinjaman;
 use App\Models\Loan;
 use App\Models\Member;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use App\Livewire\Pinjaman\Index;
+use Livewire\Livewire;
 use Tests\TestCase;
 
 class ConsolePageTest extends TestCase
@@ -56,5 +58,45 @@ class ConsolePageTest extends TestCase
     public function test_summary_cards_when_empty(): void
     {
         $this->get('/pinjaman')->assertOk()->assertSeeInOrder(['data-loan-card="sisa"', 'Rp0'], false);
+    }
+
+    public function test_search_and_filters(): void
+    {
+        $rina = Member::factory()->teacher()->create(['name' => 'Bu Rina', 'member_code' => 'G-2026-777']);
+        Loan::factory()->running()->create(['code' => 'PJM-R1', 'member_id' => $rina->id, 'payment_method' => 'transfer', 'outstanding' => 100000]);
+        Loan::factory()->create(['code' => 'PJM-R2', 'member_id' => $rina->id, 'payment_method' => 'tunai']);
+        Loan::factory()->overdue()->create(['code' => 'PJM-Z9', 'payment_method' => 'potong_gaji', 'outstanding' => 50000]);
+
+        $codes = fn ($c) => collect($c->instance()->loans->items())->pluck('code')->sort()->values()->all();
+
+        $c = Livewire::test(Index::class)->set('search', 'rina');
+        $this->assertSame(['PJM-R1', 'PJM-R2'], $codes($c));
+        $c->set('search', 'g-2026-777')->set('method', 'transfer');
+        $this->assertSame(['PJM-R1'], $codes($c));
+        $c->set('search', 'pjm-z9')->set('method', '');
+        $this->assertSame(['PJM-Z9'], $codes($c));
+        $c->call('resetFilters')->set('status', 'diajukan');
+        $this->assertSame(['PJM-R2'], $codes($c));
+
+        // Kartu ringkasan menyaring status; klik lagi melepas.
+        $c->call('resetFilters')->call('filterStatus', 'menunggak')->assertSet('status', 'menunggak');
+        $this->assertSame(['PJM-Z9'], $codes($c));
+        $c->call('filterStatus', 'menunggak')->assertSet('status', '');
+        $this->assertCount(3, $codes($c));
+
+        // Nilai tidak dikenal diabaikan, bukan error.
+        $c->set('status', 'hacked')->set('method', "x' OR 1=1");
+        $this->assertCount(3, $codes($c));
+        $c->call('filterStatus', 'bogus')->assertSet('status', '');
+
+        $c->set('search', 'tidak-ada-yang-cocok')->assertSee('Tidak ada pinjaman yang cocok.');
+    }
+
+    public function test_filters_from_query_string(): void
+    {
+        Loan::factory()->create(['code' => 'PJM-Q1']);
+        Loan::factory()->create(['code' => 'PJM-Q2', 'status' => 'lunas']);
+        $this->get('/pinjaman?status=lunas')->assertOk()->assertSee('PJM-Q2')->assertDontSee('PJM-Q1');
+        $this->get('/pinjaman?q=q1')->assertOk()->assertSee('PJM-Q1')->assertDontSee('PJM-Q2');
     }
 }

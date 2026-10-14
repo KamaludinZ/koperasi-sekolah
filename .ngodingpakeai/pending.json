@@ -1,6 +1,6 @@
 {
   "repo": "Koperasi Sekolah",
-  "generatedForCommit": "e321203493f6a10753a8c645acf087e91398abd6",
+  "generatedForCommit": "0274dffe1078390ad778cd970e9197db3216a849",
   "files": [
     {
       "path": ".claude/skills/ngodingpakeai/SKILL.md",
@@ -232,13 +232,13 @@
     },
     {
       "path": "app/Livewire/Pinjaman/Index.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 901
+      "size": 1014
     },
     {
       "path": "app/Livewire/Pinjaman/Show.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 884
     },
@@ -268,7 +268,7 @@
     },
     {
       "path": "app/Models/LoanInstallment.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 886
     },
@@ -294,7 +294,7 @@
       "path": "app/Services/LoanService.php",
       "reason": "changed",
       "language": "php",
-      "size": 5123
+      "size": 5881
     },
     {
       "path": "app/Services/MemberCodeGenerator.php",
@@ -1668,11 +1668,11 @@
       "path": "resources/views/livewire/pinjaman/index.blade.php",
       "reason": "changed",
       "language": "php",
-      "size": 4316
+      "size": 6407
     },
     {
       "path": "resources/views/livewire/pinjaman/show.blade.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 10113
     },
@@ -1882,7 +1882,7 @@
     },
     {
       "path": "routes/web.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 43160
     },
@@ -2188,13 +2188,13 @@
     },
     {
       "path": "tests/Feature/Pinjaman/ConsolePageTest.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 1404
+      "size": 2761
     },
     {
       "path": "tests/Feature/Pinjaman/DetailPageTest.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 2989
     },
