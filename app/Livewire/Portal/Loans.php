@@ -81,9 +81,24 @@ class Loans extends Component
                     'late_count' => $l->installments->filter(fn ($i) => $i->due_date->lt($today))->count(),
                     'late_amount' => (int) $l->installments->filter(fn ($i) => $i->due_date->lt($today))->sum(fn ($i) => (int) round((float) $i->amount - (float) $i->paid_amount)),
                     'balance' => in_array($l->status, Loan::ACTIVE, true) ? $payments->balance($l) : null,
+                    'payments' => $l->disbursed_at ? self::memberHistory($payments->history($l)) : [],
                     'paid_off_at' => $l->paid_off_at?->toDateString(),
                 ];
             })->all();
+    }
+
+    /**
+     * Riwayat untuk anggota: hanya pembayaran sah (yang dikoreksi petugas tidak ditampilkan), tanpa nama petugas
+     * maupun catatan internal. Terbaru dulu.
+     *
+     * @return list<array{number: int, paid_at: string, amount: int, payment_label: string, reference_label: ?string, sequences: list<int>, balance_after: int}>
+     */
+    private static function memberHistory(array $rows): array
+    {
+        return array_reverse(array_values(array_map(fn ($r) => [
+            'number' => $r['number'], 'paid_at' => $r['paid_at'], 'amount' => $r['amount'], 'payment_label' => $r['payment_label'],
+            'reference_label' => $r['reference_label'], 'sequences' => $r['sequences'], 'balance_after' => $r['balance_after'],
+        ], array_filter($rows, fn ($r) => ! $r['voided']))));
     }
 
     #[Computed]

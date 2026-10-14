@@ -45,4 +45,23 @@
     @elseif ($l['status'] === 'dibatalkan')
         <p class="mt-3 rounded-lg bg-stone-100 px-3 py-2 text-sm text-stone-700">Pengajuan dibatalkan{{ $l['cancel_reason'] ? ': '.$l['cancel_reason'] : '.' }}</p>
     @endif
+
+    @if ($l['payments'] !== [])
+        <details class="mt-3 border-t border-stone-100 pt-2" data-loan-payments="{{ $l['code'] }}">
+            <summary class="cursor-pointer text-sm font-medium text-emerald-800">Riwayat angsuran ({{ count($l['payments']) }})</summary>
+            <ol class="mt-2 divide-y divide-stone-100 text-sm" aria-label="Riwayat angsuran {{ $l['code'] }}">
+                @foreach ($l['payments'] as $p)
+                    <li class="flex items-start justify-between gap-3 py-2" data-payment-row>
+                        <div>
+                            <p class="font-medium tabular-nums">{{ $rp($p['amount']) }} <span class="font-normal text-stone-500">· @tanggal($p['paid_at'])</span></p>
+                            <p class="text-xs text-stone-500"><span data-payment-method>{{ $p['payment_label'] }}</span>{{ $p['reference_label'] ? ' · '.$p['reference_label'] : '' }}{{ $p['sequences'] ? ' · angsuran ke-'.implode(', ', $p['sequences']) : '' }}</p>
+                        </div>
+                        <p class="shrink-0 text-right text-xs text-stone-500">Sisa<br><span class="tabular-nums text-stone-700">{{ $rp($p['balance_after']) }}</span></p>
+                    </li>
+                @endforeach
+            </ol>
+        </details>
+    @elseif (in_array($l['status'], \App\Models\Loan::ACTIVE, true))
+        <p class="mt-3 text-xs text-stone-500">Belum ada pembayaran angsuran.</p>
+    @endif
 </li>

@@ -73,6 +73,24 @@ class LoansPageTest extends TestCase
             ->assertDontSeeHtml('data-loan-balance="PJM-NEW"');
     }
 
+    public function test_payment_history_with_method_hides_corrected_and_internal_data(): void
+    {
+        $run = Loan::where('code', 'PJM-RUN')->first();
+        $svc = app(LoanPaymentService::class);
+        $wrong = $svc->record($run, ['amount' => 100000, 'paid_at' => '2026-08-05', 'payment_method' => 'transfer', 'reference' => 'TRX-SALAH', 'note' => 'CATATAN-INTERNAL']);
+        $svc->correct($wrong, 'Nominal salah ketik', ['amount' => 150000, 'paid_at' => '2026-08-05', 'payment_method' => 'transfer', 'reference' => 'TRX-889']);
+        $svc->record($run, ['amount' => 150000, 'paid_at' => '2026-08-09', 'payment_method' => 'potong_gaji', 'reference' => '2026-08']);
+
+        $this->get('/portal/pinjaman')->assertOk()
+            ->assertSee('Riwayat angsuran (3)')
+            ->assertSeeInOrder(['data-loan-payments="PJM-RUN"',
+                'Rp150.000', '9 Agt 2026', 'Potong gaji', 'Gaji Agustus 2026', 'angsuran ke-2', 'Rp300.000',
+                'Rp150.000', '5 Agt 2026', 'Transfer', 'TRX-889', 'Rp450.000',
+                'Rp300.000', '1 Agt 2026', 'Tunai', 'angsuran ke-1', 'Rp600.000'], false)
+            ->assertDontSee('TRX-SALAH')->assertDontSee('CATATAN-INTERNAL')->assertDontSee('Nominal salah ketik')
+            ->assertDontSeeHtml('data-loan-payments="PJM-NEW"');
+    }
+
     public function test_filter_tabs_with_counts_and_url(): void
     {
         Livewire::test(Loans::class)
