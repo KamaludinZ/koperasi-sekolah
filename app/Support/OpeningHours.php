@@ -71,6 +71,21 @@ class OpeningHours
         return ['open' => false, 'label' => 'Sedang tutup', 'detail' => ''];
     }
 
+    /**
+     * Status lengkap untuk endpoint publik: status sekarang + jam hari ini + jadwal mingguan.
+     *
+     * @return array{open: bool, label: string, detail: string, today: ?array{open: string, close: string}, hours: list<array>, closed_days: list<string>, checked_at: string}
+     */
+    public static function snapshot(array $schedule, Carbon $now): array
+    {
+        return self::status($schedule, $now) + [
+            'today' => $schedule[$now->dayOfWeekIso] ?? null,
+            'hours' => self::group($schedule),
+            'closed_days' => self::closedDays($schedule),
+            'checked_at' => $now->toIso8601String(),
+        ];
+    }
+
     /** Hari tutup (untuk keterangan "Minggu & hari libur: Tutup"). */
     public static function closedDays(array $schedule): array
     {

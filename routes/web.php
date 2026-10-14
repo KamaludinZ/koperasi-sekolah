@@ -76,6 +76,10 @@ Route::get('/favicon.svg', fn () => response(view('components.brand.mark', ['att
 ]))->name('favicon');
 
 Route::get('/', BerandaController::class)->name('beranda');
+// Status buka/tutup koperasi (JSON publik) dari jam operasional di Pengaturan → Profil.
+Route::get('/status-koperasi', fn () => response()->json(['data' => \App\Support\OpeningHours::snapshot(
+    \App\Support\MockData::profile()['schedule'], now()
+)])->header('Cache-Control', 'public, max-age=60'))->middleware('throttle:60,1')->name('status-koperasi');
 Route::get('/pengumuman', fn () => view('pengumuman', [
     'profile' => \App\Support\MockData::profile(),
     'announcements' => app(\App\Services\AnnouncementService::class)->publicList(100),

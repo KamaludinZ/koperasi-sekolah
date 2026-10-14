@@ -13,6 +13,11 @@
         <h1 class="mt-1 text-xl font-semibold">Checkout</h1>
     </div>
 
+    @php $open = \App\Support\OpeningHours::status(\App\Support\MockData::profile()['schedule'], now()); @endphp
+    @unless ($open['open'])
+        <p class="rounded-xl bg-amber-50 px-4 py-3 text-sm text-amber-900" data-closed-notice>Koperasi sedang tutup{{ $open['detail'] ? ' — '.mb_strtolower($open['detail']) : '' }}. Pesanan tetap bisa dikirim dan akan diproses saat koperasi buka.</p>
+    @endunless
+
     <section class="rounded-2xl border border-stone-200 bg-white" aria-labelledby="co-items">
         <h2 id="co-items" class="px-4 pt-4 font-semibold">Pesanan ({{ $cart['count'] }} barang)</h2>
         <ul class="mt-2 divide-y divide-stone-100 px-4">

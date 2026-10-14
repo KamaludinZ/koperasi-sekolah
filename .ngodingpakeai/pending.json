@@ -1,6 +1,6 @@
 {
   "repo": "Koperasi Sekolah",
-  "generatedForCommit": "b06ac9a8021f36f09bfa2625339165b6a04b70cd",
+  "generatedForCommit": "58c8c49f55e245f9ebb27e0ff9d71f482e11c667",
   "files": [
     {
       "path": ".claude/skills/ngodingpakeai/SKILL.md",
@@ -343,6 +343,12 @@
       "reason": "needs_summary",
       "language": "php",
       "size": 1182
+    },
+    {
+      "path": "app/Http/Middleware/EnsurePortalMember.php",
+      "reason": "new",
+      "language": "php",
+      "size": 976
     },
     {
       "path": "app/Http/Middleware/EnsureRole.php",
@@ -712,9 +718,9 @@
     },
     {
       "path": "app/Livewire/Portal/Checkout.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 3651
+      "size": 4121
     },
     {
       "path": "app/Livewire/Portal/Home.php",
@@ -730,13 +736,13 @@
     },
     {
       "path": "app/Livewire/Portal/OrderShow.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 1924
     },
     {
       "path": "app/Livewire/Portal/Orders.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 929
     },
@@ -976,9 +982,9 @@
     },
     {
       "path": "app/Models/Order.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 1917
+      "size": 2032
     },
     {
       "path": "app/Models/OrderItem.php",
@@ -1150,9 +1156,9 @@
     },
     {
       "path": "app/Providers/AppServiceProvider.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 4860
+      "size": 4908
     },
     {
       "path": "app/Rules/SafeUpload.php",
@@ -1314,7 +1320,7 @@
       "path": "app/Services/OrderService.php",
       "reason": "changed",
       "language": "php",
-      "size": 16383
+      "size": 17345
     },
     {
       "path": "app/Services/PasswordService.php",
@@ -1660,9 +1666,9 @@
     },
     {
       "path": "bootstrap/app.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 2315
+      "size": 2387
     },
     {
       "path": "bootstrap/providers.php",
@@ -2175,6 +2181,12 @@
       "size": 4997
     },
     {
+      "path": "database/migrations/2026_10_14_000012_add_tax_rounding_to_orders_table.php",
+      "reason": "new",
+      "language": "php",
+      "size": 1495
+    },
+    {
       "path": "database/seeders/ActivityLogSeeder.php",
       "reason": "needs_summary",
       "language": "php",
@@ -2452,7 +2464,7 @@
     },
     {
       "path": "resources/views/components/portal/order-status.blade.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 544
     },
@@ -2992,9 +3004,9 @@
     },
     {
       "path": "resources/views/livewire/portal/checkout.blade.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 6492
+      "size": 7421
     },
     {
       "path": "resources/views/livewire/portal/home.blade.php",
@@ -3010,13 +3022,13 @@
     },
     {
       "path": "resources/views/livewire/portal/order-show.blade.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 5707
     },
     {
       "path": "resources/views/livewire/portal/orders.blade.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 1713
     },
@@ -3168,7 +3180,7 @@
       "path": "routes/web.php",
       "reason": "changed",
       "language": "php",
-      "size": 35935
+      "size": 35988
     },
     {
       "path": "tests/Concerns/MakesProductImports.php",
@@ -4128,37 +4140,37 @@
       "path": "tests/Feature/Portal/CheckoutTest.php",
       "reason": "changed",
       "language": "php",
-      "size": 5266
+      "size": 6250
     },
     {
       "path": "tests/Feature/Portal/LoginTest.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 4164
+      "size": 4624
     },
     {
       "path": "tests/Feature/Portal/OrderTrackingTest.php",
-      "reason": "new",
+      "reason": "changed",
       "language": "php",
-      "size": 3159
+      "size": 3155
     },
     {
       "path": "tests/Feature/Portal/PurchasesPageTest.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 2564
+      "size": 2560
     },
     {
       "path": "tests/Feature/Portal/SavingsPageTest.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 3141
+      "size": 3137
     },
     {
       "path": "tests/Feature/Portal/ShopPageTest.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 2483
+      "size": 2475
     },
     {
       "path": "tests/Feature/Promo/IndexTest.php",
@@ -4390,9 +4402,9 @@
     },
     {
       "path": "tests/TestCase.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 1617
+      "size": 2075
     },
     {
       "path": "tests/Unit/ExampleTest.php",

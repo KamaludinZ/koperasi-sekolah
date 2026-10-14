@@ -9,6 +9,11 @@
             <p class="text-2xl font-bold tabular-nums">{{ \App\Support\Rupiah::format((int) round((float) $m->balance)) }}</p>
         </div>
     </section>
+    @php $open = \App\Support\OpeningHours::status(\App\Support\MockData::profile()['schedule'], now()); @endphp
+    <p @class(['flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm', 'bg-emerald-50 text-emerald-900' => $open['open'], 'bg-stone-100 text-stone-700' => ! $open['open']]) data-open-status="{{ $open['open'] ? 'buka' : 'tutup' }}">
+        <span @class(['size-2 rounded-full', 'bg-emerald-600' => $open['open'], 'bg-stone-500' => ! $open['open']])></span>
+        Koperasi {{ mb_strtolower($open['label']) }}@if ($open['detail']) · {{ $open['detail'] }}@endif
+    </p>
     @if (\Illuminate\Support\Facades\Route::has('portal.simpanan'))
         <a href="{{ route('portal.simpanan') }}" wire:navigate class="flex items-center justify-between rounded-2xl border border-stone-200 bg-white px-4 py-3 hover:border-emerald-600">
             <span><span class="block font-medium">Simpanan & tabungan</span><span class="text-sm text-stone-500">Saldo per jenis dan riwayat mutasi</span></span>
