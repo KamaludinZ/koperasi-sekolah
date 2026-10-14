@@ -100,14 +100,12 @@
                     <p class="text-sm text-stone-500">{{ $cart['count'] }} barang · {{ $payments[$payment] }} · {{ $fulfillment === 'antar' ? 'diantar' : 'ambil sendiri' }}</p>
                     <p class="mt-1 text-2xl font-bold tabular-nums">{{ $rp($total) }}</p>
                 </div>
-                <label class="block"><span class="mb-1 block text-sm font-medium">PIN transaksi (6 angka)</span>
-                    <input type="password" inputmode="numeric" pattern="[0-9]*" maxlength="6" autocomplete="one-time-code" wire:model="pin" x-init="$el.focus()"
-                           wire:keydown.enter.prevent="place" class="w-full rounded-xl border border-stone-300 px-3.5 py-3 text-center text-2xl tracking-[0.5em] tabular-nums outline-none focus:border-emerald-600 focus:ring-4 focus:ring-emerald-600/15">
-                    @error('pin') <span class="mt-1 block text-sm text-red-700" role="alert">{{ $message }}</span> @enderror
-                </label>
+                <x-pin-input model="pin" submit="place">
+                    @error('pin') <span class="block text-center text-sm text-red-700" role="alert">{{ $message }}</span> @enderror
+                </x-pin-input>
                 <div class="flex gap-2">
                     <button type="button" wire:click="$set('confirming', false)" class="flex-1 rounded-xl border border-stone-300 py-2.5 text-sm font-medium text-stone-700">Batal</button>
-                    <button type="button" wire:click="place" wire:loading.attr="disabled" wire:target="place" class="flex-1 rounded-xl bg-emerald-700 py-2.5 text-sm font-semibold text-white hover:bg-emerald-800 disabled:opacity-60">
+                    <button type="button" wire:click="place" wire:loading.attr="disabled" wire:target="place" x-data :disabled="($wire.pin ?? '').length !== 6" class="flex-1 rounded-xl bg-emerald-700 py-2.5 text-sm font-semibold text-white hover:bg-emerald-800 disabled:opacity-60">
                         <span wire:loading.remove wire:target="place">Konfirmasi</span><span wire:loading wire:target="place">Memproses…</span></button>
                 </div>
             </div>

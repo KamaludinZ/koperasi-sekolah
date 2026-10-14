@@ -29,7 +29,7 @@ class PinVerificationTest extends TestCase
 
     public function test_review_opens_pin_step_then_correct_pin_places_order(): void
     {
-        Livewire::test(Checkout::class)->call('review')->assertSet('confirming', true)->assertSee('Verifikasi PIN')->assertSee('data-pin-dialog', false)
+        Livewire::test(Checkout::class)->call('review')->assertSet('confirming', true)->assertSee('Verifikasi PIN')->assertSee('data-pin-dialog', false)->assertSee('data-pin-input', false)->assertSee('pinInput', false)
             ->set('pin', '246810')->call('place')->assertHasNoErrors()->assertRedirect(route('portal.pesanan.show', Order::value('id')));
         $this->assertSame(1, Order::count());
     }
