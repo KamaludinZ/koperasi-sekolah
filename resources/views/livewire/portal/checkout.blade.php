@@ -101,20 +101,30 @@
                     <p class="mt-1 text-2xl font-bold tabular-nums">{{ $rp($total) }}</p>
                 </div>
                 @php $att = $this->pinAttempts; @endphp
-                <x-pin-input model="pin" submit="place">
-                    @error('pin') <span class="block text-center text-sm text-red-700" role="alert">{{ $message }}</span> @enderror
-                    @if ($att['locked'])
-                        <p class="text-center text-xs font-medium text-red-700" data-pin-locked>Transaksi terkunci {{ $att['minutes'] }} menit karena PIN salah berulang.</p>
-                    @elseif ($att['left'] < \App\Services\PortalPinService::MAX_ATTEMPTS)
-                        <p class="flex items-center justify-center gap-1 text-xs text-amber-800" data-pin-left="{{ $att['left'] }}">
-                            @for ($i = 0; $i < \App\Services\PortalPinService::MAX_ATTEMPTS; $i++)<span @class(['size-1.5 rounded-full', 'bg-amber-500' => $i < $att['left'], 'bg-stone-300' => $i >= $att['left']])></span>@endfor
-                            <span class="ml-1">Sisa {{ $att['left'] }} percobaan</span>
-                        </p>
-                    @endif
-                </x-pin-input>
+                @if ($att['locked'])
+                    {{-- Terkunci: hitung mundur mm:ss, lalu segarkan dari server begitu waktunya habis. --}}
+                    <div class="space-y-2 rounded-xl bg-red-50 px-4 py-4 text-center" data-pin-locked
+                         x-data="{ s: {{ $att['seconds'] }}, t: null, get label() { const m = Math.floor(this.s / 60), r = this.s % 60; return String(m).padStart(2, '0') + ':' + String(r).padStart(2, '0') } }"
+                         x-init="t = setInterval(() => { if (--s <= 0) { clearInterval(t); $wire.$refresh() } }, 1000)" x-on:remove="clearInterval(t)">
+                        <svg class="mx-auto size-8 text-red-700" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
+                        <p class="text-sm font-semibold text-red-800">PIN salah terlalu sering</p>
+                        <p class="text-3xl font-bold text-red-800 tabular-nums" x-text="label" data-countdown>{{ sprintf('%02d:%02d', intdiv($att['seconds'], 60), $att['seconds'] % 60) }}</p>
+                        <p class="text-xs text-red-700">Transaksi terkunci sementara demi keamanan. Coba lagi setelah hitungan selesai.</p>
+                    </div>
+                @else
+                    <x-pin-input model="pin" submit="place">
+                        @error('pin') <span class="block text-center text-sm text-red-700" role="alert">{{ $message }}</span> @enderror
+                        @if ($att['left'] < \App\Services\PortalPinService::MAX_ATTEMPTS)
+                            <p class="flex items-center justify-center gap-1 text-xs text-amber-800" data-pin-left="{{ $att['left'] }}">
+                                @for ($i = 0; $i < \App\Services\PortalPinService::MAX_ATTEMPTS; $i++)<span @class(['size-1.5 rounded-full', 'bg-amber-500' => $i < $att['left'], 'bg-stone-300' => $i >= $att['left']])></span>@endfor
+                                <span class="ml-1">Sisa {{ $att['left'] }} percobaan</span>
+                            </p>
+                        @endif
+                    </x-pin-input>
+                @endif
                 <div class="flex gap-2">
                     <button type="button" wire:click="$set('confirming', false)" class="flex-1 rounded-xl border border-stone-300 py-2.5 text-sm font-medium text-stone-700">Batal</button>
-                    <button type="button" wire:click="place" wire:loading.attr="disabled" wire:target="place" x-data :disabled="($wire.pin ?? '').length !== 6" class="flex-1 rounded-xl bg-emerald-700 py-2.5 text-sm font-semibold text-white hover:bg-emerald-800 disabled:opacity-60">
+                    <button type="button" wire:click="place" wire:loading.attr="disabled" wire:target="place" x-data :disabled="{{ $this->pinAttempts['locked'] ? 'true' : 'false' }} || ($wire.pin ?? '').length !== 6" class="flex-1 rounded-xl bg-emerald-700 py-2.5 text-sm font-semibold text-white hover:bg-emerald-800 disabled:opacity-60">
                         <span wire:loading.remove wire:target="place">Konfirmasi</span><span wire:loading wire:target="place">Memproses…</span></button>
                 </div>
             </div>

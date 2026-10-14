@@ -19,14 +19,16 @@ class PortalPinService
 
     public const PATTERN = '/^\d{6}$/';
 
-    /** @return array{left: int, locked: bool, minutes: int} sisa percobaan PIN anggota saat ini */
+    /** @return array{left: int, locked: bool, minutes: int, seconds: int} sisa percobaan PIN anggota saat ini */
     public function attempts(Member $member): array
     {
         $key = 'portal-pin:'.$member->id;
         $locked = RateLimiter::tooManyAttempts($key, self::MAX_ATTEMPTS);
 
+        $seconds = $locked ? max(1, RateLimiter::availableIn($key)) : 0;
+
         return ['left' => max(0, self::MAX_ATTEMPTS - RateLimiter::attempts($key)), 'locked' => $locked,
-            'minutes' => $locked ? (int) ceil(RateLimiter::availableIn($key) / 60) : 0];
+            'minutes' => (int) ceil($seconds / 60), 'seconds' => $seconds];
     }
 
     /** @throws ValidationException */

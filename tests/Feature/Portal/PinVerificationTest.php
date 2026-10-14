@@ -43,7 +43,10 @@ class PinVerificationTest extends TestCase
         foreach (range(1, 4) as $i) {
             $c->set('pin', '111111')->call('place');
         }
-        $c->set('pin', '246810')->call('place')->assertHasErrors('pin')->assertSee('PIN salah terlalu sering')->assertSee('data-pin-locked', false);
+        $c->set('pin', '246810')->call('place')->assertHasErrors('pin')->assertSee('PIN salah terlalu sering')->assertSee('data-pin-locked', false)
+            ->assertSee('data-countdown', false)->assertSee('15:00')->assertDontSee('data-pin-input', false);
+        $this->travel(16)->minutes();
+        Livewire::test(Checkout::class)->call('review')->assertDontSee('data-pin-locked', false)->assertSee('data-pin-input', false);
         $this->assertSame(0, Order::count());
         $this->assertSame(5, ActivityLog::where('event', 'portal.pin_failed')->count());
         $c->set('pin', 'abcdef')->call('place')->assertHasErrors('pin');
