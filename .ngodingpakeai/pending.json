@@ -1,6 +1,6 @@
 {
   "repo": "Koperasi Sekolah",
-  "generatedForCommit": "e13d55a8de6a2e809babd684b1b6eabc6e53768b",
+  "generatedForCommit": "c853ae24777cc181c6ef79df7c0dc32872ff5b95",
   "files": [
     {
       "path": ".claude/skills/ngodingpakeai/SKILL.md",
@@ -127,6 +127,12 @@
       "reason": "needs_summary",
       "language": "php",
       "size": 2890
+    },
+    {
+      "path": "app/Http/Controllers/Pinjaman/DisbursementController.php",
+      "reason": "new",
+      "language": "php",
+      "size": 1862
     },
     {
       "path": "app/Http/Controllers/Pinjaman/DisbursementProofController.php",
@@ -928,7 +934,7 @@
     },
     {
       "path": "database/migrations/2026_10_16_000003_harden_loan_installments.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 1735
     },
@@ -1996,9 +2002,9 @@
     },
     {
       "path": "routes/web.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 45674
+      "size": 45878
     },
     {
       "path": "tests/Concerns/MakesProductImports.php",
@@ -2122,7 +2128,7 @@
     },
     {
       "path": "tests/Feature/Database/LoanSchemaTest.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 9316
     },
@@ -2361,6 +2367,12 @@
       "size": 5934
     },
     {
+      "path": "tests/Feature/Pinjaman/DisbursementEndpointTest.php",
+      "reason": "new",
+      "language": "php",
+      "size": 4372
+    },
+    {
       "path": "tests/Feature/Pinjaman/DisbursementProofTest.php",
       "reason": "needs_summary",
       "language": "php",
@@ -2386,7 +2398,7 @@
     },
     {
       "path": "tests/Feature/Pinjaman/LoanDetailEndpointTest.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 5393
     },
@@ -2398,7 +2410,7 @@
     },
     {
       "path": "tests/Feature/Pinjaman/LoanSummaryEndpointTest.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 3735
     },

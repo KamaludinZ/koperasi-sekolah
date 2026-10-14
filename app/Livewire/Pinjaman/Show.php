@@ -88,7 +88,7 @@ class Show extends Component
             return [];
         }
 
-        return LoanDisbursementService::schedule($loan->totalDue(), $loan->tenor_months, $this->disbursedOn);
+        return \App\Services\LoanScheduleGenerator::generate((int) round((float) $loan->principal), (int) round((float) $loan->interest), $loan->tenor_months, $this->disbursedOn);
     }
 
     public function disburse(): void

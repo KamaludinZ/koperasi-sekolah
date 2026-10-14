@@ -38,21 +38,14 @@ class LoanDisbursementService
     }
 
     /**
-     * Jadwal angsuran: total dibagi rata per bulan (dibulatkan ke bawah), sisa pembulatan masuk angsuran terakhir.
-     * Jatuh tempo ke-n = tanggal cair + n bulan (tanpa melompati akhir bulan).
+     * Jadwal angsuran (lihat LoanScheduleGenerator) tanpa rincian porsi pokok/bunga.
      *
      * @return list<array{sequence: int, due_date: string, amount: int}>
      */
-    public static function schedule(int $total, int $tenor, Carbon|string $disbursedOn): array
+    public static function schedule(int $total, int $tenor, Carbon|string $disbursedOn, int $interest = 0): array
     {
-        $start = Carbon::parse($disbursedOn)->startOfDay();
-        $per = intdiv($total, $tenor);
-
-        return array_map(fn ($n) => [
-            'sequence' => $n,
-            'due_date' => $start->copy()->addMonthsNoOverflow($n)->toDateString(),
-            'amount' => $n === $tenor ? $total - $per * ($tenor - 1) : $per,
-        ], range(1, $tenor));
+        return array_map(fn ($r) => ['sequence' => $r['sequence'], 'due_date' => $r['due_date'], 'amount' => $r['amount']],
+            LoanScheduleGenerator::generate($total - $interest, $interest, $tenor, $disbursedOn));
     }
 
     public const PROOF_DIR = 'pinjaman/bukti';
@@ -110,8 +103,9 @@ class LoanDisbursementService
 
             $locked->disbursements()->create(['disbursed_on' => $data['disbursed_on'], 'amount' => (int) $data['amount'],
                 'proof' => $proof, 'user_id' => $userId] + ($file ?? []));
-            foreach (self::schedule($locked->totalDue(), $locked->tenor_months, $data['disbursed_on']) as $row) {
-                $locked->installments()->create($row + ['status' => 'belum', 'paid_amount' => 0]);
+            $schedule = LoanScheduleGenerator::generate((int) round((float) $locked->principal), (int) round((float) $locked->interest), $locked->tenor_months, $data['disbursed_on']);
+            foreach ($schedule as $row) {
+                $locked->installments()->create(['sequence' => $row['sequence'], 'due_date' => $row['due_date'], 'amount' => $row['amount'], 'status' => 'belum', 'paid_amount' => 0]);
             }
             $locked->update(['status' => 'berjalan', 'disbursed_at' => $data['disbursed_on'], 'outstanding' => $locked->totalDue()]);
 
