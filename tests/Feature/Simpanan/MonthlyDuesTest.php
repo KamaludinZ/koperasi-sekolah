@@ -119,7 +119,11 @@ class MonthlyDuesTest extends TestCase
         $this->assertSame(1, $siti['missing']);
 
         app(MemberSavingService::class)->depositForPeriod($this->buSiti, $this->wajib, 10000, '2026-10');
-        Livewire::test(\App\Livewire\Simpanan\DuesRecap::class)->set('months', 3)->set('onlyMissing', true)->assertSee('Pak Dedi')->assertDontSee('Bu Siti');
+        Livewire::test(\App\Livewire\Simpanan\DuesRecap::class)->set('months', 3)->set('status', 'belum')->assertSee('Pak Dedi')->assertDontSee('Bu Siti')
+            ->set('status', 'lengkap')->assertSee('Bu Siti')->assertDontSee('Pak Dedi')->set('status', 'x')->assertSet('status', '');
+
+        Livewire::test(MonthlyDues::class)->set('status', 'belum')->assertSee('Pak Dedi')->assertDontSee('Bu Siti')
+            ->set('status', 'disetor')->assertSee('Bu Siti')->assertDontSee('Pak Dedi');
     }
 
     public function test_correction_adjusts_balance_or_reverses_posting(): void

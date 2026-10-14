@@ -34,6 +34,11 @@ class MonthlyDues extends Component
     #[Url(as: 'q', except: '')]
     public string $search = '';
 
+    public const STATUSES = ['' => 'Semua status', 'kosong' => 'Belum dicatat', 'belum' => 'Dicatat, belum diposting', 'disetor' => 'Sudah disetor'];
+
+    #[Url(as: 'status', except: '')]
+    public string $status = '';
+
     /** @var array<int|string, int|string|null> member_id → nominal yang diisi */
     public array $amounts = [];
 
@@ -63,7 +68,9 @@ class MonthlyDues extends Component
     #[Computed]
     public function rows(): array
     {
-        return $this->type ? app(SavingDueService::class)->sheet($this->period, $this->type, $this->search) : [];
+        $rows = $this->type ? app(SavingDueService::class)->sheet($this->period, $this->type, $this->search) : [];
+
+        return $this->status === '' ? $rows : array_values(array_filter($rows, fn ($r) => $r['status'] === $this->status));
     }
 
     #[Computed]
@@ -100,7 +107,8 @@ class MonthlyDues extends Component
 
     public function updated(string $property): void
     {
-        if (in_array($property, ['period', 'typeId', 'search'], true)) {
+        if (in_array($property, ['period', 'typeId', 'search', 'status'], true)) {
+            $this->status = array_key_exists($this->status, self::STATUSES) ? $this->status : '';
             if (! SavingDueService::validPeriod($this->period) || $this->period > now()->format('Y-m')) {
                 $this->period = now()->format('Y-m');
             }

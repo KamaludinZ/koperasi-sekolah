@@ -27,6 +27,9 @@
                 <select wire:model.live="typeId" aria-label="Jenis simpanan" class="rounded-lg border border-stone-300 bg-white px-3 py-2 text-sm">
                     @foreach ($this->types as $t)<option value="{{ $t->id }}">{{ $t->name }} · {{ $rp((int) $t->amount) }}/bulan</option>@endforeach
                 </select>
+                <select wire:model.live="status" aria-label="Status" class="rounded-lg border border-stone-300 bg-white px-3 py-2 text-sm">
+                    @foreach (\App\Livewire\Simpanan\MonthlyDues::STATUSES as $k => $label)<option value="{{ $k }}">{{ $label }}</option>@endforeach
+                </select>
                 <input type="search" wire:model.live.debounce.300ms="search" placeholder="Cari nama atau kode guru…" aria-label="Cari anggota"
                        class="flex-1 rounded-lg border border-stone-300 bg-white px-3 py-2 text-sm outline-none focus:border-emerald-600 focus:ring-4 focus:ring-emerald-600/15">
             </div>

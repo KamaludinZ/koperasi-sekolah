@@ -23,14 +23,21 @@ class DuesRecap extends Component
     #[Url(as: 'rentang', except: 6)]
     public int $months = 6;
 
-    #[Url(as: 'tunggak', except: false)]
-    public bool $onlyMissing = false;
+    public const STATUSES = ['' => 'Semua status', 'lengkap' => 'Lengkap', 'belum' => 'Belum lengkap'];
+
+    #[Url(as: 'status', except: '')]
+    public string $status = '';
 
     public function mount(): void
     {
         $types = SavingDueService::types();
         $this->typeId = $types->firstWhere('id', $this->typeId)?->id ?? $types->firstWhere('kind', 'wajib')?->id ?? $types->first()?->id;
         $this->months = array_key_exists($this->months, self::RANGES) ? $this->months : 6;
+    }
+
+    public function updatedStatus(): void
+    {
+        $this->status = array_key_exists($this->status, self::STATUSES) ? $this->status : '';
     }
 
     public function updatedMonths(): void
@@ -52,8 +59,8 @@ class DuesRecap extends Component
             return ['periods' => [], 'rows' => [], 'totals' => []];
         }
         $m = app(SavingDueService::class)->matrix($type, $this->months);
-        if ($this->onlyMissing) {
-            $m['rows'] = array_values(array_filter($m['rows'], fn ($r) => $r['missing'] > 0));
+        if ($this->status !== '') {
+            $m['rows'] = array_values(array_filter($m['rows'], fn ($r) => $this->status === 'lengkap' ? $r['missing'] === 0 : $r['missing'] > 0));
         }
 
         return $m;

@@ -29,7 +29,9 @@
             <select wire:model.live="months" aria-label="Rentang" class="rounded-lg border border-stone-300 bg-white px-3 py-2 text-sm">
                 @foreach (\App\Livewire\Simpanan\DuesRecap::RANGES as $k => $label)<option value="{{ $k }}">{{ $label }}</option>@endforeach
             </select>
-            <label class="flex items-center gap-2 text-sm"><input type="checkbox" wire:model.live="onlyMissing" class="accent-emerald-700"> Hanya yang belum lengkap</label>
+            <select wire:model.live="status" aria-label="Status" class="rounded-lg border border-stone-300 bg-white px-3 py-2 text-sm">
+                @foreach (\App\Livewire\Simpanan\DuesRecap::STATUSES as $k => $label)<option value="{{ $k }}">{{ $label }}</option>@endforeach
+            </select>
             <p class="ml-auto flex flex-wrap gap-3 text-xs text-stone-500">
                 @foreach ($cell as [$sym, $tone, $label])<span class="flex items-center gap-1"><span class="grid size-5 place-items-center rounded {{ $tone }}">{{ $sym }}</span>{{ $label }}</span>@endforeach
             </p>
@@ -60,7 +62,7 @@
                                 <td @class(['px-4 py-2 text-right font-semibold tabular-nums', 'text-red-700' => $r['missing'], 'text-stone-400' => ! $r['missing']])>{{ $r['missing'] }}</td>
                             </tr>
                         @empty
-                            <tr><td colspan="{{ count($m['periods']) + 2 }}" class="px-4 py-10 text-center text-stone-400">{{ $onlyMissing ? 'Semua setoran lengkap.' : 'Tidak ada anggota guru/karyawan aktif.' }}</td></tr>
+                            <tr><td colspan="{{ count($m['periods']) + 2 }}" class="px-4 py-10 text-center text-stone-400">{{ $status === 'belum' ? 'Semua setoran lengkap.' : ($status === 'lengkap' ? 'Belum ada yang lengkap.' : 'Tidak ada anggota guru/karyawan aktif.') }}</td></tr>
                         @endforelse
                     </tbody>
                     @if ($m['rows'])
