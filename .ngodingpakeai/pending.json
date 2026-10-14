@@ -1,6 +1,6 @@
 {
   "repo": "Koperasi Sekolah",
-  "generatedForCommit": "11106a8728d46922c537fe22291c57f870699953",
+  "generatedForCommit": "516d62947b05898099d50b2abbf15cbfd4923a15",
   "files": [
     {
       "path": ".claude/skills/ngodingpakeai/SKILL.md",
@@ -190,9 +190,9 @@
     },
     {
       "path": "app/Livewire/Forms/LoanApplicationForm.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 3268
+      "size": 4172
     },
     {
       "path": "app/Livewire/Forms/UserForm.php",
@@ -246,7 +246,7 @@
       "path": "app/Livewire/Pinjaman/Applications.php",
       "reason": "changed",
       "language": "php",
-      "size": 7087
+      "size": 10638
     },
     {
       "path": "app/Livewire/Pinjaman/Index.php",
@@ -312,7 +312,7 @@
       "path": "app/Services/LoanApplicationService.php",
       "reason": "changed",
       "language": "php",
-      "size": 7922
+      "size": 12631
     },
     {
       "path": "app/Services/LoanService.php",
@@ -1710,7 +1710,7 @@
       "path": "resources/views/livewire/pinjaman/applications.blade.php",
       "reason": "changed",
       "language": "php",
-      "size": 7214
+      "size": 7804
     },
     {
       "path": "resources/views/livewire/pinjaman/index.blade.php",
@@ -1720,13 +1720,19 @@
     },
     {
       "path": "resources/views/livewire/pinjaman/partials/application-form.blade.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 12680
+      "size": 12895
+    },
+    {
+      "path": "resources/views/livewire/pinjaman/partials/cancel-dialog.blade.php",
+      "reason": "new",
+      "language": "php",
+      "size": 2095
     },
     {
       "path": "resources/views/livewire/pinjaman/partials/decision-dialog.blade.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 2489
     },
@@ -2278,7 +2284,7 @@
     },
     {
       "path": "tests/Feature/Pinjaman/DecisionTest.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 5188
     },
@@ -2287,6 +2293,12 @@
       "reason": "needs_summary",
       "language": "php",
       "size": 3064
+    },
+    {
+      "path": "tests/Feature/Pinjaman/EditCancelTest.php",
+      "reason": "new",
+      "language": "php",
+      "size": 7172
     },
     {
       "path": "tests/Feature/Pinjaman/LoanDetailEndpointTest.php",

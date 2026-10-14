@@ -1,7 +1,7 @@
 {{-- Navigasi bagian Pinjaman. `active` = nama route halaman ini; route yang belum ada tidak ditampilkan. --}}
 @props(['active'])
 @php
-    $items = collect(['pinjaman' => 'Konsol', 'pinjaman.pengajuan' => 'Pengajuan', 'pinjaman.tunggakan' => 'Tunggakan', 'pinjaman.rekap' => 'Rekap', 'pinjaman.audit' => 'Jejak audit'])
+    $items = collect(['pinjaman' => 'Konsol', 'pinjaman.pengajuan' => 'Pengajuan', 'pinjaman.pencairan' => 'Pencairan', 'pinjaman.tunggakan' => 'Tunggakan', 'pinjaman.rekap' => 'Rekap', 'pinjaman.audit' => 'Jejak audit'])
         ->filter(fn ($label, $route) => \Illuminate\Support\Facades\Route::has($route));
 @endphp
 <nav class="mt-3 -mb-px flex gap-1 overflow-x-auto" aria-label="Bagian pinjaman">

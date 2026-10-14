@@ -88,6 +88,16 @@
         </div>
 
         <aside class="space-y-3">
+            @if ($l['status'] === 'disetujui')
+                <div class="rounded-xl border border-indigo-200 bg-indigo-50 px-4 py-3" data-ready-banner>
+                    <p class="text-sm font-semibold text-indigo-900">Siap dicairkan</p>
+                    <p class="mt-1 text-xs text-indigo-900/80">Disetujui {{ $date($l['decided_at']) }}{{ $l['decided_by'] ? ' oleh '.$l['decided_by'] : '' }}. Serahkan dana {{ $rp($l['principal']) }}; jadwal {{ $l['tenor_months'] }} angsuran terbentuk saat pencairan dicatat.</p>
+                </div>
+            @elseif (in_array($l['status'], ['diajukan'], true))
+                <p class="rounded-xl border border-sky-200 bg-sky-50 px-4 py-3 text-sm text-sky-900">Menunggu keputusan pengurus sebelum bisa dicairkan.</p>
+            @elseif (in_array($l['status'], ['ditolak', 'dibatalkan'], true))
+                <p class="rounded-xl border border-stone-200 bg-stone-50 px-4 py-3 text-sm text-stone-700">Pengajuan {{ mb_strtolower($l['status_label']) }} — tidak akan dicairkan.</p>
+            @endif
             <div class="rounded-2xl bg-emerald-900 p-5 text-white shadow-sm">
                 <p class="text-xs text-emerald-200">Sisa pinjaman</p>
                 <p class="text-3xl font-semibold tabular-nums">{{ $rp($l['outstanding']) }}</p>
