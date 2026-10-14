@@ -194,6 +194,42 @@ class LoanPaymentService
     }
 
     /**
+     * Ringkasan bayar & sisa satu pinjaman: total dibayar/sisa, dipecah porsi pokok & bunga (porsi per angsuran dari
+     * generator jadwal, dibagi proporsional terhadap yang sudah dibayar), jumlah & pembayaran terakhir yang sah.
+     */
+    public function balance(Loan $loan): array
+    {
+        $principal = (int) round((float) $loan->principal);
+        $interest = (int) round((float) $loan->interest);
+        $total = $principal + $interest;
+        $installments = $loan->installments()->get();
+        $paid = (int) $installments->sum(fn ($i) => (int) round((float) $i->paid_amount));
+
+        $interestPaid = 0;
+        if ($loan->disbursed_at && $installments->isNotEmpty()) {
+            $parts = collect(LoanScheduleGenerator::generate($principal, $interest, $loan->tenor_months, $loan->disbursed_at))->keyBy('sequence');
+            foreach ($installments as $i) {
+                $amount = (int) round((float) $i->amount);
+                $part = $parts[$i->sequence]['interest_part'] ?? 0;
+                $interestPaid += $amount > 0 ? intdiv($part * (int) round((float) $i->paid_amount), $amount) : 0;
+            }
+        }
+        $valid = $loan->payments()->whereNull('voided_at');
+        $last = (clone $valid)->reorder()->orderByDesc('paid_at')->orderByDesc('id')->first();
+
+        return [
+            'total' => $total, 'paid' => $paid, 'remaining' => $total - $paid,
+            'principal' => $principal, 'principal_paid' => $paid - $interestPaid, 'principal_remaining' => $principal - ($paid - $interestPaid),
+            'interest' => $interest, 'interest_paid' => $interestPaid, 'interest_remaining' => $interest - $interestPaid,
+            'payments_count' => (clone $valid)->count(),
+            'last_payment' => $last ? ['paid_at' => $last->paid_at->toDateString(), 'amount' => (int) round((float) $last->amount),
+                'payment_label' => Loan::METHODS[$last->payment_method] ?? $last->payment_method] : null,
+            'installments_paid' => $installments->where('status', 'dibayar')->count(), 'installments' => $installments->count(),
+            'progress' => $total > 0 ? min(100, intdiv($paid * 100, $total)) : 0,
+        ];
+    }
+
+    /**
      * Hitung ulang sisa, status, & tanggal lunas pinjaman dari jadwal (dipakai pembayaran, koreksi, deteksi tunggakan).
      * Status angsuran yang belum lunas: lewat jatuh tempo → menunggak, selain itu belum.
      */

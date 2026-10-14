@@ -93,6 +93,13 @@ class Show extends Component
         $this->disbursing = false;
     }
 
+    /** Ringkasan total bayar & sisa (pokok/bunga). */
+    #[Computed]
+    public function balance(): array
+    {
+        return app(\App\Services\LoanPaymentService::class)->balance($this->loan());
+    }
+
     /** Riwayat pembayaran berurutan + sisa berjalan. */
     #[Computed]
     public function history(): array
@@ -232,7 +239,7 @@ class Show extends Component
         $this->paying = false;
         $this->flash = 'Angsuran '.\App\Support\Rupiah::format($payment->amount).' dicatat untuk angsuran ke-'.implode(', ', array_column($payment->allocations, 'sequence')).'. '
             .($loan->status === 'lunas' ? 'Pinjaman lunas.' : 'Sisa '.\App\Support\Rupiah::format($loan->outstanding).'.');
-        unset($this->detail, $this->paymentPreview, $this->history);
+        unset($this->detail, $this->paymentPreview, $this->history, $this->balance);
     }
 
     public function openAttach(int $disbursementId): void

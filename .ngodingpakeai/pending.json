@@ -1,6 +1,6 @@
 {
   "repo": "Koperasi Sekolah",
-  "generatedForCommit": "504ac6c47b1e86caa5ca8d81dfae1fbf399da70d",
+  "generatedForCommit": "8ab1a069e04f25a52a1f7f11419ad422db3a9c71",
   "files": [
     {
       "path": ".claude/skills/ngodingpakeai/SKILL.md",
@@ -285,10 +285,16 @@
       "size": 2153
     },
     {
+      "path": "app/Livewire/Pinjaman/PaymentHistory.php",
+      "reason": "new",
+      "language": "php",
+      "size": 3284
+    },
+    {
       "path": "app/Livewire/Pinjaman/Show.php",
       "reason": "changed",
       "language": "php",
-      "size": 10041
+      "size": 10265
     },
     {
       "path": "app/Livewire/Transaksi/Index.php",
@@ -322,7 +328,7 @@
     },
     {
       "path": "app/Models/LoanPayment.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 971
     },
@@ -345,6 +351,12 @@
       "size": 2211
     },
     {
+      "path": "app/Providers/AppServiceProvider.php",
+      "reason": "changed",
+      "language": "php",
+      "size": 6136
+    },
+    {
       "path": "app/Services/LoanApplicationService.php",
       "reason": "needs_summary",
       "language": "php",
@@ -358,15 +370,15 @@
     },
     {
       "path": "app/Services/LoanInstallmentQuery.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 5186
+      "size": 5180
     },
     {
       "path": "app/Services/LoanPaymentService.php",
       "reason": "changed",
       "language": "php",
-      "size": 9568
+      "size": 11302
     },
     {
       "path": "app/Services/LoanScheduleGenerator.php",
@@ -376,9 +388,9 @@
     },
     {
       "path": "app/Services/LoanService.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 9393
+      "size": 9392
     },
     {
       "path": "app/Services/MemberCodeGenerator.php",
@@ -403,6 +415,12 @@
       "reason": "needs_summary",
       "language": "php",
       "size": 3493
+    },
+    {
+      "path": "app/Services/SupplierBillService.php",
+      "reason": "changed",
+      "language": "php",
+      "size": 8607
     },
     {
       "path": "app/Support/MockData.php",
@@ -982,7 +1000,7 @@
     },
     {
       "path": "database/migrations/2026_10_16_000006_add_reference_to_loan_payments.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 660
     },
@@ -1822,9 +1840,9 @@
     },
     {
       "path": "resources/views/livewire/pinjaman/installments.blade.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 8988
+      "size": 9297
     },
     {
       "path": "resources/views/livewire/pinjaman/partials/application-form.blade.php",
@@ -1845,10 +1863,16 @@
       "size": 2489
     },
     {
+      "path": "resources/views/livewire/pinjaman/payment-history.blade.php",
+      "reason": "new",
+      "language": "php",
+      "size": 5974
+    },
+    {
       "path": "resources/views/livewire/pinjaman/show.blade.php",
       "reason": "changed",
       "language": "php",
-      "size": 29048
+      "size": 31864
     },
     {
       "path": "resources/views/livewire/portal/checkout.blade.php",
@@ -2056,9 +2080,9 @@
     },
     {
       "path": "routes/web.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 46617
+      "size": 46744
     },
     {
       "path": "tests/Concerns/MakesProductImports.php",
@@ -2494,9 +2518,15 @@
     },
     {
       "path": "tests/Feature/Pinjaman/PaymentFormTest.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 8553
+    },
+    {
+      "path": "tests/Feature/Pinjaman/PaymentHistoryTest.php",
+      "reason": "new",
+      "language": "php",
+      "size": 4250
     },
     {
       "path": "tests/Feature/Pinjaman/ScheduleGeneratorTest.php",

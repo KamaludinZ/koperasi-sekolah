@@ -279,6 +279,22 @@
                 </div>
                 <p class="mt-2 text-xs text-emerald-200">Terbayar {{ $rp($sum['paid']) }} dari {{ $rp($sum['total']) }} · {{ $sum['paid_count'] }}/{{ $sum['count'] }} angsuran</p>
             </div>
+            @if ($l['disbursed_at'])
+                @php $b = $this->balance; @endphp
+                <section class="rounded-xl border border-stone-200 bg-white px-4 py-3 text-sm" aria-label="Ringkasan bayar dan sisa" data-balance>
+                    <h2 class="mb-2 text-sm font-semibold">Ringkasan bayar & sisa</h2>
+                    <table class="w-full text-xs">
+                        <thead class="text-stone-500"><tr><th class="text-left font-medium"></th><th class="text-right font-medium">Total</th><th class="text-right font-medium">Dibayar</th><th class="text-right font-medium">Sisa</th></tr></thead>
+                        <tbody class="tabular-nums">
+                            <tr><td class="py-1 text-stone-600">Pokok</td><td class="text-right">{{ $rp($b['principal']) }}</td><td class="text-right">{{ $rp($b['principal_paid']) }}</td><td class="text-right">{{ $rp($b['principal_remaining']) }}</td></tr>
+                            <tr><td class="py-1 text-stone-600">Bunga</td><td class="text-right">{{ $rp($b['interest']) }}</td><td class="text-right">{{ $rp($b['interest_paid']) }}</td><td class="text-right">{{ $rp($b['interest_remaining']) }}</td></tr>
+                            <tr class="border-t border-stone-200 font-semibold"><td class="py-1">Jumlah</td><td class="text-right">{{ $rp($b['total']) }}</td><td class="text-right text-emerald-800">{{ $rp($b['paid']) }}</td><td class="text-right">{{ $rp($b['remaining']) }}</td></tr>
+                        </tbody>
+                    </table>
+                    <p class="mt-2 text-xs text-stone-500">{{ $b['payments_count'] }} pembayaran · {{ $b['installments_paid'] }}/{{ $b['installments'] }} angsuran lunas
+                        @if ($b['last_payment'])· terakhir {{ $date($b['last_payment']['paid_at']) }} ({{ $rp($b['last_payment']['amount']) }}, {{ $b['last_payment']['payment_label'] }})@endif</p>
+                </section>
+            @endif
             @if ($sum['next'])
                 <div @class(['rounded-xl border px-4 py-3', 'border-red-200 bg-red-50' => $sum['next']['late'], 'border-stone-200 bg-white' => ! $sum['next']['late']])>
                     <p class="text-xs text-stone-500">Angsuran berikutnya (ke-{{ $sum['next']['sequence'] }})</p>
