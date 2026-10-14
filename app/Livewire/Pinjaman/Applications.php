@@ -233,7 +233,9 @@ class Applications extends Component
             try {
                 $loan = $svc->update($loan, $data, auth()->id());
             } catch (\Illuminate\Validation\ValidationException $e) {
-                $this->addError('form.principal', collect($e->errors())->flatten()->first());
+                foreach ($e->errors() as $key => $messages) {
+                    $this->addError($key === 'loan' ? 'form.principal' : 'form.'.$key, $messages[0]);
+                }
 
                 return;
             }

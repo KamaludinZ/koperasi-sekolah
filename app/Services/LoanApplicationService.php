@@ -19,6 +19,30 @@ class LoanApplicationService
 
     public const MAX_TENOR = 120;
 
+    /** Angsuran per bulan minimal (pokok + bunga dibagi tenor). */
+    public const MIN_MONTHLY = 1_000;
+
+    /** Pesan galat bila angsuran per bulan terlalu kecil untuk tenornya (null = aman). */
+    public static function monthlyError(array $data): ?string
+    {
+        $tenor = (int) ($data['tenor_months'] ?? 0);
+        if ($tenor < 1) {
+            return null;
+        }
+        $monthly = intdiv((int) ($data['principal'] ?? 0) + (int) ($data['interest'] ?? 0), $tenor);
+
+        return $monthly < self::MIN_MONTHLY
+            ? 'Angsuran per bulan jadi '.Rupiah::format($monthly).'; minimal '.Rupiah::format(self::MIN_MONTHLY).'. Perpendek tenor.'
+            : null;
+    }
+
+    private static function assertMonthly(array $data): void
+    {
+        if ($error = self::monthlyError($data)) {
+            throw ValidationException::withMessages(['tenor_months' => $error]);
+        }
+    }
+
     public static function rules(): array
     {
         return [
@@ -75,6 +99,7 @@ class LoanApplicationService
     /** @param  array  $data  data tervalidasi (rules()) */
     public function create(array $data, ?int $userId = null): Loan
     {
+        self::assertMonthly($data);
         $purpose = filled($data['purpose'] ?? null) ? trim($data['purpose']) : null;
 
         for ($attempt = 1; ; $attempt++) {
@@ -167,6 +192,7 @@ class LoanApplicationService
      */
     public function update(Loan $loan, array $data, ?int $userId = null): Loan
     {
+        self::assertMonthly($data);
         $new = [
             'principal' => (int) $data['principal'], 'interest' => (int) $data['interest'], 'tenor_months' => (int) $data['tenor_months'],
             'payment_method' => $data['payment_method'], 'purpose' => filled($data['purpose'] ?? null) ? trim($data['purpose']) : null,

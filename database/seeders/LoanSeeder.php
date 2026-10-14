@@ -76,6 +76,7 @@ class LoanSeeder extends Seeder
                     ]);
                 }
                 $outstanding = $total - $paid;
+                $loan->update(['status' => 'berjalan', 'disbursed_at' => $disbursed, 'outstanding' => $total]); // cair dulu, lalu status akhir
                 $loan->update([
                     'status' => $outstanding === 0 ? 'lunas' : ($loan->installments()->where('status', 'menunggak')->exists() ? 'menunggak' : 'berjalan'),
                     'disbursed_at' => $disbursed, 'outstanding' => $outstanding,

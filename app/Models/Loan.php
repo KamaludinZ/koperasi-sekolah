@@ -20,6 +20,36 @@ class Loan extends Model
 
     public const METHODS = ['potong_gaji' => 'Potong gaji', 'transfer' => 'Transfer', 'tunai' => 'Tunai'];
 
+    /**
+     * Perpindahan status yang sah. Pengajuan: diajukan → disetujui/ditolak/dibatalkan; disetujui → diajukan (syarat diubah),
+     * dibatalkan, atau berjalan (dicairkan). Setelah cair: berjalan ⇄ menunggak → lunas; lunas bisa kembali berjalan/menunggak
+     * hanya lewat koreksi angsuran. Ditolak & dibatalkan bersifat final.
+     */
+    public const TRANSITIONS = [
+        'diajukan' => ['disetujui', 'ditolak', 'dibatalkan'],
+        'disetujui' => ['diajukan', 'dibatalkan', 'berjalan'],
+        'berjalan' => ['menunggak', 'lunas'],
+        'menunggak' => ['berjalan', 'lunas'],
+        'lunas' => ['berjalan', 'menunggak'],
+        'ditolak' => [],
+        'dibatalkan' => [],
+    ];
+
+    public static function canTransition(string $from, string $to): bool
+    {
+        return $from === $to || in_array($to, self::TRANSITIONS[$from] ?? [], true);
+    }
+
+    /** Setiap perubahan status lewat model diperiksa; lompatan tidak sah (mis. diajukan → berjalan) ditolak. */
+    protected static function booted(): void
+    {
+        static::updating(function (Loan $loan) {
+            if ($loan->isDirty('status') && ! self::canTransition((string) $loan->getOriginal('status'), (string) $loan->status)) {
+                throw new \DomainException("Status pinjaman {$loan->code} tidak bisa berubah dari \"{$loan->getOriginal('status')}\" menjadi \"{$loan->status}\".");
+            }
+        });
+    }
+
     /** Status pinjaman yang sudah dicairkan & masih punya sisa. */
     public const ACTIVE = ['berjalan', 'menunggak'];
 

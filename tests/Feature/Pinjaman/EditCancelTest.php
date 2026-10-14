@@ -111,6 +111,7 @@ class EditCancelTest extends TestCase
     public function test_edit_after_disbursement_elsewhere_is_rejected(): void
     {
         $c = Livewire::test(Applications::class)->call('edit', $this->loan->id)->set('form.principal', 2000000);
+        $this->loan->update(['status' => 'disetujui', 'decided_at' => now()]);
         $this->loan->update(['status' => 'berjalan', 'disbursed_at' => '2026-10-14', 'outstanding' => 1050000]);
         $c->call('save')->assertHasErrors('form.principal')->assertSee('hanya pengajuan yang belum dicairkan');
         $this->assertSame(1000000, (int) $this->loan->fresh()->principal);

@@ -61,6 +61,9 @@ class LoanApplicationForm extends Form
         $this->syncInterest();
         $data = $this->validate();
         unset($data['interest_mode'], $data['interest_rate']);
+        if ($error = LoanApplicationService::monthlyError($data)) {
+            throw \Illuminate\Validation\ValidationException::withMessages(['form.tenor_months' => $error]);
+        }
 
         return $data;
     }

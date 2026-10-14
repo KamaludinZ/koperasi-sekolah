@@ -52,6 +52,7 @@ class EditCancelEndpointTest extends TestCase
         $this->putJson(route('pinjaman.pengajuan.update', $this->loan), $this->payload(['interest' => 2000000, 'tenor_months' => 200, 'applied_at' => '2026-12-01']))
             ->assertUnprocessable()->assertJsonValidationErrors(['interest', 'tenor_months', 'applied_at']);
 
+        $this->loan->update(['status' => 'disetujui', 'decided_at' => now()]);
         $this->loan->update(['status' => 'berjalan', 'disbursed_at' => '2026-10-14', 'outstanding' => 1050000]);
         $this->putJson(route('pinjaman.pengajuan.update', $this->loan), $this->payload(['principal' => 2000000]))->assertUnprocessable()
             ->assertJsonPath('errors.loan.0', 'Pinjaman PJM-2026-0001 sudah berjalan; hanya pengajuan yang belum dicairkan yang bisa diubah atau dibatalkan.');
