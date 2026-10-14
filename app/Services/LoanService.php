@@ -58,7 +58,9 @@ class LoanService
             'paid_at' => $i->paid_at?->toDateString(), 'payment_method' => $i->payment_method,
             'payment_label' => $i->payment_method ? (Loan::METHODS[$i->payment_method] ?? $i->payment_method) : null,
             'status' => $i->status, 'status_label' => LoanInstallment::STATUSES[$i->status] ?? $i->status,
-            'late' => $i->status !== 'dibayar' && $i->due_date->lt($today), 'note' => $i->note, 'user' => $i->user?->name,
+            'remaining' => max(0, (int) round((float) $i->amount - (float) $i->paid_amount)),
+            'late' => $late = $i->status !== 'dibayar' && $i->due_date->lt($today),
+            'days_late' => $late ? (int) $i->due_date->diffInDays($today) : 0, 'note' => $i->note, 'user' => $i->user?->name,
         ])->all();
 
         $disbursements = $loan->disbursements->map(fn (LoanDisbursement $d) => [
@@ -70,7 +72,7 @@ class LoanService
         $next = collect($installments)->first(fn ($i) => $i['status'] !== 'dibayar');
 
         return [
-            'loan' => [...self::toArray($loan), 'member_phone' => $loan->member?->phone, 'decided_at' => $loan->decided_at?->toDateTimeString(),
+            'loan' => [...self::toArray($loan), 'member_phone' => $loan->member?->phone, 'member_deleted' => (bool) $loan->member?->trashed(), 'decided_at' => $loan->decided_at?->toDateTimeString(),
                 'decided_by' => $loan->decider?->name, 'paid_off_at' => $loan->paid_off_at?->toDateString()],
             'installments' => $installments,
             'disbursements' => $disbursements,
@@ -79,6 +81,7 @@ class LoanService
                 'paid_count' => count(array_filter($installments, fn ($i) => $i['status'] === 'dibayar')),
                 'count' => count($installments),
                 'late_count' => count(array_filter($installments, fn ($i) => $i['late'])),
+                'late_amount' => array_sum(array_map(fn ($i) => $i['late'] ? $i['remaining'] : 0, $installments)),
                 'next' => $next,
                 'progress' => $loan->totalDue() > 0 ? min(100, (int) floor($paid * 100 / $loan->totalDue())) : 0,
             ],

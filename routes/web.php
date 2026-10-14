@@ -471,6 +471,7 @@ Route::middleware(['menu:pinjaman', 'peran:admin,pengurus', 'can:kelola-pinjaman
     Route::get('/pinjaman', \App\Livewire\Pinjaman\Index::class)->name('pinjaman');
     Route::get('/pinjaman/daftar', [\App\Http\Controllers\Pinjaman\LoanController::class, 'index'])->middleware('throttle:120,1')->name('pinjaman.list');
     Route::get('/pinjaman/{loan}/data', [\App\Http\Controllers\Pinjaman\LoanController::class, 'show'])->whereNumber('loan')->middleware('throttle:120,1')->name('pinjaman.data');
+    Route::get('/pinjaman/{loan}/angsuran', [\App\Http\Controllers\Pinjaman\LoanController::class, 'installments'])->whereNumber('loan')->middleware('throttle:120,1')->name('pinjaman.installments');
     Route::get('/pinjaman/{loan}', \App\Livewire\Pinjaman\Show::class)->whereNumber('loan')->name('pinjaman.show');
 });
 

@@ -13,6 +13,7 @@ use Illuminate\Validation\Rule;
  * Pinjaman anggota (JSON, Admin & Pengurus):
  * - GET /pinjaman/daftar?q=&status=&metode=&anggota=&per_halaman=&page= → daftar berpaginasi + ringkasan status
  * - GET /pinjaman/{loan}/data → rincian satu pinjaman (pencairan, jadwal angsuran, ringkasan bayar)
+ * - GET /pinjaman/{loan}/angsuran?status=belum|dibayar|menunggak|terlambat → jadwal angsuran saja (+ ringkasan)
  */
 class LoanController extends Controller
 {
@@ -58,5 +59,16 @@ class LoanController extends Controller
     public function show(Loan $loan, LoanService $loans): JsonResponse
     {
         return response()->json(['data' => $loans->detail($loan)]);
+    }
+
+    public function installments(Request $request, Loan $loan, LoanService $loans): JsonResponse
+    {
+        $data = $request->validate(['status' => ['nullable', Rule::in(['belum', 'dibayar', 'menunggak', 'terlambat'])]],
+            ['status.in' => 'Status angsuran tidak dikenal.']);
+        $detail = $loans->detail($loan);
+        $rows = collect($detail['installments'])->when($data['status'] ?? null, fn ($c, $status) => $c->filter(
+            fn ($i) => $status === 'terlambat' ? $i['late'] : $i['status'] === $status))->values()->all();
+
+        return response()->json(['data' => $rows, 'meta' => ['loan' => ['id' => $loan->id, 'code' => $loan->code, 'status' => $loan->status], 'summary' => $detail['summary']]]);
     }
 }
