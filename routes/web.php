@@ -106,6 +106,8 @@ Route::get('/portal/masuk', \App\Livewire\Portal\Login::class)->middleware('gues
 Route::middleware('portal')->group(function () { // bukan auth:member — guard bawaan tetap milik petugas
     Route::get('/portal', \App\Livewire\Portal\Home::class)->name('portal');
     Route::get('/portal/simpanan', \App\Livewire\Portal\Savings::class)->name('portal.simpanan');
+    Route::get('/portal/pin/status', [\App\Http\Controllers\Portal\PinController::class, 'status'])->name('portal.pin.status');
+    Route::post('/portal/pin/verifikasi', [\App\Http\Controllers\Portal\PinController::class, 'verify'])->middleware('throttle:20,1')->name('portal.pin.verify');
     Route::get('/portal/riwayat', \App\Livewire\Portal\Purchases::class)->name('portal.riwayat');
     Route::get('/portal/belanja', \App\Livewire\Portal\Shop::class)->name('portal.belanja');
     Route::get('/portal/checkout', \App\Livewire\Portal\Checkout::class)->name('portal.checkout');

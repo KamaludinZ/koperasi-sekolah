@@ -31,6 +31,27 @@ class PortalPinService
             'minutes' => (int) ceil($seconds / 60), 'seconds' => $seconds];
     }
 
+    public const TOKEN_TTL = 300;
+
+    /** Token sekali pakai (5 menit) setelah PIN benar, disimpan di sesi anggota; dipakai endpoint transaksi. */
+    public function issueToken(Member $member): array
+    {
+        $token = \Illuminate\Support\Str::random(40);
+        $expires = now()->addSeconds(self::TOKEN_TTL);
+        session(['portal.pin_token' => ['hash' => hash('sha256', $token), 'member_id' => $member->id, 'expires' => $expires->timestamp]]);
+
+        return ['token' => $token, 'expires_at' => $expires->toIso8601String()];
+    }
+
+    /** Pakai token: sah bila milik anggota ini & belum kedaluwarsa; selalu dihapus setelah dicek (sekali pakai). */
+    public function consumeToken(Member $member, ?string $token): bool
+    {
+        $stored = session()->pull('portal.pin_token');
+
+        return $token !== null && $stored && $stored['member_id'] === $member->id && $stored['expires'] >= now()->timestamp
+            && hash_equals($stored['hash'], hash('sha256', $token));
+    }
+
     /** @throws ValidationException */
     public function verify(Member $member, string $pin): void
     {
