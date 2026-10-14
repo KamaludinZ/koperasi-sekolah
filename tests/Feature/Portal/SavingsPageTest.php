@@ -40,6 +40,21 @@ class SavingsPageTest extends TestCase
             ->call('setTab', 'lain')->assertSet('tab', 'simpanan');
     }
 
+    public function test_history_filters_and_totals(): void
+    {
+        app(MemberSavingService::class)->deposit($this->andi, SavingType::where('code', 'SUKARELA')->first(), 8000);
+        $this->travelTo('2026-05-01 09:00:00');
+        app(SavingsService::class)->deposit($this->andi, 5000, 'Setoran lama');
+        $this->travelTo('2026-10-14 09:00:00');
+
+        Livewire::test(Savings::class)
+            ->assertSee('+Rp58.000')
+            ->set('typeFilter', (string) SavingType::where('code', 'SUKARELA')->value('id'))->assertSee('+Rp8.000')->assertDontSee('Setoran Simpanan Pokok')
+            ->call('setTab', 'tabungan')->assertSet('typeFilter', '')->assertSee('Setoran lama')->assertSee('+Rp30.000')
+            ->set('period', '30-hari')->assertDontSee('Setoran lama')->assertSee('+Rp25.000')
+            ->set('period', 'x')->assertSet('period', 'semua');
+    }
+
     public function test_load_more(): void
     {
         foreach (range(1, 22) as $i) {

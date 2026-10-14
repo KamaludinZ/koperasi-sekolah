@@ -61,6 +61,19 @@
                 @endforeach
             </div>
         </div>
+        <div class="mt-3 flex flex-wrap gap-2 px-4">
+            @if ($tab === 'simpanan' && $s['types'])
+                <select wire:model.live="typeFilter" aria-label="Jenis simpanan" class="rounded-lg border border-stone-300 bg-white px-2.5 py-1.5 text-sm">
+                    <option value="">Semua jenis</option>
+                    @foreach ($s['types'] as $t)<option value="{{ $t['id'] }}">{{ $t['name'] }}</option>@endforeach
+                </select>
+            @endif
+            <select wire:model.live="period" aria-label="Periode" class="rounded-lg border border-stone-300 bg-white px-2.5 py-1.5 text-sm">
+                @foreach (\App\Livewire\Portal\Savings::PERIODS as $k => $label)<option value="{{ $k }}">{{ $label }}</option>@endforeach
+            </select>
+            @php $tt = $this->totals; @endphp
+            <p class="ml-auto self-center text-xs text-stone-500" data-history-totals>Masuk <strong class="text-emerald-800 tabular-nums">+{{ $rp($tt['in']) }}</strong> · Keluar <strong class="text-red-700 tabular-nums">−{{ $rp($tt['out']) }}</strong></p>
+        </div>
         <ul class="mt-2 divide-y divide-stone-100">
             @forelse ($h['rows'] as $r)
                 <li class="flex items-center justify-between gap-3 px-4 py-2.5" wire:key="h-{{ $r['id'] }}">
