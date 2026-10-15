@@ -37,6 +37,7 @@ class Recap extends Component
 
     public function mount(): void
     {
+        abort_unless(\Illuminate\Support\Facades\Gate::allows('lihat-rekap-pinjaman'), 403);
         $this->sanitize();
     }
 
@@ -107,6 +108,7 @@ class Recap extends Component
     #[Computed]
     public function recap(): array
     {
+        abort_unless(\Illuminate\Support\Facades\Gate::allows('lihat-rekap-pinjaman'), 403);
         [$from, $to] = $this->period;
 
         return app(LoanRecapService::class)->recap($from, $to);
@@ -125,6 +127,7 @@ class Recap extends Component
     /** Minta ekspor CSV periode yang sedang dilihat ke antrean latar. */
     public function export(\App\Services\ReportExportService $exports, string $format = 'csv'): void
     {
+        abort_unless(\Illuminate\Support\Facades\Gate::allows('lihat-rekap-pinjaman'), 403); // dicek ulang tiap aksi (hak bisa dicabut di tengah sesi)
         $format = $format === 'pdf' ? 'pdf' : 'csv';
         [$from, $to, $label] = $this->period;
         try {

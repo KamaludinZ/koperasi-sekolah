@@ -17,7 +17,17 @@ class TransactionSeederTest extends TestCase
     {
         parent::setUp();
         $this->seed(ProductSeeder::class);
-        $this->travelTo('2026-10-14 10:30:00'); // Rabu pagi
+        // Rabu sore: jam transaksi contoh diacak 07–14, jadi hari ini pasti punya transaksi (pagi hari bisa kosong
+        // bila semua jam acak jatuh setelah "sekarang" — dulu membuat tes ini gagal sesekali).
+        $this->travelTo('2026-10-14 15:30:00');
+    }
+
+    public function test_today_transactions_never_in_the_future(): void
+    {
+        $this->travelTo('2026-10-14 09:00:00');
+        $this->seed(TransactionSeeder::class);
+        $this->assertSame(0, Transaction::where('created_at', '>', now())->count());
+        $this->assertTrue(Transaction::where('created_at', '>=', today())->get()->every(fn ($t) => $t->created_at->lte(now())));
     }
 
     public function test_seeds_consistent_history_without_touching_stock(): void

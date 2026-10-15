@@ -1,6 +1,6 @@
 {
   "repo": "Koperasi Sekolah",
-  "generatedForCommit": "7205be0839fd413abffa2af8d05107bf52f386ef",
+  "generatedForCommit": "a76e570c7c32cbc3fb47049ee554a4c05f9a93de",
   "files": [
     {
       "path": ".claude/skills/ngodingpakeai/SKILL.md",
@@ -178,15 +178,15 @@
     },
     {
       "path": "app/Http/Controllers/Pinjaman/RecapController.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 4293
     },
     {
       "path": "app/Http/Controllers/Pinjaman/RecapExportController.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 4824
+      "size": 5120
     },
     {
       "path": "app/Http/Controllers/Portal/LoanController.php",
@@ -220,9 +220,9 @@
     },
     {
       "path": "app/Jobs/ExportLoanRecap.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 2350
+      "size": 2590
     },
     {
       "path": "app/Livewire/Akun/Password.php",
@@ -352,9 +352,9 @@
     },
     {
       "path": "app/Livewire/Pinjaman/Recap.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 5415
+      "size": 5537
     },
     {
       "path": "app/Livewire/Pinjaman/Show.php",
@@ -466,9 +466,9 @@
     },
     {
       "path": "app/Services/LoanRecapExport.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 5191
+      "size": 6778
     },
     {
       "path": "app/Services/LoanRecapService.php",
@@ -511,6 +511,12 @@
       "reason": "needs_summary",
       "language": "php",
       "size": 2848
+    },
+    {
+      "path": "app/Services/ReportExportService.php",
+      "reason": "changed",
+      "language": "php",
+      "size": 3864
     },
     {
       "path": "app/Services/StockService.php",
@@ -2044,9 +2050,9 @@
     },
     {
       "path": "resources/views/livewire/pinjaman/recap.blade.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 13677
+      "size": 14065
     },
     {
       "path": "resources/views/livewire/pinjaman/show.blade.php",
@@ -2247,6 +2253,12 @@
       "size": 2049
     },
     {
+      "path": "resources/views/pinjaman/rekap-pdf.blade.php",
+      "reason": "new",
+      "language": "php",
+      "size": 4572
+    },
+    {
       "path": "resources/views/simpanan/rekap-pdf.blade.php",
       "reason": "needs_summary",
       "language": "php",
@@ -2266,7 +2278,7 @@
     },
     {
       "path": "routes/web.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 50283
     },
@@ -2824,15 +2836,15 @@
     },
     {
       "path": "tests/Feature/Pinjaman/RecapEndpointTest.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 4190
     },
     {
       "path": "tests/Feature/Pinjaman/RecapExportTest.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 7333
+      "size": 9274
     },
     {
       "path": "tests/Feature/Pinjaman/RecapPageTest.php",

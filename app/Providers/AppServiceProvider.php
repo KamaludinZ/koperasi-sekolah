@@ -94,6 +94,9 @@ class AppServiceProvider extends ServiceProvider
 
         // Pinjaman anggota hanya dikelola pengurus/admin.
         Gate::define('kelola-pinjaman', fn (User $user) => $user->hasRole(Role::ADMIN, Role::PENGURUS) && $user->canOpen('pinjaman'));
+        // Rekap & ekspor pinjaman (data keuangan seluruh anggota): hanya pengurus (dan admin sebagai pemegang seluruh modul)
+        // yang menu Pinjaman-nya aktif — kasir & anggota tidak pernah, walau diberi menu.
+        Gate::define('lihat-rekap-pinjaman', fn (User $user) => $user->hasRole(Role::PENGURUS, Role::ADMIN) && $user->canOpen('pinjaman'));
 
         Gate::define('kelola-pengadaan', fn (User $user) => $user->hasRole(Role::ADMIN, Role::PENGURUS) && $user->canOpen('pengadaan'));
 
