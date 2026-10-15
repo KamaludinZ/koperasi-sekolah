@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
  * Satu sesi impersonasi (tabel impersonation_sessions): admin pelaku, target petugas/anggota (+ salinan nama),
@@ -30,7 +31,7 @@ class Impersonation extends Model
 
     protected $fillable = [
         'admin_id', 'admin_name', 'target_type', 'target_user_id', 'target_member_id', 'target_name', 'target_label',
-        'reason', 'started_at', 'expires_at', 'ended_at', 'end_reason', 'ip_address', 'user_agent',
+        'reason', 'started_at', 'expires_at', 'ended_at', 'end_reason', 'ip_address', 'user_agent', 'start_log_id', 'end_log_id',
     ];
 
     protected function casts(): array
@@ -74,6 +75,22 @@ class Impersonation extends Model
     public function durationMinutes(): int
     {
         return (int) ceil($this->started_at->diffInSeconds($this->ended_at ?? now()) / 60);
+    }
+
+    public function startLog(): BelongsTo
+    {
+        return $this->belongsTo(ActivityLog::class, 'start_log_id');
+    }
+
+    public function endLog(): BelongsTo
+    {
+        return $this->belongsTo(ActivityLog::class, 'end_log_id');
+    }
+
+    /** Catatan activity_logs yang dibuat selama sesi ini (aksi admin atas nama target). */
+    public function actionLogs(): HasMany
+    {
+        return $this->hasMany(ActivityLog::class, 'impersonation_id')->whereNotIn('event', ['impersonation.started', 'impersonation.ended']);
     }
 
     public function target(): User|Member|null

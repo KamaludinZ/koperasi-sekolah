@@ -3,6 +3,8 @@
 namespace App\Models;
 
 use App\Services\AuditIntegrity;
+use App\Services\LoanAuditChain;
+use App\Services\LoanAutoAudit;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Carbon;
@@ -48,7 +50,7 @@ class ActivityLog extends Model
     protected $fillable = [
         'event', 'category', 'description', 'subject_type', 'subject_id', 'subject_label',
         'actor_id', 'actor_name', 'actor_role', 'amount', 'properties', 'ip_address', 'user_agent', 'created_at',
-        'action', 'old_values', 'new_values', 'reason',
+        'action', 'old_values', 'new_values', 'reason', 'impersonation_id', 'on_behalf_type', 'on_behalf_id',
     ];
 
     protected static function booted(): void
@@ -60,10 +62,10 @@ class ActivityLog extends Model
         // jejak pinjaman ikut dirantai HMAC (LoanAuditChain)
         static::created(function (ActivityLog $log) {
             if ($log->category === 'pinjaman') {
-                if ($log->subject_type === 'loan' && ! in_array($log->event, \App\Services\LoanAutoAudit::EVENTS, true)) {
-                    \App\Services\LoanAutoAudit::markExplicit((int) $log->subject_id);
+                if ($log->subject_type === 'loan' && ! in_array($log->event, LoanAutoAudit::EVENTS, true)) {
+                    LoanAutoAudit::markExplicit((int) $log->subject_id);
                 }
-                app(\App\Services\LoanAuditChain::class)->append('activity', $log->id, $log->subject_type === 'loan' ? (int) $log->subject_id : null, $log->checksum);
+                app(LoanAuditChain::class)->append('activity', $log->id, $log->subject_type === 'loan' ? (int) $log->subject_id : null, $log->checksum);
             }
         });
     }

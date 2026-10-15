@@ -1,6 +1,6 @@
 {
   "repo": "Koperasi Sekolah",
-  "generatedForCommit": "30078a875c350757e71415d8a01c56a5068e3861",
+  "generatedForCommit": "46fa4b7558cc7715cc4adab82c760e50dfc7f2d9",
   "files": [
     {
       "path": ".claude/skills/ngodingpakeai/SKILL.md",
@@ -49,12 +49,6 @@
       "reason": "needs_summary",
       "language": "php",
       "size": 2081
-    },
-    {
-      "path": "app/Console/Commands/VerifyAuditLog.php",
-      "reason": "changed",
-      "language": "php",
-      "size": 2025
     },
     {
       "path": "app/Http/Controllers/Akun/MenuController.php",
@@ -204,7 +198,7 @@
       "path": "app/Livewire/Audit/RoleImpersonation.php",
       "reason": "changed",
       "language": "php",
-      "size": 5556
+      "size": 6655
     },
     {
       "path": "app/Livewire/Concerns/GuardsSettings.php",
@@ -352,9 +346,9 @@
     },
     {
       "path": "app/Services/RoleImpersonationTrail.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 10732
+      "size": 13155
     },
     {
       "path": "app/Services/StockService.php",
@@ -376,7 +370,7 @@
     },
     {
       "path": "app/Support/AuditVerificationStatus.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 2312
     },
@@ -1572,7 +1566,7 @@
       "path": "resources/views/livewire/audit/role-impersonation.blade.php",
       "reason": "changed",
       "language": "php",
-      "size": 15020
+      "size": 16326
     },
     {
       "path": "resources/views/livewire/audit/trash.blade.php",
@@ -2284,7 +2278,7 @@
     },
     {
       "path": "tests/Feature/Audit/IntegrityPanelTest.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 4396
     },
@@ -2299,6 +2293,12 @@
       "reason": "needs_summary",
       "language": "php",
       "size": 4335
+    },
+    {
+      "path": "tests/Feature/Audit/TrailFiltersTest.php",
+      "reason": "new",
+      "language": "php",
+      "size": 4017
     },
     {
       "path": "tests/Feature/Auth/ChangePasswordTest.php",

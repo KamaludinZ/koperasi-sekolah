@@ -93,8 +93,10 @@ class AuditLog
             $own = isset($properties['impersonation_id']);
             $user = $web && ! $own ? Actor::forAudit($actor ?? Petugas::current()) : ($actor ?? ($web ? Petugas::current() : null));
             $request = $web ? request() : null;
+            $attribution = $own ? ['impersonation_id' => (string) $properties['impersonation_id']] : [];
             if ($web && ! $own && ($imp = Actor::impersonation())) {
                 $properties['impersonation'] = ['id' => $imp['id'], 'target_type' => $imp['target_type'], 'target_id' => $imp['target_id'], 'target_name' => $imp['target_name']];
+                $attribution = ['impersonation_id' => $imp['id'], 'on_behalf_type' => $imp['target_type'], 'on_behalf_id' => $imp['target_id']];
             }
 
             return ActivityLog::create([
@@ -115,6 +117,7 @@ class AuditLog
                 'old_values' => $old,
                 'new_values' => $new,
                 'reason' => $reason !== null ? Str::limit($reason, 200, '') : null,
+                ...$attribution,
             ]);
         } catch (\Throwable $e) {
             report($e);

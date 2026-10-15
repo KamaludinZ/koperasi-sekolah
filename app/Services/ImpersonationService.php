@@ -149,6 +149,7 @@ class ImpersonationService
         if (! $log) {
             throw new \RuntimeException('Jejak audit impersonasi gagal dicatat — impersonasi dibatalkan.');
         }
+        $record->update(['start_log_id' => $log->id]);
     }
 
     /** Simpan keadaan impersonasi di sesi (kontrak App\Support\ImpersonationSession). */
@@ -318,6 +319,9 @@ class ImpersonationService
                 reason: $locked->reason);
             if (! $log) {
                 report(new \RuntimeException("Jejak akhir impersonasi {$locked->id} gagal dicatat."));
+            } else {
+                $locked->update(['end_log_id' => $log->id]);
+                $record->setRawAttributes($locked->getAttributes(), true);
             }
         });
     }

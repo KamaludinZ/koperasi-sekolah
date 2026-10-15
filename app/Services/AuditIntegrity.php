@@ -20,10 +20,23 @@ class AuditIntegrity
         'ip_address', 'user_agent', 'created_at',
     ];
 
+    /**
+     * Kolom atribusi impersonasi — ikut ditandatangani HANYA bila salah satunya terisi, sehingga catatan lama (tanpa
+     * nilai) tetap memakai tanda tangan aslinya.
+     */
+    public const IMPERSONATION_FIELDS = ['impersonation_id', 'on_behalf_type', 'on_behalf_id'];
+
     /** @param  array<string, mixed>|object  $row  nilai mentah seperti tersimpan di database */
     public static function checksum(array|object $row): string
     {
         $row = (array) $row;
+        $fields = self::FIELDS;
+        foreach (self::IMPERSONATION_FIELDS as $f) {
+            if (($row[$f] ?? null) !== null) {
+                $fields = [...self::FIELDS, ...self::IMPERSONATION_FIELDS];
+                break;
+            }
+        }
         $payload = implode("\x1F", array_map(function (string $field) use ($row) {
             $value = $row[$field] ?? null;
 
@@ -34,7 +47,7 @@ class AuditIntegrity
                 is_bool($value) => $value ? '1' : '0',
                 default => self::normalizeTime($field, (string) $value),
             };
-        }, self::FIELDS));
+        }, $fields));
 
         return hash_hmac('sha256', $payload, (string) config('app.key'));
     }

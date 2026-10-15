@@ -60,11 +60,8 @@ class RoleImpersonationTrail
 
     public function actionsQuery(array $f): Builder
     {
-        $q = ActivityLog::query()->whereNotIn('event', self::IMPERSONATION_EVENTS)
+        $q = ActivityLog::query()->whereNotNull('impersonation_id')->whereNotIn('event', self::IMPERSONATION_EVENTS)
             ->when(isset(ActivityLog::CATEGORIES[$f['category'] ?? '']), fn ($w) => $w->where('category', $f['category']));
-        DB::getDriverName() === 'pgsql'
-            ? $q->whereRaw('properties::text LIKE ?', ['%"impersonation":{%'])
-            : $q->where('properties', 'like', '%"impersonation":{%');
 
         return $this->logs($q, $f);
     }
@@ -161,12 +158,9 @@ class RoleImpersonationTrail
         if ($sessionIds === []) {
             return $out;
         }
-        ActivityLog::query()->whereIn('event', self::IMPERSONATION_EVENTS)->latest('id')->limit(2000)->get()
+        ActivityLog::query()->whereIn('impersonation_id', $sessionIds)->whereIn('event', self::IMPERSONATION_EVENTS)->orderBy('id')->get()
             ->each(function (ActivityLog $l) use (&$out) {
-                $id = $l->properties['impersonation_id'] ?? null;
-                if ($id !== null && isset($out[$id])) {
-                    $out[$id][$l->event === 'impersonation.started' ? 'started' : 'ended'] ??= $l;
-                }
+                $out[$l->impersonation_id][$l->event === 'impersonation.started' ? 'started' : 'ended'] ??= $l;
             });
 
         return $out;
@@ -232,10 +226,8 @@ class RoleImpersonationTrail
         if (! Str::isUuid($impersonationId)) {
             return 0;
         }
-        $needle = '%"impersonation":{"id":"'.$impersonationId.'"%';
-        $q = ActivityLog::query()->whereNotIn('event', self::IMPERSONATION_EVENTS);
 
-        return (DB::getDriverName() === 'pgsql' ? $q->whereRaw('properties::text LIKE ?', [$needle]) : $q->where('properties', 'like', $needle))->count();
+        return ActivityLog::query()->where('impersonation_id', $impersonationId)->whereNotIn('event', self::IMPERSONATION_EVENTS)->count();
     }
 
     /** Ringkasan untuk kartu atas (periode terpilih). */
