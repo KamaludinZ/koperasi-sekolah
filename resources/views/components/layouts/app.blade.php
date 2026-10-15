@@ -17,7 +17,8 @@
     $menu = \App\Support\Menu::forUser($user);
     // petugas multi-peran: tandai menu & halaman yang hanya terbuka lewat sebagian perannya
     $multiRole = $user && count($user['roles'] ?? []) > 1;
-    $menuSources = $multiRole ? \App\Support\Menu::sourcesFor($user) : [];
+    $menuSources = $user ? \App\Support\Menu::sourcesFor($user) : [];
+    $heldRoles = $user ? ($user['roles'] ?? array_filter([$user['role']])) : [];
     $pageScope = $multiRole ? \App\Support\Menu::pageScope(request()->route()?->getName(), $user) : null;
     $roleList = fn (array $names) => collect($names)->map(fn ($r) => \App\Models\Role::LABELS[$r] ?? $r)
         ->pipe(fn ($c) => $c->count() > 1 ? $c->slice(0, -1)->join(', ').' dan '.$c->last() : $c->join(''));
@@ -73,13 +74,46 @@
                 </div>
             @endforeach
         </nav>
-        <div class="m-3 rounded-xl border border-emerald-800/80 bg-emerald-900/60 p-3">
+        <div class="relative m-3 rounded-xl border border-emerald-800/80 bg-emerald-900/60 p-3">
             @if ($user)
                 <div class="flex items-center gap-1.5">
                     <span class="mr-1 grid size-9 shrink-0 place-items-center rounded-full bg-amber-400 text-sm font-bold text-emerald-950">{{ mb_substr(preg_replace('/^(Pak|Bu)\s+/', '', $user['name']), 0, 1) }}</span>
-                    <div class="min-w-0 flex-1 leading-tight">
-                        <p class="truncate text-sm font-semibold text-white">{{ $user['name'] }}</p>
-                        <p class="truncate text-xs text-amber-300" data-user-roles>{{ collect($user['roles'] ?? [$user['role']])->map(fn ($r) => \App\Models\Role::LABELS[$r] ?? $r)->join(' · ') }}</p>
+                    {{-- Indikator peran aktif: klik untuk melihat semua peran, peran utama, dan menu dari tiap peran --}}
+                    <div class="min-w-0 flex-1" x-data="{ roles: false }" x-on:click.outside="roles = false" x-on:keydown.escape="roles = false">
+                        <button type="button" x-on:click="roles = !roles" x-bind:aria-expanded="roles" aria-controls="panel-peran"
+                                class="block w-full min-w-0 rounded-lg px-1 py-0.5 text-left leading-tight outline-none hover:bg-emerald-800/60 focus-visible:ring-2 focus-visible:ring-amber-300"
+                                title="Peran aktif Anda">
+                            <span class="block truncate text-sm font-semibold text-white">{{ $user['name'] }}</span>
+                            <span class="flex items-center gap-1 text-xs text-amber-300">
+                                <span class="truncate" data-user-roles>{{ collect($heldRoles)->map(fn ($r) => \App\Models\Role::LABELS[$r] ?? $r)->join(' · ') }}</span>
+                                @if (count($heldRoles) > 1)
+                                    <span class="shrink-0 rounded-full bg-amber-400/20 px-1.5 text-[10px] font-semibold tabular-nums" data-active-role-count>{{ count($heldRoles) }} peran</span>
+                                @endif
+                                <svg class="size-3 shrink-0 transition" x-bind:class="roles && 'rotate-180'" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 15l6-6 6 6"/></svg>
+                            </span>
+                        </button>
+                        <div id="panel-peran" x-show="roles" x-cloak x-transition.origin.bottom
+                             class="absolute inset-x-0 bottom-full z-10 mb-2 rounded-xl border border-emerald-700 bg-emerald-950 p-3 text-xs shadow-xl" data-role-panel>
+                            <p class="truncate text-sm font-semibold text-white">{{ $user['name'] }}</p>
+                            <p class="mt-2 font-semibold tracking-wider text-amber-300/90 uppercase">Peran aktif</p>
+                            <ul class="mt-2 space-y-1.5">
+                                @foreach ($heldRoles as $r)
+                                    <li class="flex items-center gap-2" data-active-role="{{ $r }}">
+                                        <span class="size-2 shrink-0 rounded-full bg-amber-400" aria-hidden="true"></span>
+                                        <span class="flex-1 font-medium text-white">{{ \App\Models\Role::LABELS[$r] ?? $r }}
+                                            @if ($r === $user['role'])<span class="ml-1 rounded bg-emerald-800 px-1 py-px text-[10px] font-normal text-emerald-200">utama</span>@endif
+                                        </span>
+                                        <span class="text-emerald-300 tabular-nums">{{ collect($menuSources)->filter(fn ($src) => in_array($r, $src, true))->count() }} menu</span>
+                                    </li>
+                                @endforeach
+                            </ul>
+                            <p class="mt-3 border-t border-emerald-800 pt-2 text-emerald-200">
+                                Hak akses = gabungan <strong class="text-white tabular-nums">{{ count($user['permissions'] ?? []) }}</strong> menu dari {{ count($heldRoles) > 1 ? 'semua peran' : 'peran' }} Anda.
+                            </p>
+                            @if (\App\Support\Menu::canReach('pengguna.akses', $user))
+                                <a href="{{ route('pengguna.akses', ['peran' => implode(',', $heldRoles)]) }}" wire:navigate class="mt-2 inline-block font-semibold text-amber-300 hover:underline">Lihat rincian hak akses →</a>
+                            @endif
+                        </div>
                     </div>
                     <a href="{{ route('akun.password') }}" wire:navigate class="grid size-9 place-items-center rounded-lg text-emerald-200 hover:bg-emerald-800 hover:text-white" aria-label="Ganti kata sandi" title="Ganti kata sandi">
                         <svg class="size-5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" aria-hidden="true"><circle cx="8" cy="15" r="4"/><path d="M10.8 12.2 20 3m-3 3 2 2m-5 1 2 2"/></svg>

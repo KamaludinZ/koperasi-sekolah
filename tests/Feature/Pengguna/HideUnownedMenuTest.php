@@ -62,7 +62,7 @@ class HideUnownedMenuTest extends TestCase
         $this->assertContains(route('kasir'), $links);      // dari kasir
         $this->assertContains(route('pinjaman'), $links);   // dari pengurus
         $this->assertNotContains(route('pengguna'), $links); // dari tak satu pun
-        $res->assertSeeHtml('data-user-roles>Pengurus · Kasir</p>');
+        $res->assertSeeHtml('data-user-roles>Pengurus · Kasir</span>');
     }
 
     public function test_menu_removed_from_a_role_disappears_unless_another_role_still_grants_it(): void

@@ -1,6 +1,6 @@
 {
   "repo": "Koperasi Sekolah",
-  "generatedForCommit": "c1a2b58b5ec69a7396ff478e4889fae239704c46",
+  "generatedForCommit": "2124cb5bf577b3cf1e4958f48d514d5e90e27781",
   "files": [
     {
       "path": ".claude/skills/ngodingpakeai/SKILL.md",
@@ -285,12 +285,6 @@
       "size": 2848
     },
     {
-      "path": "app/Services/SessionService.php",
-      "reason": "changed",
-      "language": "php",
-      "size": 8238
-    },
-    {
       "path": "app/Services/StockService.php",
       "reason": "needs_summary",
       "language": "php",
@@ -306,7 +300,7 @@
       "path": "app/Support/Menu.php",
       "reason": "changed",
       "language": "php",
-      "size": 12328
+      "size": 14434
     },
     {
       "path": "app/Support/MockData.php",
@@ -1144,7 +1138,7 @@
     },
     {
       "path": "resources/views/components/layouts/app.blade.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 9912
     },
@@ -1306,9 +1300,9 @@
     },
     {
       "path": "resources/views/errors/403.blade.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 1519
+      "size": 5032
     },
     {
       "path": "resources/views/errors/404.blade.php",
@@ -1768,7 +1762,7 @@
     },
     {
       "path": "resources/views/livewire/pengguna/active-sessions.blade.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 4997
     },
@@ -2145,10 +2139,22 @@
       "size": 4228
     },
     {
+      "path": "tests/Feature/Auth/AccessDeniedAuditTest.php",
+      "reason": "changed",
+      "language": "php",
+      "size": 1351
+    },
+    {
       "path": "tests/Feature/Auth/ChangePasswordTest.php",
       "reason": "needs_summary",
       "language": "php",
       "size": 4469
+    },
+    {
+      "path": "tests/Feature/Auth/RoleMenuTest.php",
+      "reason": "changed",
+      "language": "php",
+      "size": 3381
     },
     {
       "path": "tests/Feature/Auth/RoleMiddlewareTest.php",
@@ -2254,9 +2260,9 @@
     },
     {
       "path": "tests/Feature/ErrorPagesTest.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 1274
+      "size": 1266
     },
     {
       "path": "tests/Feature/ExampleTest.php",
@@ -2385,6 +2391,12 @@
       "size": 3938
     },
     {
+      "path": "tests/Feature/Pengguna/AccessDeniedPageTest.php",
+      "reason": "new",
+      "language": "php",
+      "size": 4211
+    },
+    {
       "path": "tests/Feature/Pengguna/AccessSimulatorTest.php",
       "reason": "needs_summary",
       "language": "php",
@@ -2434,7 +2446,7 @@
     },
     {
       "path": "tests/Feature/Pengguna/RoleScopedPageTest.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 4035
     },
