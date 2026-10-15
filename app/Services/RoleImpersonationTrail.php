@@ -4,6 +4,9 @@ namespace App\Services;
 
 use App\Models\ActivityLog;
 use App\Models\Impersonation;
+use App\Models\Role;
+use App\Models\User;
+use App\Support\Menu;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Carbon;
@@ -118,6 +121,60 @@ class RoleImpersonationTrail
             });
 
         return $out;
+    }
+
+    /**
+     * Rincian satu catatan perubahan peran untuk panel detail: pelaku (+IP/perangkat), akun/peran yang diubah,
+     * peran sebelum → sesudah, ditambah/dicabut, dampak pada menu gabungan (dihitung dengan hak menu peran SAAT INI),
+     * konteks impersonasi, alasan, dan status checksum HMAC. Null bila bukan catatan perubahan peran.
+     */
+    public function roleChangeDetail(int $id): ?array
+    {
+        $log = ActivityLog::query()->whereKey($id)->whereIn('event', self::ROLE_EVENTS)->first();
+        if (! $log) {
+            return null;
+        }
+        $p = $log->properties ?? [];
+        $names = fn ($v) => array_values(array_filter(array_map('trim', is_array($v) ? $v : explode(',', (string) $v))));
+        $kind = match ($log->event) {
+            'role.permissions_updated' => 'peran', 'user.roles_repaired' => 'perbaikan', default => 'akun'
+        };
+
+        $before = $after = [];
+        if ($kind === 'akun') {
+            [$before, $after] = match ($log->event) {
+                'user.created' => [[], $names($p['roles'] ?? ($log->new_values['roles'] ?? []))],
+                'user.role_changed' => [$names($p['changes']['roles']['from'] ?? ($log->old_values['roles'] ?? '')), $names($p['changes']['roles']['to'] ?? ($log->new_values['roles'] ?? ''))],
+                default => [[], []],
+            };
+        }
+        $added = array_values((array) ($p['added'] ?? array_diff($after, $before)));
+        $removed = array_values((array) ($p['removed'] ?? array_diff($before, $after)));
+
+        $menuImpact = null;
+        if ($kind === 'akun' && ($before || $after)) {
+            $merger = app(PermissionMerger::class);
+            $mb = $merger->mergeNames($before)['permissions'];
+            $ma = $merger->mergeNames($after)['permissions'];
+            $label = fn (array $keys) => array_map(fn ($k) => Menu::ITEMS[$k]['label'] ?? $k, $keys);
+            $menuImpact = ['gained' => $label(array_values(array_diff($ma, $mb))), 'lost' => $label(array_values(array_diff($mb, $ma))), 'total_after' => count($ma)];
+        }
+
+        return [
+            'id' => $log->id, 'event' => $log->event, 'kind' => $kind, 'description' => $log->description,
+            'at' => $log->created_at, 'reason' => $log->reason,
+            'actor' => ['id' => $log->actor_id, 'name' => $log->actor_name ?? 'Sistem', 'role' => $log->actor_role, 'ip' => $log->ip_address, 'agent' => $log->user_agent],
+            'subject' => ['type' => $log->subject_type, 'id' => $log->subject_id, 'label' => $log->subject_label],
+            'before' => $before, 'after' => $after, 'added' => $added, 'removed' => $removed,
+            'menu_impact' => $menuImpact,
+            'menus_before' => $kind === 'peran' ? (string) ($log->old_values['menus'] ?? '') : null,
+            'menus_after' => $kind === 'peran' ? (string) ($log->new_values['menus'] ?? '') : null,
+            'holders' => $kind === 'peran' && $log->subject_id ? User::holdingRole((string) Role::whereKey($log->subject_id)->value('name'))->count() : null,
+            'automatic' => (bool) ($p['otomatis'] ?? false),
+            'impersonation' => $p['impersonation'] ?? null,
+            'repair' => $kind === 'perbaikan' ? array_intersect_key($p, array_flip(['missing_pivot', 'wrong_primary', 'no_role', 'fixed'])) : null,
+            'valid' => $this->integrity([$log->id])[$log->id] ?? false,
+        ];
     }
 
     /** Ringkasan untuk kartu atas (periode terpilih). */

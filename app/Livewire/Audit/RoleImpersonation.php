@@ -39,6 +39,10 @@ class RoleImpersonation extends Component
     #[Url(as: 'status', except: '')]
     public $status = '';
 
+    /** Catatan perubahan peran yang rinciannya sedang dibuka (panel samping). */
+    #[Url(as: 'rinci', except: null)]
+    public $detailId = null;
+
     public function mount(): void
     {
         $this->normalize();
@@ -57,6 +61,17 @@ class RoleImpersonation extends Component
         $this->search = is_string($this->search) ? mb_substr(trim($this->search), 0, 60) : '';
         $this->actor = is_string($this->actor) ? mb_substr($this->actor, 0, 120) : '';
         $this->status = in_array($this->status, ['aktif', 'selesai'], true) ? $this->status : '';
+        $this->detailId = is_numeric($this->detailId) && (int) $this->detailId > 0 ? (int) $this->detailId : null;
+    }
+
+    public function showDetail(int $id): void
+    {
+        $this->detailId = $this->trail->roleChangeDetail($id) ? $id : null;
+    }
+
+    public function closeDetail(): void
+    {
+        $this->detailId = null;
     }
 
     public function resetFilters(): void
@@ -98,6 +113,7 @@ class RoleImpersonation extends Component
             'actors' => $this->trail->actors(),
             'periods' => RoleImpersonationTrail::PERIODS,
             'endReasons' => Impersonation::END_REASONS,
+            'detail' => $this->detailId ? $this->trail->roleChangeDetail((int) $this->detailId) : null,
         ]);
     }
 }

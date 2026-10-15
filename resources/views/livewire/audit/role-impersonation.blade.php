@@ -119,9 +119,14 @@
                                     · {{ $row->created_at->translatedFormat('d M Y H:i') }}@if ($row->subject_label) · {{ $row->subject_label }}@endif
                                 </p>
                             </div>
-                            <span class="shrink-0 text-[11px]" data-seal="{{ $ok === false ? 'rusak' : 'utuh' }}">
-                                @if ($ok === false)<span class="font-semibold text-red-700">✗ tidak cocok</span>@else<span class="text-emerald-700">✓ utuh</span>@endif
-                            </span>
+                            <div class="flex shrink-0 flex-col items-end gap-1">
+                                <span class="text-[11px]" data-seal="{{ $ok === false ? 'rusak' : 'utuh' }}">
+                                    @if ($ok === false)<span class="font-semibold text-red-700">✗ tidak cocok</span>@else<span class="text-emerald-700">✓ utuh</span>@endif
+                                </span>
+                                @if ($tab === 'peran')
+                                    <button type="button" wire:click="showDetail({{ $row->id }})" class="text-xs font-medium text-emerald-800 hover:underline" data-open-detail="{{ $row->id }}">Rincian</button>
+                                @endif
+                            </div>
                         </li>
                     @endif
                 @empty
@@ -133,4 +138,8 @@
         </section>
         {{ $rows->links() }}
     </div>
+
+    @if ($detail)
+        @include('livewire.audit.partials.role-change-detail')
+    @endif
 </div>
