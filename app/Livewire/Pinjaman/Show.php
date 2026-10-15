@@ -118,6 +118,55 @@ class Show extends Component
         return app(\App\Services\LoanPaymentService::class)->balance($this->loan());
     }
 
+    /** Riwayat perubahan: berapa baris ditampilkan & saringan (semua | pinjaman | angsuran). */
+    public int $changeLimit = 20;
+
+    public string $changeKind = 'semua';
+
+    public function setChangeKind(string $kind): void
+    {
+        $this->changeKind = in_array($kind, ['semua', 'pinjaman', 'angsuran'], true) ? $kind : 'semua';
+        $this->changeLimit = 20;
+    }
+
+    public function moreChanges(): void
+    {
+        $this->changeLimit = min(500, $this->changeLimit + 20);
+    }
+
+    /**
+     * Riwayat perubahan pinjaman ini, terbaru dulu: jejak audit pinjaman (pengajuan, keputusan, pencairan, angsuran,
+     * koreksi, hitung ulang…) digabung dengan riwayat perubahan tiap angsuran (kolom sebelum/sesudah).
+     *
+     * @return array{rows: list<array>, total: int}
+     */
+    #[Computed]
+    public function changeLog(): array
+    {
+        $loan = $this->loan();
+        $kind = in_array($this->changeKind, ['semua', 'pinjaman', 'angsuran'], true) ? $this->changeKind : 'semua';
+        $limit = max(1, min(500, $this->changeLimit));
+        $rows = collect();
+        if ($kind !== 'angsuran') {
+            $rows = $rows->merge(\App\Models\ActivityLog::query()->where('subject_type', 'loan')->where('subject_id', $loan->id)->latestFirst()->limit($limit)->get()
+                ->map(fn ($l) => ['key' => 'a'.$l->id, 'kind' => 'pinjaman', 'at' => $l->created_at, 'title' => \App\Services\LoanAuditQuery::label($l->event),
+                    'description' => $l->description, 'actor' => $l->actor_name, 'reason' => $l->reason,
+                    'notable' => in_array($l->event, \App\Services\LoanAuditQuery::NOTABLE, true),
+                    'changes' => collect(array_unique([...array_keys($l->old_values ?? []), ...array_keys($l->new_values ?? [])]))
+                        ->mapWithKeys(fn ($f) => [$f => ['from' => $l->old_values[$f] ?? null, 'to' => $l->new_values[$f] ?? null]])->all()]));
+        }
+        if ($kind !== 'pinjaman') {
+            $rows = $rows->merge($loan->installmentChanges()->reorder()->orderByDesc('id')->limit($limit)->get()
+                ->map(fn ($c) => ['key' => 'i'.$c->id, 'kind' => 'angsuran', 'at' => $c->created_at,
+                    'title' => 'Angsuran ke-'.$c->sequence.' · '.(\App\Models\LoanInstallmentChange::EVENTS[$c->event] ?? $c->event),
+                    'description' => null, 'actor' => $c->actor_name, 'reason' => $c->reason, 'notable' => $c->event === 'koreksi', 'changes' => $c->changes]));
+        }
+        $total = ($kind !== 'angsuran' ? \App\Models\ActivityLog::query()->where('subject_type', 'loan')->where('subject_id', $loan->id)->count() : 0)
+            + ($kind !== 'pinjaman' ? $loan->installmentChanges()->count() : 0);
+
+        return ['rows' => $rows->sortByDesc(fn ($r) => $r['at']?->format('YmdHis').$r['key'])->take($limit)->values()->all(), 'total' => $total];
+    }
+
     /** Riwayat pembayaran berurutan + sisa berjalan. */
     #[Computed]
     public function history(): array

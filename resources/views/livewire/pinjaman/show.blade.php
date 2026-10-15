@@ -147,6 +147,44 @@
                     </div>
                 </section>
             @endif
+            @php $log = $this->changeLog; $fieldLabel = ['status' => 'Status', 'outstanding' => 'Sisa', 'paid_amount' => 'Dibayar', 'paid_at' => 'Tgl bayar', 'payment_method' => 'Metode', 'due_date' => 'Jatuh tempo', 'amount' => 'Nominal', 'principal_part' => 'Pokok', 'interest_part' => 'Bunga', 'note' => 'Catatan', 'overdue_since' => 'Menunggak sejak', 'principal' => 'Pokok', 'interest' => 'Bunga', 'tenor_months' => 'Tenor']; $fmtVal = fn ($f, $v) => $v === null || $v === '' ? '—' : (is_array($v) ? json_encode($v, JSON_UNESCAPED_UNICODE) : (in_array($f, ['outstanding', 'paid_amount', 'amount', 'principal_part', 'interest_part', 'principal', 'interest'], true) && is_numeric($v) ? \App\Support\Rupiah::format($v) : (string) $v)); @endphp
+            <section class="overflow-hidden rounded-xl border border-stone-200 bg-white" aria-labelledby="change-log-title" data-change-log>
+                <div class="flex flex-wrap items-center justify-between gap-2 border-b border-stone-200 px-4 py-3">
+                    <h2 id="change-log-title" class="text-sm font-semibold">Riwayat perubahan <span class="font-normal text-stone-500">({{ $log['total'] }})</span></h2>
+                    <div class="flex gap-1 rounded-lg bg-stone-100 p-0.5 text-xs" role="tablist" aria-label="Jenis perubahan">
+                        @foreach (['semua' => 'Semua', 'pinjaman' => 'Pinjaman', 'angsuran' => 'Angsuran'] as $k => $t)
+                            <button type="button" role="tab" wire:click="setChangeKind('{{ $k }}')" aria-selected="{{ $changeKind === $k ? 'true' : 'false' }}" data-change-kind="{{ $k }}"
+                                    @class(['rounded-md px-2 py-1 font-medium', 'bg-white shadow-sm' => $changeKind === $k, 'text-stone-600' => $changeKind !== $k])>{{ $t }}</button>
+                        @endforeach
+                    </div>
+                </div>
+                <ol class="divide-y divide-stone-100 text-sm">
+                    @forelse ($log['rows'] as $row)
+                        <li wire:key="chg-{{ $row['key'] }}" class="px-4 py-2.5" data-change="{{ $row['kind'] }}">
+                            <div class="flex flex-wrap items-baseline justify-between gap-2">
+                                <p class="font-medium">@if ($row['notable'])<span class="text-red-600" aria-label="Perlu perhatian">● </span>@endif{{ $row['title'] }}</p>
+                                <p class="text-xs text-stone-500">@tanggal($row['at'], true) · {{ $row['actor'] ?? 'Sistem' }}</p>
+                            </div>
+                            @if ($row['description'])<p class="text-xs text-stone-600">{{ $row['description'] }}</p>@endif
+                            @if ($row['reason'])<p class="text-xs text-stone-600">Alasan: {{ $row['reason'] }}</p>@endif
+                            @if ($row['changes'])
+                                <ul class="mt-1 flex flex-wrap gap-x-4 gap-y-0.5 text-xs">
+                                    @foreach ($row['changes'] as $f => $chg)
+                                        @continue(is_array($chg['from'] ?? null) || is_array($chg['to'] ?? null))
+                                        <li><span class="text-stone-500">{{ $fieldLabel[$f] ?? $f }}:</span> <span class="text-red-700 line-through decoration-red-300">{{ $fmtVal($f, $chg['from'] ?? null) }}</span> → <span class="text-emerald-800">{{ $fmtVal($f, $chg['to'] ?? null) }}</span></li>
+                                    @endforeach
+                                </ul>
+                            @endif
+                        </li>
+                    @empty
+                        <li class="px-4 py-6 text-center text-stone-400" data-empty="riwayat-perubahan">Belum ada perubahan tercatat.</li>
+                    @endforelse
+                </ol>
+                @if (count($log['rows']) < $log['total'])
+                    <button type="button" wire:click="moreChanges" class="w-full border-t border-stone-100 py-2 text-sm font-medium text-emerald-700 hover:bg-stone-50" data-more-changes>Tampilkan lebih banyak</button>
+                @endif
+                <a href="{{ route('pinjaman.audit', ['pinjaman' => $l['id']]) }}" wire:navigate class="block border-t border-stone-100 py-2 text-center text-xs text-stone-500 hover:text-emerald-700">Buka di Jejak audit →</a>
+            </section>
         </div>
 
         <aside class="space-y-3">
