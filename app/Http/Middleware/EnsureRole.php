@@ -9,7 +9,7 @@ use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
- * Middleware rute `peran:admin,pengurus` — hanya peran yang disebut yang boleh lewat
+ * Middleware rute `peran:admin,pengurus` — lewat bila akun memegang SALAH SATU peran yang disebut (multi-peran)
  * (pembatas tambahan untuk halaman sensitif seperti kelola pengguna & audit).
  */
 class EnsureRole
@@ -21,7 +21,7 @@ class EnsureRole
         if (! $user) {
             abort(401, 'Silakan masuk terlebih dahulu.');
         }
-        if (! in_array($user['role'], $roles, true)) {
+        if (array_intersect($user['roles'] ?? [$user['role']], $roles) === []) { // cukup salah satu peran yang dipegang
             $labels = collect($roles)->map(fn ($r) => Role::LABELS[$r] ?? $r);
             abort(403, 'Halaman ini hanya untuk peran '.($labels->count() > 1 ? $labels->slice(0, -1)->join(', ').' dan '.$labels->last() : $labels->first()).'.');
         }

@@ -122,14 +122,33 @@ class User extends Authenticatable
         return $this->role?->name;
     }
 
+    /** Memegang salah satu peran yang disebut (dari SELURUH peran akun, bukan hanya peran utama). */
     public function hasRole(string ...$names): bool
     {
-        return in_array($this->roleName(), $names, true);
+        return array_intersect($this->roleNames(), $names) !== [];
     }
 
-    /** Boleh membuka menu tertentu (kunci App\Support\Menu::ITEMS). */
+    /**
+     * Gabungan izin menu dari semua peran yang dipegang (tidak saling menimpa, tanpa duplikat). Urutan: izin peran
+     * utama lebih dulu (urutannya dipakai menentukan halaman awal setelah masuk), lalu tambahan dari peran lain
+     * menurut prioritas peran.
+     *
+     * @return list<string>
+     */
+    public function permissions(): array
+    {
+        $byName = $this->roles->keyBy('name');
+        if ($this->role) {
+            $byName->put($this->role->name, $this->role);
+        }
+        $order = array_values(array_unique(array_filter([$this->role?->name, ...Role::sortNames($byName->keys()->all())])));
+
+        return collect($order)->flatMap(fn ($n) => $byName[$n]->permissions ?? [])->unique()->values()->all();
+    }
+
+    /** Boleh membuka menu tertentu (kunci App\Support\Menu::ITEMS) lewat salah satu perannya. */
     public function canOpen(string $menu): bool
     {
-        return (bool) $this->is_active && (bool) $this->role?->allows($menu);
+        return (bool) $this->is_active && in_array($menu, $this->permissions(), true);
     }
 }

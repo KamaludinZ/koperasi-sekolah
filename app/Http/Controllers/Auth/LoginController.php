@@ -29,7 +29,7 @@ class LoginController extends Controller
         ]);
 
         $user = $auth->login($data['email'], $data['password'], (bool) ($data['remember'] ?? false), $request);
-        $home = route(Menu::homeRoute($user->roleName(), $user->role?->permissions));
+        $home = route(Menu::homeRoute($user->roleName(), $user->permissions()));
 
         if ($request->expectsJson()) {
             return response()->json(['data' => AuthService::toArray($user), 'redirect' => redirect()->intended($home)->getTargetUrl()]);

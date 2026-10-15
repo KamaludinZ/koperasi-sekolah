@@ -1,6 +1,6 @@
 {
   "repo": "Koperasi Sekolah",
-  "generatedForCommit": "61991743208bbfa44e09b22c7068bed81da697eb",
+  "generatedForCommit": "4780d27384c6e01df18b970c22c0caa10a64be57",
   "files": [
     {
       "path": ".claude/skills/ngodingpakeai/SKILL.md",
@@ -178,7 +178,7 @@
     },
     {
       "path": "app/Livewire/Forms/UserForm.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 1998
     },
@@ -220,7 +220,7 @@
     },
     {
       "path": "app/Livewire/Pengguna/Index.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 9935
     },
@@ -282,7 +282,7 @@
       "path": "app/Services/UserService.php",
       "reason": "changed",
       "language": "php",
-      "size": 16132
+      "size": 18044
     },
     {
       "path": "app/Support/MockData.php",
@@ -904,9 +904,15 @@
     },
     {
       "path": "database/migrations/2026_10_17_000001_create_user_roles_table.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 1224
+      "size": 1949
+    },
+    {
+      "path": "database/migrations/2026_10_17_000002_harden_user_roles.php",
+      "reason": "new",
+      "language": "php",
+      "size": 2189
     },
     {
       "path": "database/seeders/NotificationSeeder.php",
@@ -1744,13 +1750,13 @@
     },
     {
       "path": "resources/views/livewire/pengguna/partials/role-form.blade.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 4666
     },
     {
       "path": "resources/views/livewire/pengguna/partials/user-form.blade.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 10638
     },
@@ -2038,9 +2044,9 @@
     },
     {
       "path": "routes/console.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 8158
+      "size": 9159
     },
     {
       "path": "routes/web.php",
@@ -2205,6 +2211,12 @@
       "size": 3182
     },
     {
+      "path": "tests/Feature/Database/UserRolesSchemaTest.php",
+      "reason": "new",
+      "language": "php",
+      "size": 6946
+    },
+    {
       "path": "tests/Feature/ErrorPagesTest.php",
       "reason": "needs_summary",
       "language": "php",
@@ -2338,7 +2350,7 @@
     },
     {
       "path": "tests/Feature/Pengguna/MinRoleValidationTest.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 2588
     },

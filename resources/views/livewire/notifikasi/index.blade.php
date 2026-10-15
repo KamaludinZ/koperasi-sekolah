@@ -14,7 +14,7 @@
             <p class="text-xs text-stone-500">Peringatan stok, pengumuman, dan kabar sistem.</p>
         </div>
         <div class="flex flex-wrap gap-2">
-        @if (in_array(auth()->user()?->roleName(), ['admin', 'pengurus'], true))
+        @if (auth()->user()?->hasRole('admin', 'pengurus'))
             <a href="{{ route('notifikasi.pengumuman') }}" wire:navigate class="inline-flex items-center gap-2 rounded-xl bg-emerald-700 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-800">
                 <svg class="size-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
                 Buat pengumuman

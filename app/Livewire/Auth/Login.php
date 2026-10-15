@@ -72,7 +72,7 @@ class Login extends Component
             return;
         }
 
-        $this->redirectIntended(route(Menu::homeRoute($user->roleName(), $user->role?->permissions)));
+        $this->redirectIntended(route(Menu::homeRoute($user->roleName(), $user->permissions())));
     }
 
     /** Baca status kunci & sisa percobaan untuk email ini. */

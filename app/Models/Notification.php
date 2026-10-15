@@ -59,10 +59,12 @@ class Notification extends Model
     }
 
     /** Untuk petugas berperan $role: Admin melihat semua; lainnya target semua, anggota, atau perannya. */
-    public function scopeForRole(Builder $query, ?string $role): void
+    /** Notifikasi untuk peran tertentu; akun multi-peran menerima sasaran semua perannya (admin: semua). */
+    public function scopeForRole(Builder $query, string|array|null $role): void
     {
-        if ($role !== 'admin') {
-            $query->whereIn('target', array_filter(['semua', 'anggota', $role]));
+        $roles = array_values(array_filter((array) $role));
+        if (! in_array('admin', $roles, true)) {
+            $query->whereIn('target', ['semua', 'anggota', ...$roles]);
         }
     }
 
@@ -79,7 +81,7 @@ class Notification extends Model
         $query->select('notifications.*')
             ->selectSub($reads('read_at'), 'read_at')
             // Notifikasi umum menurut peran, atau notifikasi pribadi milik petugas ini saja.
-            ->where(fn ($q) => $q->where(fn ($w) => $w->whereNull('notifications.user_id')->forRole($user->roleName()))
+            ->where(fn ($q) => $q->where(fn ($w) => $w->whereNull('notifications.user_id')->forRole($user->roleNames()))
                 ->orWhere('notifications.user_id', $user->id))
             ->active()
             ->whereNotExists(fn ($q) => $q->from('notification_reads')
