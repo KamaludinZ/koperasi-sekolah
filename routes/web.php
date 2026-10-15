@@ -486,6 +486,8 @@ Route::middleware(['menu:pinjaman', 'peran:admin,pengurus', 'can:kelola-pinjaman
     Route::get('/pinjaman/tunggakan', \App\Livewire\Pinjaman\Arrears::class)->name('pinjaman.tunggakan');
     Route::get('/pinjaman/tunggakan/data', [\App\Http\Controllers\Pinjaman\ArrearsController::class, 'index'])->middleware('throttle:120,1')->name('pinjaman.tunggakan.data');
     Route::get('/pinjaman/rekap', \App\Livewire\Pinjaman\Recap::class)->name('pinjaman.rekap');
+    Route::get('/pinjaman/rekap/berjalan', [\App\Http\Controllers\Pinjaman\RecapController::class, 'running'])->middleware('throttle:120,1')->name('pinjaman.rekap.berjalan');
+    Route::get('/pinjaman/rekap/data', [\App\Http\Controllers\Pinjaman\RecapController::class, 'period'])->middleware('throttle:120,1')->name('pinjaman.rekap.data');
     Route::post('/pinjaman/rekap/ekspor', [\App\Http\Controllers\Pinjaman\RecapExportController::class, 'store'])->middleware('throttle:10,1')->name('pinjaman.rekap.ekspor');
     Route::get('/pinjaman/rekap/ekspor', [\App\Http\Controllers\Pinjaman\RecapExportController::class, 'index'])->middleware('throttle:120,1')->name('pinjaman.rekap.ekspor.index');
     Route::get('/pinjaman/rekap/ekspor/{export}', [\App\Http\Controllers\Pinjaman\RecapExportController::class, 'show'])->whereNumber('export')->middleware('throttle:120,1')->name('pinjaman.rekap.ekspor.show');
