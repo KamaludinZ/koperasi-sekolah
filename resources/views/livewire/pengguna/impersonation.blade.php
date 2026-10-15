@@ -11,6 +11,9 @@
     </header>
 
     <div class="space-y-4 px-4 py-5 sm:px-6">
+        @if ($actorDenial = \App\Support\ImpersonationPolicy::actorDenial(\Illuminate\Support\Facades\Auth::guard('web')->user()))
+            <p class="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-800" role="alert" data-actor-denied>{{ $actorDenial }}</p>
+        @endif
         <div class="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900" role="note">
             <p class="font-semibold">Sebelum masuk sebagai akun lain</p>
             <ul class="mt-1 list-disc space-y-0.5 pl-5 text-xs">

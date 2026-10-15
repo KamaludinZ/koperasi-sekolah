@@ -3,6 +3,8 @@
     $initials = fn ($name) => collect(explode(' ', preg_replace('/^(Pak|Bu)\s+/', '', $name)))->map(fn ($w) => mb_substr($w, 0, 1))->take(2)->join('');
     $roleBadge = ['admin' => 'bg-amber-100 text-amber-900 ring-amber-200', 'kasir' => 'bg-emerald-100 text-emerald-800 ring-emerald-200', 'pengurus' => 'bg-sky-100 text-sky-800 ring-sky-200'];
     $me = $this->currentUserId();
+    $staffUser = \Illuminate\Support\Facades\Auth::guard('web')->user();
+    $canImpersonate = $staffUser && \Illuminate\Support\Facades\Gate::forUser($staffUser)->allows('impersonasi');
 @endphp
 <div class="flex min-h-0 flex-1 flex-col overflow-y-auto">
     <header class="border-b border-stone-200 bg-white px-4 pt-4 sm:px-6">
@@ -125,6 +127,9 @@
                             <div class="flex shrink-0 gap-1">
                                 <button type="button" wire:click="edit({{ $u->id }})" @class(['rounded-lg px-2.5 py-1.5 text-sm font-medium', 'bg-red-600 text-white hover:bg-red-700' => $names === [], 'text-emerald-800 hover:bg-emerald-50' => $names !== []]) aria-label="Ubah akun {{ $u->name }}">{{ $names === [] ? 'Atur peran' : 'Ubah' }}</button>
                                 <button type="button" wire:click="editRoles({{ $u->id }})" class="rounded-lg px-2.5 py-1.5 text-sm font-medium text-stone-700 hover:bg-stone-100" aria-label="Ubah peran {{ $u->name }}" data-edit-roles="{{ $u->id }}">Peran</button>
+                                @if ($canImpersonate && \App\Support\ImpersonationPolicy::staffDenial($u, $staffUser) === null)
+                                    <a href="{{ route('pengguna.impersonasi', ['buka' => 'petugas-'.$u->id]) }}" wire:navigate class="rounded-lg px-2.5 py-1.5 text-sm font-medium text-stone-700 hover:bg-stone-100" aria-label="Masuk sebagai {{ $u->name }}" data-impersonate-link="{{ $u->id }}">Masuk sebagai</a>
+                                @endif
                                 @unless ($u->id === $me)
                                     <button type="button" wire:click="toggleActive({{ $u->id }})"
                                             wire:confirm="{{ $u->is_active ? 'Nonaktifkan '.$u->name.'? Akun ini langsung keluar dari semua perangkat.' : 'Aktifkan kembali '.$u->name.'?' }}"

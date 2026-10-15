@@ -10,7 +10,13 @@
            class="grid size-9 shrink-0 place-items-center rounded-lg border border-stone-300 text-stone-600 hover:bg-stone-50">
             <svg class="size-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="m15 6-6 6 6 6"/></svg>
         </a>
-        <p class="text-sm text-stone-500">Anggota & Tabungan <span class="text-stone-300">/</span> <span class="text-stone-800">{{ $m['name'] }}</span></p>
+        <p class="min-w-0 flex-1 truncate text-sm text-stone-500">Anggota & Tabungan <span class="text-stone-300">/</span> <span class="text-stone-800">{{ $m['name'] }}</span></p>
+        @if (($staffUser = \Illuminate\Support\Facades\Auth::guard('web')->user()) && \Illuminate\Support\Facades\Gate::forUser($staffUser)->allows('impersonasi'))
+            @if (($mm = \App\Models\Member::find($m['id'])) && \App\Support\ImpersonationPolicy::memberDenial($mm) === null)
+                <a href="{{ route('pengguna.impersonasi', ['jenis' => 'anggota', 'buka' => 'anggota-'.$m['id']]) }}" wire:navigate data-impersonate-member
+                   class="shrink-0 rounded-lg border border-stone-300 px-3 py-1.5 text-sm font-medium text-stone-700 hover:bg-stone-50">Lihat portal sebagai anggota</a>
+            @endif
+        @endif
     </header>
 
     <div class="grid gap-5 px-4 py-5 sm:px-6 lg:grid-cols-[minmax(0,1fr)_360px]">

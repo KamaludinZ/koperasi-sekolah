@@ -55,8 +55,11 @@ class ImpersonationPolicy
         if (! $actor || ! $actor->is_active) {
             return 'Hanya admin aktif yang dapat masuk sebagai akun lain.';
         }
-        if (! $actor->loadMissing('role', 'roles')->hasRole(Role::ADMIN)) {
+        if (! $actor->loadMissing('role', 'roles')->hasRole(Role::ADMIN) || ! $actor->canOpen('pengguna')) {
             return 'Hanya peran Admin yang dapat masuk sebagai akun lain.';
+        }
+        if (ImpersonationSession::active()) {
+            return 'Selesaikan dulu sesi impersonasi yang sedang berjalan (tombol "Kembali ke akun saya").';
         }
 
         return null;

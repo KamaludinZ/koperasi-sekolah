@@ -8,6 +8,7 @@ use App\Models\User;
 use App\Services\ImpersonationService;
 use App\Support\ImpersonationPolicy;
 use App\Support\Menu;
+use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Locked;
@@ -33,6 +34,10 @@ class Impersonation extends Component
     #[Url(as: 'q', except: '')]
     public $search = '';
 
+    /** Tautan langsung dari halaman lain: ?buka=petugas-12 / ?buka=anggota-5 membuka dialog akun itu. */
+    #[Url(as: 'buka', except: '')]
+    public $open = '';
+
     /** Akun yang sedang dikonfirmasi: ['type' => petugas|anggota, 'id' => int]. */
     #[Locked]
     public ?array $target = null;
@@ -47,6 +52,11 @@ class Impersonation extends Component
     public function mount(): void
     {
         $this->normalize();
+        if (is_string($this->open) && preg_match('/^(petugas|anggota)-(\d{1,10})$/', $this->open, $m)) {
+            $this->tab = $m[1];
+            $this->confirm($m[1], (int) $m[2]);
+        }
+        $this->open = '';
     }
 
     public function updatedTab(): void
@@ -97,7 +107,7 @@ class Impersonation extends Component
         $staff = User::query()->with(['role', 'roles'])->get();
 
         return [
-            'petugas' => $staff->filter(fn ($u) => ImpersonationPolicy::staffDenial($u, auth()->user()) === null)->count(),
+            'petugas' => $staff->filter(fn ($u) => ImpersonationPolicy::staffDenial($u, Auth::guard('web')->user()) === null)->count(),
             'anggota' => Member::query()->whereNotNull('password')->where('is_active', true)->count(),
         ];
     }
@@ -186,7 +196,7 @@ class Impersonation extends Component
 
         // Layanan impersonasi (backend) memulai sesi & mengarahkan ke halaman akun target.
         if (method_exists(ImpersonationService::class, 'startFromLivewire')) {
-            return app(ImpersonationService::class)->startFromLivewire($this, auth()->user(), $model, $this->reason, (int) $this->minutes);
+            return app(ImpersonationService::class)->startFromLivewire($this, Auth::guard('web')->user(), $model, $this->reason, (int) $this->minutes);
         }
         $this->toast('info', 'Layanan impersonasi belum dipasang.');
 
@@ -195,8 +205,8 @@ class Impersonation extends Component
 
     public function denial(User|Member $model): ?string
     {
-        return ImpersonationPolicy::actorDenial(auth()->user())
-            ?? ($model instanceof Member ? ImpersonationPolicy::memberDenial($model) : ImpersonationPolicy::staffDenial($model, auth()->user()));
+        return ImpersonationPolicy::actorDenial(Auth::guard('web')->user())
+            ?? ($model instanceof Member ? ImpersonationPolicy::memberDenial($model) : ImpersonationPolicy::staffDenial($model, Auth::guard('web')->user()));
     }
 
     public function render()
