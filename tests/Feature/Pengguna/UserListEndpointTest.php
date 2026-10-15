@@ -4,6 +4,7 @@ namespace Tests\Feature\Pengguna;
 
 use App\Models\Role;
 use App\Models\User;
+use App\Services\UserService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Tests\TestCase;
@@ -22,7 +23,7 @@ class UserListEndpointTest extends TestCase
         $this->loginAs('admin');
         $this->multi = User::factory()->role('kasir')->create(['name' => 'Zaenal Rangkap', 'email' => 'rangkap@koperasi.test']);
         $this->multi->roles()->attach(Role::named('pengurus')->id, ['created_at' => now()]);
-        app(\App\Services\UserService::class)->roleConsistency(true); // peran utama ikut prioritas → pengurus
+        app(UserService::class)->roleConsistency(true); // peran utama ikut prioritas → pengurus
         $this->orphan = User::factory()->create(['name' => 'Yatim Peran', 'role_id' => null, 'is_active' => false]);
         DB::table('user_roles')->where('user_id', $this->orphan->id)->delete();
     }
@@ -39,7 +40,10 @@ class UserListEndpointTest extends TestCase
         $m = $this->row($res->json('data'), 'rangkap@koperasi.test');
         $this->assertSame(['pengurus', 'kasir'], $m['roles']);
         $this->assertSame('pengurus', $m['primary_role']);
-        $this->assertSame([['name' => 'pengurus', 'label' => 'Pengurus', 'primary' => true], ['name' => 'kasir', 'label' => 'Kasir', 'primary' => false]], $m['roles_detail']);
+        $this->assertSame([['name' => 'pengurus', 'label' => 'Pengurus', 'primary' => true], ['name' => 'kasir', 'label' => 'Kasir', 'primary' => false]],
+            array_map(fn ($d) => array_intersect_key($d, array_flip(['name', 'label', 'primary'])), $m['roles_detail']));
+        $this->assertNotNull($m['roles_detail'][0]['granted_at']); // sejak kapan & oleh siapa (lihat RoleRelationSchemaTest)
+        $this->assertArrayHasKey('granted_by', $m['roles_detail'][1]);
         $this->assertTrue($m['is_multi_role']);
         $this->assertFalse($m['has_no_role']);
         $this->assertContains('kasir', $m['permissions']);

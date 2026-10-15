@@ -7,10 +7,11 @@ use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\RoutesNotifications;
+use Illuminate\Support\Facades\DB;
 
 class User extends Authenticatable
 {
@@ -55,7 +56,7 @@ class User extends Authenticatable
         // peran utama selalu tercatat juga di pivot (akun dibuat lewat seeder/factory/perintah lama tetap konsisten)
         static::saved(function (User $user) {
             if ($user->role_id && $user->wasChanged('role_id') || ($user->wasRecentlyCreated && $user->role_id)) {
-                \Illuminate\Support\Facades\DB::table('user_roles')->insertOrIgnore(['user_id' => $user->id, 'role_id' => $user->role_id, 'created_at' => now()]);
+                DB::table('user_roles')->insertOrIgnore(['user_id' => $user->id, 'role_id' => $user->role_id, 'created_at' => now(), 'granted_by' => UserRole::currentGranter()]);
                 $user->unsetRelation('roles');
             }
         });
@@ -72,6 +73,12 @@ class User extends Authenticatable
         ];
     }
 
+    /** Akun yang memegang salah satu peran ini di pivot user_roles (mis. User::holdingRole('admin')->active()). */
+    public function scopeHoldingRole(Builder $query, string ...$names): void
+    {
+        $query->whereHas('roles', fn ($r) => $r->whereIn('roles.name', $names));
+    }
+
     /** Peran petugas (admin, kasir, pengurus). */
     public function role(): BelongsTo
     {
@@ -81,7 +88,7 @@ class User extends Authenticatable
     /** Semua peran yang dipegang akun (pivot user_roles); role() = peran utama. */
     public function roles(): BelongsToMany
     {
-        return $this->belongsToMany(Role::class, 'user_roles')->using(UserRole::class)->withPivot('created_at')->orderBy('roles.id');
+        return $this->belongsToMany(Role::class, 'user_roles')->using(UserRole::class)->withPivot('created_at', 'granted_by')->orderBy('roles.id');
     }
 
     /**

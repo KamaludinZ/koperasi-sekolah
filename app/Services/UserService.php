@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\Role;
 use App\Models\User;
+use App\Models\UserRole;
 use App\Support\Menu;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\DB;
@@ -69,7 +70,7 @@ class UserService
 
         return User::query()->with('role', 'roles')
             ->when(($filters['role'] ?? '') === 'tanpa', fn ($q) => $q->whereNull('role_id')->whereDoesntHave('roles'))
-            ->when(! in_array($filters['role'] ?? '', ['', 'tanpa'], true), fn ($q) => $q->whereHas('roles', fn ($r) => $r->where('name', $filters['role'])))
+            ->when(! in_array($filters['role'] ?? '', ['', 'tanpa'], true), fn ($q) => $q->holdingRole($filters['role']))
             ->when($term !== '', function (Builder $q) use ($term) {
                 $like = '%'.str_replace(['\\', '%', '_'], ['\\\\', '\\%', '\\_'], $term).'%';
                 $q->where(fn (Builder $w) => $w->whereRaw("LOWER(name) LIKE ? ESCAPE '\\'", [$like])
@@ -114,8 +115,18 @@ class UserService
     {
         $ids = Role::whereIn('name', $names)->pluck('id', 'name');
         $user->forceFill(['role_id' => $ids[$names[0]]])->save();
-        // alur resmi: pemanggil mencatat user.created / user.role_changed sendiri (catatan per baris pivot dilewati)
-        \App\Models\UserRole::official(fn () => $user->roles()->sync(collect($names)->mapWithKeys(fn ($n) => [$ids[$n] => ['created_at' => now()]])->all()));
+        // alur resmi: pemanggil mencatat user.created / user.role_changed sendiri (catatan per baris pivot dilewati).
+        // Hanya selisihnya yang diubah: peran yang tetap dipegang mempertahankan sejak-kapan & pemberinya.
+        UserRole::official(function () use ($user, $ids) {
+            $held = $user->roles()->pluck('roles.id')->all();
+            $want = $ids->values()->all();
+            if ($drop = array_diff($held, $want)) {
+                $user->roles()->detach($drop);
+            }
+            foreach (array_diff($want, $held) as $id) {
+                $user->roles()->attach($id, ['created_at' => now(), 'granted_by' => UserRole::currentGranter()]);
+            }
+        });
         $user->load('role', 'roles');
     }
 
@@ -365,7 +376,7 @@ class UserService
         }
         $losesAdmin = $wasAdmin && $user->is_active && (! $staysAdmin || ! $newActive);
         if (! isset($errors['roles']) && $losesAdmin
-            && User::active()->whereKeyNot($user->id)->whereHas('roles', fn ($r) => $r->where('name', Role::ADMIN))->doesntExist()) {
+            && User::active()->whereKeyNot($user->id)->holdingRole(Role::ADMIN)->doesntExist()) {
             $errors['roles'] = 'Harus ada minimal satu admin aktif.';
         }
 

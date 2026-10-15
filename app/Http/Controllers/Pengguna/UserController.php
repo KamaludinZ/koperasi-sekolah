@@ -9,6 +9,7 @@ use App\Services\UserService;
 use App\Support\Menu;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 use Illuminate\Validation\Rule;
 
 /**
@@ -60,9 +61,15 @@ class UserController extends Controller
     public static function row(User $u): array
     {
         $names = $u->roleNames();
+        $pivots = $u->roles->keyBy('name')->map(fn ($r) => $r->pivot);
+        $granters = User::whereIn('id', $pivots->pluck('granted_by')->filter()->unique()->all())->pluck('name', 'id');
 
         return UserService::toArray($u) + [
-            'roles_detail' => array_map(fn ($n) => ['name' => $n, 'label' => Role::LABELS[$n] ?? $n, 'primary' => $n === $u->role?->name], $names),
+            'roles_detail' => array_map(fn ($n) => [
+                'name' => $n, 'label' => Role::LABELS[$n] ?? $n, 'primary' => $n === $u->role?->name,
+                'granted_at' => ($at = $pivots->get($n)?->created_at) ? Carbon::parse($at)->toIso8601String() : null,
+                'granted_by' => ($gid = $pivots->get($n)?->granted_by) ? ['id' => (int) $gid, 'name' => $granters[$gid] ?? null] : null,
+            ], $names),
             'primary_role' => $u->role?->name,
             'is_multi_role' => count($names) > 1,
             'has_no_role' => $names === [],

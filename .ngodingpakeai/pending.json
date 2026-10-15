@@ -1,6 +1,6 @@
 {
   "repo": "Koperasi Sekolah",
-  "generatedForCommit": "2124cb5bf577b3cf1e4958f48d514d5e90e27781",
+  "generatedForCommit": "ac1473c18416d28559dfb1f01aa018bda8658255",
   "files": [
     {
       "path": ".claude/skills/ngodingpakeai/SKILL.md",
@@ -295,12 +295,6 @@
       "reason": "needs_summary",
       "language": "php",
       "size": 8566
-    },
-    {
-      "path": "app/Support/Menu.php",
-      "reason": "changed",
-      "language": "php",
-      "size": 14434
     },
     {
       "path": "app/Support/MockData.php",
@@ -1138,9 +1132,9 @@
     },
     {
       "path": "resources/views/components/layouts/app.blade.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 9912
+      "size": 13461
     },
     {
       "path": "resources/views/components/layouts/guest.blade.php",
@@ -1300,7 +1294,7 @@
     },
     {
       "path": "resources/views/errors/403.blade.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 5032
     },
@@ -2139,22 +2133,10 @@
       "size": 4228
     },
     {
-      "path": "tests/Feature/Auth/AccessDeniedAuditTest.php",
-      "reason": "changed",
-      "language": "php",
-      "size": 1351
-    },
-    {
       "path": "tests/Feature/Auth/ChangePasswordTest.php",
       "reason": "needs_summary",
       "language": "php",
       "size": 4469
-    },
-    {
-      "path": "tests/Feature/Auth/RoleMenuTest.php",
-      "reason": "changed",
-      "language": "php",
-      "size": 3381
     },
     {
       "path": "tests/Feature/Auth/RoleMiddlewareTest.php",
@@ -2260,7 +2242,7 @@
     },
     {
       "path": "tests/Feature/ErrorPagesTest.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 1266
     },
@@ -2392,7 +2374,7 @@
     },
     {
       "path": "tests/Feature/Pengguna/AccessDeniedPageTest.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 4211
     },
@@ -2403,10 +2385,16 @@
       "size": 6755
     },
     {
-      "path": "tests/Feature/Pengguna/HideUnownedMenuTest.php",
-      "reason": "needs_summary",
+      "path": "tests/Feature/Pengguna/ActiveRoleIndicatorTest.php",
+      "reason": "new",
       "language": "php",
-      "size": 5915
+      "size": 2581
+    },
+    {
+      "path": "tests/Feature/Pengguna/HideUnownedMenuTest.php",
+      "reason": "changed",
+      "language": "php",
+      "size": 5918
     },
     {
       "path": "tests/Feature/Pengguna/MinRoleValidationTest.php",

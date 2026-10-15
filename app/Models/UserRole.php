@@ -3,12 +3,15 @@
 namespace App\Models;
 
 use App\Services\AuditLog;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\Pivot;
+use Illuminate\Support\Facades\Auth;
 
 /**
  * Baris pivot user_roles (peran yang dipegang akun). Jaring pengaman jejak audit: setiap peran yang ditambah/dicabut
  * lewat relasi User::roles() di LUAR alur resmi UserService (yang mencatat user.role_changed sendiri) dicatat sebagai
  * `user.role_added` / `user.role_removed` — pelaku, akun target, peran, waktu — di activity_logs ber-HMAC.
+ * Kolom: user_id, role_id (kunci gabungan), granted_by (pemberi, null bila konsol/akun pemberi dihapus), created_at.
  */
 class UserRole extends Pivot
 {
@@ -35,8 +38,24 @@ class UserRole extends Pivot
         }
     }
 
+    /** Petugas yang sedang masuk (pemberi peran); null untuk konsol/seeder. */
+    public static function currentGranter(): ?int
+    {
+        return Auth::guard('web')->id();
+    }
+
+    /** Petugas yang memasang peran ini (user_roles.granted_by). */
+    public function grantedBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'granted_by');
+    }
+
     protected static function booted(): void
     {
+        static::creating(function (self $p) {
+            $p->granted_by ??= self::currentGranter();
+            $p->created_at ??= now();
+        });
         static::created(fn (self $p) => $p->log('added'));
         static::deleted(fn (self $p) => $p->log('removed'));
     }
