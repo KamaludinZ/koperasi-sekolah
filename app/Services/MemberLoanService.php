@@ -1,0 +1,112 @@
+<?php
+
+namespace App\Services;
+
+use App\Models\Loan;
+use App\Models\Member;
+
+/**
+ * Data pinjaman untuk portal anggota (halaman "Pinjaman saya" & GET /portal/pinjaman/data): hanya pinjaman milik
+ * anggota itu, tanpa data internal petugas (nama petugas, catatan internal, pembayaran yang dikoreksi).
+ */
+class MemberLoanService
+{
+    /** Tab saringan daftar: status yang masuk tiap tab (null = semua) dan pesan bila kosong. */
+    public const TABS = [
+        'semua' => ['label' => 'Semua', 'statuses' => null, 'empty' => 'Belum ada pinjaman.'],
+        'berjalan' => ['label' => 'Berjalan', 'statuses' => Loan::ACTIVE, 'empty' => 'Tidak ada pinjaman yang sedang berjalan.'],
+        'pengajuan' => ['label' => 'Pengajuan', 'statuses' => ['diajukan', 'disetujui'], 'empty' => 'Tidak ada pengajuan yang sedang diproses.'],
+        'selesai' => ['label' => 'Selesai', 'statuses' => ['lunas', 'ditolak', 'dibatalkan'], 'empty' => 'Belum ada pinjaman yang selesai.'],
+    ];
+
+    public function __construct(private LoanPaymentService $payments) {}
+
+    /** @return list<array> pinjaman aktif & pengajuan dulu, lalu yang selesai; terbaru dulu */
+    public function forMember(Member $member): array
+    {
+        $today = today();
+        $payments = $this->payments;
+
+        return Loan::query()->where('member_id', $member->id)->with(['installments' => fn ($q) => $q->where('status', '!=', 'dibayar')->orderBy('sequence')])
+            ->orderByRaw("CASE status WHEN 'menunggak' THEN 0 WHEN 'berjalan' THEN 1 WHEN 'disetujui' THEN 2 WHEN 'diajukan' THEN 3 ELSE 4 END")
+            ->orderByDesc('applied_at')->orderByDesc('id')->get()
+            ->map(function (Loan $l) use ($today, $payments) {
+                $next = $l->installments->first();
+                $late = in_array($l->status, Loan::ACTIVE, true) ? $l->installments->filter(fn ($i) => $i->due_date->lt($today)) : collect();
+                $paid = $l->totalDue() - (int) round((float) $l->outstanding);
+
+                return array_diff_key(LoanService::toArray($l->setRelation('member', null)), ['member' => true]) + [
+                    'progress' => in_array($l->status, [...Loan::ACTIVE, 'lunas'], true) && $l->totalDue() > 0 ? min(100, intdiv(max(0, $paid) * 100, $l->totalDue())) : null,
+                    'next' => $next ? ['sequence' => $next->sequence, 'due_date' => $next->due_date->toDateString(),
+                        'remaining' => (int) round((float) $next->amount - (float) $next->paid_amount), 'late' => $next->due_date->lt($today)] : null,
+                    'late_count' => $late->count(),
+                    'late_amount' => (int) $late->sum(fn ($i) => (int) round((float) $i->amount - (float) $i->paid_amount)),
+                    // menunggak bila status sudah ditandai ATAU ada angsuran lewat jatuh tempo yang belum tercatat statusnya
+                    'overdue' => $l->status === 'menunggak' || $late->isNotEmpty(),
+                    'late_since' => $late->first()?->due_date->toDateString(),
+                    'days_late' => $late->isNotEmpty() ? (int) $late->first()->due_date->diffInDays($today) : 0,
+                    'balance' => in_array($l->status, Loan::ACTIVE, true) ? $payments->balance($l) : null,
+                    'payments' => $l->disbursed_at ? self::memberHistory($payments->history($l)) : [],
+                    'paid_off_at' => $l->paid_off_at?->toDateString(),
+                ];
+            })->sortBy(fn ($l) => $l['overdue'] ? 0 : 1)->values()->all();
+    }
+
+    /** Jumlah pinjaman anggota yang punya angsuran lewat jatuh tempo (atau berstatus menunggak) — untuk tanda di navigasi. */
+    public static function overdueCount(int $memberId): int
+    {
+        $today = today()->toDateString();
+
+        return Loan::query()->where('member_id', $memberId)->whereIn('status', Loan::ACTIVE)
+            ->where(fn ($q) => $q->where('status', 'menunggak')
+                ->orWhereHas('installments', fn ($i) => $i->where('status', '!=', 'dibayar')->where('due_date', '<', $today)))
+            ->count();
+    }
+
+    /**
+     * Riwayat untuk anggota: hanya pembayaran sah (yang dikoreksi petugas tidak ditampilkan), tanpa nama petugas
+     * maupun catatan internal. Terbaru dulu.
+     *
+     * @return list<array{number: int, paid_at: string, amount: int, payment_label: string, reference_label: ?string, sequences: list<int>, balance_after: int}>
+     */
+    public static function memberHistory(array $rows): array
+    {
+        return array_reverse(array_values(array_map(fn ($r) => [
+            'number' => $r['number'], 'paid_at' => $r['paid_at'], 'amount' => $r['amount'], 'payment_label' => $r['payment_label'],
+            'reference_label' => $r['reference_label'], 'sequences' => $r['sequences'], 'balance_after' => $r['balance_after'],
+        ], array_filter($rows, fn ($r) => ! $r['voided']))));
+    }
+
+    /** Ringkasan untuk kartu atas dari hasil forMember(). */
+    public static function totals(array $loans): array
+    {
+        $active = collect($loans)->whereIn('status', Loan::ACTIVE);
+
+        $next = $active->filter(fn ($l) => $l['next'])->sortBy(fn ($l) => $l['next']['due_date'].sprintf('%010d', $l['id']))->first();
+
+        $overdue = $active->where('overdue', true);
+
+        return ['overdue' => $overdue->count(), 'late_since' => $overdue->pluck('late_since')->filter()->min(), 'days_late' => (int) $overdue->max('days_late'),
+            'active' => $active->count(), 'outstanding' => (int) $active->sum('outstanding'), 'late_amount' => (int) $active->sum('late_amount'),
+            'next' => $next ? $next['next'] + ['code' => $next['code']] : null];
+    }
+
+    /** @return list<array> pinjaman yang lolos tab */
+    public static function filter(array $loans, string $tab): array
+    {
+        $statuses = self::TABS[$tab]['statuses'] ?? null;
+
+        return $statuses === null ? $loans : array_values(array_filter($loans, fn ($l) => in_array($l['status'], $statuses, true)));
+    }
+
+    /** @return array<string,int> jumlah pinjaman per tab */
+    public static function counts(array $loans): array
+    {
+        $out = [];
+        foreach (array_keys(self::TABS) as $tab) {
+            $out[$tab] = count(self::filter($loans, $tab));
+        }
+
+        return $out;
+    }
+}
