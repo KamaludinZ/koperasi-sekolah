@@ -604,6 +604,7 @@ Route::middleware(['menu:pengguna', 'peran:admin'])->group(function () {
     Route::get('/pengguna/terkunci', Pengguna\Locked::class)->name('pengguna.terkunci');
     Route::get('/pengguna/sesi-aktif', Pengguna\ActiveSessions::class)->name('pengguna.sesi');
     Route::get('/pengguna/hak-akses', Pengguna\AccessSimulator::class)->name('pengguna.akses');
+    Route::get('/pengguna/impersonasi', Pengguna\Impersonation::class)->name('pengguna.impersonasi');
     Route::get('/pengguna/sesi-aktif/data', [SessionAdminController::class, 'index'])->name('pengguna.sesi.data');
     Route::delete('/pengguna/sesi-aktif/{session}', [SessionAdminController::class, 'destroy'])
         ->where('session', '[A-Za-z0-9\-]{1,255}')->middleware('throttle:30,1')->name('pengguna.sesi.destroy');
