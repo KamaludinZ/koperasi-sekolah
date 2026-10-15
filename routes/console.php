@@ -92,6 +92,21 @@ Artisan::command('pinjaman:verifikasi-audit', function () {
 
 Schedule::command('pinjaman:verifikasi-audit')->dailyAt('02:40');
 
+// Konsistensi peran petugas (pivot user_roles vs peran utama users.role_id); --perbaiki untuk membetulkan.
+Artisan::command('pengguna:periksa-peran {--perbaiki : Betulkan pivot yang kurang & peran utama yang tidak sesuai}', function () {
+    $r = app(\App\Services\UserService::class)->roleConsistency((bool) $this->option('perbaiki'));
+    $this->line('Peran utama belum di pivot: '.count($r['missing_pivot']).' · peran utama tidak sesuai prioritas: '.count($r['wrong_primary']).' · tanpa peran: '.count($r['no_role']));
+    if ($r['no_role']) {
+        $this->warn('Akun tanpa peran (atur lewat halaman Pengguna): '.\App\Models\User::whereIn('id', $r['no_role'])->pluck('email')->join(', '));
+    }
+    if ($this->option('perbaiki')) {
+        $this->info("{$r['fixed']} perbaikan diterapkan.");
+    }
+    $bad = $r['missing_pivot'] || $r['wrong_primary'] || $r['no_role'];
+
+    return $bad && ! $this->option('perbaiki') ? 1 : 0;
+})->purpose('Periksa konsistensi peran petugas (multi-peran)');
+
 // Deteksi angsuran lewat jatuh tempo: tandai menunggak, catat jejak audit & kabari pengurus (job di antrean notifikasi).
 Artisan::command('pinjaman:deteksi-tunggakan', function () {
     $r = app(\App\Services\LoanOverdueDetector::class)->run();

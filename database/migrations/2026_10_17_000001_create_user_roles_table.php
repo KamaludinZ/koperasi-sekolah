@@ -29,6 +29,15 @@ return new class extends Migration
 
     public function down(): void
     {
+        // kembali ke satu peran: role_id = peran prioritas tertinggi yang dipegang (agar tidak ada akun tanpa peran)
+        $priority = ['admin', 'pengurus', 'kasir'];
+        $roleIds = DB::table('roles')->pluck('id', 'name');
+        DB::table('user_roles')->join('roles', 'roles.id', '=', 'user_roles.role_id')->orderBy('user_roles.user_id')
+            ->get(['user_roles.user_id', 'roles.name'])->groupBy('user_id')
+            ->each(function ($rows, $userId) use ($priority, $roleIds) {
+                $best = collect($priority)->first(fn ($p) => $rows->contains('name', $p)) ?? $rows->first()->name;
+                DB::table('users')->where('id', $userId)->update(['role_id' => $roleIds[$best]]);
+            });
         Schema::dropIfExists('user_roles');
     }
 };

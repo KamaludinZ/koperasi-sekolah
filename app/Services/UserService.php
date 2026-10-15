@@ -220,6 +220,49 @@ class UserService
         return ['user' => $user, 'added' => $added, 'removed' => $removed];
     }
 
+    /**
+     * Periksa (dan bila $fix, perbaiki) konsistensi peran akun:
+     * - peran utama (role_id) belum tercatat di pivot → ditambahkan ke pivot;
+     * - peran utama bukan prioritas tertinggi dari peran yang dipegang → role_id disesuaikan;
+     * - akun tanpa peran sama sekali → hanya dilaporkan (admin harus memilih perannya).
+     *
+     * @return array{missing_pivot: list<int>, wrong_primary: list<int>, no_role: list<int>, fixed: int}
+     */
+    public function roleConsistency(bool $fix = false): array
+    {
+        $r = ['missing_pivot' => [], 'wrong_primary' => [], 'no_role' => [], 'fixed' => 0];
+        $roleIds = Role::pluck('id', 'name');
+        User::with('role', 'roles')->orderBy('id')->each(function (User $u) use (&$r, $fix, $roleIds) {
+            $held = $u->roles->pluck('name')->all();
+            if ($u->role_id && ! $u->roles->contains('id', $u->role_id)) {
+                $r['missing_pivot'][] = $u->id;
+                if ($fix) {
+                    DB::table('user_roles')->insertOrIgnore(['user_id' => $u->id, 'role_id' => $u->role_id, 'created_at' => now()]);
+                    $held[] = $u->role->name;
+                    $r['fixed']++;
+                }
+            }
+            if ($held === [] && ! $u->role_id) {
+                $r['no_role'][] = $u->id;
+
+                return;
+            }
+            $best = Role::sortNames($held)[0] ?? null;
+            if ($best && $u->role?->name !== $best) {
+                $r['wrong_primary'][] = $u->id;
+                if ($fix) {
+                    $u->forceFill(['role_id' => $roleIds[$best]])->saveQuietly();
+                    $r['fixed']++;
+                }
+            }
+        });
+        if ($fix && $r['fixed'] > 0) {
+            AuditLog::record('user.roles_repaired', 'pengguna', "Konsistensi peran akun diperbaiki ({$r['fixed']} perbaikan)", null, $r);
+        }
+
+        return $r;
+    }
+
     /** Tambah satu peran ke akun (peran lain tetap). */
     public function addRole(User $user, string $role, ?User $actor): array
     {
