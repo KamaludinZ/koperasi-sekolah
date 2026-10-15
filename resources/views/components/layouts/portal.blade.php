@@ -43,10 +43,12 @@
                                @class(['rounded-lg px-3 py-1.5 text-sm font-medium', 'bg-white/10 text-white' => request()->routeIs($route), 'text-emerald-200 hover:text-white' => ! request()->routeIs($route)])>{{ $label }}@if ($alerts[$route] ?? false)<span class="ml-1 inline-block size-2 rounded-full bg-red-500 align-middle" data-nav-alert="{{ $route }}"></span><span class="sr-only"> (ada tunggakan)</span>@endif</a>
                         @endforeach
                     </nav>
-                    <form method="POST" action="{{ route('portal.logout') }}">
+@unless (\App\Support\ImpersonationSession::impersonatingMember()) {{-- saat impersonasi: kembali lewat spanduk --}}
+                                        <form method="POST" action="{{ route('portal.logout') }}">
                         @csrf
                         <button type="submit" class="rounded-lg px-2.5 py-1.5 text-sm font-medium text-emerald-200 hover:bg-white/10 hover:text-white">Keluar</button>
                     </form>
+                    @endunless
                 </div>
             </div>
         </header>

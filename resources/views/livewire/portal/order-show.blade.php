@@ -85,7 +85,9 @@
         </ol>
     </section>
 
-    @if ($o->status === 'menunggu')
+    @if ($o->status === 'menunggu' && \App\Support\ImpersonationSession::impersonatingMember())
+        <p class="rounded-xl bg-stone-100 px-4 py-3 text-center text-xs text-stone-600" data-read-only>{{ \App\Support\ImpersonationPolicy::MEMBER_READ_ONLY_MESSAGE }}</p>
+    @elseif ($o->status === 'menunggu')
         @if ($cancelling)
             <div class="space-y-2 rounded-2xl border border-red-200 bg-red-50 p-4">
                 <label class="block text-sm"><span class="mb-1 block font-medium text-red-900">Alasan pembatalan</span>

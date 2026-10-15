@@ -34,6 +34,12 @@ class ImpersonationSession
         ];
     }
 
+    /** Sedang masuk sebagai anggota portal (portal = mode lihat saja untuk aksi uang & PIN). */
+    public static function impersonatingMember(): bool
+    {
+        return (self::current()['target_type'] ?? null) === 'anggota';
+    }
+
     public static function active(): bool
     {
         return self::current() !== null;

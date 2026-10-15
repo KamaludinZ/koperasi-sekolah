@@ -4,6 +4,8 @@ namespace App\Livewire\Portal;
 
 use App\Models\Order;
 use App\Services\OrderService;
+use App\Support\ImpersonationPolicy;
+use App\Support\ImpersonationSession;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Computed;
@@ -50,6 +52,11 @@ class OrderShow extends Component
     public function cancel(): void
     {
         $this->resetErrorBag();
+        if (ImpersonationSession::impersonatingMember()) {
+            $this->addError('reason', ImpersonationPolicy::MEMBER_READ_ONLY_MESSAGE);
+
+            return;
+        }
         try {
             app(OrderService::class)->cancel($this->order, $this->reason);
         } catch (ValidationException $e) {

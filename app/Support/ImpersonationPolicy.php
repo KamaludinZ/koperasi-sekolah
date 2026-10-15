@@ -24,6 +24,14 @@ class ImpersonationPolicy
 
     public const REASON_MAX = 200;
 
+    /**
+     * Portal anggota saat diimpersonasi = mode lihat saja untuk aksi uang & rahasia anggota: checkout/pesanan baru,
+     * bayar pakai saldo, verifikasi PIN, dan pembatalan pesanan. Admin hanya melihat apa yang dilihat anggota.
+     */
+    public const MEMBER_READ_ONLY_ROUTES = ['portal.checkout', 'portal.pesanan.store', 'portal.pesanan.bayar-saldo', 'portal.pin.verify'];
+
+    public const MEMBER_READ_ONLY_MESSAGE = 'Tidak tersedia dalam mode impersonasi — belanja, pembayaran, PIN, dan pembatalan pesanan hanya bisa dilakukan anggota sendiri.';
+
     /** Pilihan lama sesi (menit), semuanya ≤ MAX_MINUTES. */
     public const DURATIONS = [10, 15, 30];
 

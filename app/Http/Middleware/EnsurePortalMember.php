@@ -2,6 +2,8 @@
 
 namespace App\Http\Middleware;
 
+use App\Support\ImpersonationPolicy;
+use App\Support\ImpersonationSession;
 use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -28,6 +30,10 @@ class EnsurePortalMember
             }
 
             return redirect()->guest(route('portal.login'));
+        }
+        // admin yang masuk sebagai anggota: aksi uang & PIN ditolak di server (tombolnya juga dinonaktifkan di tampilan)
+        if (ImpersonationSession::impersonatingMember() && $request->routeIs(...ImpersonationPolicy::MEMBER_READ_ONLY_ROUTES)) {
+            abort(403, ImpersonationPolicy::MEMBER_READ_ONLY_MESSAGE);
         }
 
         return $next($request);

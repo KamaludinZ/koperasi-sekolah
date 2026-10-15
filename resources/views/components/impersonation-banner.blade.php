@@ -26,6 +26,9 @@
                 <strong>{{ $imp['admin_name'] }}</strong> sedang masuk sebagai <strong data-impersonation-target>{{ $imp['target_name'] }}</strong>{{ $imp['target_label'] ? ' · '.$imp['target_label'] : '' }}
                 <span class="text-red-100">({{ $imp['target_type'] === 'anggota' ? 'portal anggota' : 'petugas' }})</span>
                 <span class="block truncate text-xs text-red-100" title="{{ $imp['reason'] }}">Alasan: {{ $imp['reason'] }} · semua aksi tercatat atas nama {{ $imp['admin_name'] }}</span>
+                @if ($imp['target_type'] === 'anggota')
+                    <span class="block text-xs font-semibold text-white" data-read-only-mode>Mode lihat saja: belanja, pembayaran, PIN & pembatalan pesanan dinonaktifkan.</span>
+                @endif
             </p>
             <span class="text-xs tabular-nums" aria-live="off">Sisa <strong class="text-sm" x-text="clock">{{ intdiv(max(0, $imp['expires_at'] - now()->timestamp), 60) }}:{{ str_pad((string) (max(0, $imp['expires_at'] - now()->timestamp) % 60), 2, '0', STR_PAD_LEFT) }}</strong></span>
             @if ($exitUrl)
