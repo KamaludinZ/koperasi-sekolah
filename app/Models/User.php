@@ -3,6 +3,7 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+use App\Services\PermissionMerger;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -144,13 +145,7 @@ class User extends Authenticatable
      */
     public function permissions(): array
     {
-        $byName = $this->roles->keyBy('name');
-        if ($this->role) {
-            $byName->put($this->role->name, $this->role);
-        }
-        $order = array_values(array_unique(array_filter([$this->role?->name, ...Role::sortNames($byName->keys()->all())])));
-
-        return collect($order)->flatMap(fn ($n) => $byName[$n]->permissions ?? [])->unique()->values()->all();
+        return app(PermissionMerger::class)->forUser($this)['permissions'];
     }
 
     /** Boleh membuka menu tertentu (kunci App\Support\Menu::ITEMS) lewat salah satu perannya. */

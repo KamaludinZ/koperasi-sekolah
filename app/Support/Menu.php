@@ -5,6 +5,7 @@ namespace App\Support;
 use App\Http\Middleware\EnsureMenuAccess;
 use App\Http\Middleware\EnsureRole;
 use App\Models\Role;
+use App\Services\PermissionMerger;
 use Illuminate\Support\Facades\Route;
 
 /**
@@ -153,15 +154,10 @@ class Menu
      */
     public static function sourcesFor(array $user): array
     {
-        $names = $user['roles'] ?? array_filter([$user['role'] ?? null]);
-        $perms = Role::whereIn('name', $names)->pluck('permissions', 'name')
-            ->map(fn ($p) => is_array($p) ? $p : (json_decode((string) $p, true) ?: []));
-        $sources = [];
-        foreach ($user['permissions'] ?? [] as $menu) {
-            $sources[$menu] = array_values(array_filter($names, fn ($n) => in_array($menu, $perms[$n] ?? [], true)));
-        }
+        $names = $user['roles'] ?? array_values(array_filter([$user['role'] ?? null]));
+        $sources = app(PermissionMerger::class)->mergeNames($names, $user['role'] ?? null)['sources'];
 
-        return $sources;
+        return array_intersect_key($sources, array_flip($user['permissions'] ?? []));
     }
 
     /**

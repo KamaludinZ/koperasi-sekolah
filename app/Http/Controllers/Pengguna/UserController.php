@@ -5,7 +5,9 @@ namespace App\Http\Controllers\Pengguna;
 use App\Http\Controllers\Controller;
 use App\Models\Role;
 use App\Models\User;
+use App\Services\PermissionMerger;
 use App\Services\UserService;
+use App\Support\AccessPreview;
 use App\Support\Menu;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -135,6 +137,31 @@ class UserController extends Controller
 
         return response()->json(['data' => self::row($r['user']->fresh(['role', 'roles'])), 'added' => $r['added'], 'removed' => $r['removed'], 'changed' => $changed,
             'message' => $changed ? 'Peran disimpan.' : 'Peran tidak berubah.']);
+    }
+
+    /** Hak akses efektif akun: gabungan izin semua perannya beserta asal peran, halaman awal & hak aksi. */
+    public function permissions(User $user, PermissionMerger $merger): JsonResponse
+    {
+        return response()->json(['data' => ['user' => ['id' => $user->id, 'name' => $user->name, 'email' => $user->email]] + $merger->effective($user)]);
+    }
+
+    /**
+     * Simulasi kombinasi peran tiruan (tanpa akun, tanpa menyimpan): ?peran=pengurus,kasir atau peran[]=…
+     * Peran yang tidak dikenal ditolak 422 agar salah ketik tidak diam-diam diabaikan.
+     */
+    public function simulate(Request $request): JsonResponse
+    {
+        $raw = $request->query('peran', []);
+        $names = is_string($raw) ? array_values(array_filter(array_map('trim', explode(',', $raw)), 'strlen')) : $raw;
+        $data = validator(['peran' => $names], [
+            'peran' => ['required', 'array', 'min:1', 'max:'.count(Role::LABELS)],
+            'peran.*' => ['string', 'distinct', Rule::in(Role::query()->pluck('name')->all())],
+        ], [
+            'peran.required' => UserService::MSG_MIN_ROLE, 'peran.min' => UserService::MSG_MIN_ROLE,
+            'peran.*.in' => 'Peran :input tidak dikenal.', 'peran.*.distinct' => 'Peran tidak boleh berulang.',
+        ])->validate();
+
+        return response()->json(['data' => (new AccessPreview)->simulate($data['peran'])]);
     }
 
     public function roles(): JsonResponse

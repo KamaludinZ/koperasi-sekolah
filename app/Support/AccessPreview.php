@@ -6,6 +6,7 @@ use App\Http\Middleware\EnsureMenuAccess;
 use App\Http\Middleware\EnsureRole;
 use App\Models\Role;
 use App\Models\User;
+use App\Services\PermissionMerger;
 use Illuminate\Auth\Middleware\Authorize;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Gate;
@@ -77,12 +78,9 @@ class AccessPreview
     {
         $names = $this->normalize($names);
         $user = $this->fakeUser($names);
-        $permissions = $names ? $user->permissions() : [];
-
-        $sources = [];
-        foreach ($permissions as $menu) {
-            $sources[$menu] = array_values(array_filter($names, fn ($n) => $this->roles[$n]->allows($menu)));
-        }
+        $merged = app(PermissionMerger::class)->forUser($user);
+        $permissions = $names ? $merged['permissions'] : [];
+        $sources = $names ? $merged['sources'] : [];
 
         $singles = collect($names)->map(fn ($n) => $this->fakeUser([$n]));
         $abilities = [];

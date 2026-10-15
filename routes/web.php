@@ -611,6 +611,8 @@ Route::middleware(['menu:pengguna', 'peran:admin'])->group(function () {
     Route::get('/pengguna/daftar', [UserController::class, 'index'])->name('pengguna.list');
     Route::get('/pengguna/peran', [UserController::class, 'roles'])->name('pengguna.roles');
     Route::get('/pengguna/{user}/data', [UserController::class, 'show'])->whereNumber('user')->name('pengguna.show');
+    Route::get('/pengguna/{user}/izin', [UserController::class, 'permissions'])->whereNumber('user')->name('pengguna.izin');
+    Route::get('/pengguna/hak-akses/simulasi', [UserController::class, 'simulate'])->middleware('throttle:60,1')->name('pengguna.akses.simulasi');
     Route::middleware('throttle:30,1')->group(function () {
         Route::post('/pengguna', [UserController::class, 'store'])->name('pengguna.store');
         Route::put('/pengguna/peran/{role:name}', [UserController::class, 'updateRole'])->name('pengguna.roles.update');
