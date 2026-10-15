@@ -234,7 +234,82 @@ class GuideCatalog
                 'tips' => ['Sesi berakhir otomatis bila lama tidak ada aktivitas; peringatan muncul sebelumnya.'],
                 'related' => ['notifikasi' => 'Notifikasi'],
             ],
+            // ── Panduan anggota (portal) ──
+            'portal.beranda' => [
+                'menu' => null, 'audience' => 'anggota', 'portal_route' => 'portal',
+                'title' => 'Mengenal portal anggota',
+                'summary' => 'Portal menampilkan saldo tabungan, simpanan, pinjaman, dan pesanan Anda. Masuk dengan kode anggota/email dan kata sandi dari petugas koperasi.',
+                'steps' => [
+                    ['text' => 'Masuk memakai kode anggota atau email dan kata sandi portal.', 'route' => 'portal'],
+                    ['text' => 'Beranda menampilkan saldo tabungan, ringkasan simpanan, dan pinjaman aktif.'],
+                    ['text' => 'Pakai menu di atas (atau bawah layar HP) untuk berpindah: Simpanan, Pinjaman, Riwayat, Belanja, Pesanan.'],
+                    ['text' => 'Tekan Keluar bila memakai perangkat bersama.'],
+                ],
+                'tips' => ['Lupa kata sandi atau PIN? Hubungi petugas koperasi untuk mengaturnya ulang.'],
+                'related' => [],
+            ],
+            'portal.simpanan' => [
+                'menu' => null, 'audience' => 'anggota', 'portal_route' => 'portal.simpanan',
+                'title' => 'Melihat tabungan & simpanan',
+                'summary' => 'Periksa saldo tabungan dan simpanan pokok, wajib, sukarela beserta riwayat setoran dan penarikannya.',
+                'steps' => [
+                    ['text' => 'Buka menu Simpanan.', 'route' => 'portal.simpanan'],
+                    ['text' => 'Lihat saldo per jenis simpanan dan total keseluruhan.'],
+                    ['text' => 'Gulir riwayat mutasi untuk melihat setoran, penarikan, dan potongan belanja.'],
+                    ['text' => 'Setoran wajib bulanan yang belum dibayar ditandai jelas.'],
+                ],
+                'tips' => ['Setor dan tarik tabungan dilakukan di loket koperasi.'],
+                'related' => [],
+            ],
+            'portal.pinjaman' => [
+                'menu' => null, 'audience' => 'anggota', 'portal_route' => 'portal.pinjaman',
+                'title' => 'Memantau pinjaman & angsuran',
+                'summary' => 'Lihat pinjaman Anda, sisa pokok, jadwal angsuran, dan angsuran yang lewat jatuh tempo.',
+                'steps' => [
+                    ['text' => 'Buka menu Pinjaman; titik merah berarti ada angsuran menunggak.', 'route' => 'portal.pinjaman'],
+                    ['text' => 'Pilih pinjaman untuk melihat jadwal angsuran (pokok & bunga) dan status tiap bulan.'],
+                    ['text' => 'Lihat riwayat pembayaran angsuran yang sudah diterima petugas.'],
+                ],
+                'tips' => ['Pengajuan pinjaman baru dilakukan melalui pengurus koperasi.'],
+                'related' => [],
+            ],
+            'portal.belanja' => [
+                'menu' => null, 'audience' => 'anggota', 'portal_route' => 'portal.belanja',
+                'title' => 'Belanja & memesan dari portal',
+                'summary' => 'Pilih barang, masukkan keranjang, lalu pesan untuk diambil di koperasi atau diantar. Bayar tunai, QRIS/transfer, atau potong saldo dengan PIN 6 digit.',
+                'steps' => [
+                    ['text' => 'Buka Belanja, cari barang atau pilih kategori.', 'route' => 'portal.belanja'],
+                    ['text' => 'Tambahkan barang ke keranjang dan atur jumlahnya.'],
+                    ['text' => 'Lanjut ke pembayaran: pilih ambil di koperasi atau antar.'],
+                    ['text' => 'Pilih cara bayar; untuk potong saldo masukkan PIN 6 digit Anda.'],
+                    ['text' => 'Pantau status pesanan di menu Pesanan; pesanan yang masih menunggu bisa dibatalkan.', 'route' => 'portal.pesanan'],
+                ],
+                'tips' => ['Jangan beri tahu PIN kepada siapa pun, termasuk petugas.'],
+                'related' => [],
+            ],
+            'portal.riwayat' => [
+                'menu' => null, 'audience' => 'anggota', 'portal_route' => 'portal.riwayat',
+                'title' => 'Riwayat belanja',
+                'summary' => 'Lihat daftar belanja Anda di koperasi beserta rincian barang dan cara pembayarannya.',
+                'steps' => [
+                    ['text' => 'Buka menu Riwayat.', 'route' => 'portal.riwayat'],
+                    ['text' => 'Pilih transaksi untuk melihat rincian barang dan pembayaran.'],
+                    ['text' => 'Bila ada transaksi yang tidak Anda kenali, segera laporkan ke petugas koperasi.'],
+                ],
+                'tips' => [],
+                'related' => [],
+            ],
         ];
+    }
+
+    /**
+     * Panduan untuk satu kelompok pembaca.
+     *
+     * @return array<string, array>
+     */
+    public static function forAudience(string $audience): array
+    {
+        return array_filter(self::entries(), fn ($e) => $e['audience'] === $audience);
     }
 
     /** Kunci menu → judul grup menu samping (untuk pengelompokan daftar). @return array<string, string> */

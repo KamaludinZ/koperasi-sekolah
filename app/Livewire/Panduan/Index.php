@@ -49,7 +49,7 @@ class Index extends Component
     #[Computed]
     public function entries(): array
     {
-        return GuideCatalog::entries();
+        return GuideCatalog::forAudience('petugas');
     }
 
     /** Panduan yang cocok dengan kata kunci (semua kata harus muncul), dikelompokkan. @return array<string, array<string, array>> */

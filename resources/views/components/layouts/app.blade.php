@@ -35,6 +35,7 @@
                 <x-brand.logo size="sm" />
             </a>
             @if ($user)
+                <x-guide-button />
                 <livewire:notifikasi.bell />
             @endif
         </div>
@@ -156,6 +157,7 @@
             @endif
             <span class="flex-1 truncate text-sm font-semibold">{{ $title ?? \App\Support\MockData::profile()['app_name'] }}</span>
             @if ($user)
+                <x-guide-button variant="bar" />
                 <livewire:notifikasi.bell :compact="true" />
             @endif
         </div>

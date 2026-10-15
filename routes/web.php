@@ -97,6 +97,7 @@ use App\Livewire\Pinjaman\PaymentHistory;
 use App\Livewire\Pinjaman\Recap;
 use App\Livewire\Pinjaman\Show;
 use App\Livewire\Portal\Checkout;
+use App\Livewire\Portal\Guide;
 use App\Livewire\Portal\Home;
 use App\Livewire\Portal\Loans;
 use App\Livewire\Portal\Orders;
@@ -191,6 +192,7 @@ Route::middleware('portal')->group(function () { // bukan auth:member — guard 
     Route::get('/portal/checkout', Checkout::class)->name('portal.checkout');
     Route::get('/portal/pesanan', Orders::class)->name('portal.pesanan');
     Route::get('/portal/pesanan/{order}', OrderShow::class)->whereNumber('order')->name('portal.pesanan.show');
+    Route::get('/portal/panduan', Guide::class)->name('portal.panduan');
     Route::post('/portal/keluar', function (Request $request) {
         if (ImpersonationSession::impersonatingMember()) { // admin: kembali ke akunnya, bukan keluar
             $svc = app(ImpersonationService::class);
