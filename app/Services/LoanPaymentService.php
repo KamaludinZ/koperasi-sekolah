@@ -184,6 +184,20 @@ class LoanPaymentService
         $note = filled($data['note'] ?? null) ? trim($data['note']) : null;
         $reference = self::normalizeReference($data['payment_method'], $data['reference'] ?? null);
 
+        try {
+            return $this->recordLocked($loan, $data, $note, $reference, $userId, $clientRef);
+        } catch (\Illuminate\Database\UniqueConstraintViolationException $e) {
+            // dua penyimpanan bersamaan lolos pemeriksaan lalu ditolak indeks unik: kunci idempoten sama → jawab ulang;
+            // selain itu (bulan gaji / no. transfer sama) → galat validasi yang bisa dibaca petugas
+            if ($replay = self::replayed($loan, $clientRef)) {
+                return $replay;
+            }
+            throw ValidationException::withMessages(['reference' => 'Pembayaran dengan rujukan yang sama baru saja dicatat; muat ulang untuk melihatnya.']);
+        }
+    }
+
+    private function recordLocked(Loan $loan, array $data, ?string $note, ?string $reference, ?int $userId, ?string $clientRef): LoanPayment
+    {
         return DB::transaction(function () use ($loan, $data, $note, $reference, $userId, $clientRef) {
             $locked = Loan::whereKey($loan->id)->lockForUpdate()->firstOrFail();
             if ($replay = self::replayed($locked, $clientRef)) { // kiriman paralel dengan kunci sama
@@ -198,7 +212,7 @@ class LoanPaymentService
             if ($amount < 1 || $amount > $outstanding) {
                 throw ValidationException::withMessages(['amount' => 'Nominal melebihi sisa pinjaman ('.Rupiah::format($outstanding).').']);
             }
-            self::assertPaymentAllowed($locked, $amount, $outstanding, $data['payment_method'], $reference);
+            static::assertPaymentAllowed($locked, $amount, $outstanding, $data['payment_method'], $reference);
 
             $installments = $locked->installments()->lockForUpdate()->get();
             $plan = self::allocate($installments, $amount);
@@ -250,6 +264,15 @@ class LoanPaymentService
         }
         $reference = $replacement ? self::normalizeReference($replacement['payment_method'], $replacement['reference'] ?? null) : null;
 
+        try {
+            return $this->correctLocked($payment, $reason, $replacement, $reference, $userId);
+        } catch (\Illuminate\Database\UniqueConstraintViolationException) {
+            throw ValidationException::withMessages(['reference' => 'Rujukan pengganti sudah dipakai pembayaran lain yang baru saja dicatat; muat ulang.']);
+        }
+    }
+
+    private function correctLocked(LoanPayment $payment, string $reason, ?array $replacement, ?string $reference, ?int $userId): ?LoanPayment
+    {
         return DB::transaction(function () use ($payment, $reason, $replacement, $reference, $userId) {
             $loan = Loan::whereKey($payment->loan_id)->lockForUpdate()->firstOrFail();
             $locked = LoanPayment::whereKey($payment->id)->lockForUpdate()->firstOrFail();
@@ -273,7 +296,7 @@ class LoanPaymentService
                 if ($replacement['paid_at'] > today()->toDateString() || ($loan->disbursed_at && $replacement['paid_at'] < $loan->disbursed_at->toDateString())) {
                     throw ValidationException::withMessages(['paid_at' => 'Tanggal bayar harus antara tanggal cair dan hari ini.']);
                 }
-                self::assertPaymentAllowed($loan, $amount, $max, $replacement['payment_method'], $reference, $locked->id);
+                static::assertPaymentAllowed($loan, $amount, $max, $replacement['payment_method'], $reference, $locked->id);
             }
 
             $locked->update(['voided_at' => now(), 'voided_by' => $userId, 'void_reason' => $reason]);
