@@ -176,7 +176,7 @@ class LoanService
             'monthly' => $l->tenor_months ? (int) ceil(($principal + $interest) / $l->tenor_months) : 0,
             'payment_method' => $l->payment_method, 'payment_label' => Loan::METHODS[$l->payment_method] ?? $l->payment_method,
             'status' => $l->status, 'status_label' => Loan::STATUSES[$l->status] ?? $l->status,
-            'outstanding' => (int) round((float) $l->outstanding), 'purpose' => $l->purpose, 'decision_note' => $l->decision_note,
+            'outstanding' => (int) round((float) $l->outstanding), 'overdue_since' => $l->overdue_since?->toDateString(), 'purpose' => $l->purpose, 'decision_note' => $l->decision_note,
             'cancel_reason' => $l->cancel_reason, 'cancelled_at' => $l->cancelled_at?->toDateTimeString(),
             'applied_at' => $l->applied_at?->toDateString(), 'disbursed_at' => $l->disbursed_at?->toDateString(),
         ];

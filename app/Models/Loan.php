@@ -43,6 +43,15 @@ class Loan extends Model
     /** Setiap perubahan status lewat model diperiksa; lompatan tidak sah (mis. diajukan → berjalan) ditolak. */
     protected static function booted(): void
     {
+        // status menunggak ⇔ overdue_since terisi: diisi dari angsuran tertunggak tertua saat menjadi menunggak, dikosongkan bila tidak
+        static::saving(function (Loan $loan) {
+            if ($loan->status !== 'menunggak') {
+                $loan->overdue_since = null;
+            } elseif (! $loan->isDirty('overdue_since')) { // ikut bergeser bila angsuran tertua sudah dibayar
+                $oldest = $loan->exists ? \App\Support\LoanOverdue::scope($loan->installments()->getQuery()->reorder())->min('due_date') : null;
+                $loan->overdue_since = $oldest ? substr((string) $oldest, 0, 10) : now()->toDateString();
+            }
+        });
         static::updating(function (Loan $loan) {
             if ($loan->isDirty('status') && ! self::canTransition((string) $loan->getOriginal('status'), (string) $loan->status)) {
                 throw new \DomainException("Status pinjaman {$loan->code} tidak bisa berubah dari \"{$loan->getOriginal('status')}\" menjadi \"{$loan->status}\".");
@@ -54,12 +63,12 @@ class Loan extends Model
     public const ACTIVE = ['berjalan', 'menunggak'];
 
     protected $fillable = ['code', 'member_id', 'principal', 'interest', 'tenor_months', 'payment_method', 'status', 'purpose', 'decision_note',
-        'outstanding', 'applied_at', 'decided_at', 'decided_by', 'cancelled_at', 'cancelled_by', 'cancel_reason', 'disbursed_at', 'paid_off_at', 'created_by'];
+        'outstanding', 'applied_at', 'decided_at', 'decided_by', 'cancelled_at', 'cancelled_by', 'cancel_reason', 'disbursed_at', 'paid_off_at', 'created_by', 'overdue_since'];
 
     protected function casts(): array
     {
         return ['principal' => 'decimal:2', 'interest' => 'decimal:2', 'outstanding' => 'decimal:2', 'tenor_months' => 'integer',
-            'applied_at' => 'date', 'decided_at' => 'datetime', 'cancelled_at' => 'datetime', 'disbursed_at' => 'date', 'paid_off_at' => 'datetime'];
+            'applied_at' => 'date', 'decided_at' => 'datetime', 'cancelled_at' => 'datetime', 'disbursed_at' => 'date', 'paid_off_at' => 'datetime', 'overdue_since' => 'date'];
     }
 
     public function member(): BelongsTo

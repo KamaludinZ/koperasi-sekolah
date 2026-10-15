@@ -1,6 +1,6 @@
 {
   "repo": "Koperasi Sekolah",
-  "generatedForCommit": "9032cf3d778ca9342d223c0f0f80fbdc9058c64a",
+  "generatedForCommit": "01c45f69f39c29844a7a6745147ab9a1d0a1e64b",
   "files": [
     {
       "path": ".claude/skills/ngodingpakeai/SKILL.md",
@@ -171,6 +171,12 @@
       "size": 5276
     },
     {
+      "path": "app/Http/Controllers/Pinjaman/RecapExportController.php",
+      "reason": "new",
+      "language": "php",
+      "size": 4824
+    },
+    {
       "path": "app/Http/Controllers/Portal/LoanController.php",
       "reason": "needs_summary",
       "language": "php",
@@ -193,6 +199,12 @@
       "reason": "needs_summary",
       "language": "php",
       "size": 940
+    },
+    {
+      "path": "app/Jobs/ExportLoanRecap.php",
+      "reason": "new",
+      "language": "php",
+      "size": 2350
     },
     {
       "path": "app/Livewire/Akun/Password.php",
@@ -324,7 +336,7 @@
       "path": "app/Livewire/Pinjaman/Recap.php",
       "reason": "changed",
       "language": "php",
-      "size": 4452
+      "size": 5415
     },
     {
       "path": "app/Livewire/Pinjaman/Show.php",
@@ -381,6 +393,12 @@
       "size": 1134
     },
     {
+      "path": "app/Models/ReportExport.php",
+      "reason": "changed",
+      "language": "php",
+      "size": 2113
+    },
+    {
       "path": "app/Models/Setting.php",
       "reason": "needs_summary",
       "language": "php",
@@ -429,8 +447,14 @@
       "size": 31161
     },
     {
+      "path": "app/Services/LoanRecapExport.php",
+      "reason": "new",
+      "language": "php",
+      "size": 5191
+    },
+    {
       "path": "app/Services/LoanRecapService.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 9528
     },
@@ -469,6 +493,12 @@
       "reason": "needs_summary",
       "language": "php",
       "size": 2848
+    },
+    {
+      "path": "app/Services/ReportExportService.php",
+      "reason": "changed",
+      "language": "php",
+      "size": 3751
     },
     {
       "path": "app/Services/StockService.php",
@@ -1087,6 +1117,12 @@
       "reason": "needs_summary",
       "language": "php",
       "size": 2346
+    },
+    {
+      "path": "database/migrations/2026_10_16_000011_add_download_marks_to_report_exports.php",
+      "reason": "new",
+      "language": "php",
+      "size": 735
     },
     {
       "path": "database/seeders/LoanSeeder.php",
@@ -1992,7 +2028,7 @@
       "path": "resources/views/livewire/pinjaman/recap.blade.php",
       "reason": "changed",
       "language": "php",
-      "size": 10881
+      "size": 13677
     },
     {
       "path": "resources/views/livewire/pinjaman/show.blade.php",
@@ -2212,9 +2248,9 @@
     },
     {
       "path": "routes/web.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 48808
+      "size": 49596
     },
     {
       "path": "tests/Concerns/MakesProductImports.php",
@@ -2530,9 +2566,9 @@
     },
     {
       "path": "tests/Feature/Pinjaman/AccessTest.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 3913
+      "size": 4013
     },
     {
       "path": "tests/Feature/Pinjaman/ApplicationEndpointTest.php",
@@ -2739,8 +2775,14 @@
       "size": 8264
     },
     {
+      "path": "tests/Feature/Pinjaman/RecapExportTest.php",
+      "reason": "new",
+      "language": "php",
+      "size": 7333
+    },
+    {
       "path": "tests/Feature/Pinjaman/RecapPageTest.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 10576
     },
