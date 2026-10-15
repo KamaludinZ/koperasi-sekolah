@@ -47,6 +47,12 @@
                     </div>
                 @endforeach
             </div>
+            @if ($this->stats['no_role'] ?? 0)
+                <div class="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-red-200 bg-red-50 px-4 py-2.5 text-sm text-red-900" role="alert" data-no-role-alert>
+                    <span><strong>{{ $this->stats['no_role'] }} akun tanpa peran</strong> — tidak bisa membuka menu apa pun. Tetapkan minimal satu peran.</span>
+                    <button type="button" wire:click="$set('role', 'tanpa')" class="rounded-lg border border-red-300 px-3 py-1 text-xs font-semibold hover:bg-white/60">Tampilkan</button>
+                </div>
+            @endif
             @if ($this->stats['multi'] ?? 0)
                 <p class="text-xs text-stone-500" data-multi-count>{{ $this->stats['multi'] }} akun memegang lebih dari satu peran (dihitung di setiap perannya).</p>
             @endif
@@ -59,7 +65,7 @@
                            class="w-full rounded-lg border border-stone-300 bg-white py-2 pr-3 pl-9 text-sm outline-none focus:border-emerald-600 focus:ring-4 focus:ring-emerald-600/15">
                 </label>
                 <div class="flex gap-1 rounded-lg bg-stone-200/60 p-1" role="group" aria-label="Saring peran">
-                    @foreach (['' => 'Semua'] + $roles as $key => $label)
+                    @foreach (['' => 'Semua'] + $roles + (($this->stats['no_role'] ?? 0) || $role === 'tanpa' ? ['tanpa' => 'Tanpa peran'] : []) as $key => $label)
                         <button type="button" wire:click="$set('role', '{{ $key }}')" aria-pressed="{{ $role === $key ? 'true' : 'false' }}"
                                 @class(['rounded-md px-3 py-1.5 text-sm font-medium', 'bg-white text-stone-900 shadow-sm' => $role === $key, 'text-stone-600 hover:text-stone-900' => $role !== $key])>{{ $label }}</button>
                     @endforeach
@@ -72,7 +78,7 @@
                 <ul class="divide-y divide-stone-100 overflow-hidden rounded-xl border border-stone-200 bg-white">
                     @foreach ($this->users as $u)
                         @php $names = $u->roleNames(); @endphp
-                        <li wire:key="user-{{ $u->id }}" @class(['flex flex-wrap items-center gap-x-4 gap-y-2 px-4 py-3 sm:flex-nowrap', 'bg-stone-50' => ! $u->is_active])>
+                        <li wire:key="user-{{ $u->id }}" @class(['flex flex-wrap items-center gap-x-4 gap-y-2 px-4 py-3 sm:flex-nowrap', 'bg-stone-50' => ! $u->is_active && $names !== [], 'bg-red-50/60' => $names === []]) @if ($names === []) data-no-role="{{ $u->id }}" @endif>
                             <span @class(['grid size-10 shrink-0 place-items-center rounded-full text-sm font-semibold',
                                           'bg-emerald-950 text-amber-300' => $u->is_active, 'bg-stone-200 text-stone-500' => ! $u->is_active])>{{ $initials($u->name) }}</span>
                             <div class="min-w-0 flex-1">
@@ -99,7 +105,7 @@
                                 @endif
                             </p>
                             <div class="flex shrink-0 gap-1">
-                                <button type="button" wire:click="edit({{ $u->id }})" class="rounded-lg px-2.5 py-1.5 text-sm font-medium text-emerald-800 hover:bg-emerald-50" aria-label="Ubah akun {{ $u->name }}">Ubah</button>
+                                <button type="button" wire:click="edit({{ $u->id }})" @class(['rounded-lg px-2.5 py-1.5 text-sm font-medium', 'bg-red-600 text-white hover:bg-red-700' => $names === [], 'text-emerald-800 hover:bg-emerald-50' => $names !== []]) aria-label="Ubah akun {{ $u->name }}">{{ $names === [] ? 'Atur peran' : 'Ubah' }}</button>
                                 @unless ($u->id === $me)
                                     <button type="button" wire:click="toggleActive({{ $u->id }})"
                                             wire:confirm="{{ $u->is_active ? 'Nonaktifkan '.$u->name.'? Akun ini langsung keluar dari semua perangkat.' : 'Aktifkan kembali '.$u->name.'?' }}"

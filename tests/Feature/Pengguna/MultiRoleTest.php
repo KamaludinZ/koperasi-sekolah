@@ -113,4 +113,35 @@ class MultiRoleTest extends TestCase
         $this->postJson('/pengguna', ['name' => 'Kosong', 'email' => 'k@koperasi.test', 'roles' => [], 'password' => 'rahasia123', 'password_confirmation' => 'rahasia123'])
             ->assertUnprocessable();
     }
+
+    public function test_accounts_without_role_are_flagged_and_can_be_fixed(): void
+    {
+        $this->loginAs('admin');
+        $orphan = User::factory()->create(['name' => 'Akun Yatim', 'role_id' => null]);
+        DB::table('user_roles')->where('user_id', $orphan->id)->delete();
+        $this->assertSame([], $orphan->fresh()->roleNames());
+
+        $c = Livewire::test(Index::class)->assertSeeHtml('data-no-role-alert')->assertSeeText('1 akun tanpa peran')
+            ->assertSeeHtml('data-no-role="'.$orphan->id.'"')->assertSee('Atur peran')->assertSee('Tanpa peran');
+        $this->assertSame(1, $c->get('stats')['no_role']);
+
+        $c->set('role', 'tanpa')->assertSee('Akun Yatim')->assertDontSee('Admin Koperasi')
+            ->set('role', 'ngawur')->assertSet('role', '');
+
+        // form membuka akun tanpa peran: tidak dicentangkan apa pun, wajib memilih sebelum simpan
+        $c->call('edit', $orphan->id)->assertSet('form.roles', [])->assertSeeHtml('data-roles-empty')
+            ->call('save')->assertHasErrors('form.roles')
+            ->set('form.roles', ['kasir'])->call('save')->assertHasNoErrors()
+            ->assertDontSeeHtml('data-no-role-alert');
+        $this->assertSame(['kasir'], $orphan->fresh()->roleNames());
+    }
+
+    public function test_every_user_row_lists_all_roles_with_labels(): void
+    {
+        $this->loginAs('admin');
+        $u = User::factory()->role('pengurus')->create(['name' => 'Bu Tiga Peran']);
+        $u->roles()->syncWithoutDetaching([Role::named('kasir')->id => ['created_at' => now()], Role::named('admin')->id => ['created_at' => now()]]);
+        Livewire::test(Index::class)->assertSeeHtml('data-user-roles="admin,pengurus,kasir"')
+            ->assertSeeHtml('aria-label="Peran Admin, Pengurus, Kasir"');
+    }
 }

@@ -41,6 +41,11 @@ class Index extends Component
 
     public ?string $permissionsRole = null;
 
+    public function updatedRole(): void
+    {
+        $this->role = array_key_exists($this->role, Role::LABELS) || $this->role === 'tanpa' ? $this->role : '';
+    }
+
     #[Computed]
     public function users()
     {

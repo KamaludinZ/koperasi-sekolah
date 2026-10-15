@@ -1,0 +1,2424 @@
+{
+  "repo": "Koperasi Sekolah",
+  "generatedForCommit": "eb5e286936bb5779dc3d6da670827ba40296f6ec",
+  "files": [
+    {
+      "path": ".claude/skills/ngodingpakeai/SKILL.md",
+      "reason": "needs_summary",
+      "language": "markdown",
+      "size": 19096
+    },
+    {
+      "path": ".editorconfig",
+      "reason": "needs_summary",
+      "language": null,
+      "size": 252
+    },
+    {
+      "path": ".gitattributes",
+      "reason": "needs_summary",
+      "language": null,
+      "size": 186
+    },
+    {
+      "path": ".gitignore",
+      "reason": "needs_summary",
+      "language": null,
+      "size": 283
+    },
+    {
+      "path": ".ngodingpakeaiignore",
+      "reason": "needs_summary",
+      "language": null,
+      "size": 496
+    },
+    {
+      "path": "AGENTS.md",
+      "reason": "needs_summary",
+      "language": "markdown",
+      "size": 18850
+    },
+    {
+      "path": "README.md",
+      "reason": "needs_summary",
+      "language": "markdown",
+      "size": 3911
+    },
+    {
+      "path": "app/Console/Commands/CreateAdmin.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 2081
+    },
+    {
+      "path": "app/Http/Controllers/Akun/PasswordController.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 796
+    },
+    {
+      "path": "app/Http/Controllers/Akun/SessionController.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 1337
+    },
+    {
+      "path": "app/Http/Controllers/Auth/LoginController.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 1414
+    },
+    {
+      "path": "app/Http/Controllers/Auth/LogoutController.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 750
+    },
+    {
+      "path": "app/Http/Controllers/Barang/ProductListController.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 1838
+    },
+    {
+      "path": "app/Http/Controllers/Controller.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 77
+    },
+    {
+      "path": "app/Http/Controllers/Kasir/TransactionReceiptController.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 2136
+    },
+    {
+      "path": "app/Http/Controllers/Laporan/SalesExportController.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 1610
+    },
+    {
+      "path": "app/Http/Controllers/Notifikasi/AnnouncementController.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 2218
+    },
+    {
+      "path": "app/Http/Controllers/Notifikasi/NotificationController.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 3552
+    },
+    {
+      "path": "app/Http/Controllers/Pengaturan/LogoController.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 1830
+    },
+    {
+      "path": "app/Http/Controllers/Pengaturan/SettingsController.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 2632
+    },
+    {
+      "path": "app/Http/Controllers/Pengguna/UserController.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 2890
+    },
+    {
+      "path": "app/Http/Controllers/Transaksi/TransactionDetailController.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 745
+    },
+    {
+      "path": "app/Http/Middleware/EnsureMenuAccess.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 1182
+    },
+    {
+      "path": "app/Http/Middleware/EnsureRole.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 940
+    },
+    {
+      "path": "app/Livewire/Akun/Password.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 1513
+    },
+    {
+      "path": "app/Livewire/Anggota/Index.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 2875
+    },
+    {
+      "path": "app/Livewire/Audit/Index.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 5985
+    },
+    {
+      "path": "app/Livewire/Concerns/GuardsSettings.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 1052
+    },
+    {
+      "path": "app/Livewire/Concerns/NotifiesSave.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 1176
+    },
+    {
+      "path": "app/Livewire/Forms/UserForm.php",
+      "reason": "changed",
+      "language": "php",
+      "size": 1771
+    },
+    {
+      "path": "app/Livewire/Kasir/Index.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 531
+    },
+    {
+      "path": "app/Livewire/Notifikasi/Announcements.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 2897
+    },
+    {
+      "path": "app/Livewire/Notifikasi/Bell.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 1735
+    },
+    {
+      "path": "app/Livewire/Pengaturan/Index.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 2034
+    },
+    {
+      "path": "app/Livewire/Pengaturan/Receipt.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 4943
+    },
+    {
+      "path": "app/Livewire/Pengaturan/Tax.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 4276
+    },
+    {
+      "path": "app/Livewire/Pengguna/Index.php",
+      "reason": "changed",
+      "language": "php",
+      "size": 4406
+    },
+    {
+      "path": "app/Livewire/Transaksi/Index.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 4529
+    },
+    {
+      "path": "app/Livewire/Transaksi/Show.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 874
+    },
+    {
+      "path": "app/Models/Role.php",
+      "reason": "changed",
+      "language": "php",
+      "size": 2259
+    },
+    {
+      "path": "app/Models/Setting.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 2950
+    },
+    {
+      "path": "app/Models/User.php",
+      "reason": "changed",
+      "language": "php",
+      "size": 4068
+    },
+    {
+      "path": "app/Observers/ProductObserver.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 2211
+    },
+    {
+      "path": "app/Services/AuthService.php",
+      "reason": "changed",
+      "language": "php",
+      "size": 4394
+    },
+    {
+      "path": "app/Services/MemberCodeGenerator.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 1990
+    },
+    {
+      "path": "app/Services/MinStockService.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 2928
+    },
+    {
+      "path": "app/Services/PasswordService.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 2848
+    },
+    {
+      "path": "app/Services/StockService.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 3493
+    },
+    {
+      "path": "app/Services/UserService.php",
+      "reason": "changed",
+      "language": "php",
+      "size": 12515
+    },
+    {
+      "path": "app/Support/MockData.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 15359
+    },
+    {
+      "path": "app/Support/PriceCalculator.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 2149
+    },
+    {
+      "path": "artisan",
+      "reason": "needs_summary",
+      "language": null,
+      "size": 425
+    },
+    {
+      "path": "bootstrap/app.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 2387
+    },
+    {
+      "path": "bootstrap/providers.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 89
+    },
+    {
+      "path": "composer.json",
+      "reason": "needs_summary",
+      "language": "json",
+      "size": 2977
+    },
+    {
+      "path": "composer.lock",
+      "reason": "needs_summary",
+      "language": null,
+      "size": 330013
+    },
+    {
+      "path": "config/app.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 4302
+    },
+    {
+      "path": "config/auth.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 4495
+    },
+    {
+      "path": "config/cache.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 3683
+    },
+    {
+      "path": "config/database.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 6982
+    },
+    {
+      "path": "config/filesystems.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 2584
+    },
+    {
+      "path": "config/koperasi.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 2350
+    },
+    {
+      "path": "config/livewire.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 660
+    },
+    {
+      "path": "config/logging.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 4340
+    },
+    {
+      "path": "config/mail.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 3631
+    },
+    {
+      "path": "config/queue.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 4393
+    },
+    {
+      "path": "config/services.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 1039
+    },
+    {
+      "path": "config/session.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 8373
+    },
+    {
+      "path": "database/.gitignore",
+      "reason": "needs_summary",
+      "language": null,
+      "size": 10
+    },
+    {
+      "path": "database/factories/CategoryFactory.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 297
+    },
+    {
+      "path": "database/factories/MemberFactory.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 1277
+    },
+    {
+      "path": "database/factories/NotificationFactory.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 570
+    },
+    {
+      "path": "database/factories/ProductFactory.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 999
+    },
+    {
+      "path": "database/factories/SavingsTransactionFactory.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 768
+    },
+    {
+      "path": "database/factories/TransactionFactory.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 3005
+    },
+    {
+      "path": "database/factories/UserFactory.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 1596
+    },
+    {
+      "path": "database/migrations/0001_01_01_000000_create_users_table.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 1473
+    },
+    {
+      "path": "database/migrations/0001_01_01_000001_create_cache_table.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 867
+    },
+    {
+      "path": "database/migrations/0001_01_01_000002_create_jobs_table.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 1812
+    },
+    {
+      "path": "database/migrations/2026_10_12_000001_create_categories_and_products_tables.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 1924
+    },
+    {
+      "path": "database/migrations/2026_10_12_000002_create_transactions_tables.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 1854
+    },
+    {
+      "path": "database/migrations/2026_10_12_000003_add_product_constraints_and_settings_table.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 2564
+    },
+    {
+      "path": "database/migrations/2026_10_12_000004_add_stock_snapshot_to_stock_movements_table.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 911
+    },
+    {
+      "path": "database/migrations/2026_10_12_000005_add_item_count_and_indexes_to_transactions_table.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 1357
+    },
+    {
+      "path": "database/migrations/2026_10_12_000006_create_members_table.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 2028
+    },
+    {
+      "path": "database/migrations/2026_10_12_000007_create_savings_transactions_table.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 1962
+    },
+    {
+      "path": "database/migrations/2026_10_12_000008_add_cost_price_to_transaction_items_table.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 1027
+    },
+    {
+      "path": "database/migrations/2026_10_12_000009_create_activity_logs_table.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 2960
+    },
+    {
+      "path": "database/migrations/2026_10_12_000010_create_roles_and_extend_users_table.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 2341
+    },
+    {
+      "path": "database/migrations/2026_10_12_000011_extend_settings_table.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 1768
+    },
+    {
+      "path": "database/migrations/2026_10_12_000012_add_tax_and_rounding_to_transactions_table.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 1867
+    },
+    {
+      "path": "database/migrations/2026_10_12_000013_create_notifications_tables.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 2981
+    },
+    {
+      "path": "database/migrations/2026_10_13_000001_add_kas_menu_to_roles.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 1248
+    },
+    {
+      "path": "database/migrations/2026_10_13_000002_add_promo_menu_to_roles.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 1249
+    },
+    {
+      "path": "database/migrations/2026_10_13_000003_create_cash_shifts_tables.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 4051
+    },
+    {
+      "path": "database/migrations/2026_10_13_000004_add_category_to_cash_movements_table.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 1266
+    },
+    {
+      "path": "database/migrations/2026_10_13_000005_create_report_exports_table.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 1674
+    },
+    {
+      "path": "database/migrations/2026_10_13_000006_create_promo_coupon_discount_tables.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 7132
+    },
+    {
+      "path": "database/migrations/2026_10_13_000007_backfill_transaction_discounts.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 1567
+    },
+    {
+      "path": "database/migrations/2026_10_13_000008_add_used_count_to_coupons_table.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 1420
+    },
+    {
+      "path": "database/migrations/2026_10_13_000009_add_change_columns_to_activity_logs_table.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 3524
+    },
+    {
+      "path": "database/migrations/2026_10_13_000010_backfill_setting_subjects_in_activity_logs.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 1856
+    },
+    {
+      "path": "database/migrations/2026_10_13_000011_lock_activity_logs.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 1241
+    },
+    {
+      "path": "database/migrations/2026_10_13_000012_add_soft_deletes_to_master_tables.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 2094
+    },
+    {
+      "path": "database/migrations/2026_10_13_000013_create_login_lockouts_table.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 1685
+    },
+    {
+      "path": "database/migrations/2026_10_13_000014_add_pengadaan_menu_to_roles.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 1249
+    },
+    {
+      "path": "database/migrations/2026_10_13_000015_add_color_and_position_to_categories_table.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 1785
+    },
+    {
+      "path": "database/migrations/2026_10_13_000016_restrict_category_delete_on_products.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 1440
+    },
+    {
+      "path": "database/migrations/2026_10_13_000017_create_product_imports_tables.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 3406
+    },
+    {
+      "path": "database/migrations/2026_10_13_000018_add_history_columns_to_product_imports_table.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 1415
+    },
+    {
+      "path": "database/migrations/2026_10_13_000019_create_suppliers_tables.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 2178
+    },
+    {
+      "path": "database/migrations/2026_10_13_000020_create_purchase_orders_tables.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 3450
+    },
+    {
+      "path": "database/migrations/2026_10_13_000021_create_goods_receipts_tables.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 2608
+    },
+    {
+      "path": "database/migrations/2026_10_13_000022_create_supplier_bills_tables.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 2693
+    },
+    {
+      "path": "database/migrations/2026_10_13_000023_add_search_indexes_to_procurement_tables.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 1594
+    },
+    {
+      "path": "database/migrations/2026_10_13_000024_create_member_credits_tables.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 5367
+    },
+    {
+      "path": "database/migrations/2026_10_13_000025_create_transaction_returns_tables.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 5840
+    },
+    {
+      "path": "database/migrations/2026_10_13_000026_add_recipient_to_notifications_table.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 920
+    },
+    {
+      "path": "database/migrations/2026_10_13_000027_add_sistem_menu_to_admin_role.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 1227
+    },
+    {
+      "path": "database/migrations/2026_10_14_000001_create_backups_table.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 2572
+    },
+    {
+      "path": "database/migrations/2026_10_14_000002_create_restore_tests_table.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 1751
+    },
+    {
+      "path": "database/migrations/2026_10_14_000003_add_search_expression_indexes.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 2046
+    },
+    {
+      "path": "database/migrations/2026_10_14_000004_create_health_checks_table.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 1024
+    },
+    {
+      "path": "database/migrations/2026_10_14_000005_add_client_ref_to_transactions_table.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 846
+    },
+    {
+      "path": "database/migrations/2026_10_14_000006_add_client_ref_to_savings_transactions.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 855
+    },
+    {
+      "path": "database/migrations/2026_10_14_000007_add_barcode_to_products_table.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 980
+    },
+    {
+      "path": "database/migrations/2026_10_14_000008_create_saving_types_table.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 3600
+    },
+    {
+      "path": "database/migrations/2026_10_14_000009_create_member_savings_tables.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 3153
+    },
+    {
+      "path": "database/migrations/2026_10_14_000010_add_portal_account_to_members_table.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 965
+    },
+    {
+      "path": "database/migrations/2026_10_14_000011_create_orders_tables.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 4997
+    },
+    {
+      "path": "database/migrations/2026_10_14_000012_add_tax_rounding_to_orders_table.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 1495
+    },
+    {
+      "path": "database/migrations/2026_10_14_000013_create_saving_dues_table.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 2012
+    },
+    {
+      "path": "database/migrations/2026_10_14_000014_add_pin_to_members_table.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 647
+    },
+    {
+      "path": "database/migrations/2026_10_14_000015_create_saving_due_corrections_table.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 1631
+    },
+    {
+      "path": "database/migrations/2026_10_14_000016_add_saving_report_indexes.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 1203
+    },
+    {
+      "path": "database/migrations/2026_10_14_000017_add_saving_type_to_transactions.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 1561
+    },
+    {
+      "path": "database/migrations/2026_10_15_000001_create_loans_tables.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 5695
+    },
+    {
+      "path": "database/migrations/2026_10_15_000002_harden_loans_tables.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 1840
+    },
+    {
+      "path": "database/migrations/2026_10_16_000001_add_cancellation_to_loans.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 2726
+    },
+    {
+      "path": "database/migrations/2026_10_16_000002_harden_loan_disbursements.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 1873
+    },
+    {
+      "path": "database/migrations/2026_10_16_000003_harden_loan_installments.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 1735
+    },
+    {
+      "path": "database/migrations/2026_10_16_000004_add_proof_hash_to_loan_disbursements.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 679
+    },
+    {
+      "path": "database/migrations/2026_10_16_000005_create_loan_payments_table.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 2114
+    },
+    {
+      "path": "database/migrations/2026_10_16_000006_add_reference_to_loan_payments.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 660
+    },
+    {
+      "path": "database/migrations/2026_10_16_000007_add_parts_to_loan_installments.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 2386
+    },
+    {
+      "path": "database/migrations/2026_10_16_000008_create_loan_installment_changes_table.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 3137
+    },
+    {
+      "path": "database/migrations/2026_10_16_000009_add_client_ref_to_loan_payments.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 712
+    },
+    {
+      "path": "database/migrations/2026_10_16_000010_harden_loan_schema_for_portal.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 2346
+    },
+    {
+      "path": "database/migrations/2026_10_16_000011_add_download_marks_to_report_exports.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 735
+    },
+    {
+      "path": "database/migrations/2026_10_16_000012_add_overdue_since_to_loans.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 1932
+    },
+    {
+      "path": "database/migrations/2026_10_16_000013_create_loan_audit_chain_table.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 3930
+    },
+    {
+      "path": "database/migrations/2026_10_16_000014_block_truncate_on_loan_audit_tables.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 1549
+    },
+    {
+      "path": "database/migrations/2026_10_17_000001_create_user_roles_table.php",
+      "reason": "new",
+      "language": "php",
+      "size": 1224
+    },
+    {
+      "path": "database/seeders/NotificationSeeder.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 1631
+    },
+    {
+      "path": "database/seeders/TransactionSeeder.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 2746
+    },
+    {
+      "path": "database/seeders/UserSeeder.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 1198
+    },
+    {
+      "path": "docs/database-postgresql.md",
+      "reason": "needs_summary",
+      "language": "markdown",
+      "size": 2125
+    },
+    {
+      "path": "package-lock.json",
+      "reason": "needs_summary",
+      "language": "json",
+      "size": 93103
+    },
+    {
+      "path": "package.json",
+      "reason": "needs_summary",
+      "language": "json",
+      "size": 505
+    },
+    {
+      "path": "phpunit.xml",
+      "reason": "needs_summary",
+      "language": null,
+      "size": 1322
+    },
+    {
+      "path": "public/.htaccess",
+      "reason": "needs_summary",
+      "language": null,
+      "size": 740
+    },
+    {
+      "path": "public/index.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 543
+    },
+    {
+      "path": "public/robots.txt",
+      "reason": "needs_summary",
+      "language": null,
+      "size": 24
+    },
+    {
+      "path": "resources/css/app.css",
+      "reason": "needs_summary",
+      "language": "css",
+      "size": 2109
+    },
+    {
+      "path": "resources/js/app.js",
+      "reason": "needs_summary",
+      "language": "javascript",
+      "size": 1650
+    },
+    {
+      "path": "resources/js/barcode-reader.js",
+      "reason": "needs_summary",
+      "language": "javascript",
+      "size": 2229
+    },
+    {
+      "path": "resources/js/barcode-scanner.js",
+      "reason": "needs_summary",
+      "language": "javascript",
+      "size": 3535
+    },
+    {
+      "path": "resources/js/bootstrap.js",
+      "reason": "needs_summary",
+      "language": "javascript",
+      "size": 127
+    },
+    {
+      "path": "resources/js/clipboard.js",
+      "reason": "needs_summary",
+      "language": "javascript",
+      "size": 1289
+    },
+    {
+      "path": "resources/js/pin-input.js",
+      "reason": "needs_summary",
+      "language": "javascript",
+      "size": 1547
+    },
+    {
+      "path": "resources/js/sales-chart.js",
+      "reason": "needs_summary",
+      "language": "javascript",
+      "size": 2922
+    },
+    {
+      "path": "resources/views/barang/label-pdf.blade.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 2049
+    },
+    {
+      "path": "resources/views/barang/label-print.blade.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 2042
+    },
+    {
+      "path": "resources/views/barang/partials/label-sheet.blade.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 1420
+    },
+    {
+      "path": "resources/views/beranda.blade.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 15173
+    },
+    {
+      "path": "resources/views/components/anggota/nav.blade.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 669
+    },
+    {
+      "path": "resources/views/components/audit/nav.blade.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 712
+    },
+    {
+      "path": "resources/views/components/barang/nav.blade.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 839
+    },
+    {
+      "path": "resources/views/components/barcode.blade.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 785
+    },
+    {
+      "path": "resources/views/components/brand/favicon.blade.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 691
+    },
+    {
+      "path": "resources/views/components/brand/logo.blade.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 1399
+    },
+    {
+      "path": "resources/views/components/brand/mark.blade.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 527
+    },
+    {
+      "path": "resources/views/components/camera-scanner.blade.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 4466
+    },
+    {
+      "path": "resources/views/components/idle-warning.blade.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 2720
+    },
+    {
+      "path": "resources/views/components/kas/difference-badge.blade.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 1974
+    },
+    {
+      "path": "resources/views/components/kas/nav.blade.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 745
+    },
+    {
+      "path": "resources/views/components/laporan/delta.blade.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 807
+    },
+    {
+      "path": "resources/views/components/layouts/app.blade.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 8049
+    },
+    {
+      "path": "resources/views/components/layouts/guest.blade.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 864
+    },
+    {
+      "path": "resources/views/components/layouts/portal.blade.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 4984
+    },
+    {
+      "path": "resources/views/components/pengadaan/nav.blade.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 1300
+    },
+    {
+      "path": "resources/views/components/pengaturan/nav.blade.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 1234
+    },
+    {
+      "path": "resources/views/components/pengguna/nav.blade.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 712
+    },
+    {
+      "path": "resources/views/components/pin-input.blade.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 1502
+    },
+    {
+      "path": "resources/views/components/pinjaman/nav.blade.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 1605
+    },
+    {
+      "path": "resources/views/components/pinjaman/recap-cards.blade.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 2222
+    },
+    {
+      "path": "resources/views/components/pinjaman/status.blade.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 645
+    },
+    {
+      "path": "resources/views/components/portal/loan-alert.blade.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 2111
+    },
+    {
+      "path": "resources/views/components/portal/loan-card.blade.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 5493
+    },
+    {
+      "path": "resources/views/components/portal/loan-list.blade.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 604
+    },
+    {
+      "path": "resources/views/components/portal/loans-empty.blade.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 2744
+    },
+    {
+      "path": "resources/views/components/portal/order-status.blade.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 544
+    },
+    {
+      "path": "resources/views/components/portal/payment-methods.blade.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 4754
+    },
+    {
+      "path": "resources/views/components/promo/nav.blade.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 675
+    },
+    {
+      "path": "resources/views/components/simpanan/nav.blade.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 880
+    },
+    {
+      "path": "resources/views/components/sistem/backup-status.blade.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 3637
+    },
+    {
+      "path": "resources/views/components/sistem/nav.blade.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 1083
+    },
+    {
+      "path": "resources/views/components/stock-badge.blade.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 553
+    },
+    {
+      "path": "resources/views/components/toasts.blade.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 3592
+    },
+    {
+      "path": "resources/views/components/transaksi/method-badge.blade.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 584
+    },
+    {
+      "path": "resources/views/components/transaksi/nav.blade.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 747
+    },
+    {
+      "path": "resources/views/components/transaksi/row.blade.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 4013
+    },
+    {
+      "path": "resources/views/errors/401.blade.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 508
+    },
+    {
+      "path": "resources/views/errors/403.blade.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 1467
+    },
+    {
+      "path": "resources/views/errors/404.blade.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 222
+    },
+    {
+      "path": "resources/views/errors/419.blade.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 590
+    },
+    {
+      "path": "resources/views/errors/429.blade.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 419
+    },
+    {
+      "path": "resources/views/errors/500.blade.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 610
+    },
+    {
+      "path": "resources/views/errors/503.blade.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 1630
+    },
+    {
+      "path": "resources/views/errors/layout.blade.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 3177
+    },
+    {
+      "path": "resources/views/kasir/receipt-pdf.blade.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 5819
+    },
+    {
+      "path": "resources/views/kasir/receipt-print.blade.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 1414
+    },
+    {
+      "path": "resources/views/laporan/rekap-pdf.blade.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 6924
+    },
+    {
+      "path": "resources/views/livewire/akun/partials/tabs.blade.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 596
+    },
+    {
+      "path": "resources/views/livewire/akun/password.blade.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 5731
+    },
+    {
+      "path": "resources/views/livewire/akun/sessions.blade.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 4875
+    },
+    {
+      "path": "resources/views/livewire/anggota/index.blade.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 7224
+    },
+    {
+      "path": "resources/views/livewire/anggota/partials/bon-card.blade.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 3186
+    },
+    {
+      "path": "resources/views/livewire/anggota/partials/member-form.blade.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 6854
+    },
+    {
+      "path": "resources/views/livewire/anggota/partials/repay-form.blade.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 7515
+    },
+    {
+      "path": "resources/views/livewire/anggota/partials/saving-form.blade.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 6087
+    },
+    {
+      "path": "resources/views/livewire/anggota/partials/saving-history.blade.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 5439
+    },
+    {
+      "path": "resources/views/livewire/anggota/piutang.blade.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 11515
+    },
+    {
+      "path": "resources/views/livewire/anggota/portal-access.blade.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 3505
+    },
+    {
+      "path": "resources/views/livewire/anggota/show.blade.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 6609
+    },
+    {
+      "path": "resources/views/livewire/audit/changes.blade.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 17955
+    },
+    {
+      "path": "resources/views/livewire/audit/index.blade.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 15008
+    },
+    {
+      "path": "resources/views/livewire/audit/partials/detail.blade.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 6863
+    },
+    {
+      "path": "resources/views/livewire/audit/trash.blade.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 12398
+    },
+    {
+      "path": "resources/views/livewire/auth/login.blade.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 12174
+    },
+    {
+      "path": "resources/views/livewire/barang/barcodes.blade.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 7710
+    },
+    {
+      "path": "resources/views/livewire/barang/catalog.blade.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 20569
+    },
+    {
+      "path": "resources/views/livewire/barang/import-detail.blade.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 8134
+    },
+    {
+      "path": "resources/views/livewire/barang/import-history.blade.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 6652
+    },
+    {
+      "path": "resources/views/livewire/barang/import-preview.blade.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 11885
+    },
+    {
+      "path": "resources/views/livewire/barang/import.blade.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 9187
+    },
+    {
+      "path": "resources/views/livewire/barang/index.blade.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 16567
+    },
+    {
+      "path": "resources/views/livewire/barang/labels.blade.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 9690
+    },
+    {
+      "path": "resources/views/livewire/barang/min-stock-settings.blade.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 6398
+    },
+    {
+      "path": "resources/views/livewire/barang/partials/low-stock-panel.blade.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 4413
+    },
+    {
+      "path": "resources/views/livewire/barang/partials/pagination.blade.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 2716
+    },
+    {
+      "path": "resources/views/livewire/barang/partials/product-form.blade.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 10412
+    },
+    {
+      "path": "resources/views/livewire/barang/restock.blade.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 6104
+    },
+    {
+      "path": "resources/views/livewire/barang/stock-history.blade.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 6784
+    },
+    {
+      "path": "resources/views/livewire/kas/index.blade.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 20641
+    },
+    {
+      "path": "resources/views/livewire/kas/partials/shift-form.blade.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 18771
+    },
+    {
+      "path": "resources/views/livewire/kas/recap.blade.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 12426
+    },
+    {
+      "path": "resources/views/livewire/kas/shifts.blade.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 8303
+    },
+    {
+      "path": "resources/views/livewire/kasir/cart.blade.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 8858
+    },
+    {
+      "path": "resources/views/livewire/kasir/index.blade.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 1997
+    },
+    {
+      "path": "resources/views/livewire/kasir/partials/coupon.blade.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 4357
+    },
+    {
+      "path": "resources/views/livewire/kasir/partials/discount.blade.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 6700
+    },
+    {
+      "path": "resources/views/livewire/kasir/partials/payment-panel.blade.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 29225
+    },
+    {
+      "path": "resources/views/livewire/kasir/partials/promo-panel.blade.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 2924
+    },
+    {
+      "path": "resources/views/livewire/kasir/partials/receipt.blade.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 6836
+    },
+    {
+      "path": "resources/views/livewire/kasir/product-picker.blade.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 10172
+    },
+    {
+      "path": "resources/views/livewire/laporan/index.blade.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 11124
+    },
+    {
+      "path": "resources/views/livewire/laporan/partials/discount-report.blade.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 3941
+    },
+    {
+      "path": "resources/views/livewire/laporan/partials/export-panel.blade.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 5176
+    },
+    {
+      "path": "resources/views/livewire/laporan/partials/sales-chart.blade.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 3089
+    },
+    {
+      "path": "resources/views/livewire/laporan/partials/today-card.blade.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 3817
+    },
+    {
+      "path": "resources/views/livewire/notifikasi/announcements.blade.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 7797
+    },
+    {
+      "path": "resources/views/livewire/notifikasi/bell.blade.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 3784
+    },
+    {
+      "path": "resources/views/livewire/notifikasi/index.blade.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 8925
+    },
+    {
+      "path": "resources/views/livewire/pengadaan/index.blade.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 12059
+    },
+    {
+      "path": "resources/views/livewire/pengadaan/order-form.blade.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 9729
+    },
+    {
+      "path": "resources/views/livewire/pengadaan/orders.blade.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 12712
+    },
+    {
+      "path": "resources/views/livewire/pengadaan/payables.blade.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 15796
+    },
+    {
+      "path": "resources/views/livewire/pengadaan/payment-form.blade.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 10250
+    },
+    {
+      "path": "resources/views/livewire/pengadaan/receiving.blade.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 9576
+    },
+    {
+      "path": "resources/views/livewire/pengadaan/supplier-form.blade.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 6678
+    },
+    {
+      "path": "resources/views/livewire/pengadaan/suppliers.blade.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 14678
+    },
+    {
+      "path": "resources/views/livewire/pengaturan/credit.blade.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 6313
+    },
+    {
+      "path": "resources/views/livewire/pengaturan/index.blade.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 10849
+    },
+    {
+      "path": "resources/views/livewire/pengaturan/profile.blade.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 16283
+    },
+    {
+      "path": "resources/views/livewire/pengaturan/receipt.blade.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 6800
+    },
+    {
+      "path": "resources/views/livewire/pengaturan/returns.blade.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 4449
+    },
+    {
+      "path": "resources/views/livewire/pengaturan/security.blade.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 11319
+    },
+    {
+      "path": "resources/views/livewire/pengaturan/tax.blade.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 10276
+    },
+    {
+      "path": "resources/views/livewire/pengguna/active-sessions.blade.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 4825
+    },
+    {
+      "path": "resources/views/livewire/pengguna/index.blade.php",
+      "reason": "changed",
+      "language": "php",
+      "size": 12109
+    },
+    {
+      "path": "resources/views/livewire/pengguna/locked.blade.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 10303
+    },
+    {
+      "path": "resources/views/livewire/pengguna/partials/user-form.blade.php",
+      "reason": "changed",
+      "language": "php",
+      "size": 10022
+    },
+    {
+      "path": "resources/views/livewire/pinjaman/applications.blade.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 7976
+    },
+    {
+      "path": "resources/views/livewire/pinjaman/arrears.blade.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 7793
+    },
+    {
+      "path": "resources/views/livewire/pinjaman/audit-trail.blade.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 19892
+    },
+    {
+      "path": "resources/views/livewire/pinjaman/disbursements.blade.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 4245
+    },
+    {
+      "path": "resources/views/livewire/pinjaman/index.blade.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 11093
+    },
+    {
+      "path": "resources/views/livewire/pinjaman/installments.blade.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 9297
+    },
+    {
+      "path": "resources/views/livewire/pinjaman/partials/application-form.blade.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 12895
+    },
+    {
+      "path": "resources/views/livewire/pinjaman/partials/cancel-dialog.blade.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 2095
+    },
+    {
+      "path": "resources/views/livewire/pinjaman/partials/decision-dialog.blade.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 2489
+    },
+    {
+      "path": "resources/views/livewire/pinjaman/payment-history.blade.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 5974
+    },
+    {
+      "path": "resources/views/livewire/pinjaman/recap.blade.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 14065
+    },
+    {
+      "path": "resources/views/livewire/pinjaman/show.blade.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 43475
+    },
+    {
+      "path": "resources/views/livewire/portal/checkout.blade.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 10578
+    },
+    {
+      "path": "resources/views/livewire/portal/home.blade.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 2023
+    },
+    {
+      "path": "resources/views/livewire/portal/loans.blade.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 3061
+    },
+    {
+      "path": "resources/views/livewire/portal/login.blade.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 2592
+    },
+    {
+      "path": "resources/views/livewire/portal/order-show.blade.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 7489
+    },
+    {
+      "path": "resources/views/livewire/portal/orders.blade.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 1713
+    },
+    {
+      "path": "resources/views/livewire/portal/purchases.blade.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 5396
+    },
+    {
+      "path": "resources/views/livewire/portal/savings.blade.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 7060
+    },
+    {
+      "path": "resources/views/livewire/portal/shop.blade.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 7781
+    },
+    {
+      "path": "resources/views/livewire/promo/index.blade.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 13120
+    },
+    {
+      "path": "resources/views/livewire/promo/schedule.blade.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 12154
+    },
+    {
+      "path": "resources/views/livewire/simpanan/dues-recap.blade.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 8035
+    },
+    {
+      "path": "resources/views/livewire/simpanan/entries.blade.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 6768
+    },
+    {
+      "path": "resources/views/livewire/simpanan/member-savings.blade.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 9205
+    },
+    {
+      "path": "resources/views/livewire/simpanan/monthly-dues.blade.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 15731
+    },
+    {
+      "path": "resources/views/livewire/simpanan/types.blade.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 10415
+    },
+    {
+      "path": "resources/views/livewire/sistem/backups.blade.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 11384
+    },
+    {
+      "path": "resources/views/livewire/sistem/health.blade.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 9278
+    },
+    {
+      "path": "resources/views/livewire/sistem/performance.blade.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 6259
+    },
+    {
+      "path": "resources/views/livewire/sistem/queue.blade.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 6959
+    },
+    {
+      "path": "resources/views/livewire/sistem/restore-test.blade.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 7536
+    },
+    {
+      "path": "resources/views/livewire/transaksi/index.blade.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 6881
+    },
+    {
+      "path": "resources/views/livewire/transaksi/member-orders.blade.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 11209
+    },
+    {
+      "path": "resources/views/livewire/transaksi/partials/pagination.blade.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 2182
+    },
+    {
+      "path": "resources/views/livewire/transaksi/partials/summary.blade.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 4527
+    },
+    {
+      "path": "resources/views/livewire/transaksi/return-form.blade.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 9543
+    },
+    {
+      "path": "resources/views/livewire/transaksi/return-history.blade.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 9332
+    },
+    {
+      "path": "resources/views/livewire/transaksi/return-status-notice.blade.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 2684
+    },
+    {
+      "path": "resources/views/livewire/transaksi/returns.blade.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 18036
+    },
+    {
+      "path": "resources/views/livewire/transaksi/show.blade.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 12767
+    },
+    {
+      "path": "resources/views/livewire/transaksi/void-form.blade.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 7462
+    },
+    {
+      "path": "resources/views/pengumuman.blade.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 2049
+    },
+    {
+      "path": "resources/views/pinjaman/rekap-pdf.blade.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 4572
+    },
+    {
+      "path": "resources/views/simpanan/rekap-pdf.blade.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 2108
+    },
+    {
+      "path": "resources/views/simpanan/setoran-pdf.blade.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 1805
+    },
+    {
+      "path": "routes/console.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 8158
+    },
+    {
+      "path": "routes/web.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 51633
+    },
+    {
+      "path": "tests/Concerns/MakesProductImports.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 2121
+    },
+    {
+      "path": "tests/Feature/Anggota/IndexTest.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 1708
+    },
+    {
+      "path": "tests/Feature/Anggota/MemberCodeGeneratorTest.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 2310
+    },
+    {
+      "path": "tests/Feature/Anggota/MemberFormTest.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 2502
+    },
+    {
+      "path": "tests/Feature/Anggota/SavingFormTest.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 2652
+    },
+    {
+      "path": "tests/Feature/Anggota/SavingHistoryTest.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 2957
+    },
+    {
+      "path": "tests/Feature/Anggota/SavingsHistoryEndpointTest.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 3258
+    },
+    {
+      "path": "tests/Feature/Anggota/ShowTest.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 1541
+    },
+    {
+      "path": "tests/Feature/Audit/AuditLogTest.php",
+      "reason": "changed",
+      "language": "php",
+      "size": 6938
+    },
+    {
+      "path": "tests/Feature/Audit/AuditPageTest.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 4228
+    },
+    {
+      "path": "tests/Feature/Audit/SettingsAndAccountHistoryTest.php",
+      "reason": "changed",
+      "language": "php",
+      "size": 2693
+    },
+    {
+      "path": "tests/Feature/Auth/ChangePasswordTest.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 4469
+    },
+    {
+      "path": "tests/Feature/Auth/RoleMiddlewareTest.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 3443
+    },
+    {
+      "path": "tests/Feature/Auth/SessionManagementTest.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 5030
+    },
+    {
+      "path": "tests/Feature/Barang/IndexTest.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 2426
+    },
+    {
+      "path": "tests/Feature/Barang/LowStockPanelTest.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 1847
+    },
+    {
+      "path": "tests/Feature/Barang/MinStockSettingsTest.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 2789
+    },
+    {
+      "path": "tests/Feature/Barang/PaginationTest.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 1557
+    },
+    {
+      "path": "tests/Feature/Barang/ProductFormTest.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 3483
+    },
+    {
+      "path": "tests/Feature/Barang/ProductListEndpointTest.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 2023
+    },
+    {
+      "path": "tests/Feature/Barang/StockAlertEndpointTest.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 2339
+    },
+    {
+      "path": "tests/Feature/BerandaTest.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 1866
+    },
+    {
+      "path": "tests/Feature/Database/NotificationSchemaTest.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 3691
+    },
+    {
+      "path": "tests/Feature/Database/ProductObserverTest.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 2324
+    },
+    {
+      "path": "tests/Feature/Database/SettingsSchemaTest.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 2682
+    },
+    {
+      "path": "tests/Feature/Database/StockServiceTest.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 2820
+    },
+    {
+      "path": "tests/Feature/Database/TransactionModelTest.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 2417
+    },
+    {
+      "path": "tests/Feature/Database/UserRoleTest.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 3182
+    },
+    {
+      "path": "tests/Feature/ErrorPagesTest.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 1274
+    },
+    {
+      "path": "tests/Feature/ExampleTest.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 758
+    },
+    {
+      "path": "tests/Feature/Kasir/CheckoutTest.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 5141
+    },
+    {
+      "path": "tests/Feature/Kasir/PaymentTest.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 3042
+    },
+    {
+      "path": "tests/Feature/Kasir/ProductSearchTest.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 2405
+    },
+    {
+      "path": "tests/Feature/Kasir/TaxRoundingCheckoutTest.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 6115
+    },
+    {
+      "path": "tests/Feature/Kasir/TransactionReceiptTest.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 2259
+    },
+    {
+      "path": "tests/Feature/Laporan/SalesReportTest.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 4414
+    },
+    {
+      "path": "tests/Feature/Notifikasi/AnnouncementEndpointTest.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 5516
+    },
+    {
+      "path": "tests/Feature/Notifikasi/AnnouncementTest.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 4084
+    },
+    {
+      "path": "tests/Feature/Notifikasi/BellTest.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 2533
+    },
+    {
+      "path": "tests/Feature/Notifikasi/MarkReadEndpointTest.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 3490
+    },
+    {
+      "path": "tests/Feature/Notifikasi/MarkReadTest.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 2497
+    },
+    {
+      "path": "tests/Feature/Notifikasi/NotificationEndpointTest.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 4653
+    },
+    {
+      "path": "tests/Feature/Notifikasi/NotificationModelTest.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 3505
+    },
+    {
+      "path": "tests/Feature/Notifikasi/StockAlertAutomationTest.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 5284
+    },
+    {
+      "path": "tests/Feature/Pengaturan/IndexTest.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 2300
+    },
+    {
+      "path": "tests/Feature/Pengaturan/LogoEndpointTest.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 5120
+    },
+    {
+      "path": "tests/Feature/Pengaturan/ReceiptSettingsTest.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 3287
+    },
+    {
+      "path": "tests/Feature/Pengaturan/SaveNotificationTest.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 1958
+    },
+    {
+      "path": "tests/Feature/Pengaturan/SettingsAuthorizationTest.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 3677
+    },
+    {
+      "path": "tests/Feature/Pengaturan/SettingsServiceTest.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 3938
+    },
+    {
+      "path": "tests/Feature/Pengguna/IndexTest.php",
+      "reason": "changed",
+      "language": "php",
+      "size": 8489
+    },
+    {
+      "path": "tests/Feature/Pengguna/MultiRoleTest.php",
+      "reason": "new",
+      "language": "php",
+      "size": 6394
+    },
+    {
+      "path": "tests/Feature/Pinjaman/SeedsRecapLoans.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 2064
+    },
+    {
+      "path": "tests/Feature/Transaksi/DateFilterTest.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 4294
+    },
+    {
+      "path": "tests/Feature/Transaksi/IndexTest.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 2091
+    },
+    {
+      "path": "tests/Feature/Transaksi/NavigationTest.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 2142
+    },
+    {
+      "path": "tests/Feature/Transaksi/TransactionListEndpointTest.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 3282
+    },
+    {
+      "path": "tests/Feature/Transaksi/TransactionSummaryEndpointTest.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 3585
+    },
+    {
+      "path": "tests/TestCase.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 2209
+    },
+    {
+      "path": "tests/Unit/ExampleTest.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 243
+    },
+    {
+      "path": "vite.config.js",
+      "reason": "needs_summary",
+      "language": "javascript",
+      "size": 436
+    }
+  ]
+}

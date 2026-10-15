@@ -51,7 +51,7 @@ class UserForm extends Form
     {
         $this->reset();
         $this->resetValidation();
-        $this->fill(['id' => $user->id, 'name' => $user->name, 'email' => $user->email, 'roles' => $user->roleNames() ?: ['kasir'], 'is_active' => (bool) $user->is_active]);
+        $this->fill(['id' => $user->id, 'name' => $user->name, 'email' => $user->email, 'roles' => $user->roleNames(), 'is_active' => (bool) $user->is_active]);
     }
 
     public function save(?User $actor): User

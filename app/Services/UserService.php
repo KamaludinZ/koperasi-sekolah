@@ -64,7 +64,8 @@ class UserService
         $term = mb_strtolower(trim($filters['search'] ?? ''));
 
         return User::query()->with('role', 'roles')
-            ->when(($filters['role'] ?? '') !== '', fn ($q) => $q->whereHas('roles', fn ($r) => $r->where('name', $filters['role'])))
+            ->when(($filters['role'] ?? '') === 'tanpa', fn ($q) => $q->whereNull('role_id')->whereDoesntHave('roles'))
+            ->when(! in_array($filters['role'] ?? '', ['', 'tanpa'], true), fn ($q) => $q->whereHas('roles', fn ($r) => $r->where('name', $filters['role'])))
             ->when($term !== '', function (Builder $q) use ($term) {
                 $like = '%'.str_replace(['\\', '%', '_'], ['\\\\', '\\%', '\\_'], $term).'%';
                 $q->where(fn (Builder $w) => $w->whereRaw("LOWER(name) LIKE ? ESCAPE '\\'", [$like])
@@ -84,6 +85,8 @@ class UserService
             // akun multi-peran dihitung di setiap perannya
             ...collect(Role::LABELS)->map(fn ($l, $name) => $active->filter(fn ($u) => in_array($name, $u->roleNames(), true))->count())->all(),
             'multi' => $active->filter(fn ($u) => count($u->roleNames()) > 1)->count(),
+            // akun (aktif maupun tidak) yang tidak memegang peran apa pun: tidak bisa membuka menu apa pun
+            'no_role' => User::query()->whereNull('role_id')->whereDoesntHave('roles')->count(),
         ];
     }
 
