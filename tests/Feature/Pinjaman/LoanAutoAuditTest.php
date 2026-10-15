@@ -117,6 +117,41 @@ class LoanAutoAuditTest extends TestCase
         $this->assertSame(0, $this->auto()->count());
     }
 
+    public function test_payments_and_disbursements_outside_official_flow_are_logged(): void
+    {
+        app(LoanApplicationService::class)->decide($this->loan, 'disetujui', null, auth()->id());
+        app(LoanDisbursementService::class)->disburse($this->loan->fresh(), ['disbursed_on' => '2026-10-01', 'amount' => 300000], auth()->id());
+        $this->travelTo('2026-11-02 10:00:00');
+        $official = app(LoanPaymentService::class)->record($this->loan->fresh(), ['amount' => 100000, 'paid_at' => '2026-11-01', 'payment_method' => 'tunai'], auth()->id());
+        $this->assertSame(0, ActivityLog::whereIn('event', ['pinjaman.angsuran_otomatis', 'pinjaman.pencairan_otomatis'])->count()); // jalur resmi tidak dobel
+        $before = $this->auto()->count();
+
+        // pembayaran disisipkan lewat model tanpa layanan (mis. skrip) → tercatat
+        $sneaky = \App\Models\LoanPayment::create(['loan_id' => $this->loan->id, 'paid_at' => '2026-11-02', 'amount' => 5000, 'payment_method' => 'tunai', 'allocations' => []]);
+        $log = ActivityLog::where('event', 'pinjaman.angsuran_otomatis')->sole();
+        $this->assertSame('dibuat', $log->action);
+        $this->assertSame(['paid_at' => '2026-11-02', 'amount' => 5000, 'payment_method' => 'tunai'], $log->new_values);
+        $this->assertSame([$sneaky->id, 5000], [$log->properties['id'], $log->amount]);
+        $this->assertStringContainsString('Pembayaran angsuran PJM-A dicatat di luar alur resmi', $log->description);
+
+        // nominal pembayaran resmi diubah langsung → tercatat sebelum/sesudah
+        $official->update(['amount' => 120000]);
+        $chg = ActivityLog::where('event', 'pinjaman.angsuran_otomatis')->latest('id')->first();
+        $this->assertSame([['amount' => 100000], ['amount' => 120000], 'diubah'], [$chg->old_values, $chg->new_values, $chg->action]);
+
+        // bukti pencairan diubah langsung
+        $this->loan->disbursements()->first()->update(['proof' => 'kuitansi diganti']);
+        $d = ActivityLog::where('event', 'pinjaman.pencairan_otomatis')->sole();
+        $this->assertSame(['proof' => 'kuitansi diganti'], $d->new_values);
+
+        // koreksi resmi (membatalkan & mengganti) tidak memicu catatan otomatis
+        $count = ActivityLog::whereIn('event', ['pinjaman.angsuran_otomatis', 'pinjaman.pencairan_otomatis'])->count();
+        app(LoanPaymentService::class)->correct($official->fresh(), 'Nominal salah ketik', ['amount' => 100000, 'paid_at' => '2026-11-01', 'payment_method' => 'tunai'], auth()->id());
+        $this->assertSame($count, ActivityLog::whereIn('event', ['pinjaman.angsuran_otomatis', 'pinjaman.pencairan_otomatis'])->count());
+        $this->assertSame($before, $this->auto()->count());
+        $this->assertTrue(app(LoanAuditChain::class)->verify()['valid']);
+    }
+
     public function test_listed_in_audit_trail_as_notable(): void
     {
         $this->loan->update(['payment_method' => 'transfer']);

@@ -1,6 +1,6 @@
 {
   "repo": "Koperasi Sekolah",
-  "generatedForCommit": "dc42379384a82388e5befe3da65028b824fa741f",
+  "generatedForCommit": "71ff972036d4491e912d103f3314f6aabd276a0a",
   "files": [
     {
       "path": ".claude/skills/ngodingpakeai/SKILL.md",
@@ -390,13 +390,13 @@
       "path": "app/Models/ActivityLog.php",
       "reason": "changed",
       "language": "php",
-      "size": 4072
+      "size": 4273
     },
     {
       "path": "app/Models/Loan.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 6667
+      "size": 6756
     },
     {
       "path": "app/Models/LoanDisbursement.php",
@@ -412,7 +412,7 @@
     },
     {
       "path": "app/Models/LoanInstallmentChange.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 3369
     },
@@ -441,10 +441,16 @@
       "size": 2211
     },
     {
-      "path": "app/Services/LoanApplicationService.php",
-      "reason": "needs_summary",
+      "path": "app/Providers/AppServiceProvider.php",
+      "reason": "changed",
       "language": "php",
-      "size": 13609
+      "size": 6798
+    },
+    {
+      "path": "app/Services/LoanApplicationService.php",
+      "reason": "changed",
+      "language": "php",
+      "size": 14182
     },
     {
       "path": "app/Services/LoanArrearsQuery.php",
@@ -454,7 +460,7 @@
     },
     {
       "path": "app/Services/LoanAuditChain.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 6719
     },
@@ -466,9 +472,15 @@
     },
     {
       "path": "app/Services/LoanAuditQuery.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 5591
+      "size": 5778
+    },
+    {
+      "path": "app/Services/LoanAutoAudit.php",
+      "reason": "new",
+      "language": "php",
+      "size": 5373
     },
     {
       "path": "app/Services/LoanDisbursementService.php",
@@ -1180,7 +1192,7 @@
     },
     {
       "path": "database/migrations/2026_10_16_000013_create_loan_audit_chain_table.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 3930
     },
@@ -2806,7 +2818,7 @@
     },
     {
       "path": "tests/Feature/Pinjaman/LoanAuditChainTest.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 8364
     },
@@ -2815,6 +2827,12 @@
       "reason": "needs_summary",
       "language": "php",
       "size": 5706
+    },
+    {
+      "path": "tests/Feature/Pinjaman/LoanAutoAuditTest.php",
+      "reason": "new",
+      "language": "php",
+      "size": 5665
     },
     {
       "path": "tests/Feature/Pinjaman/LoanChangeLogTest.php",

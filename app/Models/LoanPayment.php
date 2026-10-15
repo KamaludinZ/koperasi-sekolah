@@ -14,6 +14,13 @@ class LoanPayment extends Model
     /** True bila objek ini dikembalikan dari kiriman ulang (kunci idempoten sama), bukan pembayaran baru. */
     public bool $wasReplayed = false;
 
+    protected static function booted(): void
+    {
+        // jaring pengaman jejak audit: dibuat/diubah di luar alur resmi tercatat otomatis (LoanAutoAudit)
+        static::created(fn (self $m) => \App\Services\LoanAutoAudit::captureRecord($m, 'payment'));
+        static::updated(fn (self $m) => \App\Services\LoanAutoAudit::captureRecord($m, 'payment'));
+    }
+
     protected function casts(): array
     {
         return ['paid_at' => 'date', 'amount' => 'decimal:2', 'allocations' => 'array', 'voided_at' => 'datetime'];

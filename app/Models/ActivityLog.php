@@ -60,7 +60,7 @@ class ActivityLog extends Model
         // jejak pinjaman ikut dirantai HMAC (LoanAuditChain)
         static::created(function (ActivityLog $log) {
             if ($log->category === 'pinjaman') {
-                if ($log->subject_type === 'loan' && $log->event !== 'pinjaman.data_berubah') {
+                if ($log->subject_type === 'loan' && ! in_array($log->event, \App\Services\LoanAutoAudit::EVENTS, true)) {
                     \App\Services\LoanAutoAudit::markExplicit((int) $log->subject_id);
                 }
                 app(\App\Services\LoanAuditChain::class)->append('activity', $log->id, $log->subject_type === 'loan' ? (int) $log->subject_id : null, $log->checksum);

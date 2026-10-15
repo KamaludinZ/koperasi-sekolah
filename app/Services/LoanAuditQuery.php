@@ -21,6 +21,7 @@ class LoanAuditQuery
         'pinjaman.hitung_ulang' => 'Sisa & status dihitung ulang', 'pinjaman.menunggak' => 'Pinjaman menunggak',
         'pinjaman.rekap_diunduh' => 'Rekap diunduh', 'pinjaman.audit_diekspor' => 'Jejak audit diekspor',
         'pinjaman.data_berubah' => 'Data pinjaman berubah (otomatis)',
+        'pinjaman.pencairan_otomatis' => 'Pencairan berubah di luar alur (otomatis)', 'pinjaman.angsuran_otomatis' => 'Pembayaran berubah di luar alur (otomatis)',
     ];
 
     public const GROUPS = [
@@ -29,11 +30,11 @@ class LoanAuditQuery
         'angsuran' => ['label' => 'Angsuran & koreksi', 'events' => ['pinjaman.angsuran', 'pinjaman.angsuran_koreksi', 'pinjaman.jadwal_diubah', 'pinjaman.hitung_ulang']],
         'tunggakan' => ['label' => 'Tunggakan', 'events' => ['pinjaman.menunggak']],
         'ekspor' => ['label' => 'Rekap & ekspor', 'events' => ['pinjaman.rekap_diunduh', 'pinjaman.audit_diekspor']],
-        'lainnya' => ['label' => 'Perubahan lain', 'events' => ['pinjaman.data_berubah']],
+        'lainnya' => ['label' => 'Perubahan lain', 'events' => ['pinjaman.data_berubah', 'pinjaman.pencairan_otomatis', 'pinjaman.angsuran_otomatis']],
     ];
 
     /** Peristiwa yang patut diperhatikan (ditandai di daftar). */
-    public const NOTABLE = ['pinjaman.angsuran_koreksi', 'pinjaman.bukti_tidak_cocok', 'pinjaman.jadwal_diubah', 'pinjaman.menunggak', 'pinjaman.dibatalkan', 'pinjaman.data_berubah'];
+    public const NOTABLE = ['pinjaman.angsuran_koreksi', 'pinjaman.bukti_tidak_cocok', 'pinjaman.jadwal_diubah', 'pinjaman.menunggak', 'pinjaman.dibatalkan', 'pinjaman.data_berubah', 'pinjaman.pencairan_otomatis', 'pinjaman.angsuran_otomatis'];
 
     public static function label(string $event): string
     {
