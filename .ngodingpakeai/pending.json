@@ -1,6 +1,6 @@
 {
   "repo": "Koperasi Sekolah",
-  "generatedForCommit": "663af6f2b40b712175ceed9fcbe3dbcb41dc6f8e",
+  "generatedForCommit": "b0bede09ccd1158125b190c24bacac99b8b608a4",
   "files": [
     {
       "path": ".claude/skills/ngodingpakeai/SKILL.md",
@@ -196,7 +196,7 @@
     },
     {
       "path": "app/Livewire/Audit/RoleImpersonation.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 4168
     },
@@ -262,9 +262,9 @@
     },
     {
       "path": "app/Livewire/Pengguna/Impersonation.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 7649
+      "size": 8372
     },
     {
       "path": "app/Livewire/Pengguna/Index.php",
@@ -346,7 +346,7 @@
     },
     {
       "path": "app/Services/RoleImpersonationTrail.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 10133
     },
@@ -1552,13 +1552,13 @@
     },
     {
       "path": "resources/views/livewire/audit/partials/role-change-detail.blade.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 7433
     },
     {
       "path": "resources/views/livewire/audit/role-impersonation.blade.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 11560
     },
@@ -1900,9 +1900,9 @@
     },
     {
       "path": "resources/views/livewire/pengguna/partials/impersonate-dialog.blade.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 6765
+      "size": 8473
     },
     {
       "path": "resources/views/livewire/pengguna/partials/role-form.blade.php",
@@ -2272,7 +2272,7 @@
     },
     {
       "path": "tests/Feature/Audit/RoleChangeDetailTest.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 5375
     },
@@ -2461,6 +2461,12 @@
       "reason": "needs_summary",
       "language": "php",
       "size": 5028
+    },
+    {
+      "path": "tests/Feature/Impersonasi/DialogAuditContextTest.php",
+      "reason": "new",
+      "language": "php",
+      "size": 3667
     },
     {
       "path": "tests/Feature/Impersonasi/EndAuditLogTest.php",

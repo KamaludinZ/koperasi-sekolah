@@ -205,6 +205,7 @@ class ImpersonationService
             return ['ok' => false, 'admin' => null, 'target_name' => null];
         }
 
+        $actions = RoleImpersonationTrail::actionCount($imp['id']);
         $this->close($imp['id'], $endReason);
         $admin = User::with(['role', 'roles'])->find($imp['admin_id']);
         if ($imp['target_type'] === 'anggota') {
@@ -229,7 +230,7 @@ class ImpersonationService
         session()->regenerateToken(); // identitas berganti → token CSRF lama tidak berlaku
         session()->put('last_activity_at', now()->timestamp);
 
-        return ['ok' => true, 'admin' => $admin, 'target_name' => $imp['target_name'], 'return_to' => $imp['return_to'] ?? null];
+        return ['ok' => true, 'admin' => $admin, 'target_name' => $imp['target_name'], 'return_to' => $imp['return_to'] ?? null, 'actions' => $actions];
     }
 
     /**
@@ -360,7 +361,8 @@ class ImpersonationService
     {
         if ($result['ok']) {
             return redirect()->to($this->returnUrl($result))->with('toast', ['type' => 'success',
-                'message' => "Anda kembali sebagai {$result['admin']->name}. Sesi sebagai {$result['target_name']} ditutup."]);
+                'message' => "Anda kembali sebagai {$result['admin']->name}. Sesi sebagai {$result['target_name']} ditutup"
+                    .(($result['actions'] ?? 0) > 0 ? " — {$result['actions']} aksi tercatat atas nama Anda." : '.')]);
         }
         if ($result['target_name'] === null) {
             return redirect()->to(Auth::guard('web')->check() ? route('beranda') : route('login'));

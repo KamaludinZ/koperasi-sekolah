@@ -6,12 +6,14 @@
 @php
     $imp = \App\Support\ImpersonationSession::current();
     $exitUrl = \Illuminate\Support\Facades\Route::has('impersonasi.selesai') ? route('impersonasi.selesai') : null;
+    $recorded = $imp ? \App\Services\RoleImpersonationTrail::actionCount($imp['id']) : 0;
 @endphp
 @if ($imp)
     <div class="sticky top-0 z-[60] border-b-2 border-red-800 bg-[repeating-linear-gradient(135deg,#991b1b_0_14px,#b91c1c_14px_28px)] text-white shadow-md"
          role="region" aria-label="Mode impersonasi" data-impersonation-banner
          x-data="{
              left: {{ max(0, $imp['expires_at'] - now()->timestamp) }},
+             get soon() { return this.left <= 120 },
              timer: null,
              get clock() { const m = Math.floor(this.left / 60), s = this.left % 60; return m + ':' + String(s).padStart(2, '0') },
              init() { this.timer = setInterval(() => { if (this.left > 0) { this.left--; } else { clearInterval(this.timer); window.location.reload(); } }, 1000) },
@@ -30,7 +32,9 @@
                     <span class="block text-xs font-semibold text-white" data-read-only-mode>Mode lihat saja: belanja, pembayaran, PIN & pembatalan pesanan dinonaktifkan.</span>
                 @endif
             </p>
-            <span class="text-xs tabular-nums" aria-live="off">Sisa <strong class="text-sm" x-text="clock">{{ intdiv(max(0, $imp['expires_at'] - now()->timestamp), 60) }}:{{ str_pad((string) (max(0, $imp['expires_at'] - now()->timestamp) % 60), 2, '0', STR_PAD_LEFT) }}</strong></span>
+            <span class="rounded-full bg-white/15 px-2 py-0.5 text-xs" data-recorded-actions title="Aksi yang tercatat di jejak audit atas nama {{ $imp['admin_name'] }} selama sesi ini">{{ $recorded }} aksi tercatat</span>
+            <span class="text-xs tabular-nums" aria-live="off" x-bind:class="soon && 'animate-pulse rounded bg-amber-300 px-1.5 text-red-900'">
+                <span x-show="soon" x-cloak class="font-bold">Segera berakhir · </span>Sisa <strong class="text-sm" x-text="clock">{{ intdiv(max(0, $imp['expires_at'] - now()->timestamp), 60) }}:{{ str_pad((string) (max(0, $imp['expires_at'] - now()->timestamp) % 60), 2, '0', STR_PAD_LEFT) }}</strong></span>
             @if ($exitUrl)
                 <form method="POST" action="{{ $exitUrl }}">
                     @csrf

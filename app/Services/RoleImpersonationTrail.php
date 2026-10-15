@@ -11,6 +11,7 @@ use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 /**
  * Jejak audit khusus peran & impersonasi (Audit → Peran & impersonasi):
@@ -175,6 +176,18 @@ class RoleImpersonationTrail
             'repair' => $kind === 'perbaikan' ? array_intersect_key($p, array_flip(['missing_pivot', 'wrong_primary', 'no_role', 'fixed'])) : null,
             'valid' => $this->integrity([$log->id])[$log->id] ?? false,
         ];
+    }
+
+    /** Jumlah aksi yang tercatat selama satu sesi impersonasi (di luar catatan mulai/selesainya). */
+    public static function actionCount(string $impersonationId): int
+    {
+        if (! Str::isUuid($impersonationId)) {
+            return 0;
+        }
+        $needle = '%"impersonation":{"id":"'.$impersonationId.'"%';
+        $q = ActivityLog::query()->whereNotIn('event', self::IMPERSONATION_EVENTS);
+
+        return (DB::getDriverName() === 'pgsql' ? $q->whereRaw('properties::text LIKE ?', [$needle]) : $q->where('properties', 'like', $needle))->count();
     }
 
     /** Ringkasan untuk kartu atas (periode terpilih). */
