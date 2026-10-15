@@ -1,6 +1,6 @@
 {
   "repo": "Koperasi Sekolah",
-  "generatedForCommit": "2bb487e2c74a275dab2da43096446c764d52fef0",
+  "generatedForCommit": "3304a8f1bdda69d51cbe33af4174e3d7f3a44d97",
   "files": [
     {
       "path": ".claude/skills/ngodingpakeai/SKILL.md",
@@ -285,6 +285,12 @@
       "size": 2635
     },
     {
+      "path": "app/Models/LoanInstallment.php",
+      "reason": "changed",
+      "language": "php",
+      "size": 7406
+    },
+    {
       "path": "app/Models/Setting.php",
       "reason": "needs_summary",
       "language": "php",
@@ -309,8 +315,14 @@
       "size": 2211
     },
     {
-      "path": "app/Services/ImpersonationService.php",
+      "path": "app/Services/AuditLog.php",
       "reason": "changed",
+      "language": "php",
+      "size": 5038
+    },
+    {
+      "path": "app/Services/ImpersonationService.php",
+      "reason": "needs_summary",
       "language": "php",
       "size": 18892
     },
@@ -325,6 +337,12 @@
       "reason": "needs_summary",
       "language": "php",
       "size": 2928
+    },
+    {
+      "path": "app/Services/OrderService.php",
+      "reason": "changed",
+      "language": "php",
+      "size": 26793
     },
     {
       "path": "app/Services/PasswordService.php",
@@ -349,6 +367,12 @@
       "reason": "needs_summary",
       "language": "php",
       "size": 8693
+    },
+    {
+      "path": "app/Support/Actor.php",
+      "reason": "new",
+      "language": "php",
+      "size": 2153
     },
     {
       "path": "app/Support/ImpersonationPolicy.php",
@@ -1522,9 +1546,9 @@
     },
     {
       "path": "resources/views/livewire/audit/index.blade.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 15008
+      "size": 15406
     },
     {
       "path": "resources/views/livewire/audit/partials/detail.blade.php",
@@ -2170,7 +2194,7 @@
     },
     {
       "path": "routes/console.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 9957
     },
@@ -2403,6 +2427,12 @@
       "size": 6098
     },
     {
+      "path": "tests/Feature/Impersonasi/ActionAttributionTest.php",
+      "reason": "new",
+      "language": "php",
+      "size": 4390
+    },
+    {
       "path": "tests/Feature/Impersonasi/AdminOnlyButtonsTest.php",
       "reason": "needs_summary",
       "language": "php",
@@ -2416,7 +2446,7 @@
     },
     {
       "path": "tests/Feature/Impersonasi/EndAuditLogTest.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 5971
     },

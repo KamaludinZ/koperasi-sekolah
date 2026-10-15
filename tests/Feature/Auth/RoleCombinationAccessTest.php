@@ -41,7 +41,7 @@ class RoleCombinationAccessTest extends TestCase
             '/simpanan', '/simpanan/mutasi', '/simpanan/setoran-bulanan', '/simpanan/setoran-bulanan/rekap',
             '/pinjaman', '/pinjaman/angsuran', '/pinjaman/angsuran/riwayat', '/pinjaman/audit', '/pinjaman/pencairan',
             '/pinjaman/pengajuan', '/pinjaman/rekap', '/pinjaman/tunggakan',
-            '/laporan', '/audit', '/audit/perubahan', '/audit/terhapus',
+            '/laporan', '/audit', '/audit/perubahan', '/audit/terhapus', '/audit/peran-impersonasi',
         ],
         'admin' => '*', // seluruh halaman petugas
     ];

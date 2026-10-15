@@ -645,6 +645,7 @@ Route::middleware(['menu:audit', 'peran:admin,pengurus'])->group(function () {
     Route::get('/audit', Audit\Index::class)->name('audit');
     Route::get('/audit/perubahan', Audit\Changes::class)->name('audit.perubahan');
     Route::get('/audit/terhapus', Audit\Trash::class)->name('audit.terhapus');
+    Route::get('/audit/peran-impersonasi', Audit\RoleImpersonation::class)->name('audit.peran');
     Route::get('/audit/data', [AuditLogController::class, 'index'])->name('audit.data');
     Route::get('/audit/perubahan/data', [AuditLogController::class, 'changes'])->name('audit.perubahan.data');
     Route::get('/audit/{log}/data', [AuditLogController::class, 'show'])->whereNumber('log')->name('audit.detail');
