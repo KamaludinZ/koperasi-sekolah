@@ -66,7 +66,7 @@
                         @php $n = (int) $max_attempts; @endphp
                         <p class="rounded-lg bg-stone-50 px-3 py-2 text-xs text-stone-600">
                             {{ $n }}× gagal → kunci 1 menit · {{ $n * 2 }}× → 15 menit · {{ $n * 3 }}× → sampai dibuka Admin.
-                            <a href="{{ route('pengguna.terkunci') }}" wire:navigate class="font-semibold text-emerald-800 hover:underline">Lihat akun terkunci</a>
+                            @if (\App\Support\Menu::canReach('pengguna.terkunci'))<a href="{{ route('pengguna.terkunci') }}" wire:navigate class="font-semibold text-emerald-800 hover:underline">Lihat akun terkunci</a>@endif
                         </p>
                     @endif
                 </section>

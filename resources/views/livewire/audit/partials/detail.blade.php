@@ -13,10 +13,10 @@
         ];
         $show = fn ($v) => is_bool($v) ? ($v ? 'Ya' : 'Tidak') : ($v === null || $v === '' ? '—' : (is_array($v) ? json_encode($v, JSON_UNESCAPED_UNICODE) : $v));
         $other = collect($p)->except(['changes', 'items']);
-        $subjectUrl = match ($log->subject_type) {
-            'transaction' => $log->subject_id ? route('transaksi.show', $log->subject_id) : null,
-            'member' => $log->subject_id && \App\Models\Member::whereKey($log->subject_id)->exists() ? route('anggota.show', $log->subject_id) : null,
-            'product_import' => $log->subject_id && \App\Models\ProductImport::whereKey($log->subject_id)->exists() ? route('barang.impor.detail', $log->subject_id) : null,
+        $subjectUrl = match ($log->subject_type) { // hanya bila petugas boleh membuka halaman tujuannya
+            'transaction' => $log->subject_id && \App\Support\Menu::canReach('transaksi.show') ? route('transaksi.show', $log->subject_id) : null,
+            'member' => $log->subject_id && \App\Support\Menu::canReach('anggota.show') && \App\Models\Member::whereKey($log->subject_id)->exists() ? route('anggota.show', $log->subject_id) : null,
+            'product_import' => $log->subject_id && \App\Support\Menu::canReach('barang.impor.detail') && \App\Models\ProductImport::whereKey($log->subject_id)->exists() ? route('barang.impor.detail', $log->subject_id) : null,
             default => null,
         };
     @endphp

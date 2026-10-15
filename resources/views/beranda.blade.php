@@ -21,7 +21,7 @@
                 <a href="#layanan" class="hidden rounded-lg px-3 py-2 text-sm text-emerald-100 hover:text-white md:block">Layanan</a>
                 <a href="{{ route('pengumuman.publik') }}" class="hidden rounded-lg px-3 py-2 text-sm text-emerald-100 hover:text-white md:block">Pengumuman</a>
                 <a href="#kunjungi" class="hidden rounded-lg px-3 py-2 text-sm text-emerald-100 hover:text-white md:block">Jam buka</a>
-                <a href="{{ $loggedIn ? route('kasir') : route('login') }}"
+                <a href="{{ $loggedIn ? route(\App\Support\Menu::homeRoute($loggedIn['role'], $loggedIn['permissions'] ?? null)) : route('login') }}"
                    class="shrink-0 rounded-xl bg-amber-400 px-4 py-2 text-sm font-semibold text-emerald-950 shadow-sm hover:bg-amber-300">{{ $loggedIn ? 'Buka aplikasi' : 'Masuk petugas' }}</a>
             </div>
         </nav>

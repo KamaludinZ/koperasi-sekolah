@@ -32,7 +32,9 @@
                 </table>
             </div>
         </section>
-        <p class="text-xs text-stone-500">Riwayat masuk/keluar ada di <a href="{{ route('audit', ['tampil' => 'login']) }}" wire:navigate class="font-medium text-emerald-800 hover:underline">Audit → Login</a>.</p>
+        @if (\App\Support\Menu::canReach('audit'))
+            <p class="text-xs text-stone-500">Riwayat masuk/keluar ada di <a href="{{ route('audit', ['tampil' => 'login']) }}" wire:navigate class="font-medium text-emerald-800 hover:underline">Audit → Login</a>.</p>
+        @endif
     </div>
 
     @if ($ending && ($sel = collect($rows)->firstWhere('id', $ending)))

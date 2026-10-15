@@ -13,7 +13,7 @@
 @section('extra')
     @if ($user)
         <p class="mx-auto mt-5 w-fit rounded-full border border-emerald-700/70 bg-emerald-900/60 px-4 py-1.5 text-sm text-emerald-100">
-            Anda masuk sebagai <strong class="text-white">{{ $user['name'] }}</strong> · <span class="text-amber-300">{{ \App\Models\Role::LABELS[$user['role']] ?? $user['role'] }}</span>
+            Anda masuk sebagai <strong class="text-white">{{ $user['name'] }}</strong> · <span class="text-amber-300">{{ collect($user['roles'] ?? [$user['role']])->map(fn ($r) => \App\Models\Role::LABELS[$r] ?? $r)->join(' · ') }}</span>
         </p>
     @endif
 @endsection

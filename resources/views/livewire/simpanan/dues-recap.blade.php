@@ -53,7 +53,7 @@
                     <tbody class="divide-y divide-stone-100">
                         @forelse ($m['rows'] as $r)
                             <tr wire:key="mx-{{ $r['member_id'] }}">
-                                <td class="px-4 py-2 whitespace-nowrap"><a href="{{ route('anggota.show', $r['member_id']) }}" wire:navigate class="hover:text-emerald-800 hover:underline"><span class="font-mono text-xs text-stone-500">{{ $r['code'] }}</span> {{ $r['name'] }}</a></td>
+                                <td class="px-4 py-2 whitespace-nowrap"><x-menu-link route="anggota.show" :params="$r['member_id']" class="hover:text-emerald-800 hover:underline"><span class="font-mono text-xs text-stone-500">{{ $r['code'] }}</span> {{ $r['name'] }}</x-menu-link></td>
                                 @foreach ($m['periods'] as $p)
                                     @php $c = $r['cells'][$p['key']]; @endphp
                                     <td class="px-2 py-2 text-center">

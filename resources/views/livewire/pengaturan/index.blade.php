@@ -112,7 +112,9 @@
                 <p class="mt-3 text-sm text-stone-600">Batas minimum bawaan untuk barang baru</p>
                 <p class="text-3xl font-bold tabular-nums">{{ $this->defaultMinStock }} <span class="text-base font-medium text-stone-500">pcs</span></p>
                 <p class="mt-2 text-xs text-stone-500">Barang ditandai menipis bila stoknya sama dengan atau di bawah batas ini.</p>
-                <a href="{{ route('barang') }}" wire:navigate class="mt-4 inline-block text-sm font-semibold text-emerald-800 hover:underline">Atur di Barang & Stok →</a>
+                @if (\App\Support\Menu::canReach('barang'))
+                    <a href="{{ route('barang') }}" wire:navigate class="mt-4 inline-block text-sm font-semibold text-emerald-800 hover:underline">Atur di Barang & Stok →</a>
+                @endif
             </section>
         </div>
 

@@ -2,7 +2,10 @@
 
 namespace App\Support;
 
+use App\Http\Middleware\EnsureMenuAccess;
+use App\Http\Middleware\EnsureRole;
 use App\Models\Role;
+use Illuminate\Support\Facades\Route;
 
 /**
  * Menu utama aplikasi petugas beserta hak akses bawaan tiap peran.
@@ -119,6 +122,53 @@ class Menu
         }
 
         return in_array($menu, $user['permissions'] ?? self::DEFAULT_PERMISSIONS[$user['role'] ?? ''] ?? [], true);
+    }
+
+    /**
+     * Petugas boleh membuka rute bernama ini: lolos penjaga menu:… dan peran:… pada rutenya (gabungan semua peran).
+     * Dipakai agar tautan lintas menu tidak ditampilkan bila ujungnya 403. Rute tanpa penjaga menu dianggap terbuka.
+     *
+     * @param  ?array{role?: ?string, roles?: list<string>, permissions?: list<string>, is_active?: bool}  $user  bawaan: petugas yang masuk
+     */
+    public static function canReach(string $routeName, ?array $user = null): bool
+    {
+        $user ??= Petugas::current();
+        if (! $user) {
+            return false;
+        }
+        [$menu, $roles] = self::routeGuards($routeName);
+        if ($menu !== null && ! self::userCan($user, $menu)) {
+            return false;
+        }
+
+        return $roles === [] || array_intersect($user['roles'] ?? [$user['role'] ?? null], $roles) !== [];
+    }
+
+    /** @var array<string, array{0: ?string, 1: list<string>}> */
+    private static array $guards = [];
+
+    /** @return array{0: ?string, 1: list<string>} [menu, peran yang dibutuhkan] dari middleware rute */
+    private static function routeGuards(string $routeName): array
+    {
+        if (isset(self::$guards[$routeName])) {
+            return self::$guards[$routeName];
+        }
+        $route = Route::getRoutes()->getByName($routeName);
+        $menu = null;
+        $roles = [];
+        foreach ($route?->gatherMiddleware() ?? [] as $mw) {
+            if (! is_string($mw)) {
+                continue;
+            }
+            [$name, $args] = array_pad(explode(':', $mw, 2), 2, '');
+            if (in_array($name, ['menu', EnsureMenuAccess::class], true) && $args !== '') {
+                $menu = $args;
+            } elseif (in_array($name, ['peran', EnsureRole::class], true)) {
+                $roles = explode(',', $args);
+            }
+        }
+
+        return self::$guards[$routeName] = [$menu, $roles];
     }
 
     /** Menu yang terlihat untuk petugas (lihat for()). */

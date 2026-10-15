@@ -71,7 +71,7 @@
                     <span class="mr-1 grid size-9 shrink-0 place-items-center rounded-full bg-amber-400 text-sm font-bold text-emerald-950">{{ mb_substr(preg_replace('/^(Pak|Bu)\s+/', '', $user['name']), 0, 1) }}</span>
                     <div class="min-w-0 flex-1 leading-tight">
                         <p class="truncate text-sm font-semibold text-white">{{ $user['name'] }}</p>
-                        <p class="text-xs text-amber-300">{{ \App\Models\Role::LABELS[$user['role']] ?? $user['role'] }}</p>
+                        <p class="truncate text-xs text-amber-300" data-user-roles>{{ collect($user['roles'] ?? [$user['role']])->map(fn ($r) => \App\Models\Role::LABELS[$r] ?? $r)->join(' · ') }}</p>
                     </div>
                     <a href="{{ route('akun.password') }}" wire:navigate class="grid size-9 place-items-center rounded-lg text-emerald-200 hover:bg-emerald-800 hover:text-white" aria-label="Ganti kata sandi" title="Ganti kata sandi">
                         <svg class="size-5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" aria-hidden="true"><circle cx="8" cy="15" r="4"/><path d="M10.8 12.2 20 3m-3 3 2 2m-5 1 2 2"/></svg>

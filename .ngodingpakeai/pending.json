@@ -1,6 +1,6 @@
 {
   "repo": "Koperasi Sekolah",
-  "generatedForCommit": "7730e980fcff1c2750ae369f9b4d4e3e213087e8",
+  "generatedForCommit": "5a4dc1c411ce6c0468e40f755b03291d7889818b",
   "files": [
     {
       "path": ".claude/skills/ngodingpakeai/SKILL.md",
@@ -219,6 +219,12 @@
       "size": 4276
     },
     {
+      "path": "app/Livewire/Pengguna/AccessSimulator.php",
+      "reason": "new",
+      "language": "php",
+      "size": 3110
+    },
+    {
       "path": "app/Livewire/Pengguna/Index.php",
       "reason": "needs_summary",
       "language": "php",
@@ -244,13 +250,13 @@
     },
     {
       "path": "app/Models/User.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 5008
     },
     {
       "path": "app/Models/UserRole.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 2079
     },
@@ -285,10 +291,10 @@
       "size": 3493
     },
     {
-      "path": "app/Services/UserService.php",
-      "reason": "changed",
+      "path": "app/Support/AccessPreview.php",
+      "reason": "new",
       "language": "php",
-      "size": 18461
+      "size": 8566
     },
     {
       "path": "app/Support/MockData.php",
@@ -1156,9 +1162,9 @@
     },
     {
       "path": "resources/views/components/pengguna/nav.blade.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 712
+      "size": 754
     },
     {
       "path": "resources/views/components/pin-input.blade.php",
@@ -1737,6 +1743,12 @@
       "size": 10276
     },
     {
+      "path": "resources/views/livewire/pengguna/access-simulator.blade.php",
+      "reason": "new",
+      "language": "php",
+      "size": 16416
+    },
+    {
       "path": "resources/views/livewire/pengguna/active-sessions.blade.php",
       "reason": "needs_summary",
       "language": "php",
@@ -2056,9 +2068,9 @@
     },
     {
       "path": "routes/web.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 52211
+      "size": 51605
     },
     {
       "path": "tests/Concerns/MakesProductImports.php",
@@ -2235,12 +2247,6 @@
       "size": 758
     },
     {
-      "path": "tests/Feature/Kas/RecapTest.php",
-      "reason": "changed",
-      "language": "php",
-      "size": 3466
-    },
-    {
       "path": "tests/Feature/Kasir/CheckoutTest.php",
       "reason": "needs_summary",
       "language": "php",
@@ -2269,18 +2275,6 @@
       "reason": "needs_summary",
       "language": "php",
       "size": 2259
-    },
-    {
-      "path": "tests/Feature/Laporan/IndexTest.php",
-      "reason": "changed",
-      "language": "php",
-      "size": 10364
-    },
-    {
-      "path": "tests/Feature/Laporan/SalesExportEndpointTest.php",
-      "reason": "changed",
-      "language": "php",
-      "size": 5394
     },
     {
       "path": "tests/Feature/Laporan/SalesReportTest.php",
@@ -2373,6 +2367,12 @@
       "size": 3938
     },
     {
+      "path": "tests/Feature/Pengguna/AccessSimulatorTest.php",
+      "reason": "new",
+      "language": "php",
+      "size": 6755
+    },
+    {
       "path": "tests/Feature/Pengguna/MinRoleValidationTest.php",
       "reason": "needs_summary",
       "language": "php",
@@ -2398,7 +2398,7 @@
     },
     {
       "path": "tests/Feature/Pengguna/RoleChangeAuditTest.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 4209
     },

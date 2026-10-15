@@ -76,7 +76,7 @@
                 <ul class="mt-3 divide-y divide-stone-100 text-sm">
                     @foreach ($this->overrides as $o)
                         <li class="flex justify-between gap-2 py-2">
-                            <a href="{{ route('anggota.show', $o['id']) }}" wire:navigate class="min-w-0 truncate hover:text-emerald-800 hover:underline">{{ $o['name'] }}</a>
+                            <x-menu-link route="anggota.show" :params="$o['id']" class="min-w-0 truncate hover:text-emerald-800 hover:underline">{{ $o['name'] }}</x-menu-link>
                             <span class="shrink-0 tabular-nums">{{ $rp($o['limit']) }}</span>
                         </li>
                     @endforeach
