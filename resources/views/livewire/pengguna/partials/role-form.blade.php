@@ -13,8 +13,8 @@
                 <h2 id="role-form-title" class="font-semibold">Ubah peran · {{ $d['user']?->name }}</h2>
                 <p class="text-xs text-stone-500">Centang satu atau beberapa peran. Hak menu akun = gabungan semua peran yang dicentang.</p>
             </div>
-            <fieldset class="space-y-2">
-                <legend class="sr-only">Peran</legend>
+            <fieldset class="space-y-2" aria-describedby="role-choice-help" @if ($roleChoice === [] || $errors->has('roleChoice')) aria-invalid="true" @endif>
+                <legend class="sr-only">Peran (minimal satu)</legend>
                 @foreach ($labels as $value => $label)
                     <label class="flex cursor-pointer items-start gap-3 rounded-lg border border-stone-300 px-3 py-2.5 has-checked:border-emerald-600 has-checked:bg-emerald-50" data-role-choice="{{ $value }}">
                         <input type="checkbox" value="{{ $value }}" wire:model.live="roleChoice" class="mt-0.5 size-4 accent-emerald-700">
@@ -26,11 +26,13 @@
                     </label>
                 @endforeach
             </fieldset>
-            @error('roleChoice') <p class="text-xs text-red-600">{{ $message }}</p> @enderror
-            @error('roleChoice.*') <p class="text-xs text-red-600">{{ $message }}</p> @enderror
+            <div id="role-choice-help" aria-live="polite">
+                @error('roleChoice') <p class="text-xs font-medium text-red-600" data-role-choice-error>{{ $message }}</p> @enderror
+                @error('roleChoice.*') <p class="text-xs font-medium text-red-600">{{ $message }}</p> @enderror
+            </div>
 
             @if ($roleChoice === [])
-                <p class="rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-900" data-role-choice-empty>Pilih minimal satu peran.</p>
+                <p class="rounded-lg bg-red-50 px-3 py-2 text-xs font-medium text-red-800" data-role-choice-empty>{{ \App\Services\UserService::MSG_MIN_ROLE }}</p>
             @elseif ($d['added'] || $d['removed'])
                 <div class="space-y-1 rounded-lg bg-stone-50 px-3 py-2 text-xs" data-role-diff>
                     @if ($d['added'])<p class="text-emerald-800">+ {{ collect($d['added'])->map(fn ($n) => $labels[$n])->join(', ') }}</p>@endif

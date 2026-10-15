@@ -33,8 +33,8 @@
                 </label>
 
                 <fieldset>
-                    <legend class="mb-1.5 text-sm font-medium">Peran <span class="font-normal text-stone-500">(boleh lebih dari satu)</span></legend>
-                    <div class="space-y-2">
+                    <legend class="mb-1.5 text-sm font-medium">Peran <span class="text-red-600" aria-hidden="true">*</span> <span class="font-normal text-stone-500">(minimal satu, boleh lebih)</span></legend>
+                    <div class="space-y-2" role="group" aria-describedby="roles-help" @if ($form->roles === [] || $errors->has('form.roles')) aria-invalid="true" @endif>
                         @foreach (\App\Models\Role::LABELS as $value => $label)
                             <label class="flex cursor-pointer items-start gap-3 rounded-lg border border-stone-300 px-3 py-2.5 transition has-checked:border-emerald-600 has-checked:bg-emerald-50" data-role-option="{{ $value }}">
                                 <input type="checkbox" value="{{ $value }}" wire:model.live="form.roles" class="mt-0.5 size-4 accent-emerald-700">
@@ -46,10 +46,13 @@
                             </label>
                         @endforeach
                     </div>
-                    @if ($form->roles === [])
-                        <p class="mt-1 text-xs text-amber-700" data-roles-empty>Pilih minimal satu peran — akun tanpa peran tidak bisa membuka apa pun.</p>
-                    @endif
-                    @error('form.roles') <span class="mt-1 block text-xs text-red-600">{{ $message }}</span> @enderror
+                    <div id="roles-help" aria-live="polite">
+                        @error('form.roles')
+                            <p class="mt-1 text-xs font-medium text-red-600" data-roles-error>{{ $message }}</p>
+                        @elseif ($form->roles === [])
+                            <p class="mt-1 text-xs font-medium text-red-600" data-roles-empty>{{ \App\Services\UserService::MSG_MIN_ROLE }}</p>
+                        @endif
+                    </div>
                     @error('form.roles.*') <span class="mt-1 block text-xs text-red-600">{{ $message }}</span> @enderror
                     @php
                         $roleMenus = $this->roles->mapWithKeys(fn ($r) => [$r->name => $r->permissions ?? []]);
@@ -120,8 +123,8 @@
 
             <div class="flex gap-2 border-t border-stone-200 px-5 py-4">
                 <button type="button" wire:click="cancel" class="rounded-xl border border-stone-300 px-4 py-2.5 text-sm font-medium text-stone-700 hover:bg-stone-50">Batal</button>
-                <button type="submit" wire:loading.attr="disabled" wire:target="save"
-                        class="flex-1 rounded-xl bg-emerald-700 py-2.5 text-sm font-semibold text-white hover:bg-emerald-800 disabled:opacity-60">
+                <button type="submit" wire:loading.attr="disabled" wire:target="save" @disabled($form->roles === []) data-user-submit
+                        class="flex-1 rounded-xl bg-emerald-700 py-2.5 text-sm font-semibold text-white hover:bg-emerald-800 disabled:cursor-not-allowed disabled:opacity-50">
                     {{ $isNew ? 'Buat akun' : 'Simpan perubahan' }}
                 </button>
             </div>

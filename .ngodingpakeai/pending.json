@@ -1,6 +1,6 @@
 {
   "repo": "Koperasi Sekolah",
-  "generatedForCommit": "bf6a3b2ce8764049c2e78db4bf72fe8a3d032665",
+  "generatedForCommit": "d59d572a03f99cdccb0f13ea6002cba6aa12290b",
   "files": [
     {
       "path": ".claude/skills/ngodingpakeai/SKILL.md",
@@ -178,7 +178,7 @@
     },
     {
       "path": "app/Livewire/Forms/UserForm.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 1958
     },
@@ -222,7 +222,7 @@
       "path": "app/Livewire/Pengguna/Index.php",
       "reason": "changed",
       "language": "php",
-      "size": 8582
+      "size": 9939
     },
     {
       "path": "app/Livewire/Transaksi/Index.php",
@@ -277,6 +277,12 @@
       "reason": "needs_summary",
       "language": "php",
       "size": 3493
+    },
+    {
+      "path": "app/Services/UserService.php",
+      "reason": "changed",
+      "language": "php",
+      "size": 15890
     },
     {
       "path": "app/Support/MockData.php",
@@ -1726,9 +1732,9 @@
     },
     {
       "path": "resources/views/livewire/pengguna/index.blade.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 13369
+      "size": 15453
     },
     {
       "path": "resources/views/livewire/pengguna/locked.blade.php",
@@ -1738,13 +1744,13 @@
     },
     {
       "path": "resources/views/livewire/pengguna/partials/role-form.blade.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 4372
     },
     {
       "path": "resources/views/livewire/pengguna/partials/user-form.blade.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 10252
     },
@@ -2337,6 +2343,12 @@
       "size": 8178
     },
     {
+      "path": "tests/Feature/Pengguna/QuickRoleActionsTest.php",
+      "reason": "new",
+      "language": "php",
+      "size": 3160
+    },
+    {
       "path": "tests/Feature/Pengguna/RoleCheckboxFormTest.php",
       "reason": "needs_summary",
       "language": "php",
@@ -2344,7 +2356,7 @@
     },
     {
       "path": "tests/Feature/Pengguna/SavedRolesCheckedTest.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 3539
     },

@@ -19,6 +19,9 @@ use Illuminate\Validation\ValidationException;
  */
 class UserService
 {
+    /** Pesan tunggal untuk aturan "akun wajib punya minimal satu peran" (form, kotak centang, JSON). */
+    public const MSG_MIN_ROLE = 'Pilih minimal satu peran — akun tanpa peran tidak bisa membuka menu apa pun.';
+
     public function __construct(private SessionService $sessions) {}
 
     public static function rules(?int $ignoreId = null): array
@@ -47,8 +50,9 @@ class UserService
             'required' => 'Wajib diisi.',
             'email.email' => 'Format email belum benar.',
             'role.exists' => 'Peran tidak dikenal.',
-            'roles.required_without' => 'Pilih minimal satu peran.',
-            'roles.min' => 'Pilih minimal satu peran.',
+            'roles.required_without' => self::MSG_MIN_ROLE,
+            'roles.min' => self::MSG_MIN_ROLE,
+            'roles.array' => self::MSG_MIN_ROLE,
             'roles.*.exists' => 'Peran tidak dikenal.',
             'roles.*.distinct' => 'Peran tidak boleh dobel.',
             'password.min' => 'Minimal 8 karakter.',
@@ -99,7 +103,7 @@ class UserService
     {
         $names = Role::sortNames(array_values(array_filter((array) ($data['roles'] ?? [$data['role'] ?? null]), 'is_string')));
         if ($names === []) {
-            throw ValidationException::withMessages(['roles' => 'Pilih minimal satu peran.']);
+            throw ValidationException::withMessages(['roles' => self::MSG_MIN_ROLE]);
         }
 
         return $names;

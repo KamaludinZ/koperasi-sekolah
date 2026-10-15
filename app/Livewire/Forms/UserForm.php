@@ -42,7 +42,7 @@ class UserForm extends Form
 
     protected function messages(): array
     {
-        return ['roles.required' => 'Pilih minimal satu peran.'] + UserService::messages();
+        return ['roles.required' => UserService::MSG_MIN_ROLE, 'roles.min' => UserService::MSG_MIN_ROLE] + UserService::messages();
     }
 
     public function blank(): void

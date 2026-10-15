@@ -210,7 +210,7 @@ class Index extends Component
             return;
         }
         $this->validate(['roleChoice' => ['required', 'array', 'min:1'], 'roleChoice.*' => ['string', 'distinct', \Illuminate\Validation\Rule::in(array_keys(Role::LABELS))]],
-            ['roleChoice.required' => 'Pilih minimal satu peran.', 'roleChoice.min' => 'Pilih minimal satu peran.', 'roleChoice.*.in' => 'Peran tidak dikenal.']);
+            ['roleChoice.required' => UserService::MSG_MIN_ROLE, 'roleChoice.min' => UserService::MSG_MIN_ROLE, 'roleChoice.*.in' => 'Peran tidak dikenal.']);
         if ($user->roleNames() !== $this->roleSnapshot) { // diubah petugas lain sejak form dibuka
             $this->roleChoice = $this->roleSnapshot = $user->roleNames();
             $this->addError('roleChoice', 'Peran akun ini baru saja diubah petugas lain. Pilihan dimuat ulang sesuai yang tersimpan — periksa lalu simpan lagi.');
