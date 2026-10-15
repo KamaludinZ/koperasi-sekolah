@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Services\AuditLog;
 use App\Services\RoleAuditService;
+use App\Support\Actor;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\Pivot;
 use Illuminate\Support\Facades\Auth;
@@ -48,7 +49,7 @@ class UserRole extends Pivot
     /** Petugas yang sedang masuk (pemberi peran); null untuk konsol/seeder. */
     public static function currentGranter(): ?int
     {
-        return Auth::guard('web')->id();
+        return Actor::userId(Auth::guard('web')->id()); // admin pelaku selama impersonasi
     }
 
     /** Petugas yang memasang peran ini (user_roles.granted_by). */

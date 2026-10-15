@@ -2,6 +2,9 @@
 
 namespace App\Support;
 
+use App\Models\ActivityLog;
+use Illuminate\Database\Eloquent\Model;
+
 /**
  * Siapa pelaku sebenarnya sebuah aksi untuk JEJAK AUDIT. Normalnya petugas yang masuk; selama impersonasi =
  * ADMIN PELAKU (bukan akun target) — sesuai aturan "aksi selama impersonasi diatribusikan ke admin".
@@ -42,6 +45,24 @@ class Actor
     public static function userId(?int $proposed): ?int
     {
         return ImpersonationSession::current()['admin_id'] ?? $proposed;
+    }
+
+    /**
+     * Kolom "oleh siapa" (…_by) pada model yang disimpan selama impersonasi PETUGAS: nilai = id akun target diganti
+     * id admin pelaku, karena aksinya (memutuskan, membatalkan, mencatat, menghapus, …) dilakukan admin. Kolom
+     * kepemilikan (user_id, kasir pemilik shift, dsb.) tidak disentuh. Dipasang global di AppServiceProvider.
+     */
+    public static function attributeModel(Model $model): void
+    {
+        $imp = ImpersonationSession::current();
+        if (! $imp || $imp['target_type'] !== 'petugas' || $model instanceof ActivityLog) {
+            return;
+        }
+        foreach ($model->getDirty() as $column => $value) {
+            if (str_ends_with($column, '_by') && $value !== null && (int) $value === $imp['target_id'] && is_numeric($value)) {
+                $model->setAttribute($column, $imp['admin_id']);
+            }
+        }
     }
 
     /** Nama pelaku untuk riwayat, mis. "Admin Koperasi (sebagai Bu Rina)" selama impersonasi. */

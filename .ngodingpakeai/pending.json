@@ -1,6 +1,6 @@
 {
   "repo": "Koperasi Sekolah",
-  "generatedForCommit": "20bb42163916d0f04a089bd9cf20fe8c59683a90",
+  "generatedForCommit": "1eaf46cd360d86c8a883286f7ec045b30eabe8d4",
   "files": [
     {
       "path": ".claude/skills/ngodingpakeai/SKILL.md",
@@ -94,7 +94,7 @@
     },
     {
       "path": "app/Http/Controllers/Impersonasi/ImpersonationController.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 3275
     },
@@ -322,9 +322,9 @@
     },
     {
       "path": "app/Services/ImpersonationService.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 19313
+      "size": 19647
     },
     {
       "path": "app/Services/MemberCodeGenerator.php",
@@ -358,9 +358,9 @@
     },
     {
       "path": "app/Services/RoleImpersonationTrail.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 12823
+      "size": 14683
     },
     {
       "path": "app/Services/StockService.php",
@@ -388,7 +388,7 @@
     },
     {
       "path": "app/Support/ImpersonationPolicy.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 5668
     },
@@ -1582,9 +1582,9 @@
     },
     {
       "path": "resources/views/livewire/audit/role-impersonation.blade.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 16326
+      "size": 16349
     },
     {
       "path": "resources/views/livewire/audit/trash.blade.php",
@@ -2230,7 +2230,7 @@
     },
     {
       "path": "routes/web.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 53538
     },
@@ -2523,6 +2523,12 @@
       "size": 5971
     },
     {
+      "path": "tests/Feature/Impersonasi/EndStartChainTest.php",
+      "reason": "new",
+      "language": "php",
+      "size": 4636
+    },
+    {
       "path": "tests/Feature/Impersonasi/ImpersonationMiddlewareTest.php",
       "reason": "needs_summary",
       "language": "php",
@@ -2572,7 +2578,7 @@
     },
     {
       "path": "tests/Feature/Impersonasi/UnifiedStartEndpointTest.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 5131
     },

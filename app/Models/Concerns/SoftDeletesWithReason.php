@@ -4,6 +4,7 @@ namespace App\Models\Concerns;
 
 use App\Services\AuditLog;
 use App\Services\SettingsService;
+use App\Support\Actor;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Carbon;
@@ -30,7 +31,8 @@ trait SoftDeletesWithReason
         $reason = filled($reason) ? mb_substr(trim($reason), 0, 200) : null;
 
         return AuditLog::withReason($reason, function () use ($reason, $by) {
-            $this->forceFill(['deleted_by' => $by ?? auth()->id(), 'delete_reason' => $reason])->saveQuietly();
+            // pelaku: admin pelaku selama impersonasi (bukan akun target yang sedang dipakai)
+            $this->forceFill(['deleted_by' => Actor::userId($by ?? auth()->id()), 'delete_reason' => $reason])->saveQuietly();
 
             return (bool) $this->delete();
         });

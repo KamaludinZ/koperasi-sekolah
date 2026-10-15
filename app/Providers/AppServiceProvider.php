@@ -13,6 +13,7 @@ use App\Services\LoanAutoAudit;
 use App\Services\NotificationService;
 use App\Services\PromoEngine;
 use App\Services\QueueService;
+use App\Support\Actor;
 use App\Support\ImpersonationPolicy;
 use Illuminate\Auth\Middleware\Authorize;
 use Illuminate\Cache\RateLimiting\Limit;
@@ -99,6 +100,13 @@ class AppServiceProvider extends ServiceProvider
             ->by('verifikasi-audit-pinjaman:'.($r->user()?->getAuthIdentifier() ?? $r->ip())));
 
         Gate::define('menu', fn (User $user, string $menu) => $user->canOpen($menu));
+
+        // Selama impersonasi petugas, kolom "oleh siapa" (…_by) mencatat admin pelaku, bukan akun target.
+        Event::listen('eloquent.saving: *', function (string $event, array $models) {
+            foreach ($models as $model) {
+                Actor::attributeModel($model);
+            }
+        });
 
         // Melihat pengaturan cukup punya menu "pengaturan" (bisa dibagikan ke peran lain);
         // mengubahnya (profil, logo, struk, pajak) tetap khusus Admin yang aktif.
