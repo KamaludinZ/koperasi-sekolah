@@ -92,6 +92,12 @@ class LoanInstallment extends Model
                 default => $ctx['event'] ?? 'pembayaran',
             };
             $i->logChange($event, $changes, $ctx);
+            if ($event === 'jadwal') { // jadwal (jatuh tempo/nominal/porsi) jarang berubah — selalu masuk jejak audit
+                $loan = $i->loan()->first();
+                \App\Services\AuditLog::record('pinjaman.jadwal_diubah', 'pinjaman', "Jadwal angsuran ke-{$i->sequence} {$loan?->code} diubah",
+                    $loan ? \App\Services\LoanApplicationService::subject($loan) : null, ['installment_id' => $i->id], action: 'diubah',
+                    old: array_map(fn ($c) => $c['from'], $changes), new: array_map(fn ($c) => $c['to'], $changes), reason: $ctx['reason'] ?? null);
+            }
         });
 
         static::saving(function (self $i) {

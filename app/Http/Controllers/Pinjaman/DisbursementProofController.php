@@ -27,8 +27,13 @@ class DisbursementProofController extends Controller
             abort(409, 'Berkas bukti berubah sejak diunggah dan tidak bisa dipercaya. Hubungi admin.');
         }
         $ext = strtolower(pathinfo($path, PATHINFO_EXTENSION));
+        $inline = $request->boolean('lihat') && isset(self::INLINE[$ext]);
+        // berkas bukti berisi data pribadi peminjam: siapa yang membuka/mengunduh tercatat
+        \App\Services\AuditLog::record('pinjaman.bukti_dibuka', 'pinjaman',
+            'Bukti pencairan '.$disbursement->loan->code.($inline ? ' dilihat' : ' diunduh'),
+            \App\Services\LoanApplicationService::subject($disbursement->loan), ['disbursement_id' => $disbursement->id, 'mode' => $inline ? 'lihat' : 'unduh']);
         $headers = ['X-Content-Type-Options' => 'nosniff', 'Cache-Control' => 'private, no-store', 'Content-Security-Policy' => "default-src 'none'; sandbox"];
-        if ($request->boolean('lihat') && isset(self::INLINE[$ext])) {
+        if ($inline) {
             return Storage::disk('local')->response($path, null, ['Content-Type' => self::INLINE[$ext]] + $headers, 'inline');
         }
 

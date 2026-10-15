@@ -1,6 +1,6 @@
 {
   "repo": "Koperasi Sekolah",
-  "generatedForCommit": "dbce7ee0ae4c76011365a08e30d36a8147e1a035",
+  "generatedForCommit": "23ee49a84f2018b617cea3cf97768839f016d893",
   "files": [
     {
       "path": ".claude/skills/ngodingpakeai/SKILL.md",
@@ -172,7 +172,7 @@
     },
     {
       "path": "app/Http/Controllers/Portal/LoanController.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 2595
     },
@@ -340,7 +340,7 @@
     },
     {
       "path": "app/Models/Loan.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 5409
     },
@@ -400,15 +400,15 @@
     },
     {
       "path": "app/Services/LoanInstallmentQuery.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 5180
+      "size": 4931
     },
     {
       "path": "app/Services/LoanPaymentService.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 31165
+      "size": 31161
     },
     {
       "path": "app/Services/LoanScheduleGenerator.php",
@@ -418,9 +418,9 @@
     },
     {
       "path": "app/Services/LoanService.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 9392
+      "size": 9363
     },
     {
       "path": "app/Services/MemberCodeGenerator.php",
@@ -432,7 +432,7 @@
       "path": "app/Services/MemberLoanService.php",
       "reason": "changed",
       "language": "php",
-      "size": 11958
+      "size": 11763
     },
     {
       "path": "app/Services/MinStockService.php",
@@ -451,6 +451,12 @@
       "reason": "needs_summary",
       "language": "php",
       "size": 3493
+    },
+    {
+      "path": "app/Support/LoanOverdue.php",
+      "reason": "new",
+      "language": "php",
+      "size": 2235
     },
     {
       "path": "app/Support/MockData.php",
@@ -532,9 +538,9 @@
     },
     {
       "path": "config/koperasi.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 2141
+      "size": 2350
     },
     {
       "path": "config/livewire.php",
@@ -2625,6 +2631,12 @@
       "size": 3735
     },
     {
+      "path": "tests/Feature/Pinjaman/OverdueRuleTest.php",
+      "reason": "new",
+      "language": "php",
+      "size": 5329
+    },
+    {
       "path": "tests/Feature/Pinjaman/PaymentCorrectionEndpointTest.php",
       "reason": "needs_summary",
       "language": "php",
@@ -2674,7 +2686,7 @@
     },
     {
       "path": "tests/Feature/Portal/LoanOwnershipTest.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 6135
     },

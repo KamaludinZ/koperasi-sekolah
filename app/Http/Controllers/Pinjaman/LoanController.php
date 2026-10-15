@@ -77,4 +77,27 @@ class LoanController extends Controller
 
         return response()->json(['data' => $rows, 'meta' => ['loan' => ['id' => $loan->id, 'code' => $loan->code, 'status' => $loan->status], 'summary' => $detail['summary']]]);
     }
+
+    /**
+     * GET /pinjaman/{loan}/audit?event= → jejak audit satu pinjaman (terbaru dulu, maks. 500): peristiwa, pelaku &
+     * perannya, waktu, IP, nilai sebelum/sesudah, alasan; plus jumlah baris riwayat perubahan angsuran.
+     */
+    public function audit(Request $request, Loan $loan): JsonResponse
+    {
+        $data = $request->validate(['event' => ['nullable', 'string', 'max:60', 'regex:/^pinjaman\.[a-z_]+$/']],
+            ['event.regex' => 'Peristiwa tidak dikenal.']);
+        $rows = \App\Models\ActivityLog::query()->where('subject_type', 'loan')->where('subject_id', $loan->id)
+            ->when($data['event'] ?? null, fn ($q, $e) => $q->where('event', $e))
+            ->orderByDesc('created_at')->orderByDesc('id')->limit(500)->get();
+
+        return response()->json([
+            'data' => $rows->map(fn ($r) => [
+                'id' => $r->id, 'event' => $r->event, 'description' => $r->description, 'actor' => $r->actor_name, 'actor_role' => $r->actor_role,
+                'at' => $r->created_at?->toDateTimeString(), 'ip' => $r->ip_address, 'amount' => $r->amount, 'action' => $r->action,
+                'old' => $r->old_values, 'new' => $r->new_values, 'reason' => $r->reason,
+            ])->all(),
+            'meta' => ['loan' => ['id' => $loan->id, 'code' => $loan->code], 'count' => $rows->count(),
+                'installment_changes' => $loan->installmentChanges()->count()],
+        ]);
+    }
 }
