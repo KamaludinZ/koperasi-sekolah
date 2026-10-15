@@ -1,6 +1,6 @@
 {
   "repo": "Koperasi Sekolah",
-  "generatedForCommit": "92b330d64b6aa648923a9df4b5e21408beb3709d",
+  "generatedForCommit": "6068784bacfa2954e15b5d8ecb160b38e63bcba3",
   "files": [
     {
       "path": ".claude/skills/ngodingpakeai/SKILL.md",
@@ -106,9 +106,9 @@
     },
     {
       "path": "app/Http/Controllers/Impersonasi/StopController.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 939
+      "size": 1252
     },
     {
       "path": "app/Http/Controllers/Kasir/TransactionReceiptController.php",
@@ -172,7 +172,7 @@
     },
     {
       "path": "app/Http/Middleware/TrackImpersonation.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 2743
     },
@@ -312,7 +312,7 @@
       "path": "app/Services/ImpersonationService.php",
       "reason": "changed",
       "language": "php",
-      "size": 12251
+      "size": 14405
     },
     {
       "path": "app/Services/MemberCodeGenerator.php",
@@ -358,9 +358,9 @@
     },
     {
       "path": "app/Support/ImpersonationSession.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 2550
+      "size": 2738
     },
     {
       "path": "app/Support/MockData.php",
@@ -382,7 +382,7 @@
     },
     {
       "path": "bootstrap/app.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 3402
     },
@@ -2182,7 +2182,7 @@
     },
     {
       "path": "tests/Concerns/FakesImpersonation.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 1368
     },
@@ -2404,25 +2404,25 @@
     },
     {
       "path": "tests/Feature/Impersonasi/AdminOnlyButtonsTest.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 5105
     },
     {
       "path": "tests/Feature/Impersonasi/BannerTest.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 5028
     },
     {
       "path": "tests/Feature/Impersonasi/ImpersonationMiddlewareTest.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 6437
     },
     {
       "path": "tests/Feature/Impersonasi/PortalImpersonationModeTest.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 4792
     },
@@ -2433,8 +2433,14 @@
       "size": 4143
     },
     {
+      "path": "tests/Feature/Impersonasi/ReturnEndpointTest.php",
+      "reason": "new",
+      "language": "php",
+      "size": 4339
+    },
+    {
       "path": "tests/Feature/Impersonasi/ReturnToOriginalSessionTest.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 5964
     },

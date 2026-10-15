@@ -118,14 +118,39 @@ class ImpersonationService
                     'ended_at' => max(now(), $old->started_at), 'end_reason' => $old->expires_at->isPast() ? 'kedaluwarsa' : 'sesi_berakhir',
                 ]));
 
-            return Impersonation::create([
+            $record = Impersonation::create([
                 'admin_id' => $admin->id, 'admin_name' => mb_substr($admin->name, 0, 120),
                 'target_type' => $type, 'target_user_id' => $userId, 'target_member_id' => $memberId,
                 'target_name' => mb_substr($name, 0, 120), 'target_label' => $label !== null ? mb_substr($label, 0, 120) : null,
                 'reason' => $reason, 'started_at' => now(), 'expires_at' => now()->addMinutes($minutes),
                 'ip_address' => $request->ip(), 'user_agent' => mb_substr((string) $request->userAgent(), 0, 255) ?: null,
             ]);
+            $this->auditStart($admin, $record, $minutes);
+
+            return $record;
         });
+    }
+
+    /**
+     * Catat mulainya impersonasi di activity_logs (ber-checksum HMAC): pelaku = admin (bukan akun target), subjek =
+     * akun target, alasan, lama & batas waktu, jenis target, id sesi impersonasi, IP & perangkat. Wajib berhasil —
+     * bila catatan gagal disimpan, impersonasi dibatalkan (transaksi digulung) agar tidak ada sesi tanpa jejak.
+     */
+    private function auditStart(User $admin, Impersonation $record, int $minutes): void
+    {
+        $isMember = $record->target_type === 'anggota';
+        $log = AuditLog::record('impersonation.started', 'auth',
+            "{$record->admin_name} masuk sebagai {$record->target_name}".($isMember ? ' (portal anggota)' : ' (petugas'.($record->target_label ? ' · '.$record->target_label : '').')'),
+            ['type' => $isMember ? 'member' : 'user', 'id' => $record->target_member_id ?? $record->target_user_id,
+                'label' => $record->target_name.($record->target_label ? ' · '.$record->target_label : '')],
+            [
+                'impersonation_id' => $record->id, 'target_type' => $record->target_type, 'minutes' => $minutes,
+                'started_at' => $record->started_at->toIso8601String(), 'expires_at' => $record->expires_at->toIso8601String(),
+            ],
+            actor: AuthService::toArray($admin), reason: $record->reason);
+        if (! $log) {
+            throw new \RuntimeException('Jejak audit impersonasi gagal dicatat — impersonasi dibatalkan.');
+        }
     }
 
     /** Simpan keadaan impersonasi di sesi (kontrak App\Support\ImpersonationSession). */
