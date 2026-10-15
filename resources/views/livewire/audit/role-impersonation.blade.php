@@ -117,8 +117,7 @@
                     @if ($tab === 'impersonasi')
                         @php
                             $logs = $sessionLogs[$row->id] ?? ['started' => null, 'ended' => null];
-                            $okStart = $sealBadge($logs['started']?->id);
-                            $okEnd = $sealBadge($logs['ended']?->id);
+                            $chain = $this->trail->chain($row);
                             $live = $row->isActive();
                         @endphp
                         <li class="px-4 py-3" wire:key="imp-{{ $row->id }}" data-session="{{ $row->id }}">
@@ -142,10 +141,10 @@
                                     @else
                                         <span class="rounded bg-stone-100 px-1.5 py-0.5 text-xs font-medium text-stone-700">Selesai</span>
                                     @endif
-                                    <span class="text-[11px] text-stone-500" data-seal="{{ $okStart === false || $okEnd === false ? 'rusak' : ($okStart === null ? 'tanpa' : 'utuh') }}">
-                                        @if ($okStart === false || $okEnd === false) <span class="font-semibold text-red-700">✗ catatan tidak cocok</span>
-                                        @elseif ($okStart === null) <span class="text-amber-700">catatan mulai tidak ditemukan</span>
-                                        @else <span class="text-emerald-700">✓ catatan utuh</span>@endif
+                                    <span class="text-[11px] text-stone-500" data-seal="{{ $chain['ok'] ? 'utuh' : ($chain['start'] === null ? 'tanpa' : 'rusak') }}" title="{{ $chain['problem'] ?? 'Catatan mulai & selesai sah dan saling tertaut' }}">
+                                        @if ($chain['ok']) <span class="text-emerald-700">✓ {{ $row->ended_at ? 'mulai–selesai tertaut' : 'catatan mulai utuh' }}</span>
+                                        @elseif ($chain['start'] === null) <span class="text-amber-700">{{ $chain['problem'] }}</span>
+                                        @else <span class="font-semibold text-red-700">✗ {{ $chain['problem'] }}</span>@endif
                                     </span>
                                 </div>
                             </div>

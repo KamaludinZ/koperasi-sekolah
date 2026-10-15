@@ -231,6 +231,37 @@ class RoleImpersonationTrail
         return ActivityLog::query()->where('impersonation_id', $impersonationId)->whereNotIn('event', self::IMPERSONATION_EVENTS)->count();
     }
 
+    /**
+     * Periksa rantai catatan satu sesi impersonasi: catatan mulai ada & sah, catatan selesai (bila sesi sudah
+     * berakhir) ada & sah, dan catatan selesai menunjuk catatan mulai yang sama dengan checksum yang sama — sehingga
+     * catatan mulai yang diganti/dihapus atau catatan selesai yang dipindah ke sesi lain terdeteksi.
+     *
+     * @return array{start: ?bool, end: ?bool, linked: ?bool, ok: bool, problem: ?string}
+     */
+    public function chain(Impersonation $s): array
+    {
+        $start = $s->start_log_id ? DB::table('activity_logs')->where('id', $s->start_log_id)->first() : null;
+        $end = $s->end_log_id ? DB::table('activity_logs')->where('id', $s->end_log_id)->first() : null;
+        $valid = fn ($row) => $row && $row->checksum !== null && hash_equals($row->checksum, AuditIntegrity::checksum($row));
+
+        $r = ['start' => $start ? $valid($start) : null, 'end' => $end ? $valid($end) : null, 'linked' => null, 'ok' => false, 'problem' => null];
+        if (! $start) {
+            $r['problem'] = 'Catatan mulai tidak ditemukan';
+        } elseif (! $r['start'] || ($start->impersonation_id ?? null) !== $s->id) {
+            $r['problem'] = 'Catatan mulai tidak cocok';
+        } elseif ($s->ended_at && ! $end) {
+            $r['problem'] = 'Catatan selesai tidak ditemukan';
+        } elseif ($end) {
+            $p = json_decode((string) $end->properties, true) ?: [];
+            $r['linked'] = ($p['impersonation_id'] ?? null) === $s->id && (int) ($p['start_log_id'] ?? 0) === (int) $start->id
+                && hash_equals((string) ($p['start_checksum'] ?? ''), (string) $start->checksum);
+            $r['problem'] = ! $r['end'] ? 'Catatan selesai tidak cocok' : (! $r['linked'] ? 'Tautan selesai → mulai putus' : null);
+        }
+        $r['ok'] = $r['problem'] === null;
+
+        return $r;
+    }
+
     /** Ringkasan untuk kartu atas (periode terpilih). */
     public function stats(string $period): array
     {

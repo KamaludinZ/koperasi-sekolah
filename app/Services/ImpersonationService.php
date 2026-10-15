@@ -312,6 +312,9 @@ class ImpersonationService
                     'label' => $locked->target_name.($locked->target_label ? ' · '.$locked->target_label : '')],
                 [
                     'impersonation_id' => $locked->id, 'target_type' => $locked->target_type, 'end_reason' => $reason,
+                    // tautan berantai ke catatan mulai: id + checksum HMAC-nya ikut ditandatangani di catatan selesai
+                    'start_log_id' => $locked->start_log_id,
+                    'start_checksum' => $locked->start_log_id ? DB::table('activity_logs')->where('id', $locked->start_log_id)->value('checksum') : null,
                     'duration_minutes' => $locked->durationMinutes(), 'started_at' => $locked->started_at->toIso8601String(),
                     'ended_at' => $locked->ended_at->toIso8601String(), 'expires_at' => $locked->expires_at->toIso8601String(),
                 ],

@@ -1,6 +1,6 @@
 {
   "repo": "Koperasi Sekolah",
-  "generatedForCommit": "3752a6bf3c7635fcdbbb4106e7571b3f96289cca",
+  "generatedForCommit": "20bb42163916d0f04a089bd9cf20fe8c59683a90",
   "files": [
     {
       "path": ".claude/skills/ngodingpakeai/SKILL.md",
@@ -91,6 +91,12 @@
       "reason": "needs_summary",
       "language": "php",
       "size": 77
+    },
+    {
+      "path": "app/Http/Controllers/Impersonasi/ImpersonationController.php",
+      "reason": "new",
+      "language": "php",
+      "size": 3275
     },
     {
       "path": "app/Http/Controllers/Impersonasi/StartMemberController.php",
@@ -268,7 +274,7 @@
     },
     {
       "path": "app/Livewire/Pengguna/Index.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 10252
     },
@@ -298,13 +304,13 @@
     },
     {
       "path": "app/Models/User.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 6348
     },
     {
       "path": "app/Models/UserRole.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 2617
     },
@@ -363,12 +369,6 @@
       "size": 3493
     },
     {
-      "path": "app/Services/UserService.php",
-      "reason": "changed",
-      "language": "php",
-      "size": 21425
-    },
-    {
       "path": "app/Support/AccessPreview.php",
       "reason": "needs_summary",
       "language": "php",
@@ -388,9 +388,9 @@
     },
     {
       "path": "app/Support/ImpersonationPolicy.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 4873
+      "size": 5668
     },
     {
       "path": "app/Support/ImpersonationSession.php",
@@ -1930,7 +1930,7 @@
     },
     {
       "path": "resources/views/livewire/pengguna/partials/role-form.blade.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 5253
     },
@@ -2230,9 +2230,9 @@
     },
     {
       "path": "routes/web.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 53199
+      "size": 53538
     },
     {
       "path": "tests/Concerns/FakesImpersonation.php",
@@ -2571,6 +2571,12 @@
       "size": 6763
     },
     {
+      "path": "tests/Feature/Impersonasi/UnifiedStartEndpointTest.php",
+      "reason": "new",
+      "language": "php",
+      "size": 5131
+    },
+    {
       "path": "tests/Feature/Kasir/CheckoutTest.php",
       "reason": "needs_summary",
       "language": "php",
@@ -2710,7 +2716,7 @@
     },
     {
       "path": "tests/Feature/Pengguna/AutoRoleChangeLogTest.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 3939
     },
