@@ -26,6 +26,15 @@ class Recap extends Component
     #[Url(as: 'tahun', except: '')]
     public string $year = '';
 
+    #[Url(as: 'dari', except: '')]
+    public string $from = '';
+
+    #[Url(as: 'sampai', except: '')]
+    public string $to = '';
+
+    /** Pintasan periode. */
+    public const PRESETS = ['bulan-ini' => 'Bulan ini', 'bulan-lalu' => 'Bulan lalu', '3-bulan' => '3 bulan terakhir', 'tahun-ini' => 'Tahun ini', 'tahun-lalu' => 'Tahun lalu'];
+
     public function mount(): void
     {
         $this->sanitize();
@@ -38,7 +47,14 @@ class Recap extends Component
 
     private function sanitize(): void
     {
-        $this->type = $this->type === 'tahun' ? 'tahun' : 'bulan';
+        $this->type = in_array($this->type, ['bulan', 'tahun', 'rentang'], true) ? $this->type : 'bulan';
+        if ($this->type === 'rentang' && ! LoanRecapService::range($this->from, $this->to)) {
+            // rentang tidak sah → tetap mode rentang dengan bawaan 30 hari terakhir
+            [$this->from, $this->to] = [today()->subDays(29)->toDateString(), today()->toDateString()];
+        }
+        if ($this->type !== 'rentang') {
+            [$this->from, $this->to] = ['', ''];
+        }
         $this->month = preg_match('/^\d{4}-(0[1-9]|1[0-2])$/', $this->month) && $this->month <= today()->format('Y-m') ? $this->month : '';
         $this->year = preg_match('/^\d{4}$/', $this->year) && $this->year >= '2000' && $this->year <= today()->format('Y') ? $this->year : '';
     }
@@ -49,10 +65,27 @@ class Recap extends Component
         $this->sanitize();
     }
 
+    public function preset(string $name): void
+    {
+        $today = today();
+        match ($name) {
+            'bulan-ini' => [$this->type, $this->month] = ['bulan', ''],
+            'bulan-lalu' => [$this->type, $this->month] = ['bulan', $today->copy()->startOfMonth()->subMonth()->format('Y-m')],
+            '3-bulan' => [$this->type, $this->from, $this->to] = ['rentang', $today->copy()->startOfMonth()->subMonths(2)->toDateString(), $today->toDateString()],
+            'tahun-ini' => [$this->type, $this->year] = ['tahun', ''],
+            'tahun-lalu' => [$this->type, $this->year] = ['tahun', (string) ($today->year - 1)],
+            default => null,
+        };
+        $this->sanitize();
+    }
+
     /** Geser periode: -1 sebelumnya, +1 berikutnya (tidak melewati periode berjalan). */
     public function shift(int $step): void
     {
         $step = $step < 0 ? -1 : 1;
+        if ($this->type === 'rentang') {
+            return; // rentang bebas diubah lewat isian tanggal
+        }
         if ($this->type === 'tahun') {
             $this->year = (string) ((int) ($this->year ?: today()->format('Y')) + $step);
         } else {
@@ -64,6 +97,10 @@ class Recap extends Component
     #[Computed]
     public function period(): array
     {
+        if ($this->type === 'rentang') {
+            return LoanRecapService::range($this->from, $this->to);
+        }
+
         return LoanRecapService::period($this->type, $this->type === 'tahun' ? ($this->year ?: today()->format('Y')) : ($this->month ?: today()->format('Y-m')));
     }
 
@@ -78,6 +115,10 @@ class Recap extends Component
     #[Computed]
     public function isCurrent(): bool
     {
+        if ($this->type === 'rentang') {
+            return true;
+        }
+
         return $this->type === 'tahun' ? ($this->year === '' || $this->year === today()->format('Y')) : ($this->month === '' || $this->month === today()->format('Y-m'));
     }
 

@@ -15,6 +15,29 @@ use Illuminate\Support\Carbon;
  */
 class LoanRecapService
 {
+    /** Rentang bebas terpanjang (hari). */
+    public const MAX_RANGE_DAYS = 366;
+
+    /**
+     * Rentang tanggal bebas (Y-m-d), divalidasi: format benar, awal ≤ akhir, akhir ≤ hari ini, paling panjang
+     * MAX_RANGE_DAYS hari. Null bila tidak sah.
+     *
+     * @return array{0: Carbon, 1: Carbon, 2: string}|null
+     */
+    public static function range(string $from, string $to): ?array
+    {
+        $valid = fn ($d) => preg_match('/^\d{4}-\d{2}-\d{2}$/', $d) && checkdate((int) substr($d, 5, 2), (int) substr($d, 8, 2), (int) substr($d, 0, 4));
+        if (! $valid($from) || ! $valid($to) || $from > $to || $to > today()->toDateString()) {
+            return null;
+        }
+        [$f, $t] = [Carbon::parse($from)->startOfDay(), Carbon::parse($to)->startOfDay()];
+        if ($f->diffInDays($t) + 1 > self::MAX_RANGE_DAYS) {
+            return null;
+        }
+
+        return [$f, $t, \App\Support\Tanggal::format($from).' – '.\App\Support\Tanggal::format($to)];
+    }
+
     /** @return array{0: Carbon, 1: Carbon, 2: string} awal, akhir, label periode */
     public static function period(string $type, string $value): array
     {
@@ -51,7 +74,7 @@ class LoanRecapService
                 'by_method' => $this->byMethod($payments),
             ],
             'portfolio' => $this->portfolio(),
-            'months' => $from->diffInMonths($to) >= 1 ? $this->months($from, $to) : [],
+            'months' => $from->format('Y-m') !== $to->format('Y-m') ? $this->months($from, $to) : [],
         ];
     }
 
@@ -93,7 +116,8 @@ class LoanRecapService
     {
         $out = [];
         for ($m = $from->copy()->startOfMonth(); $m->lte($to); $m->addMonth()) {
-            [$f, $t] = [$m->toDateString(), $m->copy()->endOfMonth()->toDateString()];
+            // bulan pertama/terakhir dipotong mengikuti batas periode (rentang bebas)
+            [$f, $t] = [max($m->toDateString(), $from->toDateString()), min($m->copy()->endOfMonth()->toDateString(), $to->toDateString())];
             $pay = LoanPayment::query()->whereNull('voided_at')->whereDayRange('paid_at', $f, $t);
             $out[] = ['month' => $m->format('Y-m'), 'label' => $m->locale('id')->translatedFormat('M Y'),
                 'disbursed' => (int) round((float) LoanDisbursement::query()->whereDayRange('disbursed_on', $f, $t)->sum('amount')),

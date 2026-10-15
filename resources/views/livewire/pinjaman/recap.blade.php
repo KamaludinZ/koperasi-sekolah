@@ -15,22 +15,32 @@
 
     <div class="space-y-4 px-4 py-5 sm:px-6">
         <x-pinjaman.recap-cards :portfolio="$r['portfolio']" />
+        <h2 class="text-sm font-semibold text-stone-700">Periode: <span data-period>{{ $label }}</span></h2>
 
         <div class="flex flex-wrap items-center gap-2">
             <div class="flex gap-1 rounded-xl bg-stone-100 p-1" role="tablist" aria-label="Jenis periode">
-                @foreach (['bulan' => 'Bulanan', 'tahun' => 'Tahunan'] as $k => $t)
+                @foreach (['bulan' => 'Bulanan', 'tahun' => 'Tahunan', 'rentang' => 'Rentang'] as $k => $t)
                     <button type="button" role="tab" wire:click="setType('{{ $k }}')" aria-selected="{{ $type === $k ? 'true' : 'false' }}"
                             @class(['rounded-lg px-3 py-1.5 text-sm font-medium', 'bg-white text-stone-900 shadow-sm' => $type === $k, 'text-stone-600' => $type !== $k])>{{ $t }}</button>
                 @endforeach
             </div>
-            <div class="flex items-center gap-1">
+            <div @class(['flex items-center gap-1', 'hidden' => $type === 'rentang'])>
                 <button type="button" wire:click="shift(-1)" class="rounded-lg border border-stone-300 px-2.5 py-1.5 text-sm" aria-label="Periode sebelumnya">‹</button>
-                <span class="min-w-36 text-center text-sm font-semibold" data-period>{{ $label }}</span>
+                <span class="min-w-36 text-center text-sm font-semibold">{{ $label }}</span>
                 <button type="button" wire:click="shift(1)" @disabled($this->isCurrent) class="rounded-lg border border-stone-300 px-2.5 py-1.5 text-sm disabled:opacity-40" aria-label="Periode berikutnya">›</button>
             </div>
             @if ($type === 'bulan')
                 <input type="month" wire:model.live="month" max="{{ today()->format('Y-m') }}" aria-label="Pilih bulan" class="rounded-lg border border-stone-300 bg-white px-3 py-1.5 text-sm">
+            @elseif ($type === 'rentang')
+                <label class="flex items-center gap-1 text-sm">Dari <input type="date" wire:model.live="from" max="{{ today()->toDateString() }}" class="rounded-lg border border-stone-300 bg-white px-2 py-1.5 text-sm"></label>
+                <label class="flex items-center gap-1 text-sm">sampai <input type="date" wire:model.live="to" max="{{ today()->toDateString() }}" class="rounded-lg border border-stone-300 bg-white px-2 py-1.5 text-sm"></label>
+                <span class="text-xs text-stone-500">maks. {{ \App\Services\LoanRecapService::MAX_RANGE_DAYS }} hari</span>
             @endif
+            <div class="flex flex-wrap gap-1" aria-label="Pintasan periode">
+                @foreach (\App\Livewire\Pinjaman\Recap::PRESETS as $k => $t)
+                    <button type="button" wire:click="preset('{{ $k }}')" class="rounded-full border border-stone-300 px-2.5 py-1 text-xs text-stone-700 hover:bg-stone-50" data-preset="{{ $k }}">{{ $t }}</button>
+                @endforeach
+            </div>
         </div>
 
         <section class="grid grid-cols-1 gap-3 sm:grid-cols-3" aria-label="Rekap periode">

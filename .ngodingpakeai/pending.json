@@ -1,6 +1,6 @@
 {
   "repo": "Koperasi Sekolah",
-  "generatedForCommit": "adebfaa3a4c508ba96d4fb3ae91de58e78e6a9e1",
+  "generatedForCommit": "3ca8baf9620095575303df98649414a509013c30",
   "files": [
     {
       "path": ".claude/skills/ngodingpakeai/SKILL.md",
@@ -432,7 +432,7 @@
       "path": "app/Services/LoanRecapService.php",
       "reason": "changed",
       "language": "php",
-      "size": 7061
+      "size": 8386
     },
     {
       "path": "app/Services/LoanScheduleGenerator.php",
@@ -1348,7 +1348,7 @@
     },
     {
       "path": "resources/views/components/pinjaman/recap-cards.blade.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 2222
     },
@@ -1992,7 +1992,7 @@
       "path": "resources/views/livewire/pinjaman/recap.blade.php",
       "reason": "changed",
       "language": "php",
-      "size": 6545
+      "size": 9689
     },
     {
       "path": "resources/views/livewire/pinjaman/show.blade.php",
@@ -2742,7 +2742,7 @@
       "path": "tests/Feature/Pinjaman/RecapPageTest.php",
       "reason": "changed",
       "language": "php",
-      "size": 6729
+      "size": 8158
     },
     {
       "path": "tests/Feature/Pinjaman/ScheduleGeneratorTest.php",

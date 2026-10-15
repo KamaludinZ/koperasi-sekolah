@@ -121,6 +121,37 @@ class RecapPageTest extends TestCase
         $this->get(route('pinjaman.rekap', ['bulan' => '2026-13']))->assertOk()->assertSee('Oktober 2026');
     }
 
+    public function test_free_range_and_presets(): void
+    {
+        // 2 Agt – 3 Sep: pengajuan ditolak 2 Agt, pencairan 3 Agt, angsuran 3 Sep
+        $c = Livewire::test(Recap::class)->call('setType', 'rentang')->set('from', '2026-08-02')->set('to', '2026-09-03')
+            ->assertSet('type', 'rentang')->assertSeeText('2 Agt 2026 – 3 Sep 2026')
+            ->assertSeeText('Rp900.000')->assertSeeHtml('data-month="2026-08"')->assertSeeHtml('data-month="2026-09"');
+        [$f, $t] = LoanRecapService::range('2026-08-02', '2026-09-03');
+        $r = app(LoanRecapService::class)->recap($f, $t);
+        $this->assertSame([1, 330000], [$r['applications']['count'], $r['collected']['amount']]); // pengajuan 1 Agt di luar rentang
+        $this->assertSame(['2026-08' => 900000, '2026-09' => 0], collect($r['months'])->pluck('disbursed', 'month')->all());
+
+        // rentang dipotong: bulan pertama mulai 2 Agt, bukan 1 Agt
+        [$f, $t] = LoanRecapService::range('2026-08-04', '2026-09-02');
+        $this->assertSame(['2026-08' => 0, '2026-09' => 0], collect(app(LoanRecapService::class)->recap($f, $t)['months'])->pluck('disbursed', 'month')->all());
+
+        foreach ([['2026-09-03', '2026-08-02'], ['2026-08-01', '2026-10-16'], ['2025-01-01', '2026-03-01'], ['2026-02-30', '2026-03-01'], ['x', 'y']] as [$a, $b]) {
+            $this->assertNull(LoanRecapService::range($a, $b), "{$a}..{$b}");
+        }
+        $c->set('to', '2027-01-01')->assertSet('from', '2026-09-16')->assertSet('to', '2026-10-15'); // tidak sah → 30 hari terakhir
+
+        Livewire::test(Recap::class)
+            ->call('preset', 'bulan-lalu')->assertSet('type', 'bulan')->assertSet('month', '2026-09')->assertSeeText('September 2026')
+            ->call('preset', '3-bulan')->assertSet('type', 'rentang')->assertSet('from', '2026-08-01')->assertSet('to', '2026-10-15')
+            ->call('preset', 'tahun-lalu')->assertSet('type', 'tahun')->assertSet('year', '2025')->assertSet('from', '')
+            ->call('preset', 'tahun-ini')->assertSet('year', '')->assertSeeText('Tahun 2026')
+            ->call('preset', 'bulan-ini')->assertSet('type', 'bulan')->assertSet('month', '')
+            ->call('preset', 'ngawur')->assertSet('type', 'bulan');
+
+        $this->get(route('pinjaman.rekap', ['jenis' => 'rentang', 'dari' => '2026-08-02', 'sampai' => '2026-09-03']))->assertOk()->assertSee('2 Agt 2026 – 3 Sep 2026');
+    }
+
     public function test_nav_and_access(): void
     {
         $this->get(route('pinjaman'))->assertSee(route('pinjaman.rekap'), false);
