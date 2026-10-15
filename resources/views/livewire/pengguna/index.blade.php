@@ -90,10 +90,28 @@
                             </div>
                             <span class="flex w-44 shrink-0 flex-wrap gap-1" data-user-roles="{{ implode(',', $names) }}" aria-label="Peran {{ implode(', ', array_map(fn ($n) => $roles[$n] ?? $n, $names)) }}">
                                 @forelse ($names as $n)
-                                    <span class="rounded-full px-2.5 py-0.5 text-center text-xs font-semibold ring-1 {{ $roleBadge[$n] ?? '' }}">{{ $roles[$n] ?? $n }}</span>
+                                    <span class="inline-flex items-center gap-0.5 rounded-full py-0.5 pr-1 pl-2.5 text-center text-xs font-semibold ring-1 {{ $roleBadge[$n] ?? '' }}" data-role-chip="{{ $u->id }}-{{ $n }}">
+                                        {{ $roles[$n] ?? $n }}
+                                        @if (count($names) > 1)
+                                            <button type="button" wire:click="removeRole({{ $u->id }}, '{{ $n }}')" wire:confirm="Cabut peran {{ $roles[$n] ?? $n }} dari {{ $u->name }}?"
+                                                    class="grid size-4 place-items-center rounded-full opacity-60 hover:bg-black/10 hover:opacity-100" aria-label="Cabut peran {{ $roles[$n] ?? $n }} dari {{ $u->name }}" data-remove-role="{{ $u->id }}-{{ $n }}">×</button>
+                                        @endif
+                                    </span>
                                 @empty
                                     <span class="rounded-full bg-red-50 px-2.5 py-0.5 text-xs font-semibold text-red-700 ring-1 ring-red-200">Tanpa peran</span>
                                 @endforelse
+                                @php $missing = array_diff(array_keys($roles), $names); @endphp
+                                @if ($missing)
+                                    <span class="relative" x-data="{ open: false }" x-on:click.outside="open = false">
+                                        <button type="button" x-on:click="open = ! open" class="grid size-5 place-items-center rounded-full border border-dashed border-stone-300 text-xs text-stone-500 hover:border-emerald-600 hover:text-emerald-700"
+                                                aria-label="Tambah peran untuk {{ $u->name }}" data-add-role-menu="{{ $u->id }}">+</button>
+                                        <span x-show="open" x-cloak class="absolute z-20 mt-1 flex min-w-28 flex-col rounded-lg border border-stone-200 bg-white p-1 shadow-lg">
+                                            @foreach ($missing as $m)
+                                                <button type="button" wire:click="addRole({{ $u->id }}, '{{ $m }}')" x-on:click="open = false" class="rounded px-2 py-1 text-left text-xs hover:bg-emerald-50" data-add-role="{{ $u->id }}-{{ $m }}">+ {{ $roles[$m] }}</button>
+                                            @endforeach
+                                        </span>
+                                    </span>
+                                @endif
                             </span>
                             <p class="w-36 text-xs text-stone-500 max-sm:order-last max-sm:w-full">
                                 @if (! $u->is_active)

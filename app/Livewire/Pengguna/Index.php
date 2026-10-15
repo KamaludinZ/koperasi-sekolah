@@ -232,6 +232,44 @@ class Index extends Component
         unset($this->users, $this->stats);
     }
 
+    /** Aksi cepat di daftar: tambah satu peran. */
+    public function addRole(int $userId, string $role): void
+    {
+        $this->quickRole($userId, $role, true);
+    }
+
+    /** Aksi cepat di daftar: cabut satu peran. */
+    public function removeRole(int $userId, string $role): void
+    {
+        $this->quickRole($userId, $role, false);
+    }
+
+    private function quickRole(int $userId, string $role, bool $add): void
+    {
+        $this->reset('flash', 'error');
+        $user = User::with('role', 'roles')->find($userId);
+        if (! $user || ! array_key_exists($role, Role::LABELS)) {
+            $this->error = 'Akun atau peran tidak dikenal.';
+
+            return;
+        }
+        if ($add && in_array($role, $user->roleNames(), true)) {
+            $this->flash = "{$user->name} sudah memegang peran ".Role::LABELS[$role].'.';
+
+            return;
+        }
+        try {
+            $svc = app(UserService::class);
+            $add ? $svc->addRole($user, $role, auth()->user()) : $svc->removeRole($user, $role, auth()->user());
+        } catch (ValidationException $e) {
+            $this->error = collect($e->errors())->flatten()->first();
+
+            return;
+        }
+        $this->flash = 'Peran '.Role::LABELS[$role].($add ? ' ditambahkan ke ' : ' dicabut dari ').$user->name.'.';
+        unset($this->users, $this->stats);
+    }
+
     public function cancelRoles(): void
     {
         $this->roleUserId = null;

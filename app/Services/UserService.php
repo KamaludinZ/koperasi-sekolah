@@ -216,6 +216,29 @@ class UserService
         return ['user' => $user, 'added' => $added, 'removed' => $removed];
     }
 
+    /** Tambah satu peran ke akun (peran lain tetap). */
+    public function addRole(User $user, string $role, ?User $actor): array
+    {
+        $user->loadMissing('role', 'roles');
+
+        return $this->updateRoles($user, [...$user->roleNames(), $role], $actor);
+    }
+
+    /** Cabut satu peran dari akun; peran terakhir tidak bisa dicabut (akun wajib punya minimal satu peran). */
+    public function removeRole(User $user, string $role, ?User $actor): array
+    {
+        $user->loadMissing('role', 'roles');
+        $rest = array_values(array_diff($user->roleNames(), [$role]));
+        if (! in_array($role, $user->roleNames(), true)) {
+            throw ValidationException::withMessages(['roles' => "Akun {$user->name} tidak memegang peran ".(Role::LABELS[$role] ?? $role).'.']);
+        }
+        if ($rest === []) {
+            throw ValidationException::withMessages(['roles' => "Peran terakhir {$user->name} tidak bisa dicabut — akun wajib punya minimal satu peran."]);
+        }
+
+        return $this->updateRoles($user, $rest, $actor);
+    }
+
     public function toggleActive(User $user, ?User $actor): User
     {
         $user->loadMissing('role', 'roles');
