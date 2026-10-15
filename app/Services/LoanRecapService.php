@@ -11,7 +11,7 @@ use Illuminate\Support\Carbon;
 /**
  * Rekap pinjaman per periode (bulan atau tahun) untuk halaman Rekap: pengajuan & keputusan, dana dicairkan,
  * angsuran diterima (pembayaran sah) dipecah per metode dan porsi pokok/bunga, serta posisi portofolio saat ini
- * (sisa berjalan, tunggakan) dan rincian per bulan untuk periode tahunan.
+ * (sisa berjalan, tunggakan), agregasi pinjaman berjalan (running) dan rincian per bulan untuk periode > 1 bulan.
  */
 class LoanRecapService
 {
@@ -74,6 +74,7 @@ class LoanRecapService
                 'by_method' => $this->byMethod($payments),
             ],
             'portfolio' => $this->portfolio(),
+            'running' => $this->running(),
             'months' => $from->format('Y-m') !== $to->format('Y-m') ? $this->months($from, $to) : [],
         ];
     }
@@ -111,20 +112,65 @@ class LoanRecapService
         ];
     }
 
-    /** @return list<array{month: string, label: string, disbursed: int, collected: int, count: int}> */
+    /**
+     * Rincian per bulan dalam tiga query (GROUP BY bulan) — bukan tiga query per bulan; bulan tanpa kegiatan tetap
+     * muncul bernilai 0. Bulan pertama/terakhir otomatis terpotong batas periode karena saringan tanggal.
+     *
+     * @return list<array{month: string, label: string, disbursed: int, collected: int, count: int}>
+     */
     private function months(Carbon $from, Carbon $to): array
     {
+        [$f, $t] = [$from->toDateString(), $to->toDateString()];
+        $ym = fn (string $col) => "substr(CAST({$col} AS TEXT), 1, 7)";
+        $disb = LoanDisbursement::query()->whereDayRange('disbursed_on', $f, $t)
+            ->selectRaw($ym('disbursed_on').' AS ym, COALESCE(SUM(amount), 0) AS total')->groupByRaw($ym('disbursed_on'))->pluck('total', 'ym');
+        $pay = LoanPayment::query()->whereNull('voided_at')->whereDayRange('paid_at', $f, $t)
+            ->selectRaw($ym('paid_at').' AS ym, COALESCE(SUM(amount), 0) AS total, COUNT(*) AS n')->groupByRaw($ym('paid_at'))->get()->keyBy('ym');
+
         $out = [];
         for ($m = $from->copy()->startOfMonth(); $m->lte($to); $m->addMonth()) {
-            // bulan pertama/terakhir dipotong mengikuti batas periode (rentang bebas)
-            [$f, $t] = [max($m->toDateString(), $from->toDateString()), min($m->copy()->endOfMonth()->toDateString(), $to->toDateString())];
-            $pay = LoanPayment::query()->whereNull('voided_at')->whereDayRange('paid_at', $f, $t);
-            $out[] = ['month' => $m->format('Y-m'), 'label' => $m->locale('id')->translatedFormat('M Y'),
-                'disbursed' => (int) round((float) LoanDisbursement::query()->whereDayRange('disbursed_on', $f, $t)->sum('amount')),
-                'collected' => (int) round((float) (clone $pay)->sum('amount')), 'count' => (clone $pay)->count()];
+            $k = $m->format('Y-m');
+            $out[] = ['month' => $k, 'label' => $m->locale('id')->translatedFormat('M Y'),
+                'disbursed' => (int) round((float) ($disb[$k] ?? 0)),
+                'collected' => (int) round((float) ($pay[$k]->total ?? 0)), 'count' => (int) ($pay[$k]->n ?? 0)];
         }
 
         return $out;
+    }
+
+    /** Kelompok sisa angsuran pinjaman berjalan. */
+    public const REMAINING_BUCKETS = ['1' => '1 angsuran', '2-3' => '2–3 angsuran', '4-6' => '4–6 angsuran', '7-12' => '7–12 angsuran', '13+' => 'Lebih dari 12'];
+
+    /**
+     * Agregasi pinjaman berjalan (berjalan + menunggak) saat ini: jumlah, pokok, kewajiban total, sudah dibayar, sisa,
+     * rata-rata sisa; sebaran per jenis anggota, per metode bayar, per sisa angsuran; dan perkiraan angsuran masuk
+     * 30 hari ke depan (sisa angsuran yang jatuh tempo, termasuk yang sudah lewat).
+     */
+    public function running(?Carbon $today = null): array
+    {
+        $today ??= today();
+        $loans = Loan::query()->whereIn('status', Loan::ACTIVE)->with('member:id,type,deleted_at')
+            ->withCount(['installments as open_installments' => fn ($q) => $q->where('status', '!=', 'dibayar')])
+            ->get(['id', 'member_id', 'principal', 'interest', 'outstanding', 'payment_method', 'status']);
+        $overdue = Loan::query()->effectivelyOverdue()->pluck('id')->flip();
+        $sum = fn ($c, string $f) => (int) round((float) $c->sum($f));
+        $due = $loans->sum(fn ($l) => (int) round((float) $l->principal + (float) $l->interest));
+        $outstanding = $sum($loans, 'outstanding');
+        $bucket = fn (int $n) => match (true) { $n <= 1 => '1', $n <= 3 => '2-3', $n <= 6 => '4-6', $n <= 12 => '7-12', default => '13+' };
+        $group = fn ($c) => ['count' => $c->count(), 'outstanding' => $sum($c, 'outstanding')];
+        $soon = \App\Models\LoanInstallment::query()->where('status', '!=', 'dibayar')->where('due_date', '<', $today->copy()->addDays(31)->toDateString())
+            ->whereHas('loan', fn ($q) => $q->whereIn('status', Loan::ACTIVE))->selectRaw('COUNT(*) AS n, COALESCE(SUM(amount - paid_amount), 0) AS sisa')->first();
+
+        return [
+            'count' => $loans->count(), 'principal' => $sum($loans, 'principal'), 'total_due' => $due,
+            'paid' => $due - $outstanding, 'outstanding' => $outstanding,
+            'average_outstanding' => $loans->count() ? intdiv($outstanding, $loans->count()) : 0,
+            'overdue' => $group($loans->filter(fn ($l) => $overdue->has($l->id))),
+            'by_member_type' => collect(\App\Models\Member::TYPES)->map(fn ($label, $t) => ['label' => $label] + $group($loans->filter(fn ($l) => $l->member?->type === $t)))->all(),
+            'by_method' => collect(Loan::METHODS)->map(fn ($label, $m) => ['label' => $label] + $group($loans->where('payment_method', $m)))->all(),
+            'by_remaining' => collect(self::REMAINING_BUCKETS)->map(fn ($label, $k) => ['label' => $label] + $group($loans->filter(fn ($l) => $bucket((int) $l->open_installments) === $k)))->all(),
+            'expected_30_days' => ['installments' => (int) $soon->n, 'amount' => (int) round((float) $soon->sisa)],
+        ];
     }
 
     /**
