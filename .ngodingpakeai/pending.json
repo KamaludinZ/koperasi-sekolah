@@ -1,6 +1,6 @@
 {
   "repo": "Koperasi Sekolah",
-  "generatedForCommit": "f542fd18bc7378ffb2658d99550d58baddf57a8f",
+  "generatedForCommit": "f9f837d524eb00faddc34f09a4665be504dc9253",
   "files": [
     {
       "path": ".claude/skills/ngodingpakeai/SKILL.md",
@@ -328,7 +328,7 @@
     },
     {
       "path": "app/Livewire/Pinjaman/AuditTrail.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 3797
     },
@@ -364,9 +364,9 @@
     },
     {
       "path": "app/Livewire/Pinjaman/Show.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 14316
+      "size": 17193
     },
     {
       "path": "app/Livewire/Portal/Loans.php",
@@ -448,7 +448,7 @@
     },
     {
       "path": "app/Services/LoanAuditQuery.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 5511
     },
@@ -2014,7 +2014,7 @@
     },
     {
       "path": "resources/views/livewire/pinjaman/audit-trail.blade.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 11007
     },
@@ -2068,9 +2068,9 @@
     },
     {
       "path": "resources/views/livewire/pinjaman/show.blade.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 39137
+      "size": 43475
     },
     {
       "path": "resources/views/livewire/portal/checkout.blade.php",
@@ -2290,7 +2290,7 @@
     },
     {
       "path": "routes/web.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 50704
     },
@@ -2650,7 +2650,7 @@
     },
     {
       "path": "tests/Feature/Pinjaman/AuditTrailPageTest.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 4970
     },
@@ -2779,6 +2779,12 @@
       "reason": "needs_summary",
       "language": "php",
       "size": 5706
+    },
+    {
+      "path": "tests/Feature/Pinjaman/LoanChangeLogTest.php",
+      "reason": "new",
+      "language": "php",
+      "size": 3739
     },
     {
       "path": "tests/Feature/Pinjaman/LoanDetailEndpointTest.php",

@@ -5,6 +5,7 @@ namespace App\Livewire\Pinjaman;
 use App\Models\ActivityLog;
 use App\Services\AuditQuery;
 use App\Services\LoanAuditQuery;
+use App\Services\LoanLedgerQuery;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
@@ -15,7 +16,8 @@ use Livewire\WithPagination;
 /**
  * Pinjaman → Jejak audit (Admin & Pengurus): seluruh peristiwa pinjaman — pengajuan, pencairan & bukti, angsuran &
  * koreksi, tunggakan, unduhan rekap — dengan saringan kelompok, periode, petugas, pinjaman, kata kunci, serta panel
- * rincian (nilai sebelum/sesudah, alasan, IP).
+ * rincian (nilai sebelum/sesudah, alasan, IP). Tampilan kedua "Pencairan & angsuran": riwayat dana keluar/masuk termasuk
+ * pembayaran yang dikoreksi beserta alasan & penggantinya.
  */
 #[Layout('components.layouts.app')]
 #[Title('Jejak Audit Pinjaman')]
@@ -42,6 +44,13 @@ class AuditTrail extends Component
 
     public ?int $selectedId = null;
 
+    /** Tampilan: jejak (peristiwa audit) | transaksi (riwayat pencairan & angsuran). */
+    #[Url(as: 'tampil', except: 'jejak')]
+    public string $view = 'jejak';
+
+    #[Url(as: 'jenis', except: '')]
+    public string $ledgerType = '';
+
     public function mount(): void
     {
         $this->sanitize();
@@ -60,6 +69,16 @@ class AuditTrail extends Component
         $this->actor = mb_substr($this->actor, 0, 100);
         $this->search = mb_substr($this->search, 0, 100);
         $this->loanId = max(0, $this->loanId);
+        $this->view = $this->view === 'transaksi' ? 'transaksi' : 'jejak';
+        $this->ledgerType = array_key_exists($this->ledgerType, LoanLedgerQuery::TYPES) ? $this->ledgerType : '';
+    }
+
+    public function setView(string $view): void
+    {
+        $this->view = $view;
+        $this->selectedId = null;
+        $this->sanitize();
+        $this->resetPage();
     }
 
     public function setGroup(string $group): void
@@ -71,7 +90,7 @@ class AuditTrail extends Component
 
     public function resetFilters(): void
     {
-        $this->reset('group', 'period', 'actor', 'loanId', 'search');
+        $this->reset('group', 'period', 'actor', 'loanId', 'search', 'ledgerType');
         $this->resetPage();
     }
 
@@ -100,6 +119,24 @@ class AuditTrail extends Component
             ->when($this->group === 'perhatian', fn ($q) => $q->whereIn('event', LoanAuditQuery::NOTABLE));
 
         return $query->paginate(self::PER_PAGE)->through(fn (ActivityLog $l) => LoanAuditQuery::toArray($l));
+    }
+
+    /** Riwayat pencairan & angsuran (termasuk yang dikoreksi) untuk tampilan "transaksi". */
+    #[Computed]
+    public function ledgerAll()
+    {
+        [$from, $to] = $this->range;
+
+        return app(LoanLedgerQuery::class)->rows(['type' => $this->ledgerType, 'from' => $from, 'to' => $to, 'loan_id' => $this->loanId ?: null, 'search' => $this->search]);
+    }
+
+    #[Computed]
+    public function ledger(): \Illuminate\Pagination\LengthAwarePaginator
+    {
+        $rows = $this->ledgerAll;
+        $page = max(1, min($this->getPage(), (int) ceil(max(1, $rows->count()) / self::PER_PAGE)));
+
+        return new \Illuminate\Pagination\LengthAwarePaginator($rows->forPage($page, self::PER_PAGE)->values(), $rows->count(), self::PER_PAGE, $page);
     }
 
     #[Computed]

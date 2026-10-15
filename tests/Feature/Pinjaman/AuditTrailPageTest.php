@@ -76,6 +76,28 @@ class AuditTrailPageTest extends TestCase
             ->call('show', $fix->id)->call('closeDetail')->assertSet('selectedId', null);
     }
 
+    public function test_ledger_view_lists_disbursements_and_payments_including_corrected(): void
+    {
+        $c = Livewire::test(AuditTrail::class)->call('setView', 'transaksi')->assertSet('view', 'transaksi')
+            ->assertSeeHtmlInOrder(['data-ledger="pengganti"', 'data-ledger="dibatalkan"', 'data-ledger="pencairan"'])
+            ->assertSeeHtml('data-void-reason')->assertSeeText('Nominal salah ketik')->assertSeeText('menggantikan pembayaran')
+            ->assertSeeText('−Rp300.000')->assertSeeText('+Rp90.000')->assertSeeText('angsuran ke-1');
+        $tot = \App\Services\LoanLedgerQuery::totals($c->get('ledgerAll'));
+        $this->assertSame(['disbursed' => 300000, 'collected' => 90000, 'voided' => 100000, 'voided_count' => 1], $tot);
+
+        $c->set('ledgerType', 'pencairan')->assertSeeHtml('data-ledger="pencairan"')->assertDontSeeHtml('data-ledger="pengganti"')
+            ->set('ledgerType', 'koreksi')->assertSeeHtml('data-ledger="dibatalkan"')->assertSeeHtml('data-ledger="pengganti"')->assertDontSeeHtml('data-ledger="pencairan"')
+            ->set('ledgerType', 'angsuran')->assertSeeHtml('data-empty="riwayat-transaksi"') // satu-satunya angsuran sudah dikoreksi
+            ->set('ledgerType', 'x')->assertSet('ledgerType', '')
+            ->set('search', 'budi')->assertSeeHtml('data-empty="riwayat-transaksi"')
+            ->set('search', 'rina')->assertSeeHtml('data-ledger="pencairan"')
+            ->call('setView', 'ngawur')->assertSet('view', 'jejak');
+
+        $this->get(route('pinjaman.audit', ['tampil' => 'transaksi', 'pinjaman' => $this->loan->id]))->assertOk()->assertSeeHtml('data-ledger="pencairan"');
+        $this->travelTo('2027-03-01 10:00:00');
+        Livewire::test(AuditTrail::class)->call('setView', 'transaksi')->assertSeeHtml('data-empty="riwayat-transaksi"'); // 30 hari terakhir
+    }
+
     public function test_access(): void
     {
         $this->loginAs('kasir');

@@ -24,6 +24,12 @@ class LoanPayment extends Model
         return $this->belongsTo(Loan::class);
     }
 
+    /** Petugas yang mengoreksi (membatalkan) pembayaran ini. */
+    public function voider(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'voided_by');
+    }
+
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);

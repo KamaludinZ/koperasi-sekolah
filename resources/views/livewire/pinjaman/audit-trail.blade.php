@@ -19,6 +19,14 @@
     </header>
 
     <div class="space-y-4 px-4 py-5 sm:px-6">
+        <div class="inline-flex gap-1 rounded-xl border border-stone-200 bg-white p-1" role="tablist" aria-label="Tampilan">
+            @foreach (['jejak' => 'Jejak peristiwa', 'transaksi' => 'Pencairan & angsuran'] as $k => $t)
+                <button type="button" role="tab" wire:click="setView('{{ $k }}')" aria-selected="{{ $view === $k ? 'true' : 'false' }}" data-view="{{ $k }}"
+                        @class(['rounded-lg px-3 py-1.5 text-sm font-medium', 'bg-emerald-700 text-white' => $view === $k, 'text-stone-600 hover:bg-stone-50' => $view !== $k])>{{ $t }}</button>
+            @endforeach
+        </div>
+
+        @if ($view === 'jejak')
         <div class="flex gap-1 overflow-x-auto rounded-xl bg-stone-100 p-1" role="tablist" aria-label="Kelompok peristiwa">
             <button type="button" role="tab" wire:click="setGroup('')" aria-selected="{{ $group === '' ? 'true' : 'false' }}" data-group=""
                     @class(['shrink-0 rounded-lg px-3 py-1.5 text-sm font-medium', 'bg-white shadow-sm' => $group === '', 'text-stone-600' => $group !== ''])>Semua <span class="text-xs text-stone-500 tabular-nums">{{ $c['semua'] }}</span></button>
@@ -29,12 +37,20 @@
             <button type="button" role="tab" wire:click="setGroup('perhatian')" aria-selected="{{ $group === 'perhatian' ? 'true' : 'false' }}" data-group="perhatian"
                     @class(['shrink-0 rounded-lg px-3 py-1.5 text-sm font-medium', 'bg-white shadow-sm' => $group === 'perhatian', 'text-red-700' => $group !== 'perhatian'])>Perlu perhatian <span class="text-xs tabular-nums">{{ $c['perhatian'] }}</span></button>
         </div>
+        @else
+        <div class="flex gap-1 overflow-x-auto rounded-xl bg-stone-100 p-1" role="tablist" aria-label="Jenis transaksi">
+            @foreach (['' => 'Semua'] + \App\Services\LoanLedgerQuery::TYPES as $k => $t)
+                <button type="button" role="tab" wire:click="$set('ledgerType', '{{ $k }}')" aria-selected="{{ $ledgerType === $k ? 'true' : 'false' }}" data-ledger-type="{{ $k }}"
+                        @class(['shrink-0 rounded-lg px-3 py-1.5 text-sm font-medium', 'bg-white shadow-sm' => $ledgerType === $k, 'text-stone-600' => $ledgerType !== $k])>{{ $t }}</button>
+            @endforeach
+        </div>
+        @endif
 
         <div class="flex flex-col gap-2 lg:flex-row lg:flex-wrap lg:items-center">
             <select wire:model.live="period" aria-label="Periode" class="{{ $select }}">
                 @foreach (\App\Services\AuditQuery::PERIODS as $k => $label)<option value="{{ $k }}">{{ $label }}</option>@endforeach
             </select>
-            <select wire:model.live="actor" aria-label="Petugas" class="{{ $select }}">
+            <select wire:model.live="actor" aria-label="Petugas" @class([$select, 'hidden' => $view !== 'jejak'])>
                 <option value="">Semua petugas</option>
                 @foreach ($this->actors as $name)<option value="{{ $name }}">{{ $name }}</option>@endforeach
             </select>
@@ -51,6 +67,50 @@
             @endif
         </div>
 
+        @if ($view === 'transaksi')
+            @php $ledger = $this->ledger; $tot = \App\Services\LoanLedgerQuery::totals($this->ledgerAll); @endphp
+            <section class="grid grid-cols-1 gap-3 sm:grid-cols-3" aria-label="Total transaksi">
+                <div class="rounded-xl border border-indigo-200 bg-indigo-50 px-4 py-3" data-ledger-total="pencairan"><p class="text-xs text-indigo-900">Dana dicairkan</p><p class="text-lg font-bold tabular-nums">{{ $rp($tot['disbursed']) }}</p></div>
+                <div class="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3" data-ledger-total="angsuran"><p class="text-xs text-emerald-800">Angsuran sah diterima</p><p class="text-lg font-bold tabular-nums">{{ $rp($tot['collected']) }}</p></div>
+                <div class="rounded-xl border border-stone-200 bg-white px-4 py-3" data-ledger-total="koreksi"><p class="text-xs text-stone-500">Pembayaran dikoreksi (batal)</p><p class="text-lg font-bold tabular-nums">{{ $tot['voided_count'] }} · {{ $rp($tot['voided']) }}</p></div>
+            </section>
+            <section class="overflow-hidden rounded-xl border border-stone-200 bg-white" aria-label="Riwayat pencairan dan angsuran">
+                <div class="overflow-x-auto">
+                    <table class="w-full min-w-[52rem] text-sm">
+                        <thead class="bg-stone-50 text-left text-xs text-stone-500">
+                            <tr><th class="px-4 py-2 font-medium">Tanggal</th><th class="px-3 py-2 font-medium">Jenis</th><th class="px-3 py-2 font-medium">Pinjaman</th><th class="px-3 py-2 text-right font-medium">Nominal</th><th class="px-3 py-2 font-medium">Metode · rujukan</th><th class="px-4 py-2 font-medium">Petugas</th></tr>
+                        </thead>
+                        <tbody class="divide-y divide-stone-100">
+                            @forelse ($ledger as $x)
+                                <tr wire:key="led-{{ $x['key'] }}" @class(['text-stone-400' => ! $x['valid']]) data-ledger="{{ $x['type'] }}">
+                                    <td class="px-4 py-2.5 whitespace-nowrap">@tanggal($x['date'])<span class="block text-xs text-stone-400">dicatat @tanggal($x['recorded_at'], true)</span></td>
+                                    <td class="px-3 py-2.5">
+                                        <span @class(['rounded-md px-2 py-0.5 text-[11px] font-semibold whitespace-nowrap', 'bg-indigo-100 text-indigo-900' => $x['type'] === 'pencairan',
+                                            'bg-emerald-100 text-emerald-900' => $x['type'] === 'angsuran', 'bg-amber-100 text-amber-900' => $x['type'] === 'pengganti', 'bg-red-100 text-red-800' => $x['type'] === 'dibatalkan'])>{{ $x['label'] }}</span>
+                                        @if ($x['sequences'])<span class="block text-xs text-stone-500">angsuran ke-{{ implode(', ', $x['sequences']) }}</span>@endif
+                                        @if ($x['void'])<span class="block text-xs text-red-700" data-void-reason>Dikoreksi {{ $x['void']['by'] ?? '' }} @tanggal($x['void']['at'], true): {{ $x['void']['reason'] }}</span>@endif
+                                        @if ($x['replaces_id'])<span class="block text-xs text-amber-800">menggantikan pembayaran #{{ $x['replaces_id'] }}</span>@endif
+                                    </td>
+                                    <td class="px-3 py-2.5">@if ($x['loan'])<a href="{{ route('pinjaman.show', $x['loan']['id']) }}" wire:navigate class="font-mono text-xs font-semibold text-emerald-800 hover:underline">{{ $x['loan']['code'] }}</a><span class="block text-xs text-stone-500">{{ $x['loan']['member'] }}</span>@endif</td>
+                                    <td @class(['px-3 py-2.5 text-right font-semibold tabular-nums whitespace-nowrap', 'line-through' => ! $x['valid'], 'text-indigo-900' => $x['amount'] < 0 && $x['valid']])>{{ $x['amount'] < 0 ? '−'.$rp(-$x['amount']) : '+'.$rp($x['amount']) }}</td>
+                                    <td class="px-3 py-2.5 text-xs">{{ $x['method'] ?? '—' }}{{ $x['reference'] ? ' · '.$x['reference'] : '' }}</td>
+                                    <td class="px-4 py-2.5 text-xs">{{ $x['user'] ?? '—' }}</td>
+                                </tr>
+                            @empty
+                                <tr><td colspan="6" class="px-4 py-12 text-center text-stone-400" data-empty="riwayat-transaksi">Tidak ada pencairan atau angsuran pada periode/saringan ini.</td></tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
+                @if ($ledger->hasPages())
+                    <div class="flex items-center justify-between border-t border-stone-100 px-4 py-2 text-sm">
+                        <button type="button" wire:click="previousPage" @disabled($ledger->onFirstPage()) class="rounded-lg border border-stone-300 px-3 py-1.5 disabled:opacity-40">Sebelumnya</button>
+                        <span class="text-stone-500">Halaman {{ $ledger->currentPage() }} dari {{ $ledger->lastPage() }}</span>
+                        <button type="button" wire:click="nextPage" @disabled(! $ledger->hasMorePages()) class="rounded-lg border border-stone-300 px-3 py-1.5 disabled:opacity-40">Berikutnya</button>
+                    </div>
+                @endif
+            </section>
+        @else
         <div class="grid gap-4 lg:grid-cols-[1fr_22rem]">
             <section class="overflow-hidden rounded-xl border border-stone-200 bg-white" aria-label="Daftar jejak audit pinjaman">
                 <div class="overflow-x-auto">
@@ -120,5 +180,6 @@
                 @endif
             </aside>
         </div>
+        @endif
     </div>
 </div>
