@@ -484,6 +484,7 @@ Route::middleware(['menu:pinjaman', 'peran:admin,pengurus', 'can:kelola-pinjaman
     Route::get('/pinjaman/angsuran', \App\Livewire\Pinjaman\Installments::class)->name('pinjaman.angsuran');
     Route::get('/pinjaman/angsuran/riwayat', \App\Livewire\Pinjaman\PaymentHistory::class)->name('pinjaman.angsuran.riwayat');
     Route::get('/pinjaman/tunggakan', \App\Livewire\Pinjaman\Arrears::class)->name('pinjaman.tunggakan');
+    Route::get('/pinjaman/rekap', \App\Livewire\Pinjaman\Recap::class)->name('pinjaman.rekap');
     Route::get('/pinjaman/angsuran/data', [\App\Http\Controllers\Pinjaman\InstallmentController::class, 'index'])->middleware('throttle:120,1')->name('pinjaman.angsuran.data');
     Route::post('/pinjaman/angsuran/pembayaran/{payment}/koreksi', [\App\Http\Controllers\Pinjaman\LoanPaymentCorrectionController::class, 'store'])->whereNumber('payment')->middleware('throttle:30,1')->name('pinjaman.angsuran.koreksi');
     Route::get('/pinjaman/{loan}/angsuran/jejak', [\App\Http\Controllers\Pinjaman\LoanPaymentCorrectionController::class, 'trail'])->whereNumber('loan')->middleware('throttle:120,1')->name('pinjaman.angsuran.jejak');

@@ -1,6 +1,6 @@
 {
   "repo": "Koperasi Sekolah",
-  "generatedForCommit": "637b18c5f103bfea73e91b7ff31e6c107963d5f8",
+  "generatedForCommit": "2c3f13cc2d5e5c19146678163dc6bc49cf03bc8e",
   "files": [
     {
       "path": ".claude/skills/ngodingpakeai/SKILL.md",
@@ -304,7 +304,7 @@
     },
     {
       "path": "app/Livewire/Pinjaman/Index.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 2545
     },
@@ -327,6 +327,12 @@
       "size": 14316
     },
     {
+      "path": "app/Livewire/Portal/Home.php",
+      "reason": "changed",
+      "language": "php",
+      "size": 975
+    },
+    {
       "path": "app/Livewire/Portal/Loans.php",
       "reason": "needs_summary",
       "language": "php",
@@ -346,7 +352,7 @@
     },
     {
       "path": "app/Models/Loan.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 5955
     },
@@ -430,7 +436,7 @@
     },
     {
       "path": "app/Services/LoanService.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 11462
     },
@@ -1330,7 +1336,7 @@
     },
     {
       "path": "resources/views/components/pinjaman/nav.blade.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 1468
     },
@@ -1339,6 +1345,12 @@
       "reason": "needs_summary",
       "language": "php",
       "size": 645
+    },
+    {
+      "path": "resources/views/components/portal/loan-alert.blade.php",
+      "reason": "new",
+      "language": "php",
+      "size": 2111
     },
     {
       "path": "resources/views/components/portal/loan-card.blade.php",
@@ -1930,7 +1942,7 @@
     },
     {
       "path": "resources/views/livewire/pinjaman/index.blade.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 11093
     },
@@ -1978,9 +1990,9 @@
     },
     {
       "path": "resources/views/livewire/portal/home.blade.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 1924
+      "size": 2023
     },
     {
       "path": "resources/views/livewire/portal/loans.blade.php",
@@ -2536,7 +2548,7 @@
     },
     {
       "path": "tests/Feature/Pinjaman/ConsoleOverdueBadgeTest.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 3283
     },
@@ -2737,6 +2749,12 @@
       "reason": "needs_summary",
       "language": "php",
       "size": 10288
+    },
+    {
+      "path": "tests/Feature/Portal/OverdueBadgeTest.php",
+      "reason": "new",
+      "language": "php",
+      "size": 3410
     },
     {
       "path": "tests/Feature/Services/TanggalTest.php",
