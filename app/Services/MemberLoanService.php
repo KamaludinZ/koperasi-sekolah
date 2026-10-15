@@ -27,7 +27,7 @@ class MemberLoanService
         $today = today();
         $payments = $this->payments;
 
-        return Loan::query()->where('member_id', $member->id)->with(['installments' => fn ($q) => $q->where('status', '!=', 'dibayar')->orderBy('sequence')])
+        return Loan::query()->ownedBy($member)->with(['installments' => fn ($q) => $q->where('status', '!=', 'dibayar')->orderBy('sequence')])
             ->orderByRaw("CASE status WHEN 'menunggak' THEN 0 WHEN 'berjalan' THEN 1 WHEN 'disetujui' THEN 2 WHEN 'diajukan' THEN 3 ELSE 4 END")
             ->orderByDesc('applied_at')->orderByDesc('id')->get()
             ->map(function (Loan $l) use ($today, $payments) {
@@ -57,7 +57,7 @@ class MemberLoanService
     {
         $today = today()->toDateString();
 
-        return Loan::query()->where('member_id', $memberId)->whereIn('status', Loan::ACTIVE)
+        return Loan::query()->ownedBy($memberId)->whereIn('status', Loan::ACTIVE)
             ->where(fn ($q) => $q->where('status', 'menunggak')
                 ->orWhereHas('installments', fn ($i) => $i->where('status', '!=', 'dibayar')->where('due_date', '<', $today)))
             ->count();
@@ -118,7 +118,7 @@ class MemberLoanService
     public function outstanding(Member $member): array
     {
         $today = today();
-        $loans = Loan::query()->where('member_id', $member->id)->whereIn('status', Loan::ACTIVE)
+        $loans = Loan::query()->ownedBy($member)->whereIn('status', Loan::ACTIVE)
             ->with(['installments' => fn ($q) => $q->where('status', '!=', 'dibayar')->orderBy('sequence')])
             ->orderBy('applied_at')->orderBy('id')->get();
 
@@ -185,5 +185,13 @@ class MemberLoanService
                 'status_label' => \App\Models\LoanInstallment::STATUSES[$i->status === 'dibayar' ? 'dibayar' : ($i->due_date->lt($today) ? 'menunggak' : 'belum')],
             ])->all(),
         ];
+    }
+
+    /** Pinjaman milik anggota; milik orang lain atau tidak ada sama-sama 404 (keberadaannya tidak dibocorkan). */
+    public static function ownedLoan(Member $member, int|string $id): Loan
+    {
+        abort_unless(ctype_digit((string) $id), 404);
+
+        return Loan::query()->ownedBy($member)->whereKey((int) $id)->firstOr(fn () => abort(404));
     }
 }

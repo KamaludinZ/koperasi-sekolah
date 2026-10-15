@@ -1,6 +1,6 @@
 {
   "repo": "Koperasi Sekolah",
-  "generatedForCommit": "85555554cdad57fd255d41a07df965cab33f6c6b",
+  "generatedForCommit": "bd7c3b150deb32c48edee8e07640013877e06c5a",
   "files": [
     {
       "path": ".claude/skills/ngodingpakeai/SKILL.md",
@@ -174,7 +174,7 @@
       "path": "app/Http/Controllers/Portal/LoanController.php",
       "reason": "changed",
       "language": "php",
-      "size": 1981
+      "size": 2695
     },
     {
       "path": "app/Http/Controllers/Transaksi/TransactionDetailController.php",
@@ -432,7 +432,7 @@
       "path": "app/Services/MemberLoanService.php",
       "reason": "changed",
       "language": "php",
-      "size": 9490
+      "size": 11642
     },
     {
       "path": "app/Services/MinStockService.php",
@@ -2160,7 +2160,7 @@
       "path": "routes/web.php",
       "reason": "changed",
       "language": "php",
-      "size": 48219
+      "size": 48419
     },
     {
       "path": "tests/Concerns/MakesProductImports.php",
@@ -2676,7 +2676,7 @@
       "path": "tests/Feature/Portal/LoansEndpointTest.php",
       "reason": "changed",
       "language": "php",
-      "size": 7120
+      "size": 9349
     },
     {
       "path": "tests/Feature/Portal/LoansPageTest.php",

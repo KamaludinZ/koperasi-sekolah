@@ -73,6 +73,16 @@ class Loan extends Model
     }
 
     /** Riwayat perubahan seluruh angsuran pinjaman ini (append-only), terlama dulu. */
+    /**
+     * Hanya pinjaman milik anggota tertentu — satu-satunya pintu data pinjaman di portal anggota.
+     * Tanpa anggota (null) tidak mengembalikan apa pun.
+     */
+    public function scopeOwnedBy(\Illuminate\Database\Eloquent\Builder $query, Member|int|null $member): void
+    {
+        $id = $member instanceof Member ? $member->getKey() : $member;
+        $id === null ? $query->whereRaw('1 = 0') : $query->where('member_id', $id);
+    }
+
     public function installmentChanges(): HasMany
     {
         return $this->hasMany(LoanInstallmentChange::class)->orderBy('id');

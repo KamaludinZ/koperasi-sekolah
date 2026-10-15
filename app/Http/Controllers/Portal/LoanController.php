@@ -55,9 +55,7 @@ class LoanController extends Controller
     {
         $member = Auth::guard('member')->user();
         abort_unless($member, 401);
-        $model = \App\Models\Loan::query()->whereKey($loan)->where('member_id', $member->id)->first();
-        abort_unless($model, 404);
 
-        return response()->json(['data' => $loans->history($model)]);
+        return response()->json(['data' => $loans->history(MemberLoanService::ownedLoan($member, $loan))]);
     }
 }
