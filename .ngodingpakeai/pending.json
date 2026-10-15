@@ -1,6 +1,6 @@
 {
   "repo": "Koperasi Sekolah",
-  "generatedForCommit": "bb836aba0c0001536191e9bf0cbe0cc6c9afcc80",
+  "generatedForCommit": "fa8388b302040e6fa103f13d19028127009c961f",
   "files": [
     {
       "path": ".claude/skills/ngodingpakeai/SKILL.md",
@@ -148,9 +148,9 @@
     },
     {
       "path": "app/Http/Controllers/Pengguna/UserController.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 9268
+      "size": 9666
     },
     {
       "path": "app/Http/Controllers/Transaksi/TransactionDetailController.php",
@@ -285,14 +285,8 @@
       "size": 874
     },
     {
-      "path": "app/Models/ActivityLog.php",
-      "reason": "changed",
-      "language": "php",
-      "size": 4377
-    },
-    {
       "path": "app/Models/Impersonation.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 3250
     },
@@ -310,9 +304,9 @@
     },
     {
       "path": "app/Models/UserRole.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 2807
+      "size": 2423
     },
     {
       "path": "app/Observers/ProductObserver.php",
@@ -321,20 +315,8 @@
       "size": 2211
     },
     {
-      "path": "app/Services/AuditIntegrity.php",
-      "reason": "changed",
-      "language": "php",
-      "size": 3654
-    },
-    {
-      "path": "app/Services/AuditLog.php",
-      "reason": "changed",
-      "language": "php",
-      "size": 5321
-    },
-    {
       "path": "app/Services/ImpersonationService.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 19313
     },
@@ -363,16 +345,28 @@
       "size": 5077
     },
     {
+      "path": "app/Services/RoleAuditService.php",
+      "reason": "new",
+      "language": "php",
+      "size": 7208
+    },
+    {
       "path": "app/Services/RoleImpersonationTrail.php",
       "reason": "changed",
       "language": "php",
-      "size": 12736
+      "size": 12823
     },
     {
       "path": "app/Services/StockService.php",
       "reason": "needs_summary",
       "language": "php",
       "size": 3493
+    },
+    {
+      "path": "app/Services/UserService.php",
+      "reason": "changed",
+      "language": "php",
+      "size": 21121
     },
     {
       "path": "app/Support/AccessPreview.php",
@@ -1048,7 +1042,7 @@
     },
     {
       "path": "database/migrations/2026_10_19_000001_add_impersonation_columns_to_audit_tables.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 5413
     },
@@ -2416,7 +2410,7 @@
     },
     {
       "path": "tests/Feature/Database/ImpersonationAuditColumnsTest.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 5588
     },
@@ -2751,10 +2745,16 @@
       "size": 4639
     },
     {
-      "path": "tests/Feature/Pengguna/RoleChangeAuditTest.php",
-      "reason": "needs_summary",
+      "path": "tests/Feature/Pengguna/RoleAuditServiceTest.php",
+      "reason": "new",
       "language": "php",
-      "size": 4209
+      "size": 5557
+    },
+    {
+      "path": "tests/Feature/Pengguna/RoleChangeAuditTest.php",
+      "reason": "changed",
+      "language": "php",
+      "size": 4424
     },
     {
       "path": "tests/Feature/Pengguna/RoleChangeRefreshTest.php",

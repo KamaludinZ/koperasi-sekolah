@@ -44,6 +44,13 @@
                 <p class="text-xs text-stone-500" data-role-diff-none>Belum ada perubahan.</p>
             @endif
 
+            <label class="block text-sm">
+                <span class="mb-1 block font-medium text-stone-700">Alasan <span class="font-normal text-stone-500">(opsional, tercatat di jejak audit)</span></span>
+                <input type="text" wire:model="roleReason" maxlength="200" placeholder="mis. merangkap bendahara mulai semester ini" data-role-reason
+                       class="w-full rounded-lg border border-stone-300 px-3 py-2 text-sm">
+                @error('roleReason') <span class="mt-1 block text-xs text-red-600">{{ $message }}</span> @enderror
+            </label>
+
             <div class="flex gap-2">
                 <button type="button" wire:click="cancelRoles" class="rounded-xl border border-stone-300 px-4 py-2.5 text-sm font-medium text-stone-700 hover:bg-stone-50">Batal</button>
                 <button type="submit" wire:loading.attr="disabled" wire:target="saveRoles" @disabled($roleChoice === [])

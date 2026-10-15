@@ -3,7 +3,9 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+use App\Services\AuditLog;
 use App\Services\PermissionMerger;
+use App\Services\RoleAuditService;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -57,8 +59,20 @@ class User extends Authenticatable
         // peran utama selalu tercatat juga di pivot (akun dibuat lewat seeder/factory/perintah lama tetap konsisten)
         static::saved(function (User $user) {
             if ($user->role_id && $user->wasChanged('role_id') || ($user->wasRecentlyCreated && $user->role_id)) {
-                DB::table('user_roles')->insertOrIgnore(['user_id' => $user->id, 'role_id' => $user->role_id, 'created_at' => now(), 'granted_by' => UserRole::currentGranter()]);
+                $changed = $user->wasChanged('role_id'); // diganti (bukan baru dibuat; wasRecentlyCreated tetap true pada objek yang sama)
+                $before = $changed ? $user->roles()->pluck('roles.name')->all() : [];
+                $inserted = DB::table('user_roles')->insertOrIgnore(['user_id' => $user->id, 'role_id' => $user->role_id, 'created_at' => now(), 'granted_by' => UserRole::currentGranter()]);
                 $user->unsetRelation('roles');
+                // peran utama diganti langsung lewat model di LUAR alur resmi (UserService) → tetap tercatat otomatis
+                if ($changed && ! UserRole::inOfficialFlow() && ! AuditLog::isQuiet()) {
+                    $after = $user->roles()->pluck('roles.name')->all();
+                    $oldPrimary = Role::whereKey($user->getOriginal('role_id'))->value('name');
+                    app(RoleAuditService::class)->recordUserRoles($user, $before, $after, [
+                        'source' => 'otomatis', 'event' => 'user.primary_role_changed', 'primary_from' => $oldPrimary, 'primary_to' => $user->role()->value('name'),
+                        'other_changes' => ['primary_role' => ['from' => $oldPrimary, 'to' => $user->role()->value('name')]],
+                        'description' => "Peran utama {$user->name} diganti di luar halaman Pengguna".($inserted ? ' (peran baru ikut dipasang)' : ''),
+                    ]);
+                }
             }
         });
     }

@@ -115,10 +115,11 @@ class UserService
     private function assignRoles(User $user, array $names): void
     {
         $ids = Role::whereIn('name', $names)->pluck('id', 'name');
-        $user->forceFill(['role_id' => $ids[$names[0]]])->save();
-        // alur resmi: pemanggil mencatat user.created / user.role_changed sendiri (catatan per baris pivot dilewati).
-        // Hanya selisihnya yang diubah: peran yang tetap dipegang mempertahankan sejak-kapan & pemberinya.
-        UserRole::official(function () use ($user, $ids) {
+        // alur resmi: pemanggil mencatat user.created / user.role_changed sendiri (catatan otomatis per baris pivot &
+        // pergantian peran utama dilewati). Hanya selisihnya yang diubah: peran yang tetap dipegang mempertahankan
+        // sejak-kapan & pemberinya.
+        UserRole::official(function () use ($user, $ids, $names) {
+            $user->forceFill(['role_id' => $ids[$names[0]]])->save();
             $held = $user->roles()->pluck('roles.id')->all();
             $want = $ids->values()->all();
             if ($drop = array_diff($held, $want)) {
@@ -227,9 +228,12 @@ class UserService
         DB::transaction(function () use ($user, $names, $before, $added, $removed, $menusBefore, $actor, $reason, $source, $primaryBefore) {
             $this->assignRoles($user, $names);
             $this->notifyRolesChanged($user, $added, $removed, $menusBefore, $actor);
-            app(RoleAuditService::class)->recordUserRoles($user, $before, $names, [
+            $log = app(RoleAuditService::class)->recordUserRoles($user, $before, $names, [
                 'source' => $source, 'reason' => $reason, 'primary_from' => $primaryBefore, 'primary_to' => $user->role?->name,
             ]);
+            if (! $log && ! AuditLog::isQuiet()) { // wajib tercatat: tanpa jejak, perubahan peran dibatalkan
+                throw new \RuntimeException('Jejak audit perubahan peran gagal dicatat — perubahan dibatalkan.');
+            }
         });
 
         return ['user' => $user, 'added' => $added, 'removed' => $removed];

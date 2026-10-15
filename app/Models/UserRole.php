@@ -29,6 +29,12 @@ class UserRole extends Pivot
     /** Kedalaman alur resmi yang sedang berjalan (catatan per baris dilewati; alur resmi mencatat ringkasannya). */
     private static int $official = 0;
 
+    /** Sedang di dalam alur resmi UserService (pencatatan ringkasnya dilakukan pemanggil). */
+    public static function inOfficialFlow(): bool
+    {
+        return self::$official > 0;
+    }
+
     public static function official(callable $fn): mixed
     {
         self::$official++;

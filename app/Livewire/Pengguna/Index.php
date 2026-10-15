@@ -7,9 +7,11 @@ use App\Models\Role;
 use App\Models\User;
 use App\Services\UserService;
 use App\Support\Menu;
+use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
+use Livewire\Attributes\Locked;
 use Livewire\Attributes\Title;
 use Livewire\Attributes\Url;
 use Livewire\Component;
@@ -168,8 +170,11 @@ class Index extends Component
     public array $roleChoice = [];
 
     /** @var list<string> peran tersimpan saat form dibuka (deteksi perubahan oleh petugas lain) */
-    #[\Livewire\Attributes\Locked]
+    #[Locked]
     public array $roleSnapshot = [];
+
+    /** Alasan (opsional) perubahan peran — ikut tercatat di jejak audit. */
+    public string $roleReason = '';
 
     public function editRoles(int $userId): void
     {
@@ -180,6 +185,7 @@ class Index extends Component
         $this->roleUserId = $user->id;
         $this->roleChoice = $user->roleNames();
         $this->roleSnapshot = $this->roleChoice;
+        $this->roleReason = '';
         $this->reset('flash', 'error');
         $this->resetValidation('roleChoice');
     }
@@ -209,8 +215,9 @@ class Index extends Component
 
             return;
         }
-        $this->validate(['roleChoice' => ['required', 'array', 'min:1'], 'roleChoice.*' => ['string', 'distinct', \Illuminate\Validation\Rule::in(array_keys(Role::LABELS))]],
-            ['roleChoice.required' => UserService::MSG_MIN_ROLE, 'roleChoice.min' => UserService::MSG_MIN_ROLE, 'roleChoice.*.in' => 'Peran tidak dikenal.']);
+        $this->validate(['roleChoice' => ['required', 'array', 'min:1'], 'roleChoice.*' => ['string', 'distinct', Rule::in(array_keys(Role::LABELS))],
+            'roleReason' => ['nullable', 'string', 'max:200']],
+            ['roleChoice.required' => UserService::MSG_MIN_ROLE, 'roleChoice.min' => UserService::MSG_MIN_ROLE, 'roleChoice.*.in' => 'Peran tidak dikenal.', 'roleReason.max' => 'Alasan maksimal 200 karakter.']);
         if ($user->roleNames() !== $this->roleSnapshot) { // diubah petugas lain sejak form dibuka
             $this->roleChoice = $this->roleSnapshot = $user->roleNames();
             $this->addError('roleChoice', 'Peran akun ini baru saja diubah petugas lain. Pilihan dimuat ulang sesuai yang tersimpan — periksa lalu simpan lagi.');
@@ -219,7 +226,7 @@ class Index extends Component
             return;
         }
         try {
-            $r = app(UserService::class)->updateRoles($user, $this->roleChoice, auth()->user());
+            $r = app(UserService::class)->updateRoles($user, $this->roleChoice, auth()->user(), trim($this->roleReason) ?: null);
         } catch (ValidationException $e) {
             $this->addError('roleChoice', collect($e->errors())->flatten()->first());
 
