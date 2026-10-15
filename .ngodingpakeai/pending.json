@@ -1,6 +1,6 @@
 {
   "repo": "Koperasi Sekolah",
-  "generatedForCommit": "d41976b93af453113c7a3015ae17e90f1a8978a8",
+  "generatedForCommit": "4fe27c607202f75eaed24b6f145cb01de08b7bbb",
   "files": [
     {
       "path": ".claude/skills/ngodingpakeai/SKILL.md",
@@ -64,7 +64,7 @@
     },
     {
       "path": "app/Http/Controllers/Auth/LoginController.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 1409
     },
@@ -124,9 +124,9 @@
     },
     {
       "path": "app/Http/Controllers/Pengguna/UserController.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 2890
+      "size": 4643
     },
     {
       "path": "app/Http/Controllers/Transaksi/TransactionDetailController.php",
@@ -142,7 +142,7 @@
     },
     {
       "path": "app/Http/Middleware/EnsureRole.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 1033
     },
@@ -163,12 +163,6 @@
       "reason": "needs_summary",
       "language": "php",
       "size": 5985
-    },
-    {
-      "path": "app/Livewire/Auth/Login.php",
-      "reason": "changed",
-      "language": "php",
-      "size": 3470
     },
     {
       "path": "app/Livewire/Concerns/GuardsSettings.php",
@@ -243,12 +237,6 @@
       "size": 874
     },
     {
-      "path": "app/Models/Notification.php",
-      "reason": "changed",
-      "language": "php",
-      "size": 6140
-    },
-    {
       "path": "app/Models/Setting.php",
       "reason": "needs_summary",
       "language": "php",
@@ -256,7 +244,7 @@
     },
     {
       "path": "app/Models/User.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 4959
     },
@@ -265,12 +253,6 @@
       "reason": "needs_summary",
       "language": "php",
       "size": 2211
-    },
-    {
-      "path": "app/Services/AuthService.php",
-      "reason": "changed",
-      "language": "php",
-      "size": 4407
     },
     {
       "path": "app/Services/MemberCodeGenerator.php",
@@ -301,12 +283,6 @@
       "reason": "needs_summary",
       "language": "php",
       "size": 15359
-    },
-    {
-      "path": "app/Support/Petugas.php",
-      "reason": "changed",
-      "language": "php",
-      "size": 577
     },
     {
       "path": "app/Support/PriceCalculator.php",
@@ -1654,7 +1630,7 @@
     },
     {
       "path": "resources/views/livewire/notifikasi/index.blade.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 8904
     },
@@ -2068,9 +2044,9 @@
     },
     {
       "path": "routes/web.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 51633
+      "size": 51751
     },
     {
       "path": "tests/Concerns/MakesProductImports.php",
@@ -2398,9 +2374,15 @@
     },
     {
       "path": "tests/Feature/Pengguna/UnionPermissionTest.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 4132
+    },
+    {
+      "path": "tests/Feature/Pengguna/UserListEndpointTest.php",
+      "reason": "new",
+      "language": "php",
+      "size": 4654
     },
     {
       "path": "tests/Feature/Pinjaman/SeedsRecapLoans.php",

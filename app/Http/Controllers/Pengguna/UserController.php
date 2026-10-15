@@ -20,6 +20,10 @@ use Illuminate\Validation\Rule;
  * - POST /pengguna                      → akun baru (201)
  * - PUT  /pengguna/{user}               → ubah akun / peran / status; `password` diisi = atur ulang
  * - POST /pengguna/{user}/status        → aktifkan / nonaktifkan
+ * - PUT  /pengguna/{user}/peran         → simpan seluruh peran {roles: [...] (min. 1), expected_roles?: [...]} — bila
+ *        expected_roles dikirim dan peran tersimpan sudah berbeda (diubah admin lain) → 409 tanpa menyimpan
+ * - POST /pengguna/{user}/peran/{role}  → tambah satu peran;  DELETE … → cabut satu peran (peran terakhir ditolak)
+ *   Respons ketiganya: akun (format daftar) + added/removed + changed.
  * - GET  /pengguna/peran                → peran & menu yang boleh dibuka
  * - PUT  /pengguna/peran/{role}         → ubah hak menu peran {permissions: [...]}
  */
@@ -82,6 +86,48 @@ class UserController extends Controller
     public function toggle(Request $request, User $user, UserService $users): JsonResponse
     {
         return response()->json(['data' => UserService::toArray($users->toggleActive($user, $request->user()))]);
+    }
+
+    public function saveRoles(Request $request, User $user, UserService $users): JsonResponse
+    {
+        $data = $request->validate([
+            'roles' => ['present', 'array', 'max:'.count(Role::LABELS)],
+            'roles.*' => ['string', 'distinct', Rule::in(array_keys(Role::LABELS))],
+            'expected_roles' => ['sometimes', 'array'],
+            'expected_roles.*' => ['string'],
+        ], ['roles.present' => UserService::MSG_MIN_ROLE, 'roles.array' => UserService::MSG_MIN_ROLE, 'roles.*.in' => 'Peran tidak dikenal.', 'roles.*.distinct' => 'Peran tidak boleh dobel.']);
+        $user->load('role', 'roles');
+        if (array_key_exists('expected_roles', $data) && Role::sortNames($data['expected_roles']) !== $user->roleNames()) {
+            return response()->json(['message' => 'Peran akun ini sudah diubah petugas lain. Muat ulang lalu ulangi.',
+                'data' => self::row($user)], 409);
+        }
+        if ($data['roles'] === []) {
+            return response()->json(['message' => UserService::MSG_MIN_ROLE, 'errors' => ['roles' => [UserService::MSG_MIN_ROLE]]], 422);
+        }
+
+        return $this->roleResult($users->updateRoles($user, $data['roles'], $request->user()));
+    }
+
+    public function addRole(Request $request, User $user, string $role, UserService $users): JsonResponse
+    {
+        abort_unless(array_key_exists($role, Role::LABELS), 404, 'Peran tidak dikenal.');
+
+        return $this->roleResult($users->addRole($user->load('role', 'roles'), $role, $request->user()));
+    }
+
+    public function removeRole(Request $request, User $user, string $role, UserService $users): JsonResponse
+    {
+        abort_unless(array_key_exists($role, Role::LABELS), 404, 'Peran tidak dikenal.');
+
+        return $this->roleResult($users->removeRole($user->load('role', 'roles'), $role, $request->user()));
+    }
+
+    private function roleResult(array $r): JsonResponse
+    {
+        $changed = $r['added'] !== [] || $r['removed'] !== [];
+
+        return response()->json(['data' => self::row($r['user']->fresh(['role', 'roles'])), 'added' => $r['added'], 'removed' => $r['removed'], 'changed' => $changed,
+            'message' => $changed ? 'Peran disimpan.' : 'Peran tidak berubah.']);
     }
 
     public function roles(): JsonResponse

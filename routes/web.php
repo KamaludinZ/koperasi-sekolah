@@ -562,6 +562,9 @@ Route::middleware(['menu:pengguna', 'peran:admin'])->group(function () {
         Route::put('/pengguna/peran/{role:name}', [UserController::class, 'updateRole'])->name('pengguna.roles.update');
         Route::put('/pengguna/{user}', [UserController::class, 'update'])->whereNumber('user')->name('pengguna.update');
         Route::post('/pengguna/{user}/status', [UserController::class, 'toggle'])->whereNumber('user')->name('pengguna.toggle');
+        Route::put('/pengguna/{user}/peran', [UserController::class, 'saveRoles'])->whereNumber('user')->name('pengguna.peran.save');
+        Route::post('/pengguna/{user}/peran/{role}', [UserController::class, 'addRole'])->whereNumber('user')->whereAlpha('role')->name('pengguna.peran.add');
+        Route::delete('/pengguna/{user}/peran/{role}', [UserController::class, 'removeRole'])->whereNumber('user')->whereAlpha('role')->name('pengguna.peran.remove');
     });
 });
 Route::middleware(['menu:audit', 'peran:admin,pengurus'])->group(function () {
