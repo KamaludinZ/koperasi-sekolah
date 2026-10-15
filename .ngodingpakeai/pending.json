@@ -1,6 +1,6 @@
 {
   "repo": "Koperasi Sekolah",
-  "generatedForCommit": "78e648d68b1e562dac3078ab0c65971b51a83403",
+  "generatedForCommit": "965ef16b4ec19a198a26a4a658be3db63d89171a",
   "files": [
     {
       "path": ".claude/skills/ngodingpakeai/SKILL.md",
@@ -91,6 +91,12 @@
       "reason": "needs_summary",
       "language": "php",
       "size": 77
+    },
+    {
+      "path": "app/Http/Controllers/Impersonasi/StartStaffController.php",
+      "reason": "new",
+      "language": "php",
+      "size": 1477
     },
     {
       "path": "app/Http/Controllers/Impersonasi/StopController.php",
@@ -238,9 +244,9 @@
     },
     {
       "path": "app/Livewire/Pengguna/Impersonation.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 7812
+      "size": 7649
     },
     {
       "path": "app/Livewire/Pengguna/Index.php",
@@ -262,7 +268,7 @@
     },
     {
       "path": "app/Models/Impersonation.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 2635
     },
@@ -292,9 +298,9 @@
     },
     {
       "path": "app/Services/ImpersonationService.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 2895
+      "size": 8713
     },
     {
       "path": "app/Services/MemberCodeGenerator.php",
@@ -982,7 +988,7 @@
     },
     {
       "path": "database/migrations/2026_10_18_000001_create_impersonation_sessions_table.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 3560
     },
@@ -2158,9 +2164,9 @@
     },
     {
       "path": "routes/web.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 52612
+      "size": 52854
     },
     {
       "path": "tests/Concerns/MakesProductImports.php",
@@ -2308,7 +2314,7 @@
     },
     {
       "path": "tests/Feature/Database/ImpersonationSchemaTest.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 6616
     },
@@ -2407,6 +2413,12 @@
       "reason": "needs_summary",
       "language": "php",
       "size": 5908
+    },
+    {
+      "path": "tests/Feature/Impersonasi/StartStaffImpersonationTest.php",
+      "reason": "new",
+      "language": "php",
+      "size": 6763
     },
     {
       "path": "tests/Feature/Kasir/CheckoutTest.php",

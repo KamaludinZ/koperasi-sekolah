@@ -52,6 +52,30 @@ class ImpersonationService
     }
 
     /**
+     * Mulai impersonasi ANGGOTA PORTAL lewat jalur login anggota yang sudah ada (guard `member`, PortalAuthService):
+     * guard `web` tetap milik admin; portal berjalan dalam mode lihat saja (ImpersonationPolicy::MEMBER_READ_ONLY_ROUTES).
+     *
+     * @throws ValidationException alasan/lama sesi tidak sah atau anggota tidak boleh dimasuki
+     */
+    public function startMember(User $admin, Member $member, string $reason, int $minutes, Request $request): Impersonation
+    {
+        [$reason, $minutes] = $this->validated($reason, $minutes);
+        $admin->loadMissing('role', 'roles');
+        if ($denial = ImpersonationPolicy::actorDenial($admin) ?? ImpersonationPolicy::memberDenial($member)) {
+            throw ValidationException::withMessages(['target' => $denial]);
+        }
+
+        $label = $member->member_code.($member->class ? ' · '.$member->class : '');
+        $record = $this->open($admin, 'anggota', null, $member->id, $member->name, $label, $reason, $minutes, $request);
+
+        session()->regenerate();
+        $this->remember($request, $record);
+        app(PortalAuthService::class)->enterAs($member);
+
+        return $record;
+    }
+
+    /**
      * Mulai impersonasi dari dialog Livewire (halaman Masuk sebagai akun) lalu arahkan ke halaman awal akun target.
      * Galat validasi dikembalikan ke dialog.
      */
@@ -59,9 +83,6 @@ class ImpersonationService
     {
         try {
             if ($target instanceof Member) {
-                if (! method_exists($this, 'startMember')) {
-                    throw ValidationException::withMessages(['target' => 'Impersonasi anggota portal belum tersedia.']);
-                }
                 $this->startMember($admin, $target, $reason, $minutes, request());
 
                 return $component->redirectRoute('portal', navigate: false);
@@ -138,6 +159,7 @@ class ImpersonationService
         $admin = User::with(['role', 'roles'])->find($imp['admin_id']);
         if ($imp['target_type'] === 'anggota') {
             Auth::guard('member')->logout();
+            session()->forget('portal.pin_token');
         }
         session()->forget(ImpersonationSession::KEY);
 

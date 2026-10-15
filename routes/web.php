@@ -20,6 +20,7 @@ use App\Http\Controllers\Barang\ProductImportController;
 use App\Http\Controllers\Barang\ProductListController;
 use App\Http\Controllers\Barang\StockAlertController;
 use App\Http\Controllers\BerandaController;
+use App\Http\Controllers\Impersonasi\StartMemberController;
 use App\Http\Controllers\Impersonasi\StartStaffController;
 use App\Http\Controllers\Impersonasi\StopController;
 use App\Http\Controllers\Kas\CashExportController;
@@ -617,6 +618,8 @@ Route::middleware(['menu:pengguna', 'peran:admin'])->group(function () {
     Route::get('/pengguna/impersonasi', Pengguna\Impersonation::class)->name('pengguna.impersonasi');
     Route::post('/pengguna/impersonasi/petugas/{user}', StartStaffController::class)
         ->whereNumber('user')->middleware('throttle:10,1')->name('pengguna.impersonasi.petugas');
+    Route::post('/pengguna/impersonasi/anggota/{member}', StartMemberController::class)
+        ->whereNumber('member')->middleware('throttle:10,1')->name('pengguna.impersonasi.anggota');
     Route::get('/pengguna/sesi-aktif/data', [SessionAdminController::class, 'index'])->name('pengguna.sesi.data');
     Route::delete('/pengguna/sesi-aktif/{session}', [SessionAdminController::class, 'destroy'])
         ->where('session', '[A-Za-z0-9\-]{1,255}')->middleware('throttle:30,1')->name('pengguna.sesi.destroy');

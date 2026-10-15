@@ -50,6 +50,17 @@ class PortalAuthService
         return $member;
     }
 
+    /**
+     * Jalur masuk portal yang sama (guard `member`) untuk impersonasi oleh admin: tanpa kata sandi/PIN anggota, tanpa
+     * mengubah portal_last_login_at, dan tanpa catatan portal.login (dicatat sebagai impersonasi oleh layanan
+     * impersonasi). Sisa token PIN di sesi dibuang agar tak terpakai lintas akun.
+     */
+    public function enterAs(Member $member): void
+    {
+        session()->forget('portal.pin_token');
+        Auth::guard('member')->login($member);
+    }
+
     public function logout(): void
     {
         if ($member = Auth::guard('member')->user()) {
