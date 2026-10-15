@@ -1,7 +1,7 @@
 {{-- Navigasi bagian Kelola Pengguna. `active` = nama route halaman ini. --}}
 @props(['active'])
 @php
-    $items = ['pengguna' => 'Akun petugas', 'pengguna.sesi' => 'Sesi aktif', 'pengguna.terkunci' => 'Akun terkunci'];
+    $items = ['pengguna' => 'Akun petugas', 'pengguna.sesi' => 'Sesi aktif', 'pengguna.terkunci' => 'Akun terkunci', 'pengguna.akses' => 'Hak akses gabungan'];
 @endphp
 <nav class="mt-3 -mb-px flex gap-1 overflow-x-auto" aria-label="Bagian pengguna">
     @foreach ($items as $route => $label)

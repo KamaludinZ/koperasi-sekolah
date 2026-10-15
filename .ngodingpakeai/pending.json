@@ -1,6 +1,6 @@
 {
   "repo": "Koperasi Sekolah",
-  "generatedForCommit": "7f7f3c909446f179ed89791c9f474c2d7b3d9ceb",
+  "generatedForCommit": "7730e980fcff1c2750ae369f9b4d4e3e213087e8",
   "files": [
     {
       "path": ".claude/skills/ngodingpakeai/SKILL.md",
@@ -135,12 +135,6 @@
       "size": 745
     },
     {
-      "path": "app/Http/Middleware/EnsureActiveSession.php",
-      "reason": "changed",
-      "language": "php",
-      "size": 2483
-    },
-    {
       "path": "app/Http/Middleware/EnsureMenuAccess.php",
       "reason": "needs_summary",
       "language": "php",
@@ -250,21 +244,21 @@
     },
     {
       "path": "app/Models/User.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 4959
+      "size": 5008
+    },
+    {
+      "path": "app/Models/UserRole.php",
+      "reason": "new",
+      "language": "php",
+      "size": 2079
     },
     {
       "path": "app/Observers/ProductObserver.php",
       "reason": "needs_summary",
       "language": "php",
       "size": 2211
-    },
-    {
-      "path": "app/Services/AuthService.php",
-      "reason": "changed",
-      "language": "php",
-      "size": 4823
     },
     {
       "path": "app/Services/MemberCodeGenerator.php",
@@ -294,7 +288,7 @@
       "path": "app/Services/UserService.php",
       "reason": "changed",
       "language": "php",
-      "size": 18302
+      "size": 18461
     },
     {
       "path": "app/Support/MockData.php",
@@ -2241,6 +2235,12 @@
       "size": 758
     },
     {
+      "path": "tests/Feature/Kas/RecapTest.php",
+      "reason": "changed",
+      "language": "php",
+      "size": 3466
+    },
+    {
       "path": "tests/Feature/Kasir/CheckoutTest.php",
       "reason": "needs_summary",
       "language": "php",
@@ -2269,6 +2269,18 @@
       "reason": "needs_summary",
       "language": "php",
       "size": 2259
+    },
+    {
+      "path": "tests/Feature/Laporan/IndexTest.php",
+      "reason": "changed",
+      "language": "php",
+      "size": 10364
+    },
+    {
+      "path": "tests/Feature/Laporan/SalesExportEndpointTest.php",
+      "reason": "changed",
+      "language": "php",
+      "size": 5394
     },
     {
       "path": "tests/Feature/Laporan/SalesReportTest.php",
@@ -2380,9 +2392,15 @@
     },
     {
       "path": "tests/Feature/Pengguna/RejectNoRoleTest.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 4639
+    },
+    {
+      "path": "tests/Feature/Pengguna/RoleChangeAuditTest.php",
+      "reason": "new",
+      "language": "php",
+      "size": 4209
     },
     {
       "path": "tests/Feature/Pengguna/RoleCheckboxFormTest.php",

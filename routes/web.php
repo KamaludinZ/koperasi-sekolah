@@ -9,18 +9,21 @@ use App\Http\Controllers\Audit\AuditLogController;
 use App\Http\Controllers\Audit\TrashController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\LogoutController;
+use App\Http\Controllers\Barang\BarcodeController;
+use App\Http\Controllers\Barang\BarcodeImageController;
 use App\Http\Controllers\Barang\CategoryController;
 use App\Http\Controllers\Barang\ImportTemplateController;
+use App\Http\Controllers\Barang\LabelPrintController;
 use App\Http\Controllers\Barang\ProductController;
 use App\Http\Controllers\Barang\ProductImportController;
-use App\Http\Controllers\BerandaController;
 use App\Http\Controllers\Barang\ProductListController;
 use App\Http\Controllers\Barang\StockAlertController;
+use App\Http\Controllers\BerandaController;
 use App\Http\Controllers\Kas\CashExportController;
 use App\Http\Controllers\Kas\CashMovementController;
 use App\Http\Controllers\Kas\CashReportController;
-use App\Http\Controllers\Kas\ShiftHistoryController;
 use App\Http\Controllers\Kas\ShiftController;
+use App\Http\Controllers\Kas\ShiftHistoryController;
 use App\Http\Controllers\Kasir\CheckoutController;
 use App\Http\Controllers\Kasir\CouponCheckController;
 use App\Http\Controllers\Kasir\MemberPaymentController;
@@ -35,11 +38,33 @@ use App\Http\Controllers\Pengadaan\PurchaseOrderController;
 use App\Http\Controllers\Pengadaan\SupplierBillController;
 use App\Http\Controllers\Pengadaan\SupplierController;
 use App\Http\Controllers\Pengaturan\LogoController;
-use App\Http\Controllers\Promo\PromoController;
 use App\Http\Controllers\Pengaturan\SettingsController;
 use App\Http\Controllers\Pengguna\LockoutController;
 use App\Http\Controllers\Pengguna\SessionAdminController;
 use App\Http\Controllers\Pengguna\UserController;
+use App\Http\Controllers\Pinjaman\ArrearsController;
+use App\Http\Controllers\Pinjaman\AuditTrailController;
+use App\Http\Controllers\Pinjaman\DisbursementController;
+use App\Http\Controllers\Pinjaman\DisbursementProofController;
+use App\Http\Controllers\Pinjaman\InstallmentController;
+use App\Http\Controllers\Pinjaman\LoanApplicationController;
+use App\Http\Controllers\Pinjaman\LoanPaymentController;
+use App\Http\Controllers\Pinjaman\LoanPaymentCorrectionController;
+use App\Http\Controllers\Pinjaman\RecapController;
+use App\Http\Controllers\Pinjaman\RecapExportController;
+use App\Http\Controllers\Portal\CartController;
+use App\Http\Controllers\Portal\DeductionController;
+use App\Http\Controllers\Portal\HistoryController;
+use App\Http\Controllers\Portal\LoanController;
+use App\Http\Controllers\Portal\OrderController;
+use App\Http\Controllers\Portal\PinController;
+use App\Http\Controllers\Promo\PromoController;
+use App\Http\Controllers\Simpanan\MemberSavingController;
+use App\Http\Controllers\Simpanan\MonthlyDuesController;
+use App\Http\Controllers\Simpanan\MonthlyDuesExportController;
+use App\Http\Controllers\Simpanan\SavingTypeController;
+use App\Http\Controllers\Sistem\BackupController;
+use App\Http\Controllers\Transaksi\MemberOrderController;
 use App\Http\Controllers\Transaksi\ReturnController;
 use App\Http\Controllers\Transaksi\TransactionDetailController;
 use App\Http\Controllers\Transaksi\TransactionListController;
@@ -54,83 +79,111 @@ use App\Livewire\Laporan;
 use App\Livewire\Notifikasi;
 use App\Livewire\Pengadaan;
 use App\Livewire\Pengaturan;
+use App\Livewire\Pengguna;
+use App\Livewire\Pinjaman\Applications;
+use App\Livewire\Pinjaman\Arrears;
+use App\Livewire\Pinjaman\AuditTrail;
+use App\Livewire\Pinjaman\Disbursements;
+use App\Livewire\Pinjaman\Index;
+use App\Livewire\Pinjaman\Installments;
+use App\Livewire\Pinjaman\PaymentHistory;
+use App\Livewire\Pinjaman\Recap;
+use App\Livewire\Pinjaman\Show;
+use App\Livewire\Portal\Checkout;
+use App\Livewire\Portal\Home;
+use App\Livewire\Portal\Loans;
+use App\Livewire\Portal\Orders;
+use App\Livewire\Portal\OrderShow;
+use App\Livewire\Portal\Purchases;
+use App\Livewire\Portal\Savings;
+use App\Livewire\Portal\Shop;
+use App\Livewire\Promo;
 use App\Livewire\Simpanan;
 use App\Livewire\Sistem;
-use App\Livewire\Pengguna;
-use App\Livewire\Promo;
 use App\Livewire\Transaksi;
+use App\Models\ReportExport;
+use App\Services\AnnouncementService;
+use App\Services\HealthCheckService;
 use App\Services\LogoService;
+use App\Services\PortalAuthService;
+use App\Services\QrisImageService;
 use App\Services\SettingsService;
+use App\Support\MockData;
+use App\Support\OpeningHours;
+use Illuminate\Http\Request;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\View\ComponentAttributeBag;
 
 // Halaman petugas dijaga per menu: `menu:<kunci>` = wajib masuk + peran boleh membuka menu
 // itu (App\Support\Menu, tabel roles.permissions); `peran:<nama>` = pembatas tambahan.
 // Ikon tab: logo koperasi yang diunggah, atau lambang bawaan (SVG) bila belum ada logo.
 Route::get('/favicon.ico', function () {
-    $logo = \App\Support\MockData::profile()['logo'] ?? null;
+    $logo = MockData::profile()['logo'] ?? null;
 
     return $logo ? redirect($logo, 302)->header('Cache-Control', 'public, max-age=3600') : redirect()->route('favicon');
 })->name('favicon.ico');
-Route::get('/favicon.svg', fn () => response(view('components.brand.mark', ['attributes' => new \Illuminate\View\ComponentAttributeBag(['xmlns' => 'http://www.w3.org/2000/svg'])])->render(), 200, [
+Route::get('/favicon.svg', fn () => response(view('components.brand.mark', ['attributes' => new ComponentAttributeBag(['xmlns' => 'http://www.w3.org/2000/svg'])])->render(), 200, [
     'Content-Type' => 'image/svg+xml', 'Cache-Control' => 'public, max-age=86400',
 ]))->name('favicon');
 
 Route::get('/', BerandaController::class)->name('beranda');
 // Status buka/tutup koperasi (JSON publik) dari jam operasional di Pengaturan → Profil.
-Route::get('/status-koperasi', fn () => response()->json(['data' => \App\Support\OpeningHours::snapshot(
-    \App\Support\MockData::profile()['schedule'], now()
+Route::get('/status-koperasi', fn () => response()->json(['data' => OpeningHours::snapshot(
+    MockData::profile()['schedule'], now()
 )])->header('Cache-Control', 'public, max-age=60'))->middleware('throttle:60,1')->name('status-koperasi');
 Route::get('/pengumuman', fn () => view('pengumuman', [
-    'profile' => \App\Support\MockData::profile(),
-    'announcements' => app(\App\Services\AnnouncementService::class)->publicList(100),
+    'profile' => MockData::profile(),
+    'announcements' => app(AnnouncementService::class)->publicList(100),
 ]))->name('pengumuman.publik');
 // Pengumuman publik (JSON, tanpa login): hanya isi yang memang ditandai tampil di beranda & masih berlaku.
 Route::get('/pengumuman/data', fn () => response()->json([
-    'data' => collect(app(\App\Services\AnnouncementService::class)->publicList(100))
-        ->map(fn ($a) => \Illuminate\Support\Arr::only($a, ['id', 'title', 'message', 'expires_at', 'created_at']))->values(),
+    'data' => collect(app(AnnouncementService::class)->publicList(100))
+        ->map(fn ($a) => Arr::only($a, ['id', 'title', 'message', 'expires_at', 'created_at']))->values(),
 ])->header('Cache-Control', 'public, max-age=60'))->middleware('throttle:60,1')->name('pengumuman.publik.data');
 Route::get('/logo/{file}', [LogoController::class, 'show'])->where('file', LogoService::FILE_PATTERN)->name('logo');
 Route::get('/qris/{file}', function (string $file) {
-    $disk = \Illuminate\Support\Facades\Storage::disk(\App\Services\QrisImageService::DISK);
-    abort_unless($disk->exists(\App\Services\QrisImageService::path($file)), 404);
+    $disk = Storage::disk(QrisImageService::DISK);
+    abort_unless($disk->exists(QrisImageService::path($file)), 404);
 
-    return $disk->response(\App\Services\QrisImageService::path($file), $file, [
+    return $disk->response(QrisImageService::path($file), $file, [
         'Cache-Control' => 'private, max-age=86400', 'X-Content-Type-Options' => 'nosniff', 'Content-Security-Policy' => "default-src 'none'",
     ]);
-})->middleware('auth:web,member')->where('file', \App\Services\QrisImageService::FILE_PATTERN)->name('qris.image'); // petugas & anggota portal
+})->middleware('auth:web,member')->where('file', QrisImageService::FILE_PATTERN)->name('qris.image'); // petugas & anggota portal
 
 Route::get('/masuk', Login::class)->name('login');
 
 // Portal anggota (guard `member`, terpisah dari petugas).
-Route::get('/portal/masuk', \App\Livewire\Portal\Login::class)->middleware('guest:member')->name('portal.login');
+Route::get('/portal/masuk', App\Livewire\Portal\Login::class)->middleware('guest:member')->name('portal.login');
 Route::middleware('portal')->group(function () { // bukan auth:member — guard bawaan tetap milik petugas
-    Route::get('/portal', \App\Livewire\Portal\Home::class)->name('portal');
-    Route::get('/portal/simpanan', \App\Livewire\Portal\Savings::class)->name('portal.simpanan');
-    Route::get('/portal/pinjaman', \App\Livewire\Portal\Loans::class)->name('portal.pinjaman');
-    Route::get('/portal/pinjaman/data', [\App\Http\Controllers\Portal\LoanController::class, 'index'])->middleware('throttle:120,1')->name('portal.pinjaman.data');
-    Route::get('/portal/pinjaman/sisa', [\App\Http\Controllers\Portal\LoanController::class, 'outstanding'])->middleware('throttle:120,1')->name('portal.pinjaman.sisa');
-    Route::get('/portal/pinjaman/{loan}/riwayat', [\App\Http\Controllers\Portal\LoanController::class, 'history'])->whereNumber('loan')->middleware('throttle:120,1')->name('portal.pinjaman.riwayat');
-    Route::get('/portal/simpanan/mutasi', [\App\Http\Controllers\Simpanan\MemberSavingController::class, 'myEntries'])->name('portal.simpanan.mutasi');
-    Route::get('/portal/simpanan/data', [\App\Http\Controllers\Simpanan\MemberSavingController::class, 'mine'])->name('portal.simpanan.data');
-    Route::get('/portal/riwayat/data', [\App\Http\Controllers\Portal\HistoryController::class, 'transactions'])->name('portal.riwayat.data');
-    Route::get('/portal/pesanan/data', [\App\Http\Controllers\Portal\HistoryController::class, 'orders'])->name('portal.pesanan.data');
-    Route::get('/portal/pesanan/{order}/data', [\App\Http\Controllers\Portal\HistoryController::class, 'order'])->whereNumber('order')->name('portal.pesanan.detail');
-    Route::get('/portal/potong-saldo', \App\Http\Controllers\Portal\DeductionController::class)->name('portal.potong-saldo');
-    Route::get('/portal/pin/status', [\App\Http\Controllers\Portal\PinController::class, 'status'])->name('portal.pin.status');
-    Route::post('/portal/pesanan/{order}/bayar-saldo', [\App\Http\Controllers\Portal\OrderController::class, 'payWithBalance'])
+    Route::get('/portal', Home::class)->name('portal');
+    Route::get('/portal/simpanan', Savings::class)->name('portal.simpanan');
+    Route::get('/portal/pinjaman', Loans::class)->name('portal.pinjaman');
+    Route::get('/portal/pinjaman/data', [LoanController::class, 'index'])->middleware('throttle:120,1')->name('portal.pinjaman.data');
+    Route::get('/portal/pinjaman/sisa', [LoanController::class, 'outstanding'])->middleware('throttle:120,1')->name('portal.pinjaman.sisa');
+    Route::get('/portal/pinjaman/{loan}/riwayat', [LoanController::class, 'history'])->whereNumber('loan')->middleware('throttle:120,1')->name('portal.pinjaman.riwayat');
+    Route::get('/portal/simpanan/mutasi', [MemberSavingController::class, 'myEntries'])->name('portal.simpanan.mutasi');
+    Route::get('/portal/simpanan/data', [MemberSavingController::class, 'mine'])->name('portal.simpanan.data');
+    Route::get('/portal/riwayat/data', [HistoryController::class, 'transactions'])->name('portal.riwayat.data');
+    Route::get('/portal/pesanan/data', [HistoryController::class, 'orders'])->name('portal.pesanan.data');
+    Route::get('/portal/pesanan/{order}/data', [HistoryController::class, 'order'])->whereNumber('order')->name('portal.pesanan.detail');
+    Route::get('/portal/potong-saldo', DeductionController::class)->name('portal.potong-saldo');
+    Route::get('/portal/pin/status', [PinController::class, 'status'])->name('portal.pin.status');
+    Route::post('/portal/pesanan/{order}/bayar-saldo', [OrderController::class, 'payWithBalance'])
         ->whereNumber('order')->middleware('throttle:20,1')->name('portal.pesanan.bayar-saldo');
-    Route::get('/portal/keranjang', [\App\Http\Controllers\Portal\CartController::class, 'show'])->name('portal.keranjang');
-    Route::put('/portal/keranjang', [\App\Http\Controllers\Portal\CartController::class, 'update'])->middleware('throttle:120,1')->name('portal.keranjang.update');
-    Route::delete('/portal/keranjang', [\App\Http\Controllers\Portal\CartController::class, 'clear'])->name('portal.keranjang.clear');
-    Route::post('/portal/pesanan', [\App\Http\Controllers\Portal\OrderController::class, 'store'])->middleware('throttle:20,1')->name('portal.pesanan.store');
-    Route::post('/portal/pin/verifikasi', [\App\Http\Controllers\Portal\PinController::class, 'verify'])->middleware('throttle:20,1')->name('portal.pin.verify');
-    Route::get('/portal/riwayat', \App\Livewire\Portal\Purchases::class)->name('portal.riwayat');
-    Route::get('/portal/belanja', \App\Livewire\Portal\Shop::class)->name('portal.belanja');
-    Route::get('/portal/checkout', \App\Livewire\Portal\Checkout::class)->name('portal.checkout');
-    Route::get('/portal/pesanan', \App\Livewire\Portal\Orders::class)->name('portal.pesanan');
-    Route::get('/portal/pesanan/{order}', \App\Livewire\Portal\OrderShow::class)->whereNumber('order')->name('portal.pesanan.show');
-    Route::post('/portal/keluar', function (\Illuminate\Http\Request $request) {
-        app(\App\Services\PortalAuthService::class)->logout();
+    Route::get('/portal/keranjang', [CartController::class, 'show'])->name('portal.keranjang');
+    Route::put('/portal/keranjang', [CartController::class, 'update'])->middleware('throttle:120,1')->name('portal.keranjang.update');
+    Route::delete('/portal/keranjang', [CartController::class, 'clear'])->name('portal.keranjang.clear');
+    Route::post('/portal/pesanan', [OrderController::class, 'store'])->middleware('throttle:20,1')->name('portal.pesanan.store');
+    Route::post('/portal/pin/verifikasi', [PinController::class, 'verify'])->middleware('throttle:20,1')->name('portal.pin.verify');
+    Route::get('/portal/riwayat', Purchases::class)->name('portal.riwayat');
+    Route::get('/portal/belanja', Shop::class)->name('portal.belanja');
+    Route::get('/portal/checkout', Checkout::class)->name('portal.checkout');
+    Route::get('/portal/pesanan', Orders::class)->name('portal.pesanan');
+    Route::get('/portal/pesanan/{order}', OrderShow::class)->whereNumber('order')->name('portal.pesanan.show');
+    Route::post('/portal/keluar', function (Request $request) {
+        app(PortalAuthService::class)->logout();
         $request->session()->regenerateToken();
 
         return redirect()->route('portal.login');
@@ -279,18 +332,18 @@ Route::middleware('menu:barang')->group(function () {
     Route::get('/barang/riwayat-stok', Barang\StockHistory::class)->name('barang.riwayat-stok');
     Route::get('/barang/saran-restok', Barang\Restock::class)->name('barang.saran-restok');
     Route::get('/barang/barcode', Barang\Barcodes::class)->name('barang.barcode');
-    Route::get('/barang/{product}/barcode.{format}', \App\Http\Controllers\Barang\BarcodeImageController::class)
+    Route::get('/barang/{product}/barcode.{format}', BarcodeImageController::class)
         ->whereNumber('product')->whereIn('format', ['svg', 'png'])->middleware('throttle:120,1')->name('barang.barcode.image');
     Route::middleware(['can:kelola-katalog', 'throttle:30,1'])->group(function () {
-        Route::put('/barang/{product}/barcode', [\App\Http\Controllers\Barang\BarcodeController::class, 'update'])->whereNumber('product')->name('barang.barcode.update');
-        Route::post('/barang/barcode/massal', [\App\Http\Controllers\Barang\BarcodeController::class, 'bulk'])->name('barang.barcode.bulk');
+        Route::put('/barang/{product}/barcode', [BarcodeController::class, 'update'])->whereNumber('product')->name('barang.barcode.update');
+        Route::post('/barang/barcode/massal', [BarcodeController::class, 'bulk'])->name('barang.barcode.bulk');
     });
     Route::get('/barang/barcode/label', Barang\Labels::class)->name('barang.label');
-    Route::get('/barang/barcode/label/cetak', \App\Http\Controllers\Barang\LabelPrintController::class)
+    Route::get('/barang/barcode/label/cetak', LabelPrintController::class)
         ->middleware('throttle:30,1')->name('barang.label.cetak');
-    Route::get('/barang/barcode/label/data', [\App\Http\Controllers\Barang\LabelPrintController::class, 'data'])
+    Route::get('/barang/barcode/label/data', [LabelPrintController::class, 'data'])
         ->middleware('throttle:60,1')->name('barang.label.data');
-    Route::get('/barang/barcode/label/unduh', [\App\Http\Controllers\Barang\LabelPrintController::class, 'pdf'])
+    Route::get('/barang/barcode/label/unduh', [LabelPrintController::class, 'pdf'])
         ->middleware('throttle:10,1')->name('barang.label.pdf');
     Route::get('/barang/kategori/data', [CategoryController::class, 'index'])->name('barang.kategori.data');
     Route::middleware(['can:kelola-katalog', 'throttle:60,1'])->group(function () {
@@ -345,13 +398,13 @@ Route::middleware('menu:barang')->group(function () {
 
 Route::middleware('menu:transaksi')->group(function () {
     Route::get('/pesanan', Transaksi\MemberOrders::class)->name('pesanan');
-    Route::get('/pesanan/data', [\App\Http\Controllers\Transaksi\MemberOrderController::class, 'index'])->name('pesanan.data');
-    Route::get('/pesanan/{order}/data', [\App\Http\Controllers\Transaksi\MemberOrderController::class, 'show'])->whereNumber('order')->name('pesanan.detail');
-    Route::post('/pesanan/{order}/bayar', [\App\Http\Controllers\Transaksi\MemberOrderController::class, 'pay'])
+    Route::get('/pesanan/data', [MemberOrderController::class, 'index'])->name('pesanan.data');
+    Route::get('/pesanan/{order}/data', [MemberOrderController::class, 'show'])->whereNumber('order')->name('pesanan.detail');
+    Route::post('/pesanan/{order}/bayar', [MemberOrderController::class, 'pay'])
         ->whereNumber('order')->middleware('throttle:60,1')->name('pesanan.bayar');
-    Route::post('/pesanan/{order}/status', [\App\Http\Controllers\Transaksi\MemberOrderController::class, 'status'])
+    Route::post('/pesanan/{order}/status', [MemberOrderController::class, 'status'])
         ->whereNumber('order')->middleware('throttle:60,1')->name('pesanan.status');
-    Route::post('/pesanan/{order}/batal', [\App\Http\Controllers\Transaksi\MemberOrderController::class, 'cancel'])
+    Route::post('/pesanan/{order}/batal', [MemberOrderController::class, 'cancel'])
         ->whereNumber('order')->middleware('throttle:30,1')->name('pesanan.batal');
     Route::get('/transaksi', Transaksi\Index::class)->name('transaksi');
     Route::get('/transaksi/daftar', [TransactionListController::class, 'index'])
@@ -462,61 +515,61 @@ Route::middleware('menu:laporan')->group(function () {
     Route::get('/laporan/unduh', SalesExportController::class)
         ->middleware('throttle:20,1')
         ->name('laporan.export');
-    Route::get('/laporan/unduhan/{export}', function (\Illuminate\Http\Request $request, \App\Models\ReportExport $export) {
+    Route::get('/laporan/unduhan/{export}', function (Request $request, ReportExport $export) {
         abort_unless($export->user_id === $request->user()->id && $export->type === 'penjualan', 404);
-        abort_unless($export->status === 'done' && $export->file_path && \Illuminate\Support\Facades\Storage::disk('local')->exists($export->file_path), 409, 'Berkas belum siap atau sudah dibersihkan.');
+        abort_unless($export->status === 'done' && $export->file_path && Storage::disk('local')->exists($export->file_path), 409, 'Berkas belum siap atau sudah dibersihkan.');
 
-        return \Illuminate\Support\Facades\Storage::disk('local')->download($export->file_path, $export->file_name);
+        return Storage::disk('local')->download($export->file_path, $export->file_name);
     })->whereNumber('export')->middleware('throttle:30,1')->name('laporan.unduhan');
 });
 
 // Pinjaman: hanya Pengurus & Admin pemegang menu Pinjaman (kasir & portal anggota tidak), dicek juga di setiap aksi Livewire.
 Route::middleware(['menu:pinjaman', 'peran:admin,pengurus', 'can:kelola-pinjaman'])->group(function () {
-    Route::get('/pinjaman', \App\Livewire\Pinjaman\Index::class)->name('pinjaman');
-    Route::get('/pinjaman/pengajuan', \App\Livewire\Pinjaman\Applications::class)->name('pinjaman.pengajuan');
-    Route::get('/pinjaman/pengajuan/data', [\App\Http\Controllers\Pinjaman\LoanApplicationController::class, 'index'])->middleware('throttle:120,1')->name('pinjaman.pengajuan.data');
-    Route::post('/pinjaman/pengajuan', [\App\Http\Controllers\Pinjaman\LoanApplicationController::class, 'store'])->middleware('throttle:30,1')->name('pinjaman.pengajuan.store');
-    Route::post('/pinjaman/pengajuan/{loan}/setujui', [\App\Http\Controllers\Pinjaman\LoanApplicationController::class, 'approve'])->whereNumber('loan')->middleware('throttle:30,1')->name('pinjaman.pengajuan.approve');
-    Route::post('/pinjaman/pengajuan/{loan}/tolak', [\App\Http\Controllers\Pinjaman\LoanApplicationController::class, 'reject'])->whereNumber('loan')->middleware('throttle:30,1')->name('pinjaman.pengajuan.reject');
-    Route::put('/pinjaman/pengajuan/{loan}', [\App\Http\Controllers\Pinjaman\LoanApplicationController::class, 'update'])->whereNumber('loan')->middleware('throttle:30,1')->name('pinjaman.pengajuan.update');
-    Route::post('/pinjaman/pengajuan/{loan}/batal', [\App\Http\Controllers\Pinjaman\LoanApplicationController::class, 'cancel'])->whereNumber('loan')->middleware('throttle:30,1')->name('pinjaman.pengajuan.cancel');
-    Route::get('/pinjaman/pencairan', \App\Livewire\Pinjaman\Disbursements::class)->name('pinjaman.pencairan');
-    Route::get('/pinjaman/angsuran', \App\Livewire\Pinjaman\Installments::class)->name('pinjaman.angsuran');
-    Route::get('/pinjaman/angsuran/riwayat', \App\Livewire\Pinjaman\PaymentHistory::class)->name('pinjaman.angsuran.riwayat');
-    Route::get('/pinjaman/tunggakan', \App\Livewire\Pinjaman\Arrears::class)->name('pinjaman.tunggakan');
-    Route::get('/pinjaman/tunggakan/data', [\App\Http\Controllers\Pinjaman\ArrearsController::class, 'index'])->middleware('throttle:120,1')->name('pinjaman.tunggakan.data');
-    Route::get('/pinjaman/audit', \App\Livewire\Pinjaman\AuditTrail::class)->name('pinjaman.audit');
-    Route::get('/pinjaman/audit/data', [\App\Http\Controllers\Pinjaman\AuditTrailController::class, 'index'])->middleware('throttle:120,1')->name('pinjaman.audit.data');
-    Route::get('/pinjaman/audit/transaksi', [\App\Http\Controllers\Pinjaman\AuditTrailController::class, 'ledger'])->middleware('throttle:120,1')->name('pinjaman.audit.transaksi');
-    Route::get('/pinjaman/audit/ekspor', [\App\Http\Controllers\Pinjaman\AuditTrailController::class, 'export'])->middleware('throttle:20,1')->name('pinjaman.audit.ekspor');
-    Route::get('/pinjaman/audit/verifikasi', [\App\Http\Controllers\Pinjaman\AuditTrailController::class, 'verify'])->middleware('throttle:verifikasi-audit-pinjaman')->name('pinjaman.audit.verifikasi');
-    Route::post('/pinjaman/audit/verifikasi-berkas', [\App\Http\Controllers\Pinjaman\AuditTrailController::class, 'verifyFile'])->middleware('throttle:20,1')->name('pinjaman.audit.verifikasi-berkas');
-    Route::get('/pinjaman/rekap', \App\Livewire\Pinjaman\Recap::class)->middleware('can:lihat-rekap-pinjaman')->name('pinjaman.rekap');
-    Route::get('/pinjaman/rekap/berjalan', [\App\Http\Controllers\Pinjaman\RecapController::class, 'running'])->middleware('throttle:120,1')->middleware('can:lihat-rekap-pinjaman')->name('pinjaman.rekap.berjalan');
-    Route::get('/pinjaman/rekap/data', [\App\Http\Controllers\Pinjaman\RecapController::class, 'period'])->middleware('throttle:120,1')->middleware('can:lihat-rekap-pinjaman')->name('pinjaman.rekap.data');
-    Route::get('/pinjaman/rekap/metode', [\App\Http\Controllers\Pinjaman\RecapController::class, 'methods'])->middleware('throttle:120,1')->middleware('can:lihat-rekap-pinjaman')->name('pinjaman.rekap.metode');
-    Route::post('/pinjaman/rekap/ekspor', [\App\Http\Controllers\Pinjaman\RecapExportController::class, 'store'])->middleware('throttle:10,1')->middleware('can:lihat-rekap-pinjaman')->name('pinjaman.rekap.ekspor');
-    Route::get('/pinjaman/rekap/ekspor', [\App\Http\Controllers\Pinjaman\RecapExportController::class, 'index'])->middleware('throttle:120,1')->middleware('can:lihat-rekap-pinjaman')->name('pinjaman.rekap.ekspor.index');
-    Route::get('/pinjaman/rekap/ekspor/{export}', [\App\Http\Controllers\Pinjaman\RecapExportController::class, 'show'])->whereNumber('export')->middleware('throttle:120,1')->middleware('can:lihat-rekap-pinjaman')->name('pinjaman.rekap.ekspor.show');
-    Route::get('/pinjaman/rekap/ekspor/{export}/unduh', [\App\Http\Controllers\Pinjaman\RecapExportController::class, 'download'])->whereNumber('export')->middleware('throttle:30,1')->middleware('can:lihat-rekap-pinjaman')->name('pinjaman.rekap.ekspor.unduh');
-    Route::get('/pinjaman/angsuran/data', [\App\Http\Controllers\Pinjaman\InstallmentController::class, 'index'])->middleware('throttle:120,1')->name('pinjaman.angsuran.data');
-    Route::post('/pinjaman/angsuran/pembayaran/{payment}/koreksi', [\App\Http\Controllers\Pinjaman\LoanPaymentCorrectionController::class, 'store'])->whereNumber('payment')->middleware('throttle:30,1')->name('pinjaman.angsuran.koreksi');
-    Route::get('/pinjaman/{loan}/angsuran/jejak', [\App\Http\Controllers\Pinjaman\LoanPaymentCorrectionController::class, 'trail'])->whereNumber('loan')->middleware('throttle:120,1')->name('pinjaman.angsuran.jejak');
-    Route::get('/pinjaman/pencairan/data', [\App\Http\Controllers\Pinjaman\DisbursementController::class, 'index'])->middleware('throttle:120,1')->name('pinjaman.pencairan.data');
-    Route::get('/pinjaman/pencairan/{disbursement}/bukti', \App\Http\Controllers\Pinjaman\DisbursementProofController::class)
+    Route::get('/pinjaman', Index::class)->name('pinjaman');
+    Route::get('/pinjaman/pengajuan', Applications::class)->name('pinjaman.pengajuan');
+    Route::get('/pinjaman/pengajuan/data', [LoanApplicationController::class, 'index'])->middleware('throttle:120,1')->name('pinjaman.pengajuan.data');
+    Route::post('/pinjaman/pengajuan', [LoanApplicationController::class, 'store'])->middleware('throttle:30,1')->name('pinjaman.pengajuan.store');
+    Route::post('/pinjaman/pengajuan/{loan}/setujui', [LoanApplicationController::class, 'approve'])->whereNumber('loan')->middleware('throttle:30,1')->name('pinjaman.pengajuan.approve');
+    Route::post('/pinjaman/pengajuan/{loan}/tolak', [LoanApplicationController::class, 'reject'])->whereNumber('loan')->middleware('throttle:30,1')->name('pinjaman.pengajuan.reject');
+    Route::put('/pinjaman/pengajuan/{loan}', [LoanApplicationController::class, 'update'])->whereNumber('loan')->middleware('throttle:30,1')->name('pinjaman.pengajuan.update');
+    Route::post('/pinjaman/pengajuan/{loan}/batal', [LoanApplicationController::class, 'cancel'])->whereNumber('loan')->middleware('throttle:30,1')->name('pinjaman.pengajuan.cancel');
+    Route::get('/pinjaman/pencairan', Disbursements::class)->name('pinjaman.pencairan');
+    Route::get('/pinjaman/angsuran', Installments::class)->name('pinjaman.angsuran');
+    Route::get('/pinjaman/angsuran/riwayat', PaymentHistory::class)->name('pinjaman.angsuran.riwayat');
+    Route::get('/pinjaman/tunggakan', Arrears::class)->name('pinjaman.tunggakan');
+    Route::get('/pinjaman/tunggakan/data', [ArrearsController::class, 'index'])->middleware('throttle:120,1')->name('pinjaman.tunggakan.data');
+    Route::get('/pinjaman/audit', AuditTrail::class)->name('pinjaman.audit');
+    Route::get('/pinjaman/audit/data', [AuditTrailController::class, 'index'])->middleware('throttle:120,1')->name('pinjaman.audit.data');
+    Route::get('/pinjaman/audit/transaksi', [AuditTrailController::class, 'ledger'])->middleware('throttle:120,1')->name('pinjaman.audit.transaksi');
+    Route::get('/pinjaman/audit/ekspor', [AuditTrailController::class, 'export'])->middleware('throttle:20,1')->name('pinjaman.audit.ekspor');
+    Route::get('/pinjaman/audit/verifikasi', [AuditTrailController::class, 'verify'])->middleware('throttle:verifikasi-audit-pinjaman')->name('pinjaman.audit.verifikasi');
+    Route::post('/pinjaman/audit/verifikasi-berkas', [AuditTrailController::class, 'verifyFile'])->middleware('throttle:20,1')->name('pinjaman.audit.verifikasi-berkas');
+    Route::get('/pinjaman/rekap', Recap::class)->middleware('can:lihat-rekap-pinjaman')->name('pinjaman.rekap');
+    Route::get('/pinjaman/rekap/berjalan', [RecapController::class, 'running'])->middleware('throttle:120,1')->middleware('can:lihat-rekap-pinjaman')->name('pinjaman.rekap.berjalan');
+    Route::get('/pinjaman/rekap/data', [RecapController::class, 'period'])->middleware('throttle:120,1')->middleware('can:lihat-rekap-pinjaman')->name('pinjaman.rekap.data');
+    Route::get('/pinjaman/rekap/metode', [RecapController::class, 'methods'])->middleware('throttle:120,1')->middleware('can:lihat-rekap-pinjaman')->name('pinjaman.rekap.metode');
+    Route::post('/pinjaman/rekap/ekspor', [RecapExportController::class, 'store'])->middleware('throttle:10,1')->middleware('can:lihat-rekap-pinjaman')->name('pinjaman.rekap.ekspor');
+    Route::get('/pinjaman/rekap/ekspor', [RecapExportController::class, 'index'])->middleware('throttle:120,1')->middleware('can:lihat-rekap-pinjaman')->name('pinjaman.rekap.ekspor.index');
+    Route::get('/pinjaman/rekap/ekspor/{export}', [RecapExportController::class, 'show'])->whereNumber('export')->middleware('throttle:120,1')->middleware('can:lihat-rekap-pinjaman')->name('pinjaman.rekap.ekspor.show');
+    Route::get('/pinjaman/rekap/ekspor/{export}/unduh', [RecapExportController::class, 'download'])->whereNumber('export')->middleware('throttle:30,1')->middleware('can:lihat-rekap-pinjaman')->name('pinjaman.rekap.ekspor.unduh');
+    Route::get('/pinjaman/angsuran/data', [InstallmentController::class, 'index'])->middleware('throttle:120,1')->name('pinjaman.angsuran.data');
+    Route::post('/pinjaman/angsuran/pembayaran/{payment}/koreksi', [LoanPaymentCorrectionController::class, 'store'])->whereNumber('payment')->middleware('throttle:30,1')->name('pinjaman.angsuran.koreksi');
+    Route::get('/pinjaman/{loan}/angsuran/jejak', [LoanPaymentCorrectionController::class, 'trail'])->whereNumber('loan')->middleware('throttle:120,1')->name('pinjaman.angsuran.jejak');
+    Route::get('/pinjaman/pencairan/data', [DisbursementController::class, 'index'])->middleware('throttle:120,1')->name('pinjaman.pencairan.data');
+    Route::get('/pinjaman/pencairan/{disbursement}/bukti', DisbursementProofController::class)
         ->whereNumber('disbursement')->middleware('throttle:60,1')->name('pinjaman.pencairan.bukti');
-    Route::post('/pinjaman/pencairan/{disbursement}/bukti', [\App\Http\Controllers\Pinjaman\DisbursementController::class, 'updateProof'])
+    Route::post('/pinjaman/pencairan/{disbursement}/bukti', [DisbursementController::class, 'updateProof'])
         ->whereNumber('disbursement')->middleware('throttle:30,1')->name('pinjaman.pencairan.bukti.update');
-    Route::get('/pinjaman/ringkasan', [\App\Http\Controllers\Pinjaman\LoanController::class, 'summary'])->middleware('throttle:120,1')->name('pinjaman.summary');
-    Route::get('/pinjaman/daftar', [\App\Http\Controllers\Pinjaman\LoanController::class, 'index'])->middleware('throttle:120,1')->name('pinjaman.list');
-    Route::get('/pinjaman/{loan}/pencairan', [\App\Http\Controllers\Pinjaman\DisbursementController::class, 'show'])->whereNumber('loan')->middleware('throttle:120,1')->name('pinjaman.pencairan.show');
-    Route::post('/pinjaman/{loan}/pencairan', [\App\Http\Controllers\Pinjaman\DisbursementController::class, 'store'])->whereNumber('loan')->middleware('throttle:30,1')->name('pinjaman.pencairan.store');
-    Route::get('/pinjaman/{loan}/data', [\App\Http\Controllers\Pinjaman\LoanController::class, 'show'])->whereNumber('loan')->middleware('throttle:120,1')->name('pinjaman.data');
-    Route::get('/pinjaman/{loan}/audit', [\App\Http\Controllers\Pinjaman\LoanController::class, 'audit'])->whereNumber('loan')->middleware('throttle:120,1')->name('pinjaman.audit.loan');
-    Route::get('/pinjaman/{loan}/angsuran', [\App\Http\Controllers\Pinjaman\LoanController::class, 'installments'])->whereNumber('loan')->middleware('throttle:120,1')->name('pinjaman.installments');
-    Route::post('/pinjaman/{loan}/angsuran', [\App\Http\Controllers\Pinjaman\LoanPaymentController::class, 'store'])->whereNumber('loan')->middleware('throttle:30,1')->name('pinjaman.installments.store');
-    Route::post('/pinjaman/{loan}/hitung-ulang', [\App\Http\Controllers\Pinjaman\LoanPaymentController::class, 'recalculate'])->whereNumber('loan')->middleware('throttle:30,1')->name('pinjaman.recalculate');
-    Route::get('/pinjaman/{loan}', \App\Livewire\Pinjaman\Show::class)->whereNumber('loan')->name('pinjaman.show');
+    Route::get('/pinjaman/ringkasan', [App\Http\Controllers\Pinjaman\LoanController::class, 'summary'])->middleware('throttle:120,1')->name('pinjaman.summary');
+    Route::get('/pinjaman/daftar', [App\Http\Controllers\Pinjaman\LoanController::class, 'index'])->middleware('throttle:120,1')->name('pinjaman.list');
+    Route::get('/pinjaman/{loan}/pencairan', [DisbursementController::class, 'show'])->whereNumber('loan')->middleware('throttle:120,1')->name('pinjaman.pencairan.show');
+    Route::post('/pinjaman/{loan}/pencairan', [DisbursementController::class, 'store'])->whereNumber('loan')->middleware('throttle:30,1')->name('pinjaman.pencairan.store');
+    Route::get('/pinjaman/{loan}/data', [App\Http\Controllers\Pinjaman\LoanController::class, 'show'])->whereNumber('loan')->middleware('throttle:120,1')->name('pinjaman.data');
+    Route::get('/pinjaman/{loan}/audit', [App\Http\Controllers\Pinjaman\LoanController::class, 'audit'])->whereNumber('loan')->middleware('throttle:120,1')->name('pinjaman.audit.loan');
+    Route::get('/pinjaman/{loan}/angsuran', [App\Http\Controllers\Pinjaman\LoanController::class, 'installments'])->whereNumber('loan')->middleware('throttle:120,1')->name('pinjaman.installments');
+    Route::post('/pinjaman/{loan}/angsuran', [LoanPaymentController::class, 'store'])->whereNumber('loan')->middleware('throttle:30,1')->name('pinjaman.installments.store');
+    Route::post('/pinjaman/{loan}/hitung-ulang', [LoanPaymentController::class, 'recalculate'])->whereNumber('loan')->middleware('throttle:30,1')->name('pinjaman.recalculate');
+    Route::get('/pinjaman/{loan}', Show::class)->whereNumber('loan')->name('pinjaman.show');
 });
 
 Route::middleware(['menu:simpanan', 'peran:admin,pengurus'])->group(function () {
@@ -524,23 +577,23 @@ Route::middleware(['menu:simpanan', 'peran:admin,pengurus'])->group(function () 
     Route::get('/simpanan/mutasi', Simpanan\Entries::class)->name('simpanan.mutasi');
     Route::get('/simpanan/setoran-bulanan', Simpanan\MonthlyDues::class)->name('simpanan.setoran');
     Route::get('/simpanan/setoran-bulanan/rekap', Simpanan\DuesRecap::class)->name('simpanan.setoran.rekap');
-    Route::get('/simpanan/setoran-bulanan/data', [\App\Http\Controllers\Simpanan\MonthlyDuesController::class, 'sheet'])->name('simpanan.setoran.data');
-    Route::get('/simpanan/setoran-bulanan/rekap/data', [\App\Http\Controllers\Simpanan\MonthlyDuesController::class, 'recap'])->name('simpanan.setoran.rekap.data');
-    Route::post('/simpanan/setoran-bulanan/{due}/koreksi', [\App\Http\Controllers\Simpanan\MonthlyDuesController::class, 'correct'])
+    Route::get('/simpanan/setoran-bulanan/data', [MonthlyDuesController::class, 'sheet'])->name('simpanan.setoran.data');
+    Route::get('/simpanan/setoran-bulanan/rekap/data', [MonthlyDuesController::class, 'recap'])->name('simpanan.setoran.rekap.data');
+    Route::post('/simpanan/setoran-bulanan/{due}/koreksi', [MonthlyDuesController::class, 'correct'])
         ->whereNumber('due')->middleware(['can:kelola-simpanan', 'throttle:30,1'])->name('simpanan.setoran.koreksi');
-    Route::get('/simpanan/setoran-bulanan/rekap/unduh', [\App\Http\Controllers\Simpanan\MonthlyDuesExportController::class, 'recap'])
+    Route::get('/simpanan/setoran-bulanan/rekap/unduh', [MonthlyDuesExportController::class, 'recap'])
         ->middleware('throttle:20,1')->name('simpanan.setoran.rekap.unduh');
-    Route::get('/simpanan/setoran-bulanan/unduh', \App\Http\Controllers\Simpanan\MonthlyDuesExportController::class)
+    Route::get('/simpanan/setoran-bulanan/unduh', MonthlyDuesExportController::class)
         ->middleware('throttle:20,1')->name('simpanan.setoran.unduh');
-    Route::post('/simpanan/anggota/{member}/mutasi', [\App\Http\Controllers\Simpanan\MemberSavingController::class, 'store'])
+    Route::post('/simpanan/anggota/{member}/mutasi', [MemberSavingController::class, 'store'])
         ->whereNumber('member')->middleware(['can:kelola-simpanan', 'throttle:60,1'])->name('simpanan.anggota.mutasi');
-    Route::get('/simpanan/anggota/{member}/saldo', [\App\Http\Controllers\Simpanan\MemberSavingController::class, 'show'])->whereNumber('member')->name('simpanan.anggota.saldo');
-    Route::get('/simpanan/jenis/data', [\App\Http\Controllers\Simpanan\SavingTypeController::class, 'index'])->name('simpanan.jenis.data');
+    Route::get('/simpanan/anggota/{member}/saldo', [MemberSavingController::class, 'show'])->whereNumber('member')->name('simpanan.anggota.saldo');
+    Route::get('/simpanan/jenis/data', [SavingTypeController::class, 'index'])->name('simpanan.jenis.data');
     Route::middleware(['can:kelola-simpanan', 'throttle:30,1'])->group(function () {
-        Route::post('/simpanan/jenis', [\App\Http\Controllers\Simpanan\SavingTypeController::class, 'store'])->name('simpanan.jenis.store');
-        Route::put('/simpanan/jenis/{type}', [\App\Http\Controllers\Simpanan\SavingTypeController::class, 'update'])->whereNumber('type')->name('simpanan.jenis.update');
-        Route::patch('/simpanan/jenis/{type}/status', [\App\Http\Controllers\Simpanan\SavingTypeController::class, 'status'])->whereNumber('type')->name('simpanan.jenis.status');
-        Route::delete('/simpanan/jenis/{type}', [\App\Http\Controllers\Simpanan\SavingTypeController::class, 'destroy'])->whereNumber('type')->name('simpanan.jenis.destroy');
+        Route::post('/simpanan/jenis', [SavingTypeController::class, 'store'])->name('simpanan.jenis.store');
+        Route::put('/simpanan/jenis/{type}', [SavingTypeController::class, 'update'])->whereNumber('type')->name('simpanan.jenis.update');
+        Route::patch('/simpanan/jenis/{type}/status', [SavingTypeController::class, 'status'])->whereNumber('type')->name('simpanan.jenis.status');
+        Route::delete('/simpanan/jenis/{type}', [SavingTypeController::class, 'destroy'])->whereNumber('type')->name('simpanan.jenis.destroy');
     });
 });
 
@@ -548,6 +601,7 @@ Route::middleware(['menu:pengguna', 'peran:admin'])->group(function () {
     Route::get('/pengguna', Pengguna\Index::class)->name('pengguna');
     Route::get('/pengguna/terkunci', Pengguna\Locked::class)->name('pengguna.terkunci');
     Route::get('/pengguna/sesi-aktif', Pengguna\ActiveSessions::class)->name('pengguna.sesi');
+    Route::get('/pengguna/hak-akses', Pengguna\AccessSimulator::class)->name('pengguna.akses');
     Route::get('/pengguna/sesi-aktif/data', [SessionAdminController::class, 'index'])->name('pengguna.sesi.data');
     Route::delete('/pengguna/sesi-aktif/{session}', [SessionAdminController::class, 'destroy'])
         ->where('session', '[A-Za-z0-9\-]{1,255}')->middleware('throttle:30,1')->name('pengguna.sesi.destroy');
@@ -581,20 +635,20 @@ Route::middleware(['menu:audit', 'peran:admin,pengurus'])->group(function () {
 
 Route::middleware('menu:sistem')->group(function () {
     Route::get('/sistem', Sistem\Health::class)->name('sistem');
-    Route::get('/sistem/kesehatan/data', fn () => response()->json(\App\Services\HealthCheckService::report()))
+    Route::get('/sistem/kesehatan/data', fn () => response()->json(HealthCheckService::report()))
         ->middleware('throttle:60,1')->name('sistem.kesehatan.data');
     Route::get('/sistem/cadangan', Sistem\Backups::class)->name('sistem.cadangan');
-    Route::get('/sistem/cadangan/data', [\App\Http\Controllers\Sistem\BackupController::class, 'index'])->name('sistem.cadangan.data');
-    Route::post('/sistem/cadangan', [\App\Http\Controllers\Sistem\BackupController::class, 'store'])->middleware('throttle:6,1')->name('sistem.cadangan.store');
-    Route::get('/sistem/cadangan/{backup}/unduh', [\App\Http\Controllers\Sistem\BackupController::class, 'download'])->whereNumber('backup')->middleware('throttle:10,1')->name('sistem.cadangan.unduh');
-    Route::get('/sistem/uji-pemulihan/data', [\App\Http\Controllers\Sistem\BackupController::class, 'tests'])->name('sistem.restore.data');
-    Route::post('/sistem/uji-pemulihan', [\App\Http\Controllers\Sistem\BackupController::class, 'runTest'])->middleware('throttle:6,1')->name('sistem.restore.run');
+    Route::get('/sistem/cadangan/data', [BackupController::class, 'index'])->name('sistem.cadangan.data');
+    Route::post('/sistem/cadangan', [BackupController::class, 'store'])->middleware('throttle:6,1')->name('sistem.cadangan.store');
+    Route::get('/sistem/cadangan/{backup}/unduh', [BackupController::class, 'download'])->whereNumber('backup')->middleware('throttle:10,1')->name('sistem.cadangan.unduh');
+    Route::get('/sistem/uji-pemulihan/data', [BackupController::class, 'tests'])->name('sistem.restore.data');
+    Route::post('/sistem/uji-pemulihan', [BackupController::class, 'runTest'])->middleware('throttle:6,1')->name('sistem.restore.run');
     Route::get('/sistem/uji-pemulihan', Sistem\RestoreTest::class)->name('sistem.restore');
     Route::get('/sistem/antrean', Sistem\Queue::class)->name('sistem.antrean');
-    Route::get('/sistem/antrean/data', [\App\Http\Controllers\Sistem\BackupController::class, 'queue'])->middleware('throttle:60,1')->name('sistem.antrean.data');
-    Route::post('/sistem/antrean/{uuid}/ulangi', [\App\Http\Controllers\Sistem\BackupController::class, 'retryJob'])->middleware('throttle:20,1')->name('sistem.antrean.retry');
-    Route::delete('/sistem/antrean/{uuid}', [\App\Http\Controllers\Sistem\BackupController::class, 'forgetJob'])->middleware('throttle:20,1')->name('sistem.antrean.forget');
-    Route::get('/sistem/kesehatan/riwayat', [\App\Http\Controllers\Sistem\BackupController::class, 'healthHistory'])->middleware('throttle:60,1')->name('sistem.kesehatan.riwayat');
+    Route::get('/sistem/antrean/data', [BackupController::class, 'queue'])->middleware('throttle:60,1')->name('sistem.antrean.data');
+    Route::post('/sistem/antrean/{uuid}/ulangi', [BackupController::class, 'retryJob'])->middleware('throttle:20,1')->name('sistem.antrean.retry');
+    Route::delete('/sistem/antrean/{uuid}', [BackupController::class, 'forgetJob'])->middleware('throttle:20,1')->name('sistem.antrean.forget');
+    Route::get('/sistem/kesehatan/riwayat', [BackupController::class, 'healthHistory'])->middleware('throttle:60,1')->name('sistem.kesehatan.riwayat');
     Route::get('/sistem/performa', Sistem\Performance::class)->name('sistem.performa');
 });
 
