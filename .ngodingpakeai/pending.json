@@ -1,6 +1,6 @@
 {
   "repo": "Koperasi Sekolah",
-  "generatedForCommit": "c1e4748fbe29a1d4381ab4e7b010506be511362f",
+  "generatedForCommit": "f80151e47183dd32be8f6219cc261df5833431bf",
   "files": [
     {
       "path": ".claude/skills/ngodingpakeai/SKILL.md",
@@ -52,9 +52,9 @@
     },
     {
       "path": "app/Http/Controllers/Akun/MenuController.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 3382
+      "size": 3355
     },
     {
       "path": "app/Http/Controllers/Akun/PasswordController.php",
@@ -139,6 +139,12 @@
       "reason": "needs_summary",
       "language": "php",
       "size": 745
+    },
+    {
+      "path": "app/Http/Middleware/EnsureActiveSession.php",
+      "reason": "changed",
+      "language": "php",
+      "size": 3031
     },
     {
       "path": "app/Http/Middleware/EnsureMenuAccess.php",
@@ -303,10 +309,22 @@
       "size": 3493
     },
     {
+      "path": "app/Services/UserService.php",
+      "reason": "changed",
+      "language": "php",
+      "size": 21636
+    },
+    {
       "path": "app/Support/AccessPreview.php",
       "reason": "needs_summary",
       "language": "php",
       "size": 8693
+    },
+    {
+      "path": "app/Support/Menu.php",
+      "reason": "changed",
+      "language": "php",
+      "size": 15133
     },
     {
       "path": "app/Support/MockData.php",
@@ -328,7 +346,7 @@
     },
     {
       "path": "bootstrap/app.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 3180
     },
@@ -1012,9 +1030,9 @@
     },
     {
       "path": "resources/js/app.js",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "javascript",
-      "size": 1650
+      "size": 1736
     },
     {
       "path": "resources/js/barcode-reader.js",
@@ -1039,6 +1057,12 @@
       "reason": "needs_summary",
       "language": "javascript",
       "size": 1289
+    },
+    {
+      "path": "resources/js/menu-watch.js",
+      "reason": "new",
+      "language": "javascript",
+      "size": 1798
     },
     {
       "path": "resources/js/pin-input.js",
@@ -1150,9 +1174,9 @@
     },
     {
       "path": "resources/views/components/layouts/app.blade.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 13461
+      "size": 14685
     },
     {
       "path": "resources/views/components/layouts/guest.blade.php",
@@ -2170,7 +2194,7 @@
     },
     {
       "path": "tests/Feature/Auth/ForbiddenOutsideUnionTest.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 7973
     },
@@ -2473,6 +2497,12 @@
       "reason": "needs_summary",
       "language": "php",
       "size": 4209
+    },
+    {
+      "path": "tests/Feature/Pengguna/RoleChangeRefreshTest.php",
+      "reason": "new",
+      "language": "php",
+      "size": 6264
     },
     {
       "path": "tests/Feature/Pengguna/RoleCheckboxFormTest.php",
