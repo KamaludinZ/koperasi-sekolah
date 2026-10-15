@@ -1,6 +1,6 @@
 {
   "repo": "Koperasi Sekolah",
-  "generatedForCommit": "dfd873f9c78842ca7f9e1ea0d3fed4f1c6e4c161",
+  "generatedForCommit": "4668cd01e527da816da14ba47a4d83f266b8acdb",
   "files": [
     {
       "path": ".claude/skills/ngodingpakeai/SKILL.md",
@@ -172,9 +172,9 @@
     },
     {
       "path": "app/Livewire/Panduan/Index.php",
-      "reason": "new",
+      "reason": "changed",
       "language": "php",
-      "size": 2645
+      "size": 2658
     },
     {
       "path": "app/Livewire/Pengaturan/Index.php",
@@ -195,6 +195,12 @@
       "size": 4276
     },
     {
+      "path": "app/Livewire/Portal/Guide.php",
+      "reason": "new",
+      "language": "php",
+      "size": 1258
+    },
+    {
       "path": "app/Livewire/Transaksi/Index.php",
       "reason": "needs_summary",
       "language": "php",
@@ -205,12 +211,6 @@
       "reason": "needs_summary",
       "language": "php",
       "size": 874
-    },
-    {
-      "path": "app/Models/Impersonation.php",
-      "reason": "changed",
-      "language": "php",
-      "size": 3358
     },
     {
       "path": "app/Models/Setting.php",
@@ -250,9 +250,9 @@
     },
     {
       "path": "app/Support/GuideCatalog.php",
-      "reason": "new",
+      "reason": "changed",
       "language": "php",
-      "size": 19257
+      "size": 24097
     },
     {
       "path": "app/Support/MockData.php",
@@ -1095,6 +1095,12 @@
       "size": 4466
     },
     {
+      "path": "resources/views/components/guide-button.blade.php",
+      "reason": "new",
+      "language": "php",
+      "size": 1283
+    },
+    {
       "path": "resources/views/components/idle-warning.blade.php",
       "reason": "needs_summary",
       "language": "php",
@@ -1126,9 +1132,9 @@
     },
     {
       "path": "resources/views/components/layouts/app.blade.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 15518
+      "size": 15602
     },
     {
       "path": "resources/views/components/layouts/guest.blade.php",
@@ -1138,9 +1144,9 @@
     },
     {
       "path": "resources/views/components/layouts/portal.blade.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 5311
+      "size": 6017
     },
     {
       "path": "resources/views/components/menu-link.blade.php",
@@ -1666,7 +1672,7 @@
     },
     {
       "path": "resources/views/livewire/panduan/index.blade.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 5519
     },
@@ -1887,6 +1893,12 @@
       "size": 10578
     },
     {
+      "path": "resources/views/livewire/portal/guide.blade.php",
+      "reason": "new",
+      "language": "php",
+      "size": 2336
+    },
+    {
       "path": "resources/views/livewire/portal/home.blade.php",
       "reason": "needs_summary",
       "language": "php",
@@ -2100,7 +2112,7 @@
       "path": "routes/web.php",
       "reason": "changed",
       "language": "php",
-      "size": 54714
+      "size": 54818
     },
     {
       "path": "tests/Concerns/FakesImpersonation.php",
@@ -2271,12 +2283,6 @@
       "size": 758
     },
     {
-      "path": "tests/Feature/Impersonasi/ReturnEndpointTest.php",
-      "reason": "changed",
-      "language": "php",
-      "size": 4368
-    },
-    {
       "path": "tests/Feature/Kasir/CheckoutTest.php",
       "reason": "needs_summary",
       "language": "php",
@@ -2361,8 +2367,14 @@
       "size": 5284
     },
     {
-      "path": "tests/Feature/Panduan/GuideCenterPageTest.php",
+      "path": "tests/Feature/Panduan/GuideButtonTest.php",
       "reason": "new",
+      "language": "php",
+      "size": 2511
+    },
+    {
+      "path": "tests/Feature/Panduan/GuideCenterPageTest.php",
+      "reason": "needs_summary",
       "language": "php",
       "size": 3880
     },

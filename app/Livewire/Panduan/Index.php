@@ -69,16 +69,17 @@ class Index extends Component
         return $groups;
     }
 
+    /** Kembali ke ikhtisar daftar panduan. */
+    public function closeGuide(): void
+    {
+        $this->selected = '';
+    }
+
     public function render()
     {
+        // tanpa pilihan → ikhtisar kartu semua panduan (hasil pencarian); dengan pilihan → isi panduan
         $current = $this->selected !== '' ? $this->entries[$this->selected] : null;
-        $groups = $this->groups;
-        if (! $current && $groups) { // pilih otomatis panduan pertama dari hasil
-            $first = array_key_first(reset($groups));
-            $current = $this->entries[$first];
-            $currentKey = $first;
-        }
 
-        return view('livewire.panduan.index', ['current' => $current, 'currentKey' => $currentKey ?? $this->selected]);
+        return view('livewire.panduan.index', ['current' => $current, 'currentKey' => $this->selected]);
     }
 }

@@ -34,9 +34,36 @@
             @endforelse
         </aside>
 
-        {{-- Isi panduan --}}
-        @if ($current)
+        {{-- Isi panduan atau ikhtisar --}}
+        @if (! $current)
+            <section class="min-w-0" aria-label="Ikhtisar panduan" data-guide-overview>
+                <p class="mb-3 text-sm text-stone-600">{{ $search !== '' ? 'Hasil pencarian “'.$search.'”' : 'Pilih menu untuk melihat langkah-langkahnya.' }}</p>
+                @foreach ($this->groups as $group => $items)
+                    <h2 class="mt-4 mb-2 text-xs font-semibold tracking-wider text-stone-500 uppercase first:mt-0">{{ $group }}</h2>
+                    <div class="grid gap-3 sm:grid-cols-2 2xl:grid-cols-3">
+                        @foreach ($items as $key => $e)
+                            @php $icon = $e['menu'] ? (\App\Support\Menu::ITEMS[$e['menu']]['icon'] ?? null) : 'M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2M12 11a4 4 0 100-8 4 4 0 000 8z'; @endphp
+                            <button type="button" wire:click="open('{{ $key }}')" wire:key="card-{{ $key }}" data-guide-card="{{ $key }}"
+                                    class="flex flex-col gap-2 rounded-2xl border border-stone-200 bg-white p-4 text-left transition hover:border-emerald-400 hover:shadow-sm focus-visible:ring-2 focus-visible:ring-emerald-600">
+                                <span class="flex items-center gap-2">
+                                    <span class="grid size-9 shrink-0 place-items-center rounded-xl bg-emerald-50 text-emerald-800" aria-hidden="true">
+                                        <svg class="size-5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="{{ $icon }}"/></svg>
+                                    </span>
+                                    <span class="min-w-0">
+                                        <span class="block text-sm font-semibold text-stone-900">{{ $e['menu'] ? \App\Support\Menu::ITEMS[$e['menu']]['label'] : 'Akun saya' }}</span>
+                                        <span class="block truncate text-xs text-stone-500">{{ $e['title'] }}</span>
+                                    </span>
+                                </span>
+                                <span class="line-clamp-2 text-xs text-stone-600">{{ $e['summary'] }}</span>
+                                <span class="text-[11px] font-medium text-emerald-800">{{ count($e['steps']) }} langkah →</span>
+                            </button>
+                        @endforeach
+                    </div>
+                @endforeach
+            </section>
+        @else
             <article class="min-w-0 rounded-2xl border border-stone-200 bg-white p-5 sm:p-6" aria-labelledby="guide-title" data-guide="{{ $currentKey }}">
+                <button type="button" wire:click="closeGuide" class="mb-3 text-xs font-medium text-stone-500 hover:text-stone-800" data-guide-back>← Semua panduan</button>
                 <p class="text-xs font-semibold tracking-wider text-emerald-700 uppercase">{{ $current['menu'] ? (\App\Support\Menu::ITEMS[$current['menu']]['label'] ?? '') : 'Akun saya' }}</p>
                 <h2 id="guide-title" class="mt-1 text-xl font-semibold text-stone-900">{{ $current['title'] }}</h2>
                 <p class="mt-2 max-w-prose text-sm leading-relaxed text-stone-700" data-guide-summary>{{ $current['summary'] }}</p>

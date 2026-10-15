@@ -45,15 +45,31 @@ class GuideCenterPageTest extends TestCase
         }
     }
 
-    public function test_page_lists_guides_grouped_and_shows_first_guide(): void
+    public function test_page_shows_overview_cards_grouped_like_the_sidebar(): void
     {
-        $this->get('/panduan')->assertOk()
+        $res = $this->get('/panduan')->assertOk()
             ->assertSeeText('Pusat Panduan')
+            ->assertSeeHtml('data-guide-overview')
             ->assertSeeText('Layanan harian')->assertSeeText('Data koperasi')->assertSeeText('Umum')
-            ->assertSeeHtml('data-guide="kasir"')
-            ->assertSeeText('Melayani penjualan di layar Kasir')
-            ->assertSeeHtmlInOrder(['data-guide-steps', 'Buka shift'])
-            ->assertSeeHtml('data-guide-tips');
+            ->assertDontSeeHtml('data-guide="kasir"');
+        foreach (array_keys(GuideCatalog::forAudience('petugas')) as $key) {
+            $res->assertSeeHtml('data-guide-card="'.$key.'"');
+        }
+        $res->assertSeeText('7 langkah →'); // kasir
+    }
+
+    public function test_card_opens_guide_and_back_returns_to_overview(): void
+    {
+        Livewire::test(Index::class)->call('open', 'kasir')
+            ->assertSeeHtml('data-guide="kasir"')->assertSeeText('Melayani penjualan di layar Kasir')
+            ->assertSeeHtmlInOrder(['data-guide-steps', 'Buka shift'])->assertSeeHtml('data-guide-tips')
+            ->call('closeGuide')->assertSet('selected', '')->assertSeeHtml('data-guide-overview');
+    }
+
+    public function test_overview_follows_search(): void
+    {
+        Livewire::test(Index::class)->set('search', 'barcode')
+            ->assertSeeText('Hasil pencarian “barcode”')->assertSeeHtml('data-guide-card="barang"')->assertDontSeeHtml('data-guide-card="pinjaman"');
     }
 
     public function test_open_guide_and_deep_link(): void
