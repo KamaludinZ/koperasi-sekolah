@@ -137,12 +137,12 @@ class Menu
         if (! $user) {
             return false;
         }
-        [$menu, $roles] = self::routeGuards($routeName);
+        [$menu, $roles, $all] = self::routeGuards($routeName);
         if ($menu !== null && ! self::userCan($user, $menu)) {
             return false;
         }
 
-        return $roles === [] || array_intersect($user['roles'] ?? [$user['role'] ?? null], $roles) !== [];
+        return EnsureRole::allows($user['roles'] ?? array_filter([$user['role'] ?? null]), $all ? [EnsureRole::ALL, ...$roles] : $roles);
     }
 
     /**
@@ -174,7 +174,10 @@ class Menu
         if (! $routeName || ! $user || count($held) < 2) {
             return null;
         }
-        [$menu, $required] = self::routeGuards($routeName);
+        [$menu, $required, $all] = self::routeGuards($routeName);
+        if ($all && ! EnsureRole::allows($held, [EnsureRole::ALL, ...$required])) {
+            return null; // tidak lolos syarat "semua peran" → yang berlaku 403, bukan penanda
+        }
         $via = $held;
         if ($menu !== null) {
             $via = self::sourcesFor($user)[$menu] ?? [];
@@ -189,10 +192,10 @@ class Menu
         return ['required' => $required, 'via' => $via, 'menu' => $menu];
     }
 
-    /** @var array<string, array{0: ?string, 1: list<string>}> */
+    /** @var array<string, array{0: ?string, 1: list<string>, 2: bool}> */
     private static array $guards = [];
 
-    /** @return array{0: ?string, 1: list<string>} [menu, peran yang dibutuhkan] dari middleware rute */
+    /** @return array{0: ?string, 1: list<string>, 2: bool} [menu, peran yang disyaratkan, wajib semua peran?] dari middleware rute */
     private static function routeGuards(string $routeName): array
     {
         if (isset(self::$guards[$routeName])) {
@@ -201,6 +204,7 @@ class Menu
         $route = Route::getRoutes()->getByName($routeName);
         $menu = null;
         $roles = [];
+        $all = false;
         foreach ($route?->gatherMiddleware() ?? [] as $mw) {
             if (! is_string($mw)) {
                 continue;
@@ -209,11 +213,11 @@ class Menu
             if (in_array($name, ['menu', EnsureMenuAccess::class], true) && $args !== '') {
                 $menu = $args;
             } elseif (in_array($name, ['peran', EnsureRole::class], true)) {
-                $roles = explode(',', $args);
+                ['roles' => $roles, 'all' => $all] = EnsureRole::parse(explode(',', $args));
             }
         }
 
-        return self::$guards[$routeName] = [$menu, $roles];
+        return self::$guards[$routeName] = [$menu, $roles, $all];
     }
 
     /** Menu yang terlihat untuk petugas (lihat for()). */
@@ -289,7 +293,7 @@ class Menu
         if (! $routeName || ! $user) {
             return null;
         }
-        [$menu, $required] = self::routeGuards($routeName);
+        [$menu, $required, $all] = self::routeGuards($routeName);
         if ($menu === null && $required === []) {
             return null;
         }
@@ -305,6 +309,7 @@ class Menu
             'menu' => $menu,
             'menu_label' => $menu ? (self::ITEMS[$menu]['label'] ?? $menu) : null,
             'required' => $required,
+            'all_required' => $all,
             'held' => $held,
             'suggest' => array_values(array_filter(Role::PRIORITY, fn ($r) => ! isset($held[$r]) && $passes($r))),
         ];

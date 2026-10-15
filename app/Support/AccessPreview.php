@@ -137,7 +137,7 @@ class AccessPreview
                 if (in_array($name, ['menu', EnsureMenuAccess::class], true) && $args !== '') {
                     $menu = $args;
                 } elseif (in_array($name, ['peran', EnsureRole::class], true)) {
-                    $roles = explode(',', $args);
+                    $roles = explode(',', $args); // mentah (boleh diawali `semua`), dinilai EnsureRole::allows
                 } elseif (in_array($name, ['can', Authorize::class], true) && ! str_contains($args, ',')) {
                     $ability = $args; // gate tanpa model; can:x,model dinilai per data
                 }
@@ -171,8 +171,10 @@ class AccessPreview
         if (! $user->canOpen($page['menu'])) {
             return [false, 'Tidak punya menu '.Menu::ITEMS[$page['menu']]['label']];
         }
-        if ($page['roles'] && ! $user->hasRole(...$page['roles'])) {
-            return [false, 'Khusus '.collect($page['roles'])->map(fn ($r) => Role::LABELS[$r] ?? $r)->join(' / ')];
+        if ($page['roles'] && ! EnsureRole::allows($names, $page['roles'])) {
+            ['roles' => $req, 'all' => $all] = EnsureRole::parse($page['roles']);
+
+            return [false, 'Khusus '.collect($req)->map(fn ($r) => Role::LABELS[$r] ?? $r)->join($all ? ' + ' : ' / ')];
         }
         if ($page['ability'] && Gate::forUser($user)->denies($page['ability'])) {
             return [false, 'Butuh hak: '.(self::ABILITIES[$page['ability']] ?? $page['ability'])];

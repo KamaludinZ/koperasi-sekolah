@@ -1,6 +1,6 @@
 {
   "repo": "Koperasi Sekolah",
-  "generatedForCommit": "2fc86022e526f5863381145ec5358457b9388bc5",
+  "generatedForCommit": "071ad7862e513ddeed1281758ea5a8c71848c595",
   "files": [
     {
       "path": ".claude/skills/ngodingpakeai/SKILL.md",
@@ -126,7 +126,7 @@
       "path": "app/Http/Controllers/Pengguna/UserController.php",
       "reason": "changed",
       "language": "php",
-      "size": 7820
+      "size": 9268
     },
     {
       "path": "app/Http/Controllers/Transaksi/TransactionDetailController.php",
@@ -252,11 +252,11 @@
       "path": "app/Models/User.php",
       "reason": "changed",
       "language": "php",
-      "size": 5360
+      "size": 5092
     },
     {
       "path": "app/Models/UserRole.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 2807
     },
@@ -285,22 +285,28 @@
       "size": 2848
     },
     {
+      "path": "app/Services/PermissionMerger.php",
+      "reason": "new",
+      "language": "php",
+      "size": 5077
+    },
+    {
       "path": "app/Services/StockService.php",
       "reason": "needs_summary",
       "language": "php",
       "size": 3493
     },
     {
-      "path": "app/Services/UserService.php",
+      "path": "app/Support/AccessPreview.php",
       "reason": "changed",
       "language": "php",
-      "size": 18838
+      "size": 8534
     },
     {
-      "path": "app/Support/AccessPreview.php",
-      "reason": "needs_summary",
+      "path": "app/Support/Menu.php",
+      "reason": "changed",
       "language": "php",
-      "size": 8566
+      "size": 14273
     },
     {
       "path": "app/Support/MockData.php",
@@ -934,7 +940,7 @@
     },
     {
       "path": "database/migrations/2026_10_17_000003_add_granted_by_to_user_roles.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 926
     },
@@ -2086,9 +2092,9 @@
     },
     {
       "path": "routes/web.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 51605
+      "size": 51877
     },
     {
       "path": "tests/Concerns/MakesProductImports.php",
@@ -2224,7 +2230,7 @@
     },
     {
       "path": "tests/Feature/Database/RoleRelationSchemaTest.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 5304
     },
@@ -2427,6 +2433,12 @@
       "size": 8178
     },
     {
+      "path": "tests/Feature/Pengguna/PermissionMergerTest.php",
+      "reason": "new",
+      "language": "php",
+      "size": 6469
+    },
+    {
       "path": "tests/Feature/Pengguna/QuickRoleActionsTest.php",
       "reason": "needs_summary",
       "language": "php",
@@ -2476,7 +2488,7 @@
     },
     {
       "path": "tests/Feature/Pengguna/UserListEndpointTest.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 4968
     },
