@@ -1,6 +1,6 @@
 {
   "repo": "Koperasi Sekolah",
-  "generatedForCommit": "596f9a50301560b7283237c5576903312446fc03",
+  "generatedForCommit": "4eab58043e0e11f738f5257116eb8a8d53a6b2c7",
   "files": [
     {
       "path": ".claude/skills/ngodingpakeai/SKILL.md",
@@ -201,6 +201,12 @@
       "size": 940
     },
     {
+      "path": "app/Jobs/DetectOverdueLoans.php",
+      "reason": "new",
+      "language": "php",
+      "size": 896
+    },
+    {
       "path": "app/Jobs/ExportLoanRecap.php",
       "reason": "needs_summary",
       "language": "php",
@@ -364,7 +370,7 @@
     },
     {
       "path": "app/Models/Loan.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 6667
     },
@@ -435,6 +441,12 @@
       "size": 4931
     },
     {
+      "path": "app/Services/LoanOverdueDetector.php",
+      "reason": "new",
+      "language": "php",
+      "size": 4577
+    },
+    {
       "path": "app/Services/LoanPaymentService.php",
       "reason": "needs_summary",
       "language": "php",
@@ -460,7 +472,7 @@
     },
     {
       "path": "app/Services/LoanService.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 11517
     },
@@ -487,6 +499,12 @@
       "reason": "needs_summary",
       "language": "php",
       "size": 2848
+    },
+    {
+      "path": "app/Services/QueueService.php",
+      "reason": "changed",
+      "language": "php",
+      "size": 5620
     },
     {
       "path": "app/Services/StockService.php",
@@ -1114,7 +1132,7 @@
     },
     {
       "path": "database/migrations/2026_10_16_000012_add_overdue_since_to_loans.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 1932
     },
@@ -2236,9 +2254,9 @@
     },
     {
       "path": "routes/console.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 6698
+      "size": 7530
     },
     {
       "path": "routes/web.php",
@@ -2368,7 +2386,7 @@
     },
     {
       "path": "tests/Feature/Database/LoanOverdueSchemaTest.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 3774
     },
@@ -2731,6 +2749,12 @@
       "reason": "needs_summary",
       "language": "php",
       "size": 3735
+    },
+    {
+      "path": "tests/Feature/Pinjaman/OverdueDetectionJobTest.php",
+      "reason": "new",
+      "language": "php",
+      "size": 6133
     },
     {
       "path": "tests/Feature/Pinjaman/OverdueRuleTest.php",

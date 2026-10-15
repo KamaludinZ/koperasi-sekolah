@@ -484,6 +484,7 @@ Route::middleware(['menu:pinjaman', 'peran:admin,pengurus', 'can:kelola-pinjaman
     Route::get('/pinjaman/angsuran', \App\Livewire\Pinjaman\Installments::class)->name('pinjaman.angsuran');
     Route::get('/pinjaman/angsuran/riwayat', \App\Livewire\Pinjaman\PaymentHistory::class)->name('pinjaman.angsuran.riwayat');
     Route::get('/pinjaman/tunggakan', \App\Livewire\Pinjaman\Arrears::class)->name('pinjaman.tunggakan');
+    Route::get('/pinjaman/tunggakan/data', [\App\Http\Controllers\Pinjaman\ArrearsController::class, 'index'])->middleware('throttle:120,1')->name('pinjaman.tunggakan.data');
     Route::get('/pinjaman/rekap', \App\Livewire\Pinjaman\Recap::class)->name('pinjaman.rekap');
     Route::post('/pinjaman/rekap/ekspor', [\App\Http\Controllers\Pinjaman\RecapExportController::class, 'store'])->middleware('throttle:10,1')->name('pinjaman.rekap.ekspor');
     Route::get('/pinjaman/rekap/ekspor', [\App\Http\Controllers\Pinjaman\RecapExportController::class, 'index'])->middleware('throttle:120,1')->name('pinjaman.rekap.ekspor.index');
