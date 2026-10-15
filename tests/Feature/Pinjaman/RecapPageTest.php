@@ -90,6 +90,22 @@ class RecapPageTest extends TestCase
         Livewire::test(Recap::class)->assertSeeText('1 menunggak (Rp330.000)');
     }
 
+    public function test_per_method_table(): void
+    {
+        [$from, $to] = LoanRecapService::period('tahun', '2026');
+        $rows = collect(app(LoanRecapService::class)->recap($from, $to)['collected']['by_method'])->keyBy('method');
+        $this->assertSame(['count' => 1, 'amount' => 330000, 'principal' => 300000, 'interest' => 30000, 'share' => 50.0, 'loans_paid' => 1, 'active_loans' => 1, 'active_outstanding' => 330000],
+            array_intersect_key($rows['potong_gaji'], array_flip(['count', 'amount', 'principal', 'interest', 'share', 'loans_paid', 'active_loans', 'active_outstanding'])));
+        $this->assertSame([1, 330000, 50.0, 0], [$rows['transfer']['count'], $rows['transfer']['amount'], $rows['transfer']['share'], $rows['transfer']['active_loans']]);
+        $this->assertSame([0, 0, 0.0], [$rows['tunai']['count'], $rows['tunai']['amount'], $rows['tunai']['share']]);
+        $this->assertSame(array_sum(array_column($rows->all(), 'principal')) + array_sum(array_column($rows->all(), 'interest')), 660000);
+
+        Livewire::test(Recap::class)->call('setType', 'tahun')
+            ->assertSeeHtml('data-method-table')->assertSeeText('Angsuran diterima per metode bayar · Tahun 2026')
+            ->assertSeeHtmlInOrder(['data-method="potong_gaji"', 'data-method="transfer"', 'data-method="tunai"', 'data-method-total'])
+            ->assertSeeText('50%')->assertSeeText('1 · Rp330.000');
+    }
+
     public function test_period_navigation_and_validation(): void
     {
         Livewire::test(Recap::class)

@@ -52,16 +52,50 @@
         </section>
 
         <div class="grid gap-4 lg:grid-cols-2">
-            <section class="rounded-xl border border-stone-200 bg-white" aria-labelledby="by-method">
-                <h2 id="by-method" class="border-b border-stone-100 px-4 py-3 text-sm font-semibold">Angsuran diterima per metode</h2>
-                <ul class="divide-y divide-stone-100 text-sm">
-                    @foreach ($r['collected']['by_method'] as $m)
-                        <li class="flex items-center justify-between px-4 py-2.5" data-method="{{ $m['method'] }}">
-                            <span>{{ $m['label'] }} <span class="text-xs text-stone-500">· {{ $m['count'] }} pembayaran</span></span>
-                            <span class="font-semibold tabular-nums">{{ $rp($m['amount']) }}</span>
-                        </li>
-                    @endforeach
-                </ul>
+            <section class="rounded-xl border border-stone-200 bg-white lg:col-span-2" aria-labelledby="by-method">
+                <h2 id="by-method" class="border-b border-stone-100 px-4 py-3 text-sm font-semibold">Angsuran diterima per metode bayar · {{ $label }}</h2>
+                <div class="overflow-x-auto">
+                    <table class="w-full min-w-[44rem] text-sm" data-method-table>
+                        <thead class="bg-stone-50 text-left text-xs text-stone-500">
+                            <tr>
+                                <th class="px-4 py-2 font-medium">Metode</th>
+                                <th class="px-3 py-2 text-right font-medium">Pembayaran</th>
+                                <th class="px-3 py-2 text-right font-medium">Diterima</th>
+                                <th class="px-3 py-2 text-right font-medium">Pokok</th>
+                                <th class="px-3 py-2 text-right font-medium">Bunga</th>
+                                <th class="px-3 py-2 font-medium">Bagian</th>
+                                <th class="px-4 py-2 text-right font-medium">Pinjaman aktif · sisa</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-stone-100">
+                            @foreach ($r['collected']['by_method'] as $m)
+                                <tr data-method="{{ $m['method'] }}" @class(['text-stone-400' => $m['count'] === 0])>
+                                    <td class="px-4 py-2.5 font-medium">{{ $m['label'] }}</td>
+                                    <td class="px-3 py-2.5 text-right tabular-nums">{{ $m['count'] }}<span class="block text-xs text-stone-500">{{ $m['loans_paid'] }} pinjaman</span></td>
+                                    <td class="px-3 py-2.5 text-right font-semibold tabular-nums">{{ $rp($m['amount']) }}</td>
+                                    <td class="px-3 py-2.5 text-right tabular-nums">{{ $rp($m['principal']) }}</td>
+                                    <td class="px-3 py-2.5 text-right tabular-nums">{{ $rp($m['interest']) }}</td>
+                                    <td class="px-3 py-2.5">
+                                        <span class="text-xs tabular-nums">{{ str_replace('.', ',', (string) $m['share']) }}%</span>
+                                        <span class="mt-1 block h-1.5 w-24 overflow-hidden rounded-full bg-stone-100" aria-hidden="true"><span class="block h-full bg-emerald-600" style="width: {{ min(100, $m['share']) }}%"></span></span>
+                                    </td>
+                                    <td class="px-4 py-2.5 text-right tabular-nums">{{ $m['active_loans'] }} · {{ $rp($m['active_outstanding']) }}</td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                        <tfoot class="border-t border-stone-200 bg-stone-50 font-semibold">
+                            <tr data-method-total>
+                                <td class="px-4 py-2.5">Total</td>
+                                <td class="px-3 py-2.5 text-right tabular-nums">{{ $r['collected']['count'] }}</td>
+                                <td class="px-3 py-2.5 text-right tabular-nums">{{ $rp($r['collected']['amount']) }}</td>
+                                <td class="px-3 py-2.5 text-right tabular-nums">{{ $rp($r['collected']['principal']) }}</td>
+                                <td class="px-3 py-2.5 text-right tabular-nums">{{ $rp($r['collected']['interest']) }}</td>
+                                <td class="px-3 py-2.5 text-xs">{{ $r['collected']['amount'] > 0 ? '100%' : '—' }}</td>
+                                <td class="px-4 py-2.5 text-right tabular-nums">{{ $r['portfolio']['active'] }} · {{ $rp($r['portfolio']['outstanding']) }}</td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
             </section>
 
             @if ($r['months'])

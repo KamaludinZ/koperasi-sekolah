@@ -48,9 +48,7 @@ class LoanRecapService
             'collected' => [
                 'count' => $payments->count(), 'amount' => (int) round((float) $payments->sum('amount')),
                 'principal' => $split['principal'], 'interest' => $split['interest'],
-                'by_method' => collect(Loan::METHODS)->map(fn ($label, $m) => ['method' => $m, 'label' => $label,
-                    'count' => $payments->where('payment_method', $m)->count(),
-                    'amount' => (int) round((float) $payments->where('payment_method', $m)->sum('amount'))])->values()->all(),
+                'by_method' => $this->byMethod($payments),
             ],
             'portfolio' => $this->portfolio(),
             'months' => $from->diffInMonths($to) >= 1 ? $this->months($from, $to) : [],
@@ -103,6 +101,32 @@ class LoanRecapService
         }
 
         return $out;
+    }
+
+    /**
+     * Rekap angsuran per metode bayar: jumlah pembayaran, nominal, porsi pokok/bunga, bagian dari total periode, dan
+     * banyaknya pinjaman yang dibayar; ditambah pinjaman aktif yang memilih metode itu beserta sisanya (posisi saat ini).
+     *
+     * @return list<array>
+     */
+    private function byMethod($payments): array
+    {
+        $total = (int) round((float) $payments->sum('amount'));
+        $active = Loan::query()->whereIn('status', Loan::ACTIVE)->selectRaw('payment_method, COUNT(*) AS n, COALESCE(SUM(outstanding), 0) AS sisa')
+            ->groupBy('payment_method')->get()->keyBy('payment_method');
+        $loanIds = LoanPayment::query()->whereIn('id', $payments->pluck('id'))->get(['id', 'loan_id'])->pluck('loan_id', 'id');
+
+        return collect(Loan::METHODS)->map(function ($label, $m) use ($payments, $total, $active, $loanIds) {
+            $rows = $payments->where('payment_method', $m);
+            $split = $this->split($rows);
+            $amount = (int) round((float) $rows->sum('amount'));
+
+            return ['method' => $m, 'label' => $label, 'count' => $rows->count(), 'amount' => $amount,
+                'principal' => $split['principal'], 'interest' => $split['interest'],
+                'share' => $total > 0 ? round($amount * 100 / $total, 1) : 0.0,
+                'loans_paid' => $rows->map(fn ($p) => $loanIds[$p->id] ?? null)->filter()->unique()->count(),
+                'active_loans' => (int) ($active[$m]->n ?? 0), 'active_outstanding' => (int) round((float) ($active[$m]->sisa ?? 0))];
+        })->values()->all();
     }
 
     /** Porsi pokok & bunga dari pembayaran: tiap alokasi dibagi menurut porsi bunga angsuran yang dibayar. */
