@@ -144,6 +144,55 @@ class Menu
         return $roles === [] || array_intersect($user['roles'] ?? [$user['role'] ?? null], $roles) !== [];
     }
 
+    /**
+     * Peran mana dari petugas ini yang memberi tiap menu yang ia punya: [menu => [peran, …]] (urut prioritas).
+     * Dipakai untuk menandai menu/halaman yang hanya terbuka lewat sebagian perannya.
+     *
+     * @param  array{roles?: list<string>, role?: ?string, permissions?: list<string>}  $user
+     * @return array<string, list<string>>
+     */
+    public static function sourcesFor(array $user): array
+    {
+        $names = $user['roles'] ?? array_filter([$user['role'] ?? null]);
+        $perms = Role::whereIn('name', $names)->pluck('permissions', 'name')
+            ->map(fn ($p) => is_array($p) ? $p : (json_decode((string) $p, true) ?: []));
+        $sources = [];
+        foreach ($user['permissions'] ?? [] as $menu) {
+            $sources[$menu] = array_values(array_filter($names, fn ($n) => in_array($menu, $perms[$n] ?? [], true)));
+        }
+
+        return $sources;
+    }
+
+    /**
+     * Cakupan peran halaman (rute) yang sedang dibuka bagi petugas multi-peran: peran yang disyaratkan rute
+     * (peran:…) dan peran milik petugas yang membukanya. Null bila semua perannya sama-sama membuka halaman ini
+     * (tidak ada yang perlu ditandai) atau petugas hanya punya satu peran.
+     *
+     * @return ?array{required: list<string>, via: list<string>, menu: ?string}
+     */
+    public static function pageScope(?string $routeName, ?array $user = null): ?array
+    {
+        $user ??= Petugas::current();
+        $held = $user['roles'] ?? [];
+        if (! $routeName || ! $user || count($held) < 2) {
+            return null;
+        }
+        [$menu, $required] = self::routeGuards($routeName);
+        $via = $held;
+        if ($menu !== null) {
+            $via = self::sourcesFor($user)[$menu] ?? [];
+        }
+        if ($required !== []) {
+            $via = array_values(array_intersect($via, $required));
+        }
+        if ($via === [] || count($via) === count($held)) {
+            return null;
+        }
+
+        return ['required' => $required, 'via' => $via, 'menu' => $menu];
+    }
+
     /** @var array<string, array{0: ?string, 1: list<string>}> */
     private static array $guards = [];
 

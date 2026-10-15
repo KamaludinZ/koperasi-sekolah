@@ -15,6 +15,12 @@
 @php
     $user = \App\Support\Petugas::current();
     $menu = \App\Support\Menu::forUser($user);
+    // petugas multi-peran: tandai menu & halaman yang hanya terbuka lewat sebagian perannya
+    $multiRole = $user && count($user['roles'] ?? []) > 1;
+    $menuSources = $multiRole ? \App\Support\Menu::sourcesFor($user) : [];
+    $pageScope = $multiRole ? \App\Support\Menu::pageScope(request()->route()?->getName(), $user) : null;
+    $roleList = fn (array $names) => collect($names)->map(fn ($r) => \App\Models\Role::LABELS[$r] ?? $r)
+        ->pipe(fn ($c) => $c->count() > 1 ? $c->slice(0, -1)->join(', ').' dan '.$c->last() : $c->join(''));
 @endphp
 <div class="flex h-full" x-data="{ nav: false }" x-on:keydown.escape.window="nav = false">
     {{-- Latar drawer navigasi (layar kecil) --}}
@@ -51,6 +57,8 @@
                                     <span class="flex-1">{{ $item['label'] }}</span>
                                     @if ($key === 'barang' && ($alerts = app(\App\Services\ProductListing::class)->lowStockCount()) > 0)
                                         <span class="rounded-full bg-amber-400 px-1.5 text-[11px] font-semibold text-emerald-950 tabular-nums" title="{{ $alerts }} barang perlu ditambah stoknya">{{ $alerts }}</span>
+                                    @elseif ($multiRole && count($menuSources[$key] ?? []) < count($user['roles']))
+                                        <span class="text-[10px] font-medium text-emerald-300/70" data-menu-source="{{ $key }}" title="Terbuka lewat peran {{ $roleList($menuSources[$key] ?? []) }}">{{ collect($menuSources[$key] ?? [])->map(fn ($r) => \App\Models\Role::LABELS[$r] ?? $r)->join('/') }}</span>
                                     @elseif (! $item['route'])
                                         <span class="rounded bg-emerald-900 px-1.5 py-0.5 text-[10px] text-emerald-300/70">segera</span>
                                     @endif
@@ -106,6 +114,16 @@
                 <livewire:notifikasi.bell :compact="true" />
             @endif
         </div>
+
+        @if ($pageScope)
+            <p class="flex items-center gap-2 border-b border-amber-200 bg-amber-50 px-4 py-1.5 text-xs text-amber-900 sm:px-6" data-page-scope>
+                <svg class="size-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l8 4v5c0 4.5-3.4 8.3-8 9-4.6-.7-8-4.5-8-9V7z"/></svg>
+                <span>
+                    @if ($pageScope['required'])Halaman khusus peran {{ $roleList($pageScope['required']) }} — @endif
+                    terbuka lewat peran <strong>{{ $roleList($pageScope['via']) }}</strong> Anda; peran {{ $roleList(array_diff($user['roles'], $pageScope['via'])) }} saja tidak bisa membukanya.
+                </span>
+            </p>
+        @endif
 
         {{ $slot }}
     </div>

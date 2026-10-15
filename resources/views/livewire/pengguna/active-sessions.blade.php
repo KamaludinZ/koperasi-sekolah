@@ -15,7 +15,7 @@
                     <tbody class="divide-y divide-stone-100">
                         @forelse ($rows as $s)
                             <tr wire:key="ses-{{ $s['id'] }}">
-                                <td class="px-4 py-2.5"><span class="font-medium">{{ $s['name'] }}</span>@if ($s['current']) <span class="ml-1 rounded bg-emerald-100 px-1.5 py-0.5 text-[11px] font-semibold text-emerald-800">sesi Anda</span>@endif<span class="block text-xs text-stone-500">{{ ucfirst($s['role'] ?? '—') }} · {{ $s['email'] }}</span></td>
+                                <td class="px-4 py-2.5"><span class="font-medium">{{ $s['name'] }}</span>@if ($s['current']) <span class="ml-1 rounded bg-emerald-100 px-1.5 py-0.5 text-[11px] font-semibold text-emerald-800">sesi Anda</span>@endif<span class="block text-xs text-stone-500">{{ collect($s['roles'] ?? [$s['role']])->filter()->map(fn ($r) => \App\Models\Role::LABELS[$r] ?? ucfirst($r))->join(' · ') ?: '—' }} · {{ $s['email'] }}</span></td>
                                 <td class="px-3 py-2.5 text-stone-700">{{ $s['device'] }} · {{ $s['browser'] }}</td>
                                 <td class="px-3 py-2.5 font-mono text-xs text-stone-600">{{ $s['ip_address'] ?? '—' }}</td>
                                 <td class="px-3 py-2.5 text-stone-600">{{ \Illuminate\Support\Carbon::parse($s['last_active'])->diffForHumans() }}</td>

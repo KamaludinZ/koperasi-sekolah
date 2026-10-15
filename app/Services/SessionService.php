@@ -2,7 +2,9 @@
 
 namespace App\Services;
 
+use App\Models\Role;
 use App\Models\User;
+use App\Support\SessionPolicy;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -99,10 +101,10 @@ class SessionService
         if (! $this->available()) {
             return [];
         }
-        $since = now()->subMinutes($withinMinutes ?? \App\Support\SessionPolicy::idleMinutes())->timestamp;
+        $since = now()->subMinutes($withinMinutes ?? SessionPolicy::idleMinutes())->timestamp;
         $current = session()->getId();
 
-        return DB::table('sessions')->join('users', 'users.id', '=', 'sessions.user_id')
+        $rows = DB::table('sessions')->join('users', 'users.id', '=', 'sessions.user_id')
             ->leftJoin('roles', 'roles.id', '=', 'users.role_id')
             ->where('sessions.last_activity', '>=', $since)
             ->orderByDesc('sessions.last_activity')
@@ -112,7 +114,14 @@ class SessionService
                 'ip_address' => $s->ip_address, ...self::describe((string) $s->user_agent),
                 'last_active' => Carbon::createFromTimestamp($s->last_activity)->timezone(config('app.timezone'))->toDateTimeString(),
                 'current' => hash_equals($current, $s->id),
-            ])->all();
+            ]);
+        // semua peran tiap petugas (multi-peran), urut prioritas; peran utama tetap di 'role'
+        $roles = DB::table('user_roles')->join('roles', 'roles.id', '=', 'user_roles.role_id')
+            ->whereIn('user_roles.user_id', $rows->pluck('user_id')->unique()->all())
+            ->get(['user_roles.user_id', 'roles.name'])->groupBy('user_id')
+            ->map(fn ($g) => Role::sortNames($g->pluck('name')->all()));
+
+        return $rows->map(fn ($r) => [...$r, 'roles' => $roles[$r['user_id']] ?? array_filter([$r['role']])])->all();
     }
 
     /**
