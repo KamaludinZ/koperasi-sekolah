@@ -22,6 +22,10 @@ class UserForm extends Form
     /** @var list<string> peran yang dicentang (minimal satu) */
     public array $roles = ['kasir'];
 
+    /** @var list<string> peran tersimpan saat form dibuka (kosong untuk akun baru) */
+    #[\Livewire\Attributes\Locked]
+    public array $rolesSnapshot = [];
+
     public bool $is_active = true;
 
     public string $password = '';
@@ -51,7 +55,7 @@ class UserForm extends Form
     {
         $this->reset();
         $this->resetValidation();
-        $this->fill(['id' => $user->id, 'name' => $user->name, 'email' => $user->email, 'roles' => $user->roleNames(), 'is_active' => (bool) $user->is_active]);
+        $this->fill(['id' => $user->id, 'name' => $user->name, 'email' => $user->email, 'roles' => $user->roleNames(), 'rolesSnapshot' => $user->roleNames(), 'is_active' => (bool) $user->is_active]);
     }
 
     public function save(?User $actor): User

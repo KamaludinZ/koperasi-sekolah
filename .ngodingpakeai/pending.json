@@ -1,6 +1,6 @@
 {
   "repo": "Koperasi Sekolah",
-  "generatedForCommit": "856b1c20766ab1ed118dd667d0dca3f6688c5342",
+  "generatedForCommit": "960970813764c1f298405e44ecc0b69b1ac32b41",
   "files": [
     {
       "path": ".claude/skills/ngodingpakeai/SKILL.md",
@@ -178,7 +178,7 @@
     },
     {
       "path": "app/Livewire/Forms/UserForm.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 1758
     },
@@ -222,7 +222,7 @@
       "path": "app/Livewire/Pengguna/Index.php",
       "reason": "changed",
       "language": "php",
-      "size": 4572
+      "size": 7513
     },
     {
       "path": "app/Livewire/Transaksi/Index.php",
@@ -282,7 +282,7 @@
       "path": "app/Services/UserService.php",
       "reason": "changed",
       "language": "php",
-      "size": 12864
+      "size": 14830
     },
     {
       "path": "app/Support/MockData.php",
@@ -1734,13 +1734,19 @@
       "path": "resources/views/livewire/pengguna/index.blade.php",
       "reason": "changed",
       "language": "php",
-      "size": 13053
+      "size": 13369
     },
     {
       "path": "resources/views/livewire/pengguna/locked.blade.php",
       "reason": "needs_summary",
       "language": "php",
       "size": 10303
+    },
+    {
+      "path": "resources/views/livewire/pengguna/partials/role-form.blade.php",
+      "reason": "new",
+      "language": "php",
+      "size": 4156
     },
     {
       "path": "resources/views/livewire/pengguna/partials/user-form.blade.php",
@@ -2332,9 +2338,15 @@
     },
     {
       "path": "tests/Feature/Pengguna/MultiRoleTest.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 8178
+    },
+    {
+      "path": "tests/Feature/Pengguna/RoleCheckboxFormTest.php",
+      "reason": "new",
+      "language": "php",
+      "size": 3847
     },
     {
       "path": "tests/Feature/Pinjaman/SeedsRecapLoans.php",

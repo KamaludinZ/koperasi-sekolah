@@ -39,7 +39,8 @@
                             <label class="flex cursor-pointer items-start gap-3 rounded-lg border border-stone-300 px-3 py-2.5 transition has-checked:border-emerald-600 has-checked:bg-emerald-50" data-role-option="{{ $value }}">
                                 <input type="checkbox" value="{{ $value }}" wire:model.live="form.roles" class="mt-0.5 size-4 accent-emerald-700">
                                 <span>
-                                    <span class="block text-sm font-medium">{{ $label }}</span>
+                                    <span class="block text-sm font-medium">{{ $label }}
+                                        @if (in_array($value, $form->rolesSnapshot, true))<span class="ml-1 rounded bg-stone-100 px-1.5 text-[11px] font-normal text-stone-600" data-saved-role="{{ $value }}">tersimpan</span>@endif</span>
                                     <span class="block text-xs text-stone-500">{{ $hints[$value] }}</span>
                                 </span>
                             </label>

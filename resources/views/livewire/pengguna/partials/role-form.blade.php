@@ -19,6 +19,7 @@
                     <label class="flex cursor-pointer items-start gap-3 rounded-lg border border-stone-300 px-3 py-2.5 has-checked:border-emerald-600 has-checked:bg-emerald-50" data-role-choice="{{ $value }}">
                         <input type="checkbox" value="{{ $value }}" wire:model.live="roleChoice" class="mt-0.5 size-4 accent-emerald-700">
                         <span><span class="block text-sm font-medium">{{ $label }}
+                            @if (in_array($value, $d['before'] ?? [], true))<span class="ml-1 rounded bg-stone-100 px-1.5 text-[11px] font-normal text-stone-600" data-saved-role="{{ $value }}">tersimpan</span>@endif
                             @if (in_array($value, $d['added'], true))<span class="ml-1 rounded bg-emerald-100 px-1.5 text-[11px] text-emerald-800">ditambah</span>@endif
                             @if (in_array($value, $d['removed'], true))<span class="ml-1 rounded bg-red-100 px-1.5 text-[11px] text-red-800">dicabut</span>@endif</span>
                             <span class="block text-xs text-stone-500">{{ $hints[$value] }}</span></span>

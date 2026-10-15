@@ -88,6 +88,12 @@ class Index extends Component
     public function save(): void
     {
         $isNew = $this->form->id === null;
+        if (! $isNew && ($current = User::with('role', 'roles')->find($this->form->id)) && $current->roleNames() !== $this->form->rolesSnapshot) {
+            $this->form->roles = $this->form->rolesSnapshot = $current->roleNames();
+            $this->addError('form.roles', 'Peran akun ini baru saja diubah petugas lain. Pilihan dimuat ulang sesuai yang tersimpan — periksa lalu simpan lagi.');
+
+            return;
+        }
 
         try {
             $user = $this->form->save(auth()->user());
@@ -161,6 +167,10 @@ class Index extends Component
     /** @var list<string> */
     public array $roleChoice = [];
 
+    /** @var list<string> peran tersimpan saat form dibuka (deteksi perubahan oleh petugas lain) */
+    #[\Livewire\Attributes\Locked]
+    public array $roleSnapshot = [];
+
     public function editRoles(int $userId): void
     {
         $user = User::with('role', 'roles')->find($userId);
@@ -169,6 +179,7 @@ class Index extends Component
         }
         $this->roleUserId = $user->id;
         $this->roleChoice = $user->roleNames();
+        $this->roleSnapshot = $this->roleChoice;
         $this->reset('flash', 'error');
         $this->resetValidation('roleChoice');
     }
@@ -200,6 +211,13 @@ class Index extends Component
         }
         $this->validate(['roleChoice' => ['required', 'array', 'min:1'], 'roleChoice.*' => ['string', 'distinct', \Illuminate\Validation\Rule::in(array_keys(Role::LABELS))]],
             ['roleChoice.required' => 'Pilih minimal satu peran.', 'roleChoice.min' => 'Pilih minimal satu peran.', 'roleChoice.*.in' => 'Peran tidak dikenal.']);
+        if ($user->roleNames() !== $this->roleSnapshot) { // diubah petugas lain sejak form dibuka
+            $this->roleChoice = $this->roleSnapshot = $user->roleNames();
+            $this->addError('roleChoice', 'Peran akun ini baru saja diubah petugas lain. Pilihan dimuat ulang sesuai yang tersimpan — periksa lalu simpan lagi.');
+            unset($this->roleDiff, $this->users);
+
+            return;
+        }
         try {
             $r = app(UserService::class)->updateRoles($user, $this->roleChoice, auth()->user());
         } catch (ValidationException $e) {
