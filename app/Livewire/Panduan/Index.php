@@ -59,7 +59,7 @@ class Index extends Component
         $words = array_filter(explode(' ', Str::lower(Str::ascii($this->search))));
         $groups = [];
         foreach ($this->entries as $key => $e) {
-            $hay = Str::lower(Str::ascii(implode(' ', [$e['title'], $e['summary'], ...array_column($e['steps'], 'text'), ...$e['tips']])));
+            $hay = GuideCatalog::haystack($key, $e);
             if ($words && collect($words)->contains(fn ($w) => ! str_contains($hay, $w))) {
                 continue;
             }

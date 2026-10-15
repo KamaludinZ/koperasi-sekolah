@@ -5,6 +5,7 @@ import barcodeScanner from './barcode-scanner';
 import barcodeReader from './barcode-reader';
 import pinInput from './pin-input';
 import menuWatch from './menu-watch';
+import guideSearch from './guide-search';
 
 /** Format rupiah seragam (sama dengan App\Support\Rupiah): Rp12.500, minus memakai "−". */
 window.rupiah = (n, signed = false) => {
@@ -18,6 +19,7 @@ document.addEventListener('alpine:init', () => {
     window.Alpine.data('barcodeReader', barcodeReader);
     window.Alpine.data('pinInput', pinInput);
     window.Alpine.data('menuWatch', menuWatch);
+    window.Alpine.data('guideSearch', guideSearch);
     registerCopy(window.Alpine);
 });
 

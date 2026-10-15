@@ -1,6 +1,6 @@
 {
   "repo": "Koperasi Sekolah",
-  "generatedForCommit": "4668cd01e527da816da14ba47a4d83f266b8acdb",
+  "generatedForCommit": "ecefe8ee45da8952c87f29c439e8a031434d3abb",
   "files": [
     {
       "path": ".claude/skills/ngodingpakeai/SKILL.md",
@@ -174,7 +174,7 @@
       "path": "app/Livewire/Panduan/Index.php",
       "reason": "changed",
       "language": "php",
-      "size": 2658
+      "size": 2620
     },
     {
       "path": "app/Livewire/Pengaturan/Index.php",
@@ -196,7 +196,7 @@
     },
     {
       "path": "app/Livewire/Portal/Guide.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 1258
     },
@@ -250,7 +250,7 @@
     },
     {
       "path": "app/Support/GuideCatalog.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 24097
     },
@@ -1096,7 +1096,7 @@
     },
     {
       "path": "resources/views/components/guide-button.blade.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 1283
     },
@@ -1132,7 +1132,7 @@
     },
     {
       "path": "resources/views/components/layouts/app.blade.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 15602
     },
@@ -1144,7 +1144,7 @@
     },
     {
       "path": "resources/views/components/layouts/portal.blade.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 6017
     },
@@ -1672,9 +1672,9 @@
     },
     {
       "path": "resources/views/livewire/panduan/index.blade.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 5519
+      "size": 8175
     },
     {
       "path": "resources/views/livewire/pengadaan/index.blade.php",
@@ -1894,7 +1894,7 @@
     },
     {
       "path": "resources/views/livewire/portal/guide.blade.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 2336
     },
@@ -2110,7 +2110,7 @@
     },
     {
       "path": "routes/web.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 54818
     },
@@ -2368,15 +2368,15 @@
     },
     {
       "path": "tests/Feature/Panduan/GuideButtonTest.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 2511
     },
     {
       "path": "tests/Feature/Panduan/GuideCenterPageTest.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 3880
+      "size": 4712
     },
     {
       "path": "tests/Feature/Pengaturan/IndexTest.php",

@@ -2,6 +2,8 @@
 
 namespace App\Support;
 
+use Illuminate\Support\Str;
+
 /**
  * Isi panduan bawaan per menu (Pusat Panduan). Kunci = kunci menu App\Support\Menu::ITEMS (panduan petugas) atau
  * kunci umum (`akun`) dan `portal.*` (panduan anggota). Tiap panduan: judul, ringkasan singkat, langkah praktis
@@ -300,6 +302,34 @@ class GuideCatalog
                 'related' => [],
             ],
         ];
+    }
+
+    /** Kata kunci tambahan (sinonim/istilah sehari-hari) per panduan agar pencarian tetap menemukan. */
+    public const KEYWORDS = [
+        'kasir' => 'jual penjualan bayar pembayaran struk kembalian scan pindai checkout pos',
+        'transaksi' => 'riwayat penjualan nota struk ulang retur batal pembatalan refund kembalikan',
+        'kas' => 'shift laci uang modal setor tarik selisih rekonsiliasi tutup buka',
+        'barang' => 'stok produk item harga kategori barcode label impor csv xlsx restok menipis',
+        'pengadaan' => 'pemasok supplier pembelian po pesanan beli penerimaan surat jalan hutang tagihan',
+        'promo' => 'diskon potongan kupon voucher harga khusus',
+        'anggota' => 'siswa guru member tabungan setor tarik bon piutang utang pelunasan portal',
+        'simpanan' => 'pokok wajib sukarela setoran bulanan potong gaji iuran',
+        'pinjaman' => 'pinjam kredit angsuran cicilan cair pencairan tunggakan telat bunga',
+        'laporan' => 'rekap omzet laba penjualan terlaris grafik unduh export pdf',
+        'audit' => 'riwayat log jejak aktivitas siapa hapus pulihkan',
+        'pengguna' => 'akun petugas user peran role izin hak akses impersonasi masuk sebagai kunci sesi',
+        'sistem' => 'backup cadangan pemulihan restore antrean queue kesehatan performa',
+        'pengaturan' => 'setting profil logo struk pajak pembulatan keamanan retensi bon retur',
+        'akun' => 'password kata sandi ganti sesi perangkat notifikasi pemberitahuan lonceng',
+    ];
+
+    /** Teks yang dicari untuk satu panduan (judul, ringkasan, langkah, tips, kata kunci), dinormalkan tanpa huruf besar/aksen. */
+    public static function haystack(string $key, array $entry): string
+    {
+        return Str::lower(Str::ascii(implode(' ', [
+            $entry['menu'] ? (Menu::ITEMS[$entry['menu']]['label'] ?? '') : '', $entry['title'], $entry['summary'],
+            ...array_column($entry['steps'], 'text'), ...$entry['tips'], self::KEYWORDS[$key] ?? '',
+        ])));
     }
 
     /**
