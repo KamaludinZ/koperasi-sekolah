@@ -1,6 +1,6 @@
 {
   "repo": "Koperasi Sekolah",
-  "generatedForCommit": "ab84b2363a1b3c547c3666d51d97a50a806b7d0b",
+  "generatedForCommit": "2ac2a7c06337dbebefabee5c1ff139e90ed8eee2",
   "files": [
     {
       "path": ".claude/skills/ngodingpakeai/SKILL.md",
@@ -175,6 +175,12 @@
       "reason": "needs_summary",
       "language": "php",
       "size": 5276
+    },
+    {
+      "path": "app/Http/Controllers/Pinjaman/RecapController.php",
+      "reason": "new",
+      "language": "php",
+      "size": 2765
     },
     {
       "path": "app/Http/Controllers/Pinjaman/RecapExportController.php",
@@ -466,7 +472,7 @@
     },
     {
       "path": "app/Services/LoanRecapService.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 12956
     },
@@ -2260,9 +2266,9 @@
     },
     {
       "path": "routes/web.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 49771
+      "size": 50112
     },
     {
       "path": "tests/Concerns/MakesProductImports.php",
@@ -2812,9 +2818,15 @@
     },
     {
       "path": "tests/Feature/Pinjaman/RecapAggregationTest.php",
+      "reason": "changed",
+      "language": "php",
+      "size": 3093
+    },
+    {
+      "path": "tests/Feature/Pinjaman/RecapEndpointTest.php",
       "reason": "new",
       "language": "php",
-      "size": 4902
+      "size": 2603
     },
     {
       "path": "tests/Feature/Pinjaman/RecapExportTest.php",
@@ -2833,6 +2845,12 @@
       "reason": "needs_summary",
       "language": "php",
       "size": 3689
+    },
+    {
+      "path": "tests/Feature/Pinjaman/SeedsRecapLoans.php",
+      "reason": "new",
+      "language": "php",
+      "size": 2064
     },
     {
       "path": "tests/Feature/Pinjaman/StatusTransitionTest.php",
