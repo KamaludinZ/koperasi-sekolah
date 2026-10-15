@@ -23,6 +23,8 @@ class QueueService
         \App\Jobs\SyncStockAlerts::class => 'Peringatan stok',
         \App\Jobs\RunBackup::class => 'Cadangan data',
         \App\Jobs\RunRestoreTest::class => 'Uji pemulihan',
+        \App\Jobs\ExportLoanRecap::class => 'Ekspor rekap pinjaman',
+        \App\Jobs\DetectOverdueLoans::class => 'Deteksi tunggakan pinjaman',
     ];
 
     public const RECENT_KEY = 'queue:recent';

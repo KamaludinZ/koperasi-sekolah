@@ -76,6 +76,20 @@ Artisan::command('pinjaman:hitung-ulang {--kode= : Hanya satu pinjaman (kode PJM
 
 Schedule::command('pinjaman:hitung-ulang')->dailyAt('00:15');
 
+// Deteksi angsuran lewat jatuh tempo: tandai menunggak, catat jejak audit & kabari pengurus (job di antrean notifikasi).
+Artisan::command('pinjaman:deteksi-tunggakan', function () {
+    $r = app(\App\Services\LoanOverdueDetector::class)->run();
+    foreach ($r['overdue'] as $code) {
+        $this->line("Menunggak: {$code}");
+    }
+    foreach ($r['recovered'] as $code) {
+        $this->line("Kembali lancar: {$code}");
+    }
+    $this->info("{$r['checked']} pinjaman diperiksa · ".count($r['overdue']).' baru menunggak · '.count($r['recovered']).' kembali lancar · '.$r['installments'].' angsuran diperbarui.');
+})->purpose('Deteksi angsuran pinjaman yang lewat jatuh tempo dan tandai menunggak');
+
+Schedule::job(new \App\Jobs\DetectOverdueLoans)->dailyAt('00:05')->name('pinjaman:deteksi-tunggakan')->withoutOverlapping();
+
 // Pengingat hutang supplier yang jatuh tempo ≤ 3 hari atau sudah lewat (notifikasi untuk Pengurus & Admin).
 Artisan::command('hutang:ingatkan', function () {
     $n = app(\App\Services\SupplierBillService::class)->remind();
