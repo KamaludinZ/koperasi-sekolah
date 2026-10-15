@@ -20,6 +20,7 @@ use App\Http\Controllers\Barang\ProductImportController;
 use App\Http\Controllers\Barang\ProductListController;
 use App\Http\Controllers\Barang\StockAlertController;
 use App\Http\Controllers\BerandaController;
+use App\Http\Controllers\Impersonasi\ImpersonationController;
 use App\Http\Controllers\Impersonasi\StartMemberController;
 use App\Http\Controllers\Impersonasi\StartStaffController;
 use App\Http\Controllers\Impersonasi\StopController;
@@ -616,6 +617,8 @@ Route::middleware(['menu:pengguna', 'peran:admin'])->group(function () {
     Route::get('/pengguna/sesi-aktif', Pengguna\ActiveSessions::class)->name('pengguna.sesi');
     Route::get('/pengguna/hak-akses', Pengguna\AccessSimulator::class)->name('pengguna.akses');
     Route::get('/pengguna/impersonasi', Pengguna\Impersonation::class)->name('pengguna.impersonasi');
+    Route::post('/pengguna/impersonasi', [ImpersonationController::class, 'store'])->middleware('throttle:10,1')->name('pengguna.impersonasi.mulai');
+    Route::get('/pengguna/impersonasi/aktif', [ImpersonationController::class, 'active'])->name('pengguna.impersonasi.aktif');
     Route::post('/pengguna/impersonasi/petugas/{user}', StartStaffController::class)
         ->whereNumber('user')->middleware('throttle:10,1')->name('pengguna.impersonasi.petugas');
     Route::post('/pengguna/impersonasi/anggota/{member}', StartMemberController::class)

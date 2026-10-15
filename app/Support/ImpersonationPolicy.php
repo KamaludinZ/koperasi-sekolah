@@ -105,9 +105,28 @@ class ImpersonationPolicy
     public static function reasonRules(): array
     {
         return [
-            'reason' => ['required', 'string', 'min:'.self::REASON_MIN, 'max:'.self::REASON_MAX],
+            'reason' => ['required', 'string', 'min:'.self::REASON_MIN, 'max:'.self::REASON_MAX, function ($attr, $value, $fail) {
+                if (is_string($value) && ($m = self::reasonQuality($value))) {
+                    $fail($m);
+                }
+            }],
             'minutes' => ['required', 'integer', 'in:'.implode(',', self::DURATIONS)],
         ];
+    }
+
+    /**
+     * Mutu alasan (dicatat di jejak audit, harus bisa dipahami pemeriksa): minimal 2 kata dan 6 huruf, bukan satu
+     * karakter diulang-ulang. Null = layak.
+     */
+    public static function reasonQuality(string $reason): ?string
+    {
+        $r = trim(preg_replace('/\s+/u', ' ', $reason));
+        $letters = preg_match_all('/\p{L}/u', $r);
+        if ($letters < 6 || count(explode(' ', $r)) < 2 || preg_match('/^(.)\1*$/u', str_replace(' ', '', $r))) {
+            return 'Tulis alasan yang jelas (minimal dua kata), mis. "kasir melapor struk gagal tercetak".';
+        }
+
+        return null;
     }
 
     /** @return array<string, string> */

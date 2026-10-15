@@ -1,6 +1,6 @@
 {
   "repo": "Koperasi Sekolah",
-  "generatedForCommit": "fa8388b302040e6fa103f13d19028127009c961f",
+  "generatedForCommit": "3752a6bf3c7635fcdbbb4106e7571b3f96289cca",
   "files": [
     {
       "path": ".claude/skills/ngodingpakeai/SKILL.md",
@@ -148,7 +148,7 @@
     },
     {
       "path": "app/Http/Controllers/Pengguna/UserController.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 9666
     },
@@ -268,9 +268,9 @@
     },
     {
       "path": "app/Livewire/Pengguna/Index.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 9935
+      "size": 10252
     },
     {
       "path": "app/Livewire/Transaksi/Index.php",
@@ -298,15 +298,15 @@
     },
     {
       "path": "app/Models/User.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 5092
+      "size": 6348
     },
     {
       "path": "app/Models/UserRole.php",
       "reason": "changed",
       "language": "php",
-      "size": 2423
+      "size": 2617
     },
     {
       "path": "app/Observers/ProductObserver.php",
@@ -346,13 +346,13 @@
     },
     {
       "path": "app/Services/RoleAuditService.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 7208
     },
     {
       "path": "app/Services/RoleImpersonationTrail.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 12823
     },
@@ -366,7 +366,7 @@
       "path": "app/Services/UserService.php",
       "reason": "changed",
       "language": "php",
-      "size": 21121
+      "size": 21425
     },
     {
       "path": "app/Support/AccessPreview.php",
@@ -1930,9 +1930,9 @@
     },
     {
       "path": "resources/views/livewire/pengguna/partials/role-form.blade.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 4666
+      "size": 5253
     },
     {
       "path": "resources/views/livewire/pengguna/partials/user-form.blade.php",
@@ -2709,6 +2709,12 @@
       "size": 2581
     },
     {
+      "path": "tests/Feature/Pengguna/AutoRoleChangeLogTest.php",
+      "reason": "new",
+      "language": "php",
+      "size": 3939
+    },
+    {
       "path": "tests/Feature/Pengguna/HideUnownedMenuTest.php",
       "reason": "needs_summary",
       "language": "php",
@@ -2746,13 +2752,13 @@
     },
     {
       "path": "tests/Feature/Pengguna/RoleAuditServiceTest.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 5557
     },
     {
       "path": "tests/Feature/Pengguna/RoleChangeAuditTest.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 4424
     },
