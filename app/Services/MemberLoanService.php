@@ -109,4 +109,52 @@ class MemberLoanService
 
         return $out;
     }
+
+    /**
+     * Ringkasan sisa & angsuran berikutnya untuk anggota: total sisa pinjaman berjalan, angsuran terdekat lintas
+     * pinjaman, tunggakan, tagihan bulan ini, dan per pinjaman aktif: sisa pokok/bunga, angsuran berikutnya, serta
+     * jadwal angsuran yang belum lunas (nominal sisa per angsuran, jatuh tempo, terlambat berapa hari).
+     */
+    public function outstanding(Member $member): array
+    {
+        $today = today();
+        $loans = Loan::query()->where('member_id', $member->id)->whereIn('status', Loan::ACTIVE)
+            ->with(['installments' => fn ($q) => $q->where('status', '!=', 'dibayar')->orderBy('sequence')])
+            ->orderBy('applied_at')->orderBy('id')->get();
+
+        $rows = $loans->map(function (Loan $l) use ($today) {
+            $schedule = $l->installments->map(fn ($i) => [
+                'sequence' => $i->sequence, 'due_date' => $i->due_date->toDateString(),
+                'amount' => (int) round((float) $i->amount), 'remaining' => (int) round((float) $i->amount - (float) $i->paid_amount),
+                'late' => $i->due_date->lt($today), 'days_late' => $i->due_date->lt($today) ? (int) $i->due_date->diffInDays($today) : 0,
+            ])->values();
+            $b = $this->payments->balance($l);
+
+            return [
+                'id' => $l->id, 'code' => $l->code, 'status' => $l->status, 'status_label' => Loan::STATUSES[$l->status] ?? $l->status,
+                'payment_method' => $l->payment_method, 'payment_label' => Loan::METHODS[$l->payment_method] ?? $l->payment_method,
+                'total' => $l->totalDue(), 'outstanding' => (int) round((float) $l->outstanding),
+                'principal_remaining' => $b['principal_remaining'], 'interest_remaining' => $b['interest_remaining'],
+                'installments_paid' => $b['installments_paid'], 'installments' => $b['installments'], 'progress' => $b['progress'],
+                'overdue' => $l->status === 'menunggak' || $schedule->contains('late', true),
+                'late_amount' => (int) $schedule->where('late', true)->sum('remaining'),
+                'next' => $schedule->first(), 'schedule' => $schedule->all(),
+            ];
+        });
+
+        $upcoming = $rows->filter(fn ($r) => $r['next'])->sortBy(fn ($r) => $r['next']['due_date'].sprintf('%010d', $r['id']))->first();
+        $monthEnd = $today->copy()->endOfMonth()->toDateString();
+
+        return [
+            'loans' => $rows->values()->all(),
+            'totals' => [
+                'active' => $rows->count(), 'outstanding' => (int) $rows->sum('outstanding'),
+                'principal_remaining' => (int) $rows->sum('principal_remaining'), 'interest_remaining' => (int) $rows->sum('interest_remaining'),
+                'late_amount' => (int) $rows->sum('late_amount'), 'overdue_loans' => $rows->where('overdue', true)->count(),
+                // yang perlu dibayar sampai akhir bulan ini: tunggakan + jatuh tempo bulan ini
+                'due_this_month' => (int) $rows->sum(fn ($r) => collect($r['schedule'])->where('due_date', '<=', $monthEnd)->sum('remaining')),
+                'next' => $upcoming ? $upcoming['next'] + ['code' => $upcoming['code'], 'loan_id' => $upcoming['id']] : null,
+            ],
+        ];
+    }
 }

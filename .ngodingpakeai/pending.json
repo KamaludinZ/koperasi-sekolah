@@ -1,6 +1,6 @@
 {
   "repo": "Koperasi Sekolah",
-  "generatedForCommit": "d9d78671e81d63c74d9b21217403168faf666278",
+  "generatedForCommit": "c8f5b98b5ab0811be50b7a8b3b712fd9376a43e3",
   "files": [
     {
       "path": ".claude/skills/ngodingpakeai/SKILL.md",
@@ -171,6 +171,12 @@
       "size": 5276
     },
     {
+      "path": "app/Http/Controllers/Portal/LoanController.php",
+      "reason": "new",
+      "language": "php",
+      "size": 1507
+    },
+    {
       "path": "app/Http/Controllers/Transaksi/TransactionDetailController.php",
       "reason": "needs_summary",
       "language": "php",
@@ -316,9 +322,9 @@
     },
     {
       "path": "app/Livewire/Portal/Loans.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 6857
+      "size": 2043
     },
     {
       "path": "app/Livewire/Transaksi/Index.php",
@@ -400,7 +406,7 @@
     },
     {
       "path": "app/Services/LoanPaymentService.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 31165
     },
@@ -421,6 +427,12 @@
       "reason": "needs_summary",
       "language": "php",
       "size": 1990
+    },
+    {
+      "path": "app/Services/MemberLoanService.php",
+      "reason": "new",
+      "language": "php",
+      "size": 6246
     },
     {
       "path": "app/Services/MinStockService.php",
@@ -1042,7 +1054,7 @@
     },
     {
       "path": "database/migrations/2026_10_16_000010_harden_loan_schema_for_portal.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 2346
     },
@@ -2146,9 +2158,9 @@
     },
     {
       "path": "routes/web.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 47885
+      "size": 48049
     },
     {
       "path": "tests/Concerns/MakesProductImports.php",
@@ -2272,7 +2284,7 @@
     },
     {
       "path": "tests/Feature/Database/LoanPaymentSchemaTest.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 5743
     },
@@ -2659,6 +2671,12 @@
       "reason": "needs_summary",
       "language": "php",
       "size": 3708
+    },
+    {
+      "path": "tests/Feature/Portal/LoansEndpointTest.php",
+      "reason": "new",
+      "language": "php",
+      "size": 4761
     },
     {
       "path": "tests/Feature/Portal/LoansPageTest.php",

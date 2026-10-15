@@ -73,6 +73,39 @@ class LoansEndpointTest extends TestCase
             ->assertJsonPath('summary.overdue', 1)->assertJsonPath('summary.late_amount', 330000);
     }
 
+    public function test_outstanding_and_next_installment(): void
+    {
+        $two = Loan::factory()->create(['code' => 'PJM-TWO', 'member_id' => $this->sari->id, 'status' => 'disetujui', 'principal' => 400000, 'interest' => 0,
+            'tenor_months' => 2, 'payment_method' => 'tunai', 'applied_at' => '2026-08-01']);
+        app(LoanDisbursementService::class)->disburse($two, ['disbursed_on' => '2026-08-05', 'amount' => 400000]);
+
+        $this->travelTo('2026-09-03 10:00:00'); // PJM-RUN ke-2 (1 Sep) lewat 2 hari; PJM-TWO ke-1 jatuh tempo 5 Sep
+        $res = $this->getJson(route('portal.pinjaman.sisa'))->assertOk()
+            ->assertJsonPath('data.totals.active', 2)->assertJsonPath('data.totals.outstanding', 1060000)
+            ->assertJsonPath('data.totals.principal_remaining', 1000000)->assertJsonPath('data.totals.interest_remaining', 60000)
+            ->assertJsonPath('data.totals.late_amount', 330000)->assertJsonPath('data.totals.overdue_loans', 1)
+            ->assertJsonPath('data.totals.due_this_month', 530000)
+            ->assertJsonPath('data.totals.next.code', 'PJM-RUN')->assertJsonPath('data.totals.next.due_date', '2026-09-01');
+
+        $run = $res->json('data.loans.0');
+        $this->assertSame('PJM-RUN', $run['code']);
+        $this->assertSame([[2, '2026-09-01', 330000, true, 2], [3, '2026-10-01', 330000, false, 0]],
+            array_map(fn ($i) => [$i['sequence'], $i['due_date'], $i['remaining'], $i['late'], $i['days_late']], $run['schedule']));
+        $this->assertSame(['1 dari 3', 33], [$run['installments_paid'].' dari '.$run['installments'], $run['progress']]);
+        $this->assertSame(200000, $res->json('data.loans.1.next.remaining'));
+        $this->assertStringNotContainsString('PJM-OTHER', $res->getContent());
+        $this->assertStringNotContainsString('PJM-NEW', $res->getContent()); // pengajuan belum punya sisa
+    }
+
+    public function test_outstanding_empty_for_member_without_active_loans(): void
+    {
+        $this->actingAsMember(Member::factory()->create());
+        $this->getJson(route('portal.pinjaman.sisa'))->assertOk()->assertJsonPath('data.loans', [])
+            ->assertJsonPath('data.totals.outstanding', 0)->assertJsonPath('data.totals.next', null);
+        auth('member')->logout();
+        $this->getJson(route('portal.pinjaman.sisa'))->assertStatus(401);
+    }
+
     public function test_no_id_parameter_and_requires_member_session(): void
     {
         $this->getJson('/portal/pinjaman/data?member_id='.Member::where('name', 'Pak Lain')->value('id'))->assertOk()

@@ -108,6 +108,7 @@ Route::middleware('portal')->group(function () { // bukan auth:member — guard 
     Route::get('/portal/simpanan', \App\Livewire\Portal\Savings::class)->name('portal.simpanan');
     Route::get('/portal/pinjaman', \App\Livewire\Portal\Loans::class)->name('portal.pinjaman');
     Route::get('/portal/pinjaman/data', [\App\Http\Controllers\Portal\LoanController::class, 'index'])->middleware('throttle:120,1')->name('portal.pinjaman.data');
+    Route::get('/portal/pinjaman/sisa', [\App\Http\Controllers\Portal\LoanController::class, 'outstanding'])->middleware('throttle:120,1')->name('portal.pinjaman.sisa');
     Route::get('/portal/simpanan/mutasi', [\App\Http\Controllers\Simpanan\MemberSavingController::class, 'myEntries'])->name('portal.simpanan.mutasi');
     Route::get('/portal/simpanan/data', [\App\Http\Controllers\Simpanan\MemberSavingController::class, 'mine'])->name('portal.simpanan.data');
     Route::get('/portal/riwayat/data', [\App\Http\Controllers\Portal\HistoryController::class, 'transactions'])->name('portal.riwayat.data');
