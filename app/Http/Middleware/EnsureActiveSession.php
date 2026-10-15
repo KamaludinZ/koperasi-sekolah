@@ -3,6 +3,8 @@
 namespace App\Http\Middleware;
 
 use App\Services\AuditLog;
+use App\Services\AuthService;
+use App\Support\Menu;
 use App\Support\SessionPolicy;
 use Closure;
 use Illuminate\Http\Request;
@@ -52,10 +54,17 @@ class EnsureActiveSession
             return redirect()->guest(route('login'))->with('status', $reason);
         }
 
-        if (! SessionPolicy::isPassive($request) || ! $request->session()->has('last_activity_at')) {
+        // cek versi menu berkala (GET /akun/menu) bukan aktivitas petugas — tidak memperpanjang sesi menganggur
+        if ((! SessionPolicy::isPassive($request) && ! $request->routeIs('akun.menu')) || ! $request->session()->has('last_activity_at')) {
             $request->session()->put('last_activity_at', now()->timestamp);
         }
 
-        return $next($request);
+        $response = $next($request);
+        // sidik hak akses terkini: halaman yang sedang terbuka tahu bila peran/hak menunya diubah admin
+        if (Auth::guard('web')->check()) {
+            $response->headers->set('X-Menu-Version', Menu::versionFor(AuthService::toArray(Auth::guard('web')->user()->loadMissing('role', 'roles'))));
+        }
+
+        return $response;
     }
 }

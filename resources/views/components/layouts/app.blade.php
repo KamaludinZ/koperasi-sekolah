@@ -149,6 +149,18 @@
             @endif
         </div>
 
+        @if ($user)
+            {{-- Hak akses berubah selagi halaman terbuka (peran/hak menu diubah admin) → minta muat ulang --}}
+            <div x-data="menuWatch(@js(\App\Support\Menu::versionFor($user)), @js(route('akun.menu', absolute: false)))" data-menu-version="{{ \App\Support\Menu::versionFor($user) }}">
+                <div x-show="changed" x-cloak role="status" aria-live="polite"
+                     class="flex flex-wrap items-center gap-2 border-b border-sky-200 bg-sky-50 px-4 py-2 text-sm text-sky-900 sm:px-6" data-access-changed>
+                    <svg class="size-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 9v4m0 4h.01M10.3 3.9 1.8 18a2 2 0 001.7 3h17a2 2 0 001.7-3L13.7 3.9a2 2 0 00-3.4 0z"/></svg>
+                    <span class="flex-1">Hak akses Anda baru saja diubah admin. Muat ulang agar menu dan halaman mengikuti peran terbaru.</span>
+                    <button type="button" x-on:click="reload()" class="rounded-lg bg-sky-700 px-3 py-1 text-xs font-semibold text-white hover:bg-sky-800">Muat ulang</button>
+                </div>
+            </div>
+        @endif
+
         @if ($pageScope)
             <p class="flex items-center gap-2 border-b border-amber-200 bg-amber-50 px-4 py-1.5 text-xs text-amber-900 sm:px-6" data-page-scope>
                 <svg class="size-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l8 4v5c0 4.5-3.4 8.3-8 9-4.6-.7-8-4.5-8-9V7z"/></svg>

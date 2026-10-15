@@ -220,6 +220,15 @@ class Menu
         return self::$guards[$routeName] = [$menu, $roles, $all];
     }
 
+    /**
+     * Sidik hak akses petugas (peran, peran utama, izin gabungan, status aktif). Berubah tepat saat peran akun
+     * diubah atau hak menu salah satu perannya diubah — dipakai ETag /akun/menu & header X-Menu-Version.
+     */
+    public static function versionFor(array $user): string
+    {
+        return substr(hash('sha256', json_encode([$user['roles'] ?? [], $user['role'] ?? null, $user['permissions'] ?? [], $user['is_active'] ?? true])), 0, 16);
+    }
+
     /** Menu yang terlihat untuk petugas (lihat for()). */
     public static function forUser(?array $user): array
     {

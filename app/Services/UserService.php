@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Models\Notification;
 use App\Models\Role;
 use App\Models\User;
 use App\Models\UserRole;
@@ -220,8 +221,10 @@ class UserService
             return ['user' => $user, 'added' => [], 'removed' => []];
         }
 
-        DB::transaction(function () use ($user, $names, $before, $added, $removed) {
+        $menusBefore = $user->permissions();
+        DB::transaction(function () use ($user, $names, $before, $added, $removed, $menusBefore, $actor) {
             $this->assignRoles($user, $names);
+            $this->notifyRolesChanged($user, $added, $removed, $menusBefore, $actor);
             $label = fn (array $n) => implode(', ', array_map(fn ($x) => Role::LABELS[$x] ?? $x, $n));
             AuditLog::record('user.role_changed', 'pengguna',
                 "Peran {$user->name} diubah".($added ? ': + '.$label($added) : '').($removed ? ($added ? ';' : ':').' − '.$label($removed) : ''),
@@ -340,6 +343,7 @@ class UserService
         $added = array_values(array_diff($menus, $before));
         $removed = array_values(array_diff($before, $menus));
         if ($added || $removed) {
+            $this->notifyRolePermissionsChanged($role, $added, $removed);
             $label = fn (array $keys) => implode(', ', array_map(fn ($k) => Menu::ITEMS[$k]['label'] ?? $k, $keys));
             AuditLog::record('role.permissions_updated', 'pengguna',
                 "Hak akses peran {$role->label} diubah".($added ? ' (+'.$label($added).')' : '').($removed ? ' (−'.$label($removed).')' : ''),
@@ -348,6 +352,47 @@ class UserService
         }
 
         return $role;
+    }
+
+    /**
+     * Beri tahu akun yang perannya berubah (notifikasi pribadi): peran ditambah/dicabut dan dampaknya pada menu
+     * gabungan. Tidak dikirim bila admin mengubah perannya sendiri. Satu notifikasi per akun (yang lama diganti)
+     * agar lonceng tidak menumpuk saat peran diubah berkali-kali.
+     */
+    private function notifyRolesChanged(User $user, array $added, array $removed, array $menusBefore, ?User $actor): void
+    {
+        if ($actor && $actor->id === $user->id) {
+            return;
+        }
+        $menusAfter = $user->fresh(['role', 'roles'])->permissions();
+        $label = fn (array $n) => implode(', ', array_map(fn ($x) => Role::LABELS[$x] ?? $x, $n));
+        $menuLabel = fn (array $k) => implode(', ', array_map(fn ($x) => Menu::ITEMS[$x]['label'] ?? $x, $k));
+        $gained = array_values(array_diff($menusAfter, $menusBefore));
+        $lost = array_values(array_diff($menusBefore, $menusAfter));
+
+        $key = "role-changed-{$user->id}";
+        Notification::where('dedupe_key', $key)->delete();
+        Notification::create([
+            'type' => 'sistem', 'target' => 'semua', 'user_id' => $user->id, 'created_by' => $actor?->id, 'dedupe_key' => $key,
+            'title' => 'Peran Anda diperbarui',
+            'message' => trim(($added ? 'Ditambah: '.$label($added).'. ' : '').($removed ? 'Dicabut: '.$label($removed).'. ' : '')
+                .($gained ? 'Menu baru: '.$menuLabel($gained).'. ' : '').($lost ? 'Menu tidak lagi tersedia: '.$menuLabel($lost).'. ' : '')
+                .'Peran sekarang: '.$label($user->roleNames()).'.'),
+        ]);
+    }
+
+    /** Beri tahu semua pemegang peran ini bahwa hak menu perannya berubah (berlaku pada menu gabungan mereka). */
+    private function notifyRolePermissionsChanged(Role $role, array $added, array $removed): void
+    {
+        $menuLabel = fn (array $k) => implode(', ', array_map(fn ($x) => Menu::ITEMS[$x]['label'] ?? $x, $k));
+        $key = "role-permissions-{$role->name}";
+        Notification::where('dedupe_key', $key)->delete();
+        Notification::create([
+            'type' => 'sistem', 'target' => $role->name, 'created_by' => auth()->id(), 'dedupe_key' => $key,
+            'title' => "Hak menu peran {$role->label} diperbarui",
+            'message' => trim(($added ? 'Ditambah: '.$menuLabel($added).'. ' : '').($removed ? 'Dicabut: '.$menuLabel($removed).'. ' : '')
+                .'Menu Anda adalah gabungan semua peran yang Anda pegang — menu yang juga diberikan peran lain tetap tersedia.'),
+        ]);
     }
 
     public static function toArray(User $user): array

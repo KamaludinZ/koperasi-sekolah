@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Akun;
 
 use App\Http\Controllers\Controller;
 use App\Models\Role;
+use App\Services\AuthService;
 use App\Services\PermissionMerger;
 use App\Support\Menu;
 use Illuminate\Http\JsonResponse;
@@ -56,7 +57,7 @@ class MenuController extends Controller
             'home' => ['route' => $access['home'], 'url' => route($access['home'], absolute: false)],
             'abilities' => collect($access['abilities'])->map(fn ($a) => ['allowed' => $a['allowed'], 'combined' => $a['combined']])->all(),
         ];
-        $version = substr(hash('sha256', json_encode([$data['roles'], $data['permissions'], $data['abilities']])), 0, 16);
+        $version = Menu::versionFor(AuthService::toArray($user));
         $etag = '"menu-'.$version.'"';
 
         $headers = ['Cache-Control' => 'private, no-store', 'ETag' => $etag, 'Vary' => 'Cookie'];
