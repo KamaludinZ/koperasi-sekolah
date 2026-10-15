@@ -132,6 +132,8 @@
     </aside>
 
     <div class="flex min-w-0 flex-1 flex-col">
+        <x-impersonation-banner />
+
         {{-- Bar atas (layar kecil) --}}
         <div class="flex items-center gap-3 bg-emerald-950 px-3 py-2.5 text-white lg:hidden">
             <button type="button" x-on:click="nav = true" aria-label="Buka menu"

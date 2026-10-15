@@ -29,8 +29,11 @@
     @livewireStyles
 </head>
 <body class="min-h-full bg-stone-50 text-stone-900 antialiased" data-portal>
+    {{-- spanduk impersonasi & header portal menempel bersama di atas (tidak saling menutupi) --}}
+    <div class="sticky top-0 z-30">
+    <x-impersonation-banner />
     @if ($member)
-        <header class="sticky top-0 z-30 border-b border-emerald-900/10 bg-emerald-950 text-emerald-50">
+        <header class="border-b border-emerald-900/10 bg-emerald-950 text-emerald-50">
             <div class="mx-auto flex max-w-5xl items-center justify-between gap-3 px-4 py-3">
                 <a href="{{ route('portal') }}" wire:navigate class="flex min-w-0 items-center gap-2"><x-brand.logo /></a>
                 <div class="flex items-center gap-3">
@@ -48,6 +51,7 @@
             </div>
         </header>
     @endif
+    </div>
 
     <main @class(['mx-auto max-w-5xl', 'px-4 pt-5 pb-28 sm:pb-10' => $member])>
         {{ $slot }}
