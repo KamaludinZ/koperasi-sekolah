@@ -87,7 +87,8 @@
                     </thead>
                     <tbody class="divide-y divide-stone-100">
                         @forelse ($loans as $l)
-                            <tr wire:key="loan-{{ $l['id'] }}" @class(['hover:bg-stone-50', 'bg-red-50/40' => $l['status'] === 'menunggak'])>
+                            @php $od = $this->overdue[$l['id']] ?? null; $isOverdue = $od || $l['status'] === 'menunggak'; @endphp
+                            <tr wire:key="loan-{{ $l['id'] }}" @class(['hover:bg-stone-50', 'bg-red-50/40' => $isOverdue]) data-loan-row="{{ $l['code'] }}">
                                 <td class="px-4 py-2.5"><a href="{{ route('pinjaman.show', $l['id']) }}" wire:navigate class="font-mono text-xs font-semibold text-emerald-800 hover:underline">{{ $l['code'] }}</a>
                                     <span class="block text-xs text-stone-500">Diajukan @tanggal($l['applied_at'])</span></td>
                                 <td class="px-3 py-2.5">{{ $l['member']['name'] ?? '—' }}
@@ -96,7 +97,8 @@
                                 <td class="px-3 py-2.5 text-right tabular-nums">{{ $rp($l['interest']) }}</td>
                                 <td class="px-3 py-2.5 whitespace-nowrap">{{ $l['tenor_months'] }} bulan<span class="block text-xs text-stone-500">{{ $rp($l['monthly']) }}/bln</span></td>
                                 <td class="px-3 py-2.5">{{ $l['payment_label'] }}</td>
-                                <td class="px-3 py-2.5"><x-pinjaman.status :status="$l['status']" /></td>
+                                <td class="px-3 py-2.5"><x-pinjaman.status :status="$isOverdue ? 'menunggak' : $l['status']" />
+                                    @if ($od)<a href="{{ route('pinjaman.tunggakan', ['q' => $l['code']]) }}" wire:navigate class="mt-0.5 block text-[11px] font-medium whitespace-nowrap text-red-700 hover:underline" data-overdue-badge="{{ $l['code'] }}">{{ $od['days_late'] }} hari · {{ $rp($od['late_amount']) }}</a>@endif</td>
                                 <td @class(['px-4 py-2.5 text-right font-semibold tabular-nums', 'text-stone-400' => ! in_array($l['status'], \App\Models\Loan::ACTIVE, true)])>{{ $rp($l['outstanding']) }}</td>
                             </tr>
                         @empty

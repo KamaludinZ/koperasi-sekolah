@@ -1,6 +1,6 @@
 {
   "repo": "Koperasi Sekolah",
-  "generatedForCommit": "d3b4a920e5a9acf3e789b75c56939475439045f1",
+  "generatedForCommit": "7f8968f457d0d6d08e18dbe20213db2fc661e8e4",
   "files": [
     {
       "path": ".claude/skills/ngodingpakeai/SKILL.md",
@@ -136,7 +136,7 @@
     },
     {
       "path": "app/Http/Controllers/Pinjaman/DisbursementProofController.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 2649
     },
@@ -154,7 +154,7 @@
     },
     {
       "path": "app/Http/Controllers/Pinjaman/LoanController.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 5026
     },
@@ -291,6 +291,12 @@
       "size": 10726
     },
     {
+      "path": "app/Livewire/Pinjaman/Arrears.php",
+      "reason": "new",
+      "language": "php",
+      "size": 2694
+    },
+    {
       "path": "app/Livewire/Pinjaman/Disbursements.php",
       "reason": "needs_summary",
       "language": "php",
@@ -352,7 +358,7 @@
     },
     {
       "path": "app/Models/LoanInstallment.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 7268
     },
@@ -391,6 +397,12 @@
       "reason": "needs_summary",
       "language": "php",
       "size": 13609
+    },
+    {
+      "path": "app/Services/LoanArrearsQuery.php",
+      "reason": "new",
+      "language": "php",
+      "size": 4505
     },
     {
       "path": "app/Services/LoanDisbursementService.php",
@@ -1905,6 +1917,12 @@
       "size": 7976
     },
     {
+      "path": "resources/views/livewire/pinjaman/arrears.blade.php",
+      "reason": "new",
+      "language": "php",
+      "size": 7793
+    },
+    {
       "path": "resources/views/livewire/pinjaman/disbursements.blade.php",
       "reason": "needs_summary",
       "language": "php",
@@ -2166,7 +2184,7 @@
       "path": "routes/web.php",
       "reason": "changed",
       "language": "php",
-      "size": 48606
+      "size": 48712
     },
     {
       "path": "tests/Concerns/MakesProductImports.php",
@@ -2505,6 +2523,12 @@
       "size": 2883
     },
     {
+      "path": "tests/Feature/Pinjaman/ArrearsPageTest.php",
+      "reason": "new",
+      "language": "php",
+      "size": 4849
+    },
+    {
       "path": "tests/Feature/Pinjaman/BalanceSummaryTest.php",
       "reason": "needs_summary",
       "language": "php",
@@ -2614,7 +2638,7 @@
     },
     {
       "path": "tests/Feature/Pinjaman/LoanAuditTrailTest.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 5706
     },

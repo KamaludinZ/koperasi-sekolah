@@ -68,6 +68,13 @@ class Index extends Component
         return app(LoanService::class)->query($this->filters())->paginate(self::PER_PAGE)->through(fn (Loan $l) => LoanService::toArray($l));
     }
 
+    /** Tanda menunggak efektif untuk pinjaman di halaman ini (id → jumlah, nominal, lama terlambat). */
+    #[Computed]
+    public function overdue(): array
+    {
+        return LoanService::overdueFlags(collect($this->loans->items())->pluck('id')->all());
+    }
+
     #[Computed]
     public function stats(): array
     {

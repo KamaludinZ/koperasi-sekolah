@@ -83,6 +83,16 @@ class Loan extends Model
         $id === null ? $query->whereRaw('1 = 0') : $query->where('member_id', $id);
     }
 
+    /**
+     * Pinjaman aktif yang menunggak SAAT INI: berstatus menunggak, atau masih "berjalan" tetapi punya angsuran lewat
+     * jatuh tempo (aturan LoanOverdue) yang belum tercermin karena status disegarkan terjadwal/saat pembayaran.
+     */
+    public function scopeEffectivelyOverdue(\Illuminate\Database\Eloquent\Builder $query): void
+    {
+        $query->whereIn('status', self::ACTIVE)->where(fn ($q) => $q->where('status', 'menunggak')
+            ->orWhereHas('installments', fn ($i) => \App\Support\LoanOverdue::scope($i)));
+    }
+
     public function installmentChanges(): HasMany
     {
         return $this->hasMany(LoanInstallmentChange::class)->orderBy('id');

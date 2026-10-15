@@ -22,7 +22,10 @@ class LoanService
         return Loan::query()->with('member:id,member_code,name,class,type,deleted_at')
             ->when($term !== '', fn ($q) => $q->where(fn ($w) => $w->whereRaw("LOWER(code) LIKE ? ESCAPE '\\'", ["%{$term}%"])
                 ->orWhereHas('member', fn ($m) => $m->withTrashed()->where(fn ($x) => $x->whereRaw("LOWER(name) LIKE ? ESCAPE '\\'", ["%{$term}%"])->orWhereRaw("LOWER(member_code) LIKE ? ESCAPE '\\'", ["%{$term}%"])))))
-            ->when(($f['status'] ?? '') !== '', fn ($q) => $q->where('status', $f['status']))
+            // menunggak/berjalan memakai keadaan efektif (angsuran lewat jatuh tempo), bukan hanya kolom status
+            ->when(($f['status'] ?? '') === 'menunggak', fn ($q) => $q->effectivelyOverdue())
+            ->when(($f['status'] ?? '') === 'berjalan', fn ($q) => $q->where('status', 'berjalan')->whereNotIn('id', Loan::query()->effectivelyOverdue()->select('id')))
+            ->when(! in_array($f['status'] ?? '', ['', 'menunggak', 'berjalan'], true), fn ($q) => $q->where('status', $f['status']))
             ->when(($f['method'] ?? '') !== '', fn ($q) => $q->where('payment_method', $f['method']))
             ->when(! empty($f['member_id']), fn ($q) => $q->where('member_id', (int) $f['member_id']))
             ->orderByRaw("CASE status WHEN 'menunggak' THEN 0 WHEN 'diajukan' THEN 1 WHEN 'disetujui' THEN 2 WHEN 'berjalan' THEN 3 ELSE 4 END")
@@ -40,7 +43,37 @@ class LoanService
         $counts = collect(array_keys(Loan::STATUSES))->mapWithKeys(fn ($s) => [$s => (int) ($rows[$s]->n ?? 0)])->all();
         $sisa = fn (string $s) => (int) round((float) ($rows[$s]->sisa ?? 0));
 
-        return ['counts' => $counts, 'outstanding' => $sisa('berjalan') + $sisa('menunggak'), 'overdue_outstanding' => $sisa('menunggak')];
+        // pinjaman "berjalan" yang angsurannya sudah lewat jatuh tempo dihitung sebagai menunggak
+        $lagging = Loan::query()->where('status', 'berjalan')->effectivelyOverdue()->selectRaw('COUNT(*) AS n, COALESCE(SUM(outstanding), 0) AS sisa')->first();
+        $counts['berjalan'] -= (int) $lagging->n;
+        $counts['menunggak'] += (int) $lagging->n;
+
+        return ['counts' => $counts, 'outstanding' => $sisa('berjalan') + $sisa('menunggak'),
+            'overdue_outstanding' => $sisa('menunggak') + (int) round((float) $lagging->sisa)];
+    }
+
+    /**
+     * Tanda menunggak untuk sekumpulan pinjaman (satu query): per id → jumlah angsuran lewat jatuh tempo, nominal
+     * tertunggak, jatuh tempo tertua, dan lama terlambat (hari). Pinjaman tanpa tunggakan tidak ada di hasil.
+     *
+     * @param  list<int>  $ids
+     * @return array<int, array{late_count: int, late_amount: int, oldest_due: string, days_late: int}>
+     */
+    public static function overdueFlags(array $ids): array
+    {
+        if ($ids === []) {
+            return [];
+        }
+        $today = today();
+
+        return \App\Support\LoanOverdue::scope(LoanInstallment::query()->whereIn('loan_id', $ids))
+            ->whereHas('loan', fn ($q) => $q->whereIn('status', Loan::ACTIVE))
+            ->groupBy('loan_id')->selectRaw('loan_id, COUNT(*) AS n, SUM(amount - paid_amount) AS due, MIN(due_date) AS oldest')->get()
+            ->mapWithKeys(fn ($r) => [(int) $r->loan_id => [
+                'late_count' => (int) $r->n, 'late_amount' => (int) round((float) $r->due),
+                'oldest_due' => \Illuminate\Support\Carbon::parse($r->oldest)->toDateString(),
+                'days_late' => (int) \Illuminate\Support\Carbon::parse($r->oldest)->startOfDay()->diffInDays($today->copy()->startOfDay()),
+            ]])->all();
     }
 
     /**
