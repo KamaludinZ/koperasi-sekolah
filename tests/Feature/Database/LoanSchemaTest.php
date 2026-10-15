@@ -53,6 +53,11 @@ class LoanSchemaTest extends TestCase
         $this->assertFalse(Loan::where('status', 'berjalan')->first()->installments->contains('status', 'menunggak'));
         $this->assertSame(2, Loan::active()->count());
 
+        foreach (Loan::with('installments', 'payments')->get() as $loan) { // tiap angsuran terbayar punya baris pembayaran
+            $this->assertSame((int) $loan->installments->sum(fn ($i) => (float) $i->paid_amount), (int) $loan->payments->sum(fn ($p) => (float) $p->amount));
+        }
+        $this->assertSame([], app(\App\Services\LoanPaymentService::class)->recalculateAll(true)); // data demo sudah konsisten
+
         $this->seed(LoanSeeder::class); // tidak menggandakan
         $this->assertSame(5, Loan::count());
     }

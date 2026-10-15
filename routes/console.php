@@ -41,6 +41,41 @@ Artisan::command('kupon:hitung-ulang', function () {
 // Periksa keaslian jejak audit setiap malam; baris yang diubah langsung di database memicu notifikasi Admin.
 Schedule::command('audit:verifikasi')->dailyAt('02:30');
 
+// Hitung ulang pinjaman: tandai angsuran lewat jatuh tempo (menunggak) dan selaraskan sisa/status lunas dengan
+// pembayaran sah. Penyimpangan dicatat di riwayat perubahan angsuran & jejak audit.
+Artisan::command('pinjaman:hitung-ulang {--kode= : Hanya satu pinjaman (kode PJM-…)} {--uji : Hitung & laporkan tanpa menyimpan}', function () {
+    $svc = app(\App\Services\LoanPaymentService::class);
+    $dry = (bool) $this->option('uji');
+    if ($code = $this->option('kode')) {
+        $loan = \App\Models\Loan::where('code', $code)->first();
+        if (! $loan) {
+            $this->error("Pinjaman {$code} tidak ditemukan.");
+
+            return 1;
+        }
+        if ($dry) {
+            \Illuminate\Support\Facades\DB::beginTransaction();
+        }
+        try {
+            $row = $svc->recalculate($loan);
+        } finally {
+            if ($dry) {
+                \Illuminate\Support\Facades\DB::rollBack();
+            }
+        }
+        $rows = $row['changed'] ? [$row] : [];
+    } else {
+        $rows = $svc->recalculateAll($dry);
+    }
+    $fmt = fn ($s) => (\App\Models\Loan::STATUSES[$s['status']] ?? $s['status']).' · '.\App\Support\Rupiah::format($s['outstanding']);
+    if ($rows) {
+        $this->table(['Pinjaman', 'Sebelum', 'Sesudah', 'Angsuran diselaraskan'], array_map(fn ($r) => [$r['code'], $fmt($r['before']), $fmt($r['after']), $r['installments_fixed']], $rows));
+    }
+    $this->info(($dry ? 'Uji coba (tidak disimpan): ' : '').($rows ? count($rows).' pinjaman berubah.' : 'Semua pinjaman sudah sesuai.'));
+})->purpose('Hitung ulang sisa, status menunggak, dan status lunas pinjaman');
+
+Schedule::command('pinjaman:hitung-ulang')->dailyAt('00:15');
+
 // Pengingat hutang supplier yang jatuh tempo ≤ 3 hari atau sudah lewat (notifikasi untuk Pengurus & Admin).
 Artisan::command('hutang:ingatkan', function () {
     $n = app(\App\Services\SupplierBillService::class)->remind();

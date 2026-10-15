@@ -311,6 +311,94 @@ class LoanPaymentService
         });
     }
 
+    /**
+     * Hitung ulang satu pinjaman dari sumber kebenarannya (pembayaran sah): alokasi ke angsuran diputar ulang dari awal,
+     * lalu status angsuran (belum/menunggak/dibayar), sisa pinjaman, dan status pinjaman (berjalan/menunggak/lunas,
+     * tanggal lunas) disegarkan. Angsuran yang ternyata menyimpang dicatat di riwayat perubahan (koreksi beralasan;
+     * yang hanya berubah status karena lewat jatuh tempo dicatat sebagai perubahan status), dan bila ada perubahan
+     * dicatat di jejak audit. Pinjaman yang belum cair / ditolak / dibatalkan tidak disentuh. Pinjaman tanpa satu pun
+     * baris pembayaran (data lama) tidak diputar ulang — hanya status & sisanya yang disegarkan dari angsuran.
+     *
+     * @return array{id: int, code: string, changed: bool, before: array, after: array, installments_fixed: int, skipped?: bool}
+     */
+    public function recalculate(Loan $loan, ?int $userId = null, string $reason = 'Hitung ulang sisa & status'): array
+    {
+        return DB::transaction(function () use ($loan, $userId, $reason) {
+            $locked = Loan::whereKey($loan->id)->lockForUpdate()->firstOrFail();
+            $state = fn (Loan $l) => ['status' => $l->status, 'outstanding' => (int) round((float) $l->outstanding), 'paid_off_at' => $l->paid_off_at?->toDateString()];
+            $before = $state($locked);
+            if (! in_array($locked->status, [...Loan::ACTIVE, 'lunas'], true)) {
+                return ['id' => $locked->id, 'code' => $locked->code, 'changed' => false, 'before' => $before, 'after' => $before, 'installments_fixed' => 0, 'skipped' => true];
+            }
+
+            $snapshot = $locked->installments()->get()->mapWithKeys(fn (LoanInstallment $i) => [$i->id => $i->trackedAttributes()]);
+            // Data lama/impor tanpa catatan pembayaran sama sekali: angsuran yang tersimpan jadi acuan (tidak diputar ulang,
+            // agar pembayaran yang tidak tercatat sebagai baris pembayaran tidak hilang); cukup status & sisa disegarkan.
+            $replay = $locked->payments()->exists();
+            LoanInstallment::withoutHistory(function () use ($locked, $replay) {
+                if ($replay) {
+                    $this->replay($locked);
+                }
+                $this->refreshLoan($locked);
+            });
+
+            $fixed = 0;
+            foreach ($locked->installments()->get() as $i) {
+                $diff = LoanInstallmentChange::diff($snapshot[$i->id] ?? [], $i->trackedAttributes());
+                if ($diff === []) {
+                    continue;
+                }
+                $statusOnly = array_keys($diff) === ['status'] && $diff['status']['to'] !== 'dibayar' && $diff['status']['from'] !== 'dibayar';
+                $i->logChange($statusOnly ? 'status' : 'koreksi', $diff, $statusOnly ? ['user_id' => $userId] : ['reason' => $reason, 'user_id' => $userId]);
+                $fixed += $statusOnly ? 0 : 1;
+            }
+            $after = $state($locked->refresh());
+            $changed = $before !== $after || $fixed > 0;
+
+            if ($changed) {
+                $locked->load('member');
+                AuditLog::record('pinjaman.hitung_ulang', 'pinjaman',
+                    "Hitung ulang {$locked->code} {$locked->member?->name}: ".(Loan::STATUSES[$before['status']] ?? $before['status']).' '.Rupiah::format($before['outstanding'])
+                        .' → '.(Loan::STATUSES[$after['status']] ?? $after['status']).' '.Rupiah::format($after['outstanding'])
+                        .($fixed ? " · {$fixed} angsuran diselaraskan" : ''),
+                    LoanApplicationService::subject($locked), ['installments_fixed' => $fixed],
+                    $after['outstanding'] - $before['outstanding'], action: 'diubah', old: $before, new: $after, reason: $reason);
+            }
+
+            return ['id' => $locked->id, 'code' => $locked->code, 'changed' => $changed, 'before' => $before, 'after' => $after, 'installments_fixed' => $fixed];
+        });
+    }
+
+    /**
+     * Hitung ulang semua pinjaman yang sudah cair (berjalan/menunggak/lunas). $dryRun: hitung & laporkan tanpa
+     * menyimpan apa pun (transaksi dibatalkan).
+     *
+     * @return list<array> hanya pinjaman yang berubah
+     */
+    public function recalculateAll(bool $dryRun = false, ?int $userId = null): array
+    {
+        $changed = [];
+        Loan::query()->whereIn('status', [...Loan::ACTIVE, 'lunas'])->orderBy('id')->select('id')->chunkById(200, function ($loans) use (&$changed, $dryRun, $userId) {
+            foreach ($loans as $loan) {
+                if ($dryRun) {
+                    DB::beginTransaction();
+                    try {
+                        $row = $this->recalculate($loan, $userId);
+                    } finally {
+                        DB::rollBack();
+                    }
+                } else {
+                    $row = $this->recalculate($loan, $userId);
+                }
+                if ($row['changed']) {
+                    $changed[] = $row;
+                }
+            }
+        });
+
+        return $changed;
+    }
+
     /** Putar ulang semua pembayaran sah ke jadwal yang dikosongkan; alokasi tiap pembayaran ikut diperbarui. */
     private function replay(Loan $loan): void
     {

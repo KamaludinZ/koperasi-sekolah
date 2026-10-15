@@ -69,11 +69,16 @@ class LoanSeeder extends Seeder
                     $due = $disbursed->copy()->addMonthsNoOverflow($n);
                     $isPaid = $n <= $paidCount;
                     $paid += $isPaid ? $amount : 0;
-                    $loan->installments()->create([
+                    $inst = $loan->installments()->create([
                         'sequence' => $n, 'due_date' => $due, 'amount' => $amount, 'paid_amount' => $isPaid ? $amount : 0,
                         'paid_at' => $isPaid ? $due->copy()->subDays(1) : null, 'payment_method' => $isPaid ? $method : null,
                         'status' => $isPaid ? 'dibayar' : ($due->lt(today()) ? 'menunggak' : 'belum'), 'user_id' => $isPaid ? $staff : null,
                     ]);
+                    if ($isPaid) { // setiap angsuran lunas punya baris pembayaran (sumber kebenaran hitung ulang)
+                        $loan->payments()->create(['paid_at' => $inst->paid_at, 'amount' => $amount, 'payment_method' => $method,
+                            'reference' => $method === 'potong_gaji' ? $inst->paid_at->format('Y-m') : ($method === 'transfer' ? "TRF-{$loan->code}-{$n}" : null),
+                            'allocations' => [['installment_id' => $inst->id, 'sequence' => $n, 'amount' => $amount]], 'user_id' => $staff]);
+                    }
                 }
                 $outstanding = $total - $paid;
                 $loan->update(['status' => 'berjalan', 'disbursed_at' => $disbursed, 'outstanding' => $total]); // cair dulu, lalu status akhir

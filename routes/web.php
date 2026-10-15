@@ -495,6 +495,7 @@ Route::middleware(['menu:pinjaman', 'peran:admin,pengurus', 'can:kelola-pinjaman
     Route::get('/pinjaman/{loan}/data', [\App\Http\Controllers\Pinjaman\LoanController::class, 'show'])->whereNumber('loan')->middleware('throttle:120,1')->name('pinjaman.data');
     Route::get('/pinjaman/{loan}/angsuran', [\App\Http\Controllers\Pinjaman\LoanController::class, 'installments'])->whereNumber('loan')->middleware('throttle:120,1')->name('pinjaman.installments');
     Route::post('/pinjaman/{loan}/angsuran', [\App\Http\Controllers\Pinjaman\LoanPaymentController::class, 'store'])->whereNumber('loan')->middleware('throttle:30,1')->name('pinjaman.installments.store');
+    Route::post('/pinjaman/{loan}/hitung-ulang', [\App\Http\Controllers\Pinjaman\LoanPaymentController::class, 'recalculate'])->whereNumber('loan')->middleware('throttle:30,1')->name('pinjaman.recalculate');
     Route::get('/pinjaman/{loan}', \App\Livewire\Pinjaman\Show::class)->whereNumber('loan')->name('pinjaman.show');
 });
 

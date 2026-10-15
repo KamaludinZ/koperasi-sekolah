@@ -17,6 +17,9 @@ use Illuminate\Http\Request;
  * dihitung ulang, dan perubahan tiap angsuran masuk riwayat.
  * Header Idempotency-Key (opsional, [A-Za-z0-9_-:.]{1,64}) mencegah pencatatan dobel: kiriman ulang dengan kunci sama
  * mengembalikan pembayaran yang sudah tercatat (200, replayed=true) tanpa mencatat lagi.
+ *
+ * POST /pinjaman/{loan}/hitung-ulang → hitung ulang sisa & status (berjalan/menunggak/lunas) dari pembayaran sah;
+ * mengembalikan keadaan sebelum/sesudah dan jumlah angsuran yang diselaraskan.
  */
 class LoanPaymentController extends Controller
 {
@@ -50,5 +53,17 @@ class LoanPaymentController extends Controller
                 : 'Angsuran '.Rupiah::format($row['amount']).' untuk angsuran ke-'.implode(', ', $row['sequences']).' tercatat. '
                     .($loan->status === 'lunas' ? "Pinjaman {$loan->code} lunas." : 'Sisa '.Rupiah::format($loan->outstanding).'.'),
         ], $payment->wasReplayed ? 200 : 201);
+    }
+
+    public function recalculate(Request $request, Loan $loan, LoanPaymentService $payments): JsonResponse
+    {
+        $row = $payments->recalculate($loan, $request->user()?->id);
+        if ($row['skipped'] ?? false) {
+            return response()->json(['message' => 'Pinjaman yang belum cair, ditolak, atau dibatalkan tidak punya angsuran untuk dihitung ulang.',
+                'errors' => ['loan' => ['Pinjaman belum cair.']]], 422);
+        }
+
+        return response()->json(['data' => $row + ['balance' => $payments->balance($loan->refresh())],
+            'message' => $row['changed'] ? 'Sisa & status pinjaman diperbarui.' : 'Sisa & status pinjaman sudah sesuai.']);
     }
 }
