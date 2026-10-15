@@ -182,11 +182,10 @@ class AuditTrail extends Component
                 ->when($this->group === 'perhatian', fn ($q) => $q->whereIn('event', LoanAuditQuery::NOTABLE)));
         $name = ($this->view === 'transaksi' ? 'riwayat-pencairan-angsuran-' : 'jejak-audit-pinjaman-').now()->format('Ymd-His').'.csv';
 
-        return response()->streamDownload(function () use ($rows) {
-            $out = fopen('php://output', 'w');
-            \App\Services\LoanAuditExport::write($out, $rows);
-            fclose($out);
-        }, $name, ['Content-Type' => 'text/csv; charset=UTF-8', 'X-Content-Type-Options' => 'nosniff']);
+        $file = \App\Services\LoanAuditExport::build($rows); // isi ditandatangani HMAC (header X-Audit-Signature)
+
+        return response()->streamDownload(fn () => print($file['content']), $name, ['Content-Type' => 'text/csv; charset=UTF-8',
+            'X-Content-Type-Options' => 'nosniff', 'X-Audit-Signature' => $file['signature'], 'X-Audit-Rows' => (string) $file['rows']]);
     }
 
     public function render()

@@ -18,13 +18,17 @@ class LoanAuditExport
     /** @return iterable<list<mixed>> baris CSV (judul kolom dulu) untuk tampilan jejak */
     public function eventRows(Builder $query): iterable
     {
-        yield ['Waktu', 'Peristiwa', 'Kode peristiwa', 'Pinjaman', 'Uraian', 'Nominal', 'Petugas', 'Peran', 'IP', 'Alasan', 'Sebelum', 'Sesudah', 'ID jejak'];
-        foreach ($query->limit(self::MAX_ROWS)->lazy(500) as $l) {
-            /** @var ActivityLog $l */
-            yield [$l->created_at?->toDateTimeString(), LoanAuditQuery::label($l->event), $l->event, $l->subject_label, $l->description, $l->amount,
-                $l->actor_name ?? 'Sistem', $l->actor_role, $l->ip_address, $l->reason,
-                $l->old_values ? json_encode($l->old_values, JSON_UNESCAPED_UNICODE) : null,
-                $l->new_values ? json_encode($l->new_values, JSON_UNESCAPED_UNICODE) : null, $l->id];
+        yield ['Waktu', 'Peristiwa', 'Kode peristiwa', 'Pinjaman', 'Uraian', 'Nominal', 'Petugas', 'Peran', 'IP', 'Alasan', 'Sebelum', 'Sesudah', 'ID jejak', 'HMAC rantai'];
+        foreach ($query->limit(self::MAX_ROWS)->get()->chunk(500) as $chunk) {
+            $links = \Illuminate\Support\Facades\DB::table('loan_audit_chain')->where('source_type', 'activity')
+                ->whereIn('source_id', $chunk->pluck('id'))->pluck('hmac', 'source_id');
+            foreach ($chunk as $l) {
+                /** @var ActivityLog $l */
+                yield [$l->created_at?->toDateTimeString(), LoanAuditQuery::label($l->event), $l->event, $l->subject_label, $l->description, $l->amount,
+                    $l->actor_name ?? 'Sistem', $l->actor_role, $l->ip_address, $l->reason,
+                    $l->old_values ? json_encode($l->old_values, JSON_UNESCAPED_UNICODE) : null,
+                    $l->new_values ? json_encode($l->new_values, JSON_UNESCAPED_UNICODE) : null, $l->id, $links[$l->id] ?? null];
+            }
         }
     }
 
@@ -37,6 +41,34 @@ class LoanAuditExport
                 implode(', ', $x['sequences']), $x['user'], $x['valid'] ? 'Sah' : 'Dibatalkan', $x['void']['by'] ?? null, $x['void']['at'] ?? null,
                 $x['void']['reason'] ?? null, $x['replaces_id']];
         }
+    }
+
+    /**
+     * Susun CSV lengkap di memori lalu tandatangani: HMAC-SHA256 (kunci aplikasi) atas seluruh isi berkas. Tanda
+     * dikirim sebagai header X-Audit-Signature agar penerima bisa memastikan berkas tidak diubah setelah diunduh
+     * (lihat signatureMatches()).
+     *
+     * @return array{content: string, rows: int, signature: string}
+     */
+    public static function build(iterable $rows): array
+    {
+        $h = fopen('php://temp', 'w+');
+        $n = self::write($h, $rows);
+        rewind($h);
+        $content = stream_get_contents($h);
+        fclose($h);
+
+        return ['content' => $content, 'rows' => $n, 'signature' => self::sign($content)];
+    }
+
+    public static function sign(string $content): string
+    {
+        return hash_hmac('sha256', $content, (string) config('app.key'));
+    }
+
+    public static function signatureMatches(string $content, string $signature): bool
+    {
+        return hash_equals(self::sign($content), $signature);
     }
 
     /** Tulis baris ke aliran keluaran sebagai CSV aman (BOM, `;`, netralisasi rumus). */

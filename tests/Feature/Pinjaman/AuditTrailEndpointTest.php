@@ -81,6 +81,35 @@ class AuditTrailEndpointTest extends TestCase
         $this->getJson(route('pinjaman.audit.transaksi', ['jenis' => 'semua']))->assertUnprocessable();
     }
 
+    public function test_csv_export_endpoint_signed_and_audited(): void
+    {
+        $res = $this->get(route('pinjaman.audit.ekspor', ['kelompok' => 'angsuran']))->assertOk()
+            ->assertHeader('Content-Type', 'text/csv; charset=UTF-8')->assertHeader('X-Audit-Rows', '2')->assertHeader('X-Content-Type-Options', 'nosniff');
+        $csv = $res->getContent();
+        $this->assertStringContainsString('attachment; filename="jejak-audit-pinjaman-20261010-100000.csv"', $res->headers->get('Content-Disposition'));
+        $this->assertStringStartsWith("\xEF\xBB\xBF", $csv);
+        $this->assertStringContainsString('"HMAC rantai"', $csv);
+        $this->assertStringContainsString(DB::table('loan_audit_chain')->where('source_type', 'activity')
+            ->where('source_id', ActivityLog::where('event', 'pinjaman.angsuran_koreksi')->value('id'))->value('hmac'), $csv);
+        $this->assertStringNotContainsString('pinjaman.ditolak', $csv);
+
+        $sig = $res->headers->get('X-Audit-Signature');
+        $this->assertTrue(\App\Services\LoanAuditExport::signatureMatches($csv, $sig));
+        $this->assertFalse(\App\Services\LoanAuditExport::signatureMatches(str_replace('Nominal salah ketik', 'Nominal benar', $csv), $sig));
+        $log = ActivityLog::where('event', 'pinjaman.audit_diekspor')->sole();
+        $this->assertSame([$sig, 2, 'jejak', 'angsuran'], [$log->properties['signature'], $log->properties['rows'], $log->properties['view'], $log->properties['kelompok']]);
+
+        $ledger = $this->get(route('pinjaman.audit.ekspor', ['tampil' => 'transaksi']))->assertOk()->assertHeader('X-Audit-Rows', '3');
+        $this->assertStringContainsString(';Dibatalkan;', $ledger->getContent());
+        $this->assertStringContainsString('riwayat-pencairan-angsuran-', $ledger->headers->get('Content-Disposition'));
+
+        foreach ([['tampil' => 'semua'], ['kelompok' => 'x'], ['jenis' => 'x'], ['dari' => 'kemarin']] as $p) {
+            $this->getJson(route('pinjaman.audit.ekspor', $p))->assertUnprocessable();
+        }
+        $this->loginAs('kasir');
+        $this->get(route('pinjaman.audit.ekspor'))->assertForbidden();
+    }
+
     public function test_access(): void
     {
         $this->loginAs('kasir');

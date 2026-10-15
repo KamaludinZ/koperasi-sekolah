@@ -20,6 +20,8 @@ use Illuminate\Validation\Rule;
  *   sebelum/sesudah, alasan) + mata rantai HMAC tiap baris (hmac, prev_hmac) + jumlah per kelompok.
  * - GET /pinjaman/audit/transaksi?jenis=&periode=&dari=&sampai=&pinjaman=&q=&page=&per_page= → riwayat pencairan &
  *   angsuran termasuk yang dikoreksi + total.
+ * - GET /pinjaman/audit/ekspor?tampil=jejak|transaksi&(saringan sama) → unduh CSV (maks. 20.000 baris; kolom HMAC rantai
+ *   untuk jejak), header X-Audit-Signature = HMAC-SHA256 isi berkas, X-Audit-Rows = jumlah baris; ekspor dicatat di jejak.
  * periode: hari-ini|7-hari|30-hari|semua (bawaan 30-hari); dari/sampai (Y-m-d) menimpa periode. Parameter salah → 422.
  */
 class AuditTrailController extends Controller
@@ -85,6 +87,37 @@ class AuditTrailController extends Controller
             'data' => $rows->forPage($page, $per)->values(),
             'meta' => ['current_page' => $page, 'last_page' => max(1, (int) ceil($rows->count() / $per)), 'per_page' => $per, 'total' => $rows->count()],
             'totals' => LoanLedgerQuery::totals($rows),
+        ]);
+    }
+
+    public function export(Request $request, LoanAuditQuery $query, LoanLedgerQuery $ledger, \App\Services\LoanAuditExport $exporter): \Illuminate\Http\Response
+    {
+        $data = $request->validate($this->rules() + [
+            'tampil' => ['nullable', Rule::in(['jejak', 'transaksi'])],
+            'kelompok' => ['nullable', Rule::in([...array_keys(LoanAuditQuery::GROUPS), 'perhatian'])],
+            'peristiwa' => ['nullable', Rule::in(array_keys(LoanAuditQuery::EVENTS))],
+            'petugas' => ['nullable', 'string', 'max:100'],
+            'jenis' => ['nullable', Rule::in(array_keys(LoanLedgerQuery::TYPES))],
+        ], ['tampil.in' => 'Tampilan harus jejak atau transaksi.', 'sampai.after_or_equal' => 'Tanggal akhir sebelum tanggal awal.']);
+        [$from, $to] = $this->range($data);
+        $view = $data['tampil'] ?? 'jejak';
+        $group = $data['kelompok'] ?? '';
+
+        $rows = $view === 'transaksi'
+            ? $exporter->ledgerRows($ledger->rows(['type' => $data['jenis'] ?? '', 'from' => $from, 'to' => $to, 'loan_id' => $data['pinjaman'] ?? null, 'search' => $data['q'] ?? '']))
+            : $exporter->eventRows($query->query(['group' => $group === 'perhatian' ? '' : $group, 'event' => $data['peristiwa'] ?? '', 'from' => $from, 'to' => $to,
+                'actor' => $data['petugas'] ?? '', 'loan_id' => $data['pinjaman'] ?? null, 'search' => $data['q'] ?? ''])
+                ->when($group === 'perhatian', fn ($q) => $q->whereIn('event', LoanAuditQuery::NOTABLE)));
+        $file = \App\Services\LoanAuditExport::build($rows);
+        $name = ($view === 'transaksi' ? 'riwayat-pencairan-angsuran-' : 'jejak-audit-pinjaman-').now()->format('Ymd-His').'.csv';
+
+        \App\Services\AuditLog::record('pinjaman.audit_diekspor', 'pinjaman', 'Ekspor jejak audit pinjaman lewat API ('.($view === 'transaksi' ? 'pencairan & angsuran' : 'jejak peristiwa').", {$file['rows']} baris)", null,
+            ['view' => $view, 'rows' => $file['rows'], 'signature' => $file['signature'], 'from' => $from?->toDateString(), 'to' => $to?->toDateString()] + array_intersect_key($data, array_flip(['kelompok', 'peristiwa', 'petugas', 'pinjaman', 'q', 'jenis'])));
+
+        return response($file['content'], 200, [
+            'Content-Type' => 'text/csv; charset=UTF-8', 'Content-Disposition' => 'attachment; filename="'.$name.'"',
+            'X-Audit-Signature' => $file['signature'], 'X-Audit-Rows' => (string) $file['rows'],
+            'X-Content-Type-Options' => 'nosniff', 'Cache-Control' => 'private, no-store',
         ]);
     }
 }
