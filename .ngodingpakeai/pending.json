@@ -1,6 +1,6 @@
 {
   "repo": "Koperasi Sekolah",
-  "generatedForCommit": "0a55420b0b0edd337453973fdf3ac3735834e304",
+  "generatedForCommit": "78e648d68b1e562dac3078ab0c65971b51a83403",
   "files": [
     {
       "path": ".claude/skills/ngodingpakeai/SKILL.md",
@@ -238,7 +238,7 @@
     },
     {
       "path": "app/Livewire/Pengguna/Impersonation.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 7812
     },
@@ -259,6 +259,12 @@
       "reason": "needs_summary",
       "language": "php",
       "size": 874
+    },
+    {
+      "path": "app/Models/Impersonation.php",
+      "reason": "new",
+      "language": "php",
+      "size": 2635
     },
     {
       "path": "app/Models/Setting.php",
@@ -283,12 +289,6 @@
       "reason": "needs_summary",
       "language": "php",
       "size": 2211
-    },
-    {
-      "path": "app/Providers/AppServiceProvider.php",
-      "reason": "changed",
-      "language": "php",
-      "size": 7510
     },
     {
       "path": "app/Services/ImpersonationService.php",
@@ -334,7 +334,7 @@
     },
     {
       "path": "app/Support/ImpersonationPolicy.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 4873
     },
@@ -981,6 +981,12 @@
       "size": 926
     },
     {
+      "path": "database/migrations/2026_10_18_000001_create_impersonation_sessions_table.php",
+      "reason": "new",
+      "language": "php",
+      "size": 3560
+    },
+    {
       "path": "database/seeders/NotificationSeeder.php",
       "reason": "needs_summary",
       "language": "php",
@@ -1486,7 +1492,7 @@
     },
     {
       "path": "resources/views/livewire/anggota/show.blade.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 7280
     },
@@ -1828,13 +1834,13 @@
     },
     {
       "path": "resources/views/livewire/pengguna/impersonation.blade.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 6345
     },
     {
       "path": "resources/views/livewire/pengguna/index.blade.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 16118
     },
@@ -2301,6 +2307,12 @@
       "size": 1866
     },
     {
+      "path": "tests/Feature/Database/ImpersonationSchemaTest.php",
+      "reason": "new",
+      "language": "php",
+      "size": 6616
+    },
+    {
       "path": "tests/Feature/Database/NotificationSchemaTest.php",
       "reason": "needs_summary",
       "language": "php",
@@ -2368,7 +2380,7 @@
     },
     {
       "path": "tests/Feature/Impersonasi/AdminOnlyButtonsTest.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 5045
     },

@@ -194,13 +194,8 @@ class Impersonation extends Component
             return null;
         }
 
-        // Layanan impersonasi (backend) memulai sesi & mengarahkan ke halaman akun target.
-        if (method_exists(ImpersonationService::class, 'startFromLivewire')) {
-            return app(ImpersonationService::class)->startFromLivewire($this, Auth::guard('web')->user(), $model, $this->reason, (int) $this->minutes);
-        }
-        $this->toast('info', 'Layanan impersonasi belum dipasang.');
-
-        return null;
+        // Layanan impersonasi memulai sesi & mengarahkan ke halaman akun target (galat dikembalikan ke dialog).
+        return app(ImpersonationService::class)->startFromLivewire($this, Auth::guard('web')->user(), $model, $this->reason, (int) $this->minutes);
     }
 
     public function denial(User|Member $model): ?string
