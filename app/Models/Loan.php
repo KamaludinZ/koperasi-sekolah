@@ -52,6 +52,7 @@ class Loan extends Model
                 $loan->overdue_since = $oldest ? substr((string) $oldest, 0, 10) : now()->toDateString();
             }
         });
+        static::updated(fn (Loan $loan) => \App\Services\LoanAutoAudit::capture($loan));
         static::updating(function (Loan $loan) {
             if ($loan->isDirty('status') && ! self::canTransition((string) $loan->getOriginal('status'), (string) $loan->status)) {
                 throw new \DomainException("Status pinjaman {$loan->code} tidak bisa berubah dari \"{$loan->getOriginal('status')}\" menjadi \"{$loan->status}\".");

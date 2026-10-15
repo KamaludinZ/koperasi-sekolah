@@ -72,6 +72,10 @@ class AppServiceProvider extends ServiceProvider
         Livewire::addPersistentMiddleware([EnsureMenuAccess::class, EnsureRole::class, \Illuminate\Auth\Middleware\Authorize::class, \App\Http\Middleware\EnsurePortalMember::class]);
 
         // @can('menu', 'laporan') di view / Gate::allows('menu', 'laporan') di kode.
+        // transaksi dibatalkan → perubahan pinjaman yang tertunda (LoanAutoAudit) dibuang
+        \Illuminate\Support\Facades\Event::listen(\Illuminate\Database\Events\TransactionRolledBack::class,
+            fn ($e) => \App\Services\LoanAutoAudit::rolledBack($e->connection->transactionLevel()));
+
         Gate::define('menu', fn (User $user, string $menu) => $user->canOpen($menu));
 
         // Melihat pengaturan cukup punya menu "pengaturan" (bisa dibagikan ke peran lain);

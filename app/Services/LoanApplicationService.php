@@ -159,23 +159,26 @@ class LoanApplicationService
             throw ValidationException::withMessages(['note' => 'Catatan maksimal 200 karakter.']);
         }
 
-        $loan = DB::transaction(function () use ($loan, $decision, $note, $userId) {
-            $locked = Loan::whereKey($loan->id)->lockForUpdate()->firstOrFail();
-            if ($locked->status !== 'diajukan') {
-                throw ValidationException::withMessages(['decision' => "Pengajuan {$locked->code} sudah ".mb_strtolower(Loan::STATUSES[$locked->status] ?? $locked->status).'; muat ulang halaman.']);
-            }
-            $locked->update(['status' => $decision, 'decision_note' => $note, 'decided_at' => now(), 'decided_by' => $userId]);
+        // perubahan & jejak auditnya dicatat dalam satu transaksi (keduanya tersimpan atau tidak sama sekali)
+        return DB::transaction(function () use ($loan, $decision, $note, $userId) {
+            $loan = DB::transaction(function () use ($loan, $decision, $note, $userId) {
+                $locked = Loan::whereKey($loan->id)->lockForUpdate()->firstOrFail();
+                if ($locked->status !== 'diajukan') {
+                    throw ValidationException::withMessages(['decision' => "Pengajuan {$locked->code} sudah ".mb_strtolower(Loan::STATUSES[$locked->status] ?? $locked->status).'; muat ulang halaman.']);
+                }
+                $locked->update(['status' => $decision, 'decision_note' => $note, 'decided_at' => now(), 'decided_by' => $userId]);
 
-            return $locked;
+                return $locked;
+            });
+
+            $loan->load('member');
+            AuditLog::record("pinjaman.{$decision}", 'pinjaman',
+                'Pengajuan '.$loan->code.' '.$loan->member->name.' '.($decision === 'disetujui' ? 'disetujui' : 'ditolak').($note ? ": {$note}" : ''),
+                self::subject($loan), ['member_id' => $loan->member_id], (int) round((float) $loan->principal), action: 'diubah',
+                old: ['status' => 'diajukan'], new: ['status' => $decision, 'decision_note' => $note], reason: $note);
+
+            return $loan;
         });
-
-        $loan->load('member');
-        AuditLog::record("pinjaman.{$decision}", 'pinjaman',
-            'Pengajuan '.$loan->code.' '.$loan->member->name.' '.($decision === 'disetujui' ? 'disetujui' : 'ditolak').($note ? ": {$note}" : ''),
-            self::subject($loan), ['member_id' => $loan->member_id], (int) round((float) $loan->principal), action: 'diubah',
-            old: ['status' => 'diajukan'], new: ['status' => $decision, 'decision_note' => $note], reason: $note);
-
-        return $loan;
     }
 
     /** Status pengajuan yang masih boleh diubah/dibatalkan (belum dicairkan). */
@@ -199,35 +202,37 @@ class LoanApplicationService
             'applied_at' => $data['applied_at'],
         ];
 
-        [$loan, $old, $changed, $reopened] = DB::transaction(function () use ($loan, $new) {
-            $locked = $this->lockEditable($loan);
-            $old = [
-                'principal' => (int) round((float) $locked->principal), 'interest' => (int) round((float) $locked->interest),
-                'tenor_months' => $locked->tenor_months, 'payment_method' => $locked->payment_method, 'purpose' => $locked->purpose,
-                'applied_at' => $locked->applied_at->toDateString(),
-            ];
-            $changed = array_keys(array_filter($new, fn ($v, $k) => $old[$k] !== $v, ARRAY_FILTER_USE_BOTH));
-            if (! $changed) {
-                return [$locked, $old, [], false];
+        return DB::transaction(function () use ($loan, $new) {
+            [$loan, $old, $changed, $reopened] = DB::transaction(function () use ($loan, $new) {
+                $locked = $this->lockEditable($loan);
+                $old = [
+                    'principal' => (int) round((float) $locked->principal), 'interest' => (int) round((float) $locked->interest),
+                    'tenor_months' => $locked->tenor_months, 'payment_method' => $locked->payment_method, 'purpose' => $locked->purpose,
+                    'applied_at' => $locked->applied_at->toDateString(),
+                ];
+                $changed = array_keys(array_filter($new, fn ($v, $k) => $old[$k] !== $v, ARRAY_FILTER_USE_BOTH));
+                if (! $changed) {
+                    return [$locked, $old, [], false];
+                }
+                $reopened = $locked->status === 'disetujui' && array_intersect($changed, self::TERMS);
+                $locked->update($new + ($reopened ? ['status' => 'diajukan', 'decided_at' => null, 'decided_by' => null, 'decision_note' => null] : []));
+
+                return [$locked, $old, $changed, (bool) $reopened];
+            });
+
+            if ($changed) {
+                $loan->load('member');
+                $labels = ['principal' => 'nominal', 'interest' => 'bunga', 'tenor_months' => 'tenor', 'payment_method' => 'metode bayar', 'purpose' => 'keperluan', 'applied_at' => 'tanggal'];
+                AuditLog::record('pinjaman.diubah', 'pinjaman',
+                    "Pengajuan {$loan->code} {$loan->member->name} diubah: ".implode(', ', array_map(fn ($k) => $labels[$k], $changed))
+                        .($reopened ? ' (kembali menunggu persetujuan)' : ''),
+                    self::subject($loan), ['member_id' => $loan->member_id, 'reopened' => $reopened], (int) $new['principal'], action: 'diubah',
+                    old: array_intersect_key($old, array_flip($changed)) + ($reopened ? ['status' => 'disetujui'] : []),
+                    new: array_intersect_key($new, array_flip($changed)) + ($reopened ? ['status' => 'diajukan'] : []));
             }
-            $reopened = $locked->status === 'disetujui' && array_intersect($changed, self::TERMS);
-            $locked->update($new + ($reopened ? ['status' => 'diajukan', 'decided_at' => null, 'decided_by' => null, 'decision_note' => null] : []));
 
-            return [$locked, $old, $changed, (bool) $reopened];
+            return $loan;
         });
-
-        if ($changed) {
-            $loan->load('member');
-            $labels = ['principal' => 'nominal', 'interest' => 'bunga', 'tenor_months' => 'tenor', 'payment_method' => 'metode bayar', 'purpose' => 'keperluan', 'applied_at' => 'tanggal'];
-            AuditLog::record('pinjaman.diubah', 'pinjaman',
-                "Pengajuan {$loan->code} {$loan->member->name} diubah: ".implode(', ', array_map(fn ($k) => $labels[$k], $changed))
-                    .($reopened ? ' (kembali menunggu persetujuan)' : ''),
-                self::subject($loan), ['member_id' => $loan->member_id, 'reopened' => $reopened], (int) $new['principal'], action: 'diubah',
-                old: array_intersect_key($old, array_flip($changed)) + ($reopened ? ['status' => 'disetujui'] : []),
-                new: array_intersect_key($new, array_flip($changed)) + ($reopened ? ['status' => 'diajukan'] : []));
-        }
-
-        return $loan;
     }
 
     /** Batalkan pengajuan yang belum dicairkan (alasan wajib). */
@@ -238,20 +243,22 @@ class LoanApplicationService
             throw ValidationException::withMessages(['reason' => 'Tulis alasan pembatalan (5–200 karakter).']);
         }
 
-        [$loan, $before] = DB::transaction(function () use ($loan, $reason, $userId) {
-            $locked = $this->lockEditable($loan);
-            $before = $locked->status;
-            $locked->update(['status' => 'dibatalkan', 'cancelled_at' => now(), 'cancelled_by' => $userId, 'cancel_reason' => $reason]);
+        return DB::transaction(function () use ($loan, $reason, $userId) {
+            [$loan, $before] = DB::transaction(function () use ($loan, $reason, $userId) {
+                $locked = $this->lockEditable($loan);
+                $before = $locked->status;
+                $locked->update(['status' => 'dibatalkan', 'cancelled_at' => now(), 'cancelled_by' => $userId, 'cancel_reason' => $reason]);
 
-            return [$locked, $before];
+                return [$locked, $before];
+            });
+
+            $loan->load('member');
+            AuditLog::record('pinjaman.dibatalkan', 'pinjaman', "Pengajuan {$loan->code} {$loan->member->name} dibatalkan: {$reason}",
+                self::subject($loan), ['member_id' => $loan->member_id], (int) round((float) $loan->principal), action: 'diubah',
+                old: ['status' => $before], new: ['status' => 'dibatalkan'], reason: $reason);
+
+            return $loan;
         });
-
-        $loan->load('member');
-        AuditLog::record('pinjaman.dibatalkan', 'pinjaman', "Pengajuan {$loan->code} {$loan->member->name} dibatalkan: {$reason}",
-            self::subject($loan), ['member_id' => $loan->member_id], (int) round((float) $loan->principal), action: 'diubah',
-            old: ['status' => $before], new: ['status' => 'dibatalkan'], reason: $reason);
-
-        return $loan;
     }
 
     private function lockEditable(Loan $loan): Loan
