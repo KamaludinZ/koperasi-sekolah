@@ -155,6 +155,70 @@ class Index extends Component
         $this->permissionsRole = null;
     }
 
+    /** Form "Ubah peran": akun yang sedang diubah perannya & peran yang dicentang. */
+    public ?int $roleUserId = null;
+
+    /** @var list<string> */
+    public array $roleChoice = [];
+
+    public function editRoles(int $userId): void
+    {
+        $user = User::with('role', 'roles')->find($userId);
+        if (! $user) {
+            return;
+        }
+        $this->roleUserId = $user->id;
+        $this->roleChoice = $user->roleNames();
+        $this->reset('flash', 'error');
+        $this->resetValidation('roleChoice');
+    }
+
+    /** Pratinjau perubahan: peran ditambah/dicabut & menu yang bertambah/hilang. */
+    #[Computed]
+    public function roleDiff(): array
+    {
+        $user = $this->roleUserId ? User::with('role', 'roles')->find($this->roleUserId) : null;
+        if (! $user) {
+            return ['user' => null, 'added' => [], 'removed' => [], 'menus_added' => [], 'menus_removed' => []];
+        }
+        $choice = array_values(array_intersect(array_keys(Role::LABELS), $this->roleChoice));
+        $before = $user->roleNames();
+        $menus = fn (array $names) => $this->roles->whereIn('name', $names)->flatMap(fn ($r) => $r->permissions ?? [])->unique()->values()->all();
+        [$mb, $ma] = [$menus($before), $menus($choice)];
+
+        return ['user' => $user, 'before' => $before, 'added' => array_values(array_diff($choice, $before)), 'removed' => array_values(array_diff($before, $choice)),
+            'menus_added' => array_values(array_diff($ma, $mb)), 'menus_removed' => array_values(array_diff($mb, $ma)), 'menus' => $ma];
+    }
+
+    public function saveRoles(): void
+    {
+        $user = User::with('role', 'roles')->find($this->roleUserId);
+        if (! $user) {
+            $this->roleUserId = null;
+
+            return;
+        }
+        $this->validate(['roleChoice' => ['required', 'array', 'min:1'], 'roleChoice.*' => ['string', 'distinct', \Illuminate\Validation\Rule::in(array_keys(Role::LABELS))]],
+            ['roleChoice.required' => 'Pilih minimal satu peran.', 'roleChoice.min' => 'Pilih minimal satu peran.', 'roleChoice.*.in' => 'Peran tidak dikenal.']);
+        try {
+            $r = app(UserService::class)->updateRoles($user, $this->roleChoice, auth()->user());
+        } catch (ValidationException $e) {
+            $this->addError('roleChoice', collect($e->errors())->flatten()->first());
+
+            return;
+        }
+        $this->roleUserId = null;
+        $label = fn (array $n) => implode(', ', array_map(fn ($x) => Role::LABELS[$x] ?? $x, $n));
+        $this->flash = $r['added'] === [] && $r['removed'] === [] ? "Peran {$user->name} tidak berubah."
+            : "Peran {$user->name} diperbarui".($r['added'] ? ': + '.$label($r['added']) : '').($r['removed'] ? ($r['added'] ? ';' : ':').' − '.$label($r['removed']) : '').'.';
+        unset($this->users, $this->stats);
+    }
+
+    public function cancelRoles(): void
+    {
+        $this->roleUserId = null;
+    }
+
     public function cancel(): void
     {
         $this->editing = false;

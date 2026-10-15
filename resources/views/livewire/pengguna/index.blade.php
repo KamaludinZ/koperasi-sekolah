@@ -106,6 +106,7 @@
                             </p>
                             <div class="flex shrink-0 gap-1">
                                 <button type="button" wire:click="edit({{ $u->id }})" @class(['rounded-lg px-2.5 py-1.5 text-sm font-medium', 'bg-red-600 text-white hover:bg-red-700' => $names === [], 'text-emerald-800 hover:bg-emerald-50' => $names !== []]) aria-label="Ubah akun {{ $u->name }}">{{ $names === [] ? 'Atur peran' : 'Ubah' }}</button>
+                                <button type="button" wire:click="editRoles({{ $u->id }})" class="rounded-lg px-2.5 py-1.5 text-sm font-medium text-stone-700 hover:bg-stone-100" aria-label="Ubah peran {{ $u->name }}" data-edit-roles="{{ $u->id }}">Peran</button>
                                 @unless ($u->id === $me)
                                     <button type="button" wire:click="toggleActive({{ $u->id }})"
                                             wire:confirm="{{ $u->is_active ? 'Nonaktifkan '.$u->name.'? Akun ini langsung keluar dari semua perangkat.' : 'Aktifkan kembali '.$u->name.'?' }}"
@@ -162,4 +163,5 @@
     </div>
 
     @include('livewire.pengguna.partials.user-form')
+    @include('livewire.pengguna.partials.role-form')
 </div>

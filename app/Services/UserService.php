@@ -181,6 +181,41 @@ class UserService
         return $user;
     }
 
+    /**
+     * Ubah HANYA peran akun (form kotak centang "Ubah peran"): minimal satu peran, aturan admin sama dengan update(),
+     * jejak `user.role_changed` dengan peran ditambah/dicabut. Tidak ada perubahan → tidak dicatat.
+     *
+     * @param  list<string>  $roles
+     * @return array{user: User, added: list<string>, removed: list<string>}
+     */
+    public function updateRoles(User $user, array $roles, ?User $actor): array
+    {
+        $user->loadMissing('role', 'roles');
+        $known = array_keys(Role::LABELS);
+        if ($unknown = array_diff($roles, $known)) {
+            throw ValidationException::withMessages(['roles' => 'Peran tidak dikenal: '.implode(', ', $unknown).'.']);
+        }
+        $names = self::roleList(['roles' => $roles]);
+        $this->guardChange($user, $names, (bool) $user->is_active, $actor);
+        $before = $user->roleNames();
+        $added = array_values(array_diff($names, $before));
+        $removed = array_values(array_diff($before, $names));
+        if ($added === [] && $removed === []) {
+            return ['user' => $user, 'added' => [], 'removed' => []];
+        }
+
+        DB::transaction(function () use ($user, $names, $before, $added, $removed) {
+            $this->assignRoles($user, $names);
+            $label = fn (array $n) => implode(', ', array_map(fn ($x) => Role::LABELS[$x] ?? $x, $n));
+            AuditLog::record('user.role_changed', 'pengguna',
+                "Peran {$user->name} diubah".($added ? ': + '.$label($added) : '').($removed ? ($added ? ';' : ':').' − '.$label($removed) : ''),
+                self::subject($user), ['changes' => ['roles' => ['from' => implode(', ', $before), 'to' => implode(', ', $names)]], 'added' => $added, 'removed' => $removed],
+                action: 'diubah', old: ['roles' => implode(', ', $before)], new: ['roles' => implode(', ', $names)]);
+        });
+
+        return ['user' => $user, 'added' => $added, 'removed' => $removed];
+    }
+
     public function toggleActive(User $user, ?User $actor): User
     {
         $user->loadMissing('role', 'roles');
