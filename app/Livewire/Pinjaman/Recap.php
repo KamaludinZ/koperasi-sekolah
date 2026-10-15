@@ -122,6 +122,27 @@ class Recap extends Component
         return $this->type === 'tahun' ? ($this->year === '' || $this->year === today()->format('Y')) : ($this->month === '' || $this->month === today()->format('Y-m'));
     }
 
+    /** Minta ekspor CSV periode yang sedang dilihat ke antrean latar. */
+    public function export(\App\Services\ReportExportService $exports): void
+    {
+        [$from, $to] = $this->period;
+        try {
+            $exports->requestLoanRecap(auth()->user(), $from, $to);
+            unset($this->exports);
+            $this->dispatch('toast', type: 'success', message: 'Ekspor CSV sedang disiapkan.');
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            $this->dispatch('toast', type: 'error', message: collect($e->errors())->flatten()->first());
+        }
+    }
+
+    /** Ekspor rekap pinjaman milik petugas ini (terbaru dulu) beserta penanda unduhan. */
+    #[Computed]
+    public function exports(): array
+    {
+        return app(\App\Services\ReportExportService::class)->recent(auth()->user(), 'pinjaman_rekap', 5)
+            ->map(fn ($e) => \App\Http\Controllers\Pinjaman\RecapExportController::toArray($e))->all();
+    }
+
     public function render()
     {
         return view('livewire.pinjaman.recap');

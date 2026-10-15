@@ -23,16 +23,22 @@ class ReportExport extends Model
 
     public const STATUSES = ['pending' => 'Menunggu antrean', 'processing' => 'Sedang dibuat', 'done' => 'Siap diunduh', 'failed' => 'Gagal'];
 
-    protected $fillable = ['user_id', 'type', 'format', 'params', 'status', 'file_path', 'file_name', 'rows', 'error', 'finished_at'];
+    protected $fillable = ['user_id', 'type', 'format', 'params', 'status', 'file_path', 'file_name', 'rows', 'error', 'finished_at', 'downloaded_at', 'download_count'];
 
     protected function casts(): array
     {
-        return ['params' => 'array', 'rows' => 'integer', 'finished_at' => 'datetime'];
+        return ['params' => 'array', 'rows' => 'integer', 'finished_at' => 'datetime', 'downloaded_at' => 'datetime', 'download_count' => 'integer'];
     }
 
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    /** Tandai berkas sudah diunduh (waktu terakhir & jumlah unduhan). */
+    public function markDownloaded(): void
+    {
+        $this->forceFill(['downloaded_at' => now(), 'download_count' => $this->download_count + 1])->save();
     }
 
     public function isFinished(): bool

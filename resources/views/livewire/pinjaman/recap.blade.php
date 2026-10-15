@@ -6,14 +6,45 @@
 @endphp
 <div class="flex min-h-0 flex-1 flex-col overflow-y-auto">
     <header class="border-b border-stone-200 bg-white px-4 pt-4 sm:px-6">
-        <div>
-            <h1 class="text-lg font-semibold">Rekap Pinjaman</h1>
-            <p class="text-xs text-stone-500">Pengajuan, pencairan, dan angsuran yang diterima per periode, beserta posisi pinjaman saat ini.</p>
+        <div class="flex flex-wrap items-center justify-between gap-2">
+            <div>
+                <h1 class="text-lg font-semibold">Rekap Pinjaman</h1>
+                <p class="text-xs text-stone-500">Pengajuan, pencairan, dan angsuran yang diterima per periode, beserta posisi pinjaman saat ini.</p>
+            </div>
+            <button type="button" wire:click="export" wire:loading.attr="disabled" wire:target="export" data-export-button
+                    class="inline-flex items-center gap-1.5 rounded-xl border border-stone-300 bg-white px-3 py-2 text-sm font-medium text-stone-700 hover:bg-stone-50 disabled:opacity-60">
+                <svg class="size-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v12m0 0 4-4m-4 4-4-4M4 20h16"/></svg>
+                Ekspor CSV {{ $label }}
+            </button>
         </div>
         <x-pinjaman.nav active="pinjaman.rekap" />
     </header>
 
     <div class="space-y-4 px-4 py-5 sm:px-6">
+        @php $exports = $this->exports; $busy = collect($exports)->contains(fn ($e) => ! in_array($e['status'], ['done', 'failed'], true)); @endphp
+        @if ($exports)
+            <section class="rounded-xl border border-stone-200 bg-white" aria-label="Ekspor rekap" @if ($busy) wire:poll.2s @endif aria-live="polite">
+                <h2 class="border-b border-stone-100 px-4 py-2.5 text-sm font-semibold">Ekspor terakhir</h2>
+                <ul class="divide-y divide-stone-100 text-sm">
+                    @foreach ($exports as $e)
+                        <li class="flex flex-wrap items-center justify-between gap-2 px-4 py-2" data-export="{{ $e['id'] }}" data-export-status="{{ $e['status'] }}">
+                            <span>@tanggal($e['from']) – @tanggal($e['to'])
+                                <span @class(['ml-1 rounded-md px-1.5 py-0.5 text-[11px] font-semibold', 'bg-emerald-100 text-emerald-800' => $e['status'] === 'done',
+                                    'bg-red-100 text-red-800' => $e['status'] === 'failed', 'bg-stone-100 text-stone-700' => ! in_array($e['status'], ['done', 'failed'], true)])>{{ $e['status_label'] }}</span>
+                                @if ($e['status'] === 'failed')<span class="block text-xs text-red-700">{{ $e['error'] }}</span>@endif
+                            </span>
+                            <span class="flex items-center gap-2">
+                                @if ($e['status'] === 'done')
+                                    <span class="text-xs text-stone-500" data-download-mark>{{ $e['download_count'] > 0 ? 'Diunduh '.$e['download_count'].'× · terakhir '.\App\Support\Tanggal::format($e['downloaded_at'], true) : 'Belum diunduh' }}</span>
+                                    <a href="{{ $e['download_url'] }}" class="rounded-lg bg-emerald-700 px-3 py-1 text-xs font-semibold text-white hover:bg-emerald-800">Unduh</a>
+                                @endif
+                            </span>
+                        </li>
+                    @endforeach
+                </ul>
+            </section>
+        @endif
+
         <x-pinjaman.recap-cards :portfolio="$r['portfolio']" />
         <h2 class="text-sm font-semibold text-stone-700">Periode: <span data-period>{{ $label }}</span></h2>
 

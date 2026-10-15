@@ -21,7 +21,8 @@ class AccessTest extends TestCase
     {
         return collect(Route::getRoutes()->getRoutes())
             ->filter(fn ($r) => str_starts_with((string) $r->getName(), 'pinjaman') && in_array('GET', $r->methods(), true))
-            ->reject(fn ($r) => in_array('disbursement', $r->parameterNames(), true)) // diuji terpisah (butuh berkas bukti)
+            // diuji terpisah: bukti pencairan (butuh berkas) & ekspor rekap (milik peminta) — lihat RecapExportTest
+            ->reject(fn ($r) => array_intersect(['disbursement', 'export'], $r->parameterNames()) !== [])
             ->map(fn ($r) => route($r->getName(), in_array('loan', $r->parameterNames(), true) ? ['loan' => $loan->id] : []))
             ->values()->all();
     }

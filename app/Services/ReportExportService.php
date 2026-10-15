@@ -10,7 +10,7 @@ use Illuminate\Support\Carbon;
 use Illuminate\Validation\ValidationException;
 
 /**
- * Permintaan ekspor laporan ke antrean latar (rekap kas & rekap penjualan). Membatasi rentang
+ * Permintaan ekspor laporan ke antrean latar (rekap kas, rekap penjualan & rekap pinjaman). Membatasi rentang
  * (maks. 366 hari) dan jumlah ekspor yang belum selesai per petugas (maks. 3), lalu mengirim job-nya.
  */
 class ReportExportService
@@ -69,6 +69,23 @@ class ReportExportService
             'params' => ['from' => $from->toDateString(), 'to' => $to->toDateString()],
         ]);
         ExportCashRecap::dispatch($export->id);
+
+        return $export->fresh();
+    }
+
+    /** @throws ValidationException bila rentang tidak sah/terlalu panjang atau masih banyak ekspor berjalan */
+    public function requestLoanRecap(User $user, Carbon $from, Carbon $to): ReportExport
+    {
+        if ($from->gt($to) || $from->copy()->startOfDay()->diffInDays($to->copy()->startOfDay()) + 1 > self::MAX_DAYS) {
+            throw ValidationException::withMessages(['dari' => 'Rentang maksimal 366 hari.']);
+        }
+        $this->guardPending($user);
+
+        $export = ReportExport::create([
+            'user_id' => $user->id, 'type' => 'pinjaman_rekap', 'format' => 'csv',
+            'params' => ['from' => $from->toDateString(), 'to' => $to->toDateString()],
+        ]);
+        \App\Jobs\ExportLoanRecap::dispatch($export->id);
 
         return $export->fresh();
     }
