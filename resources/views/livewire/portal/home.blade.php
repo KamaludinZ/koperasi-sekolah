@@ -9,6 +9,9 @@
             <p class="text-2xl font-bold tabular-nums">{{ \App\Support\Rupiah::format((int) round((float) $m->balance)) }}</p>
         </div>
     </section>
+    @if ($this->loanTotals)
+        <x-portal.loan-alert :totals="$this->loanTotals" />
+    @endif
     @php $open = \App\Support\OpeningHours::status(\App\Support\MockData::profile()['schedule'], now()); @endphp
     <p @class(['flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm', 'bg-emerald-50 text-emerald-900' => $open['open'], 'bg-stone-100 text-stone-700' => ! $open['open']]) data-open-status="{{ $open['open'] ? 'buka' : 'tutup' }}">
         <span @class(['size-2 rounded-full', 'bg-emerald-600' => $open['open'], 'bg-stone-500' => ! $open['open']])></span>

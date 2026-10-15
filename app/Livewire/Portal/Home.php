@@ -20,6 +20,17 @@ class Home extends Component
         return Auth::guard('member')->user();
     }
 
+    /** Ringkasan pinjaman anggota (sisa, tunggakan, angsuran terdekat) untuk kartu di beranda. */
+    #[Computed]
+    public function loanTotals(): ?array
+    {
+        if (! \Illuminate\Support\Facades\Route::has('portal.pinjaman')) {
+            return null;
+        }
+
+        return app(\App\Services\MemberLoanService::class)->outstanding($this->member)['totals'];
+    }
+
     public function render()
     {
         return view('livewire.portal.home');

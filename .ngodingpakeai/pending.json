@@ -1,6 +1,6 @@
 {
   "repo": "Koperasi Sekolah",
-  "generatedForCommit": "7f8968f457d0d6d08e18dbe20213db2fc661e8e4",
+  "generatedForCommit": "637b18c5f103bfea73e91b7ff31e6c107963d5f8",
   "files": [
     {
       "path": ".claude/skills/ngodingpakeai/SKILL.md",
@@ -292,7 +292,7 @@
     },
     {
       "path": "app/Livewire/Pinjaman/Arrears.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 2694
     },
@@ -304,9 +304,9 @@
     },
     {
       "path": "app/Livewire/Pinjaman/Index.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 2278
+      "size": 2545
     },
     {
       "path": "app/Livewire/Pinjaman/Installments.php",
@@ -346,9 +346,9 @@
     },
     {
       "path": "app/Models/Loan.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 5409
+      "size": 5955
     },
     {
       "path": "app/Models/LoanDisbursement.php",
@@ -400,7 +400,7 @@
     },
     {
       "path": "app/Services/LoanArrearsQuery.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 4505
     },
@@ -430,9 +430,9 @@
     },
     {
       "path": "app/Services/LoanService.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 9363
+      "size": 11462
     },
     {
       "path": "app/Services/MemberCodeGenerator.php",
@@ -1330,9 +1330,9 @@
     },
     {
       "path": "resources/views/components/pinjaman/nav.blade.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 973
+      "size": 1468
     },
     {
       "path": "resources/views/components/pinjaman/status.blade.php",
@@ -1918,7 +1918,7 @@
     },
     {
       "path": "resources/views/livewire/pinjaman/arrears.blade.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 7793
     },
@@ -1930,9 +1930,9 @@
     },
     {
       "path": "resources/views/livewire/pinjaman/index.blade.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 10595
+      "size": 11093
     },
     {
       "path": "resources/views/livewire/pinjaman/installments.blade.php",
@@ -2182,7 +2182,7 @@
     },
     {
       "path": "routes/web.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 48712
     },
@@ -2524,7 +2524,7 @@
     },
     {
       "path": "tests/Feature/Pinjaman/ArrearsPageTest.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 4849
     },
@@ -2533,6 +2533,12 @@
       "reason": "needs_summary",
       "language": "php",
       "size": 3404
+    },
+    {
+      "path": "tests/Feature/Pinjaman/ConsoleOverdueBadgeTest.php",
+      "reason": "new",
+      "language": "php",
+      "size": 3283
     },
     {
       "path": "tests/Feature/Pinjaman/ConsolePageTest.php",
