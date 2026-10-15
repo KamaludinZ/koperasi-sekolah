@@ -27,8 +27,8 @@ class LoanPaymentService
             'paid_at' => ['required', 'date_format:Y-m-d', 'before_or_equal:today', 'after_or_equal:'.($loan->disbursed_at?->toDateString() ?? today()->toDateString())],
             'payment_method' => ['required', Rule::in(array_keys(Loan::METHODS))],
             // Rujukan wajib per metode: transfer → no./berita transfer; potong gaji → bulan gaji (Y-m); tunai → tidak perlu.
-            'reference' => ['nullable', 'string', 'max:100'],
-            'note' => ['nullable', 'string', 'max:200'],
+            'reference' => ['nullable', 'string', 'max:100', 'not_regex:/[\x00-\x1F\x7F]/'],
+            'note' => ['nullable', 'string', 'max:200', 'not_regex:/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/'],
         ];
     }
 
@@ -47,7 +47,56 @@ class LoanPaymentService
             'payment_method.in' => 'Metode bayar tidak dikenal.',
             'note.max' => 'Catatan maksimal 200 karakter.',
             'reference.max' => 'Rujukan maksimal 100 karakter.',
+            'reference.not_regex' => 'Rujukan berisi karakter yang tidak diizinkan.',
+            'note.not_regex' => 'Catatan berisi karakter yang tidak diizinkan.',
         ];
+    }
+
+    /** Nominal terkecil satu pembayaran, kecuali pembayaran yang melunasi seluruh sisa. */
+    public const MIN_PAYMENT = 1000;
+
+    /**
+     * Aturan bisnis pembayaran yang butuh data (dipanggil di dalam transaksi setelah pinjaman dikunci):
+     * - nominal minimal MIN_PAYMENT kecuali melunasi sisa (mencegah salah ketik Rp1);
+     * - potong gaji hanya untuk anggota guru (siswa tidak bergaji), bulan gaji tidak sebelum bulan cair, dan satu
+     *   potongan per bulan gaji per pinjaman;
+     * - no./berita transfer tidak boleh dipakai dua kali (tanpa beda huruf besar/kecil & spasi) di pembayaran sah mana pun.
+     * Pembayaran yang dikoreksi (voided) dan $exceptId (yang sedang dikoreksi) diabaikan.
+     */
+    public static function assertPaymentAllowed(Loan $loan, int $amount, int $outstanding, string $method, ?string $reference, ?int $exceptId = null): void
+    {
+        if ($amount < self::MIN_PAYMENT && $amount !== $outstanding) {
+            throw ValidationException::withMessages(['amount' => 'Nominal minimal '.Rupiah::format(self::MIN_PAYMENT).', kecuali untuk melunasi sisa '.Rupiah::format($outstanding).'.']);
+        }
+        $valid = fn () => LoanPayment::query()->whereNull('voided_at')->when($exceptId, fn ($q) => $q->whereKeyNot($exceptId));
+
+        if ($method === 'potong_gaji') {
+            $type = $loan->member()->withTrashed()->value('type');
+            if ($type !== 'guru') {
+                throw ValidationException::withMessages(['payment_method' => 'Potong gaji hanya untuk anggota guru/pegawai; pilih transfer atau tunai.']);
+            }
+            if ($loan->disbursed_at && $reference < $loan->disbursed_at->format('Y-m')) {
+                throw ValidationException::withMessages(['reference' => 'Bulan gaji tidak boleh sebelum bulan pencairan ('.self::referenceLabel('potong_gaji', $loan->disbursed_at->format('Y-m')).').']);
+            }
+            if ($valid()->where('loan_id', $loan->id)->where('payment_method', 'potong_gaji')->where('reference', $reference)->exists()) {
+                throw ValidationException::withMessages(['reference' => self::referenceLabel('potong_gaji', $reference)." sudah dipotong untuk {$loan->code}."]);
+            }
+        }
+
+        if ($method === 'transfer') {
+            $key = self::transferKey($reference);
+            $dupe = $valid()->where('payment_method', 'transfer')->whereNotNull('reference')->with('loan:id,code')->get(['id', 'loan_id', 'reference'])
+                ->first(fn ($p) => self::transferKey($p->reference) === $key);
+            if ($dupe) {
+                throw ValidationException::withMessages(['reference' => "No./berita transfer ini sudah dipakai untuk pembayaran {$dupe->loan?->code}."]);
+            }
+        }
+    }
+
+    /** Bentuk pembanding no. transfer: huruf kecil, tanpa spasi. */
+    private static function transferKey(?string $reference): string
+    {
+        return mb_strtolower(preg_replace('/\s+/u', '', (string) $reference));
     }
 
     /** Label isian rujukan per metode (null = tidak perlu rujukan). */
@@ -62,7 +111,7 @@ class LoanPaymentService
         $reference = filled($reference) ? trim($reference) : null;
 
         return match ($method) {
-            'transfer' => mb_strlen((string) $reference) >= 3 ? $reference
+            'transfer' => mb_strlen((string) ($reference = preg_replace('/\s+/u', ' ', (string) $reference))) >= 3 ? $reference
                 : throw ValidationException::withMessages(['reference' => 'Isi nomor atau berita transfer (minimal 3 karakter).']),
             'potong_gaji' => preg_match('/^\d{4}-(0[1-9]|1[0-2])$/', (string) $reference) && $reference <= today()->addMonthNoOverflow()->format('Y-m')
                 ? $reference : throw ValidationException::withMessages(['reference' => 'Pilih bulan gaji yang dipotong.']),
@@ -149,6 +198,7 @@ class LoanPaymentService
             if ($amount < 1 || $amount > $outstanding) {
                 throw ValidationException::withMessages(['amount' => 'Nominal melebihi sisa pinjaman ('.Rupiah::format($outstanding).').']);
             }
+            self::assertPaymentAllowed($locked, $amount, $outstanding, $data['payment_method'], $reference);
 
             $installments = $locked->installments()->lockForUpdate()->get();
             $plan = self::allocate($installments, $amount);
@@ -223,6 +273,7 @@ class LoanPaymentService
                 if ($replacement['paid_at'] > today()->toDateString() || ($loan->disbursed_at && $replacement['paid_at'] < $loan->disbursed_at->toDateString())) {
                     throw ValidationException::withMessages(['paid_at' => 'Tanggal bayar harus antara tanggal cair dan hari ini.']);
                 }
+                self::assertPaymentAllowed($loan, $amount, $max, $replacement['payment_method'], $reference, $locked->id);
             }
 
             $locked->update(['voided_at' => now(), 'voided_by' => $userId, 'void_reason' => $reason]);

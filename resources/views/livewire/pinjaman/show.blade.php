@@ -185,6 +185,7 @@
                                 <legend class="mb-1 block text-sm font-medium">Metode bayar</legend>
                                 <div class="grid grid-cols-3 gap-2">
                                     @foreach (\App\Models\Loan::METHODS as $value => $label)
+                                        @continue($value === 'potong_gaji' && ($l['member']['type'] ?? null) !== 'guru' && $l['payment_method'] !== 'potong_gaji')
                                         <label @class(['flex cursor-pointer flex-col items-center justify-center rounded-lg border px-2 py-2 text-xs', 'border-emerald-600 bg-emerald-50 font-semibold text-emerald-900' => $payMethod === $value, 'border-stone-300' => $payMethod !== $value])>
                                             <input type="radio" wire:model.live="payMethod" value="{{ $value }}" class="sr-only"> {{ $label }}
                                             @if ($value === $l['payment_method'])<span class="text-[10px] font-normal text-stone-500">pilihan peminjam</span>@endif
@@ -393,7 +394,8 @@
                     <label class="block"><span class="mb-1 block text-sm font-medium">Metode</span>
                         <select wire:model.live="corrMethod" class="{{ $in }}">
                             @foreach (\App\Models\Loan::METHODS as $value => $label)<option value="{{ $value }}">{{ $label }}</option>@endforeach
-                        </select></label>
+                        </select>
+                        @error('corrMethod') <span class="mt-1 block text-xs text-red-600">{{ $message }}</span> @enderror</label>
                     @if ($corrMethod !== 'tunai')
                         <label class="block"><span class="mb-1 block text-sm font-medium">{{ \App\Services\LoanPaymentService::REFERENCE_LABELS[$corrMethod] }}</span>
                             <input type="{{ $corrMethod === 'potong_gaji' ? 'month' : 'text' }}" wire:model="corrRef" maxlength="100" class="{{ $in }}">

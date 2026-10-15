@@ -310,7 +310,7 @@ class Show extends Component
         $this->validate($rules, ['corrReason.required' => 'Tulis alasan koreksi.', 'corrReason.min' => 'Tulis alasan koreksi (5–200 karakter).',
             'corrAmount.required' => 'Isi nominal yang benar.', 'corrAmount.min' => 'Nominal harus lebih dari 0.', 'corrDate.required' => 'Isi tanggal bayar yang benar.']);
 
-        $map = ['reason' => 'corrReason', 'amount' => 'corrAmount', 'paid_at' => 'corrDate', 'reference' => 'corrRef', 'payment' => 'corrReason'];
+        $map = ['reason' => 'corrReason', 'amount' => 'corrAmount', 'paid_at' => 'corrDate', 'payment_method' => 'corrMethod', 'reference' => 'corrRef', 'payment' => 'corrReason'];
         try {
             app(\App\Services\LoanPaymentService::class)->correct($p, $this->corrReason, $this->corrMode === 'ganti' ? [
                 'amount' => (int) $this->corrAmount, 'paid_at' => $this->corrDate, 'payment_method' => $this->corrMethod,
