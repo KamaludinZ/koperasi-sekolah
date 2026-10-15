@@ -165,6 +165,30 @@ class AuditTrail extends Component
         return $this->loanId ? \App\Models\Loan::whereKey($this->loanId)->value('code') : null;
     }
 
+    /** Unduh CSV tampilan yang sedang dilihat (sesuai saringan, maks. 20.000 baris); unduhan dicatat di jejak audit. */
+    public function export()
+    {
+        [$from, $to] = $this->range;
+        $filters = ['view' => $this->view, 'group' => $this->group, 'ledger_type' => $this->ledgerType, 'actor' => $this->actor, 'loan_id' => $this->loanId ?: null,
+            'search' => $this->search, 'from' => $from?->toDateString(), 'to' => $to?->toDateString()];
+        \App\Services\AuditLog::record('pinjaman.audit_diekspor', 'pinjaman',
+            'Ekspor jejak audit pinjaman ('.($this->view === 'transaksi' ? 'pencairan & angsuran' : 'jejak peristiwa').')', null, $filters);
+
+        $exporter = app(\App\Services\LoanAuditExport::class);
+        $rows = $this->view === 'transaksi'
+            ? $exporter->ledgerRows($this->ledgerAll)
+            : $exporter->eventRows(app(LoanAuditQuery::class)->query(['group' => $this->group === 'perhatian' ? '' : $this->group, 'from' => $from, 'to' => $to,
+                'actor' => $this->actor, 'loan_id' => $this->loanId ?: null, 'search' => $this->search])
+                ->when($this->group === 'perhatian', fn ($q) => $q->whereIn('event', LoanAuditQuery::NOTABLE)));
+        $name = ($this->view === 'transaksi' ? 'riwayat-pencairan-angsuran-' : 'jejak-audit-pinjaman-').now()->format('Ymd-His').'.csv';
+
+        return response()->streamDownload(function () use ($rows) {
+            $out = fopen('php://output', 'w');
+            \App\Services\LoanAuditExport::write($out, $rows);
+            fclose($out);
+        }, $name, ['Content-Type' => 'text/csv; charset=UTF-8', 'X-Content-Type-Options' => 'nosniff']);
+    }
+
     public function render()
     {
         return view('livewire.pinjaman.audit-trail');

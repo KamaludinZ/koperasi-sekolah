@@ -11,9 +11,16 @@
 @endphp
 <div class="flex min-h-0 flex-1 flex-col overflow-y-auto">
     <header class="border-b border-stone-200 bg-white px-4 pt-4 sm:px-6">
-        <div>
+        <div class="flex flex-wrap items-start justify-between gap-2">
+          <div>
             <h1 class="text-lg font-semibold">Jejak Audit Pinjaman</h1>
             <p class="text-xs text-stone-500">Siapa melakukan apa dan kapan pada pinjaman: pengajuan, pencairan, angsuran & koreksi, tunggakan, unduhan rekap. Jejak tidak bisa diubah atau dihapus.</p>
+          </div>
+          <button type="button" wire:click="export" wire:loading.attr="disabled" wire:target="export" data-audit-export
+                  class="inline-flex items-center gap-1.5 rounded-xl border border-stone-300 bg-white px-3 py-2 text-sm font-medium text-stone-700 hover:bg-stone-50 disabled:opacity-60">
+              <svg class="size-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v12m0 0 4-4m-4 4-4-4M4 20h16"/></svg>
+              Ekspor CSV <span class="sr-only">{{ $view === 'transaksi' ? 'riwayat pencairan dan angsuran' : 'jejak peristiwa' }}</span>
+          </button>
         </div>
         <x-pinjaman.nav active="pinjaman.audit" />
     </header>

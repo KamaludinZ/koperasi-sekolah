@@ -98,6 +98,39 @@ class AuditTrailPageTest extends TestCase
         Livewire::test(AuditTrail::class)->call('setView', 'transaksi')->assertSeeHtml('data-empty="riwayat-transaksi"'); // 30 hari terakhir
     }
 
+    public function test_export_button_downloads_csv_of_current_view_and_is_audited(): void
+    {
+        $this->travelTo('2026-10-12 08:00:00');
+        Livewire::test(AuditTrail::class)->assertSeeHtml('data-audit-export')->call('export')->assertFileDownloaded('jejak-audit-pinjaman-20261012-080000.csv');
+        $log = ActivityLog::where('event', 'pinjaman.audit_diekspor')->sole();
+        $this->assertSame('jejak', $log->properties['view']);
+        Livewire::test(AuditTrail::class)->call('setView', 'transaksi')->set('ledgerType', 'koreksi')->call('export')
+            ->assertFileDownloaded('riwayat-pencairan-angsuran-20261012-080000.csv');
+        $this->assertSame(['transaksi', 'koreksi'], [ActivityLog::where('event', 'pinjaman.audit_diekspor')->latest('id')->first()->properties['view'],
+            ActivityLog::where('event', 'pinjaman.audit_diekspor')->latest('id')->first()->properties['ledger_type']]);
+
+        // isi CSV
+        $exporter = app(\App\Services\LoanAuditExport::class);
+        $csv = function (iterable $rows) {
+            $h = fopen('php://memory', 'w+');
+            \App\Services\LoanAuditExport::write($h, $rows);
+            rewind($h);
+
+            return stream_get_contents($h);
+        };
+        $events = $csv($exporter->eventRows(app(\App\Services\LoanAuditQuery::class)->query(['group' => 'angsuran'])));
+        $this->assertStringStartsWith("\xEF\xBB\xBF", $events);
+        $this->assertStringContainsString('"Angsuran dikoreksi";pinjaman.angsuran_koreksi', $events);
+        $this->assertStringContainsString('"Nominal salah ketik"', $events);
+        $this->assertStringNotContainsString('pinjaman.ditolak', $events);
+        $this->assertStringNotContainsString('Penjualan LAIN', $events);
+
+        $ledger = $csv($exporter->ledgerRows(app(\App\Services\LoanLedgerQuery::class)->rows()));
+        $this->assertStringContainsString('"Angsuran dikoreksi (batal)";PJM-A;"Bu Rina";100000;Tunai', $ledger);
+        $this->assertStringContainsString(';Dibatalkan;', $ledger);
+        $this->assertStringContainsString('"Pencairan dana";PJM-A;"Bu Rina";-300000', $ledger);
+    }
+
     public function test_access(): void
     {
         $this->loginAs('kasir');
