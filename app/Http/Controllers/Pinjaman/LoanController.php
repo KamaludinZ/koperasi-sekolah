@@ -15,6 +15,9 @@ use Illuminate\Validation\Rule;
  * - GET /pinjaman/ringkasan → jumlah & nominal per status, per metode, angsuran jatuh tempo bulan ini & terlambat
  * - GET /pinjaman/{loan}/data → rincian satu pinjaman (pencairan, jadwal angsuran, ringkasan bayar)
  * - GET /pinjaman/{loan}/angsuran?status=belum|dibayar|menunggak|terlambat → jadwal angsuran saja (+ ringkasan)
+ * Setiap pinjaman di daftar & rincian membawa is_overdue, effective_status (menunggak bila ada angsuran lewat jatuh
+ * tempo walau kolom status belum disegarkan), overdue (jumlah/nominal tertunggak, jatuh tempo tertua, lama terlambat)
+ * dan overdue_since; filter status=menunggak/berjalan memakai keadaan efektif.
  */
 class LoanController extends Controller
 {
@@ -43,7 +46,11 @@ class LoanController extends Controller
         ])->paginate((int) ($data['per_halaman'] ?? self::PER_PAGE_OPTIONS[0]))->withQueryString();
 
         return response()->json([
-            'data' => collect($paginator->items())->map(fn (Loan $l) => LoanService::toArray($l))->all(),
+            'data' => (function () use ($paginator) {
+                $flags = LoanService::overdueFlags(collect($paginator->items())->pluck('id')->all());
+
+                return collect($paginator->items())->map(fn (Loan $l) => LoanService::withOverdue(LoanService::toArray($l), $flags[$l->id] ?? null))->all();
+            })(),
             'meta' => [
                 'current_page' => $paginator->currentPage(),
                 'last_page' => $paginator->lastPage(),
@@ -75,7 +82,8 @@ class LoanController extends Controller
         $rows = collect($detail['installments'])->when($data['status'] ?? null, fn ($c, $status) => $c->filter(
             fn ($i) => $status === 'terlambat' ? $i['late'] : $i['status'] === $status))->values()->all();
 
-        return response()->json(['data' => $rows, 'meta' => ['loan' => ['id' => $loan->id, 'code' => $loan->code, 'status' => $loan->status], 'summary' => $detail['summary']]]);
+        return response()->json(['data' => $rows, 'meta' => ['loan' => ['id' => $loan->id, 'code' => $loan->code, 'status' => $loan->status,
+            'effective_status' => $detail['loan']['effective_status'], 'overdue' => $detail['loan']['overdue']], 'summary' => $detail['summary']]]);
     }
 
     /**

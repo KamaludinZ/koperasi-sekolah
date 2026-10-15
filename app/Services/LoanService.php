@@ -109,6 +109,7 @@ class LoanService
             'outstanding' => $stats['outstanding'],
             'overdue_outstanding' => $stats['overdue_outstanding'],
             'active_count' => $stats['counts']['berjalan'] + $stats['counts']['menunggak'],
+            'overdue_loans' => $stats['counts']['menunggak'], // keadaan efektif (termasuk yang statusnya belum disegarkan)
             'awaiting_decision' => $stats['counts']['diajukan'],
             'awaiting_disbursement' => $stats['counts']['disetujui'],
             'due_this_month' => ['count' => (clone $dueMonth)->count(), 'amount' => $sum(clone $dueMonth)],
@@ -147,8 +148,14 @@ class LoanService
         $paid = array_sum(array_column($installments, 'paid_amount'));
         $next = collect($installments)->first(fn ($i) => $i['status'] !== 'dibayar');
 
+        $late = collect($installments)->where('late', true);
+        $flag = $late->isEmpty() || ! in_array($loan->status, Loan::ACTIVE, true) ? null : [
+            'late_count' => $late->count(), 'late_amount' => (int) $late->sum('remaining'),
+            'oldest_due' => $late->min('due_date'), 'days_late' => (int) $late->max('days_late'),
+        ];
+
         return [
-            'loan' => [...self::toArray($loan), 'member_phone' => $loan->member?->phone, 'member_deleted' => (bool) $loan->member?->trashed(), 'decided_at' => $loan->decided_at?->toDateTimeString(),
+            'loan' => [...self::withOverdue(self::toArray($loan), $flag), 'member_phone' => $loan->member?->phone, 'member_deleted' => (bool) $loan->member?->trashed(), 'decided_at' => $loan->decided_at?->toDateTimeString(),
                 'decided_by' => $loan->decider?->name, 'cancelled_by' => $loan->canceller?->name, 'paid_off_at' => $loan->paid_off_at?->toDateString()],
             'installments' => $installments,
             'disbursements' => $disbursements,
@@ -161,6 +168,24 @@ class LoanService
                 'next' => $next,
                 'progress' => $loan->totalDue() > 0 ? min(100, (int) floor($paid * 100 / $loan->totalDue())) : 0,
             ],
+        ];
+    }
+
+    /**
+     * Tambahkan status menunggak efektif ke baris pinjaman: is_overdue, effective_status (menunggak bila ada angsuran
+     * lewat jatuh tempo walau kolom status belum disegarkan) dan rincian overdue (jumlah & nominal tertunggak, jatuh
+     * tempo tertua, lama terlambat) atau null.
+     *
+     * @param  array{late_count: int, late_amount: int, oldest_due: string, days_late: int}|null  $flag  dari overdueFlags()
+     */
+    public static function withOverdue(array $row, ?array $flag): array
+    {
+        $overdue = $flag !== null || $row['status'] === 'menunggak';
+
+        return $row + [
+            'is_overdue' => $overdue,
+            'effective_status' => $overdue && in_array($row['status'], Loan::ACTIVE, true) ? 'menunggak' : $row['status'],
+            'overdue' => $flag,
         ];
     }
 

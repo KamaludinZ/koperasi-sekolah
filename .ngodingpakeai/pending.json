@@ -1,6 +1,6 @@
 {
   "repo": "Koperasi Sekolah",
-  "generatedForCommit": "4eab58043e0e11f738f5257116eb8a8d53a6b2c7",
+  "generatedForCommit": "34e36d7fda8df1f1fcffa91784abcefa7e033294",
   "files": [
     {
       "path": ".claude/skills/ngodingpakeai/SKILL.md",
@@ -129,6 +129,12 @@
       "size": 2890
     },
     {
+      "path": "app/Http/Controllers/Pinjaman/ArrearsController.php",
+      "reason": "new",
+      "language": "php",
+      "size": 2676
+    },
+    {
       "path": "app/Http/Controllers/Pinjaman/DisbursementController.php",
       "reason": "needs_summary",
       "language": "php",
@@ -202,7 +208,7 @@
     },
     {
       "path": "app/Jobs/DetectOverdueLoans.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 896
     },
@@ -442,7 +448,7 @@
     },
     {
       "path": "app/Services/LoanOverdueDetector.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 4577
     },
@@ -499,12 +505,6 @@
       "reason": "needs_summary",
       "language": "php",
       "size": 2848
-    },
-    {
-      "path": "app/Services/QueueService.php",
-      "reason": "changed",
-      "language": "php",
-      "size": 5620
     },
     {
       "path": "app/Services/StockService.php",
@@ -2254,15 +2254,15 @@
     },
     {
       "path": "routes/console.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 7530
     },
     {
       "path": "routes/web.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 49596
+      "size": 49771
     },
     {
       "path": "tests/Concerns/MakesProductImports.php",
@@ -2607,6 +2607,12 @@
       "size": 2883
     },
     {
+      "path": "tests/Feature/Pinjaman/ArrearsEndpointTest.php",
+      "reason": "new",
+      "language": "php",
+      "size": 3829
+    },
+    {
       "path": "tests/Feature/Pinjaman/ArrearsPageTest.php",
       "reason": "needs_summary",
       "language": "php",
@@ -2752,7 +2758,7 @@
     },
     {
       "path": "tests/Feature/Pinjaman/OverdueDetectionJobTest.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 6133
     },
