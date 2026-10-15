@@ -2,6 +2,10 @@
 
 namespace App\Models;
 
+use App\Services\AuditLog;
+use App\Services\LoanApplicationService;
+use App\Services\LoanScheduleGenerator;
+use App\Support\Actor;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -53,12 +57,12 @@ class LoanInstallment extends Model
         if ($changes === []) {
             return null;
         }
-        $userId = $context['user_id'] ?? auth()->id();
+        $userId = Actor::userId($context['user_id'] ?? auth()->id()); // admin pelaku selama impersonasi
 
         return LoanInstallmentChange::create([
             'loan_id' => $this->loan_id, 'loan_installment_id' => $this->id, 'sequence' => $this->sequence, 'event' => $event,
             'changes' => $changes, 'loan_payment_id' => $context['loan_payment_id'] ?? null, 'reason' => $context['reason'] ?? null,
-            'user_id' => $userId, 'actor_name' => $userId ? User::whereKey($userId)->value('name') : null,
+            'user_id' => $userId, 'actor_name' => Actor::name($userId ? User::whereKey($userId)->value('name') : null),
         ]);
     }
 
@@ -94,8 +98,8 @@ class LoanInstallment extends Model
             $i->logChange($event, $changes, $ctx);
             if ($event === 'jadwal') { // jadwal (jatuh tempo/nominal/porsi) jarang berubah — selalu masuk jejak audit
                 $loan = $i->loan()->first();
-                \App\Services\AuditLog::record('pinjaman.jadwal_diubah', 'pinjaman', "Jadwal angsuran ke-{$i->sequence} {$loan?->code} diubah",
-                    $loan ? \App\Services\LoanApplicationService::subject($loan) : null, ['installment_id' => $i->id], action: 'diubah',
+                AuditLog::record('pinjaman.jadwal_diubah', 'pinjaman', "Jadwal angsuran ke-{$i->sequence} {$loan?->code} diubah",
+                    $loan ? LoanApplicationService::subject($loan) : null, ['installment_id' => $i->id], action: 'diubah',
                     old: array_map(fn ($c) => $c['from'], $changes), new: array_map(fn ($c) => $c['to'], $changes), reason: $ctx['reason'] ?? null);
             }
         });
@@ -130,8 +134,8 @@ class LoanInstallment extends Model
     {
         $total = $principal + $interest;
         $tenor = count($rows);
-        if ($tenor >= 1 && $tenor <= \App\Services\LoanApplicationService::MAX_TENOR && $principal > 0 && $interest >= 0) {
-            $plan = \App\Services\LoanScheduleGenerator::generate($principal, $interest, $tenor, '2000-01-01');
+        if ($tenor >= 1 && $tenor <= LoanApplicationService::MAX_TENOR && $principal > 0 && $interest >= 0) {
+            $plan = LoanScheduleGenerator::generate($principal, $interest, $tenor, '2000-01-01');
             $matches = array_column($plan, 'amount', 'sequence') == array_column($rows, 'amount', 'sequence');
             if ($matches) {
                 return collect($plan)->mapWithKeys(fn ($r) => [$r['sequence'] => ['principal_part' => $r['principal_part'], 'interest_part' => $r['interest_part']]])->all();

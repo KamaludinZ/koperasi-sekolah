@@ -2,6 +2,8 @@
 
 namespace App\Services;
 
+use App\Models\CashMovement;
+use App\Models\CashShift;
 use App\Models\Member;
 use App\Models\MemberSavingAccount;
 use App\Models\MemberSavingEntry;
@@ -10,9 +12,13 @@ use App\Models\OrderStatusLog;
 use App\Models\Product;
 use App\Models\SavingsTransaction;
 use App\Models\SavingType;
+use App\Models\Transaction;
+use App\Models\User;
+use App\Support\Actor;
 use App\Support\PriceCalculator;
 use App\Support\Rupiah;
 use Illuminate\Database\UniqueConstraintViolationException;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
@@ -176,7 +182,7 @@ class OrderService
     /**
      * Bukti potong saldo pesanan dari buku mutasi (tabungan / simpanan): pemotongan & pengembalian bila dibatalkan.
      *
-     * @return array{source: string, amount: int, before: int, after: int, at: \Illuminate\Support\Carbon, refund: ?array{amount: int, after: int, at: \Illuminate\Support\Carbon}}|null
+     * @return array{source: string, amount: int, before: int, after: int, at: Carbon, refund: ?array{amount: int, after: int, at: Carbon}}|null
      */
     public static function deductionFor(Order $order): ?array
     {
@@ -288,7 +294,7 @@ class OrderService
      *
      * @throws ValidationException
      */
-    public function transition(Order $order, string $to, \App\Models\User $by, ?string $note = null): Order
+    public function transition(Order $order, string $to, User $by, ?string $note = null): Order
     {
         if ($to === 'dibatalkan') {
             throw ValidationException::withMessages(['status' => 'Gunakan pembatalan pesanan (dengan alasan) untuk membatalkan.']);
@@ -321,10 +327,10 @@ class OrderService
      * saldo TIDAK diubah lagi (sudah saat pesanan dibuat/dibayar). cash_shift_id kosong: uang tunai sudah
      * masuk laci lewat mutasi kas saat dibayar, jadi kas shift tidak terhitung dua kali.
      */
-    private function recordSale(Order $order, \App\Models\User $by): \App\Models\Transaction
+    private function recordSale(Order $order, User $by): Transaction
     {
         if ($order->transaction_id) {
-            return \App\Models\Transaction::findOrFail($order->transaction_id);
+            return Transaction::findOrFail($order->transaction_id);
         }
         $order->loadMissing('items');
         $tax = $this->settings->tax();
@@ -356,7 +362,7 @@ class OrderService
      *
      * @throws ValidationException
      */
-    public function markPaid(Order $order, string $method, \App\Models\User $by): Order
+    public function markPaid(Order $order, string $method, User $by): Order
     {
         if (! in_array($method, ['tunai', 'qris'], true)) {
             throw ValidationException::withMessages(['metode' => 'Pilih tunai atau QRIS.']);
@@ -376,8 +382,8 @@ class OrderService
                 'rounding' => $price['rounding'], 'total' => $price['payable'], 'payment_status' => 'lunas', 'paid_at' => now()])->save();
             $total = (int) round((float) $order->total);
 
-            if ($method === 'tunai' && ($shift = \App\Models\CashShift::open()->lockForUpdate()->first())) {
-                $shift->movements()->create(['type' => \App\Models\CashMovement::TYPE_IN, 'category' => 'lainnya', 'amount' => $total,
+            if ($method === 'tunai' && ($shift = CashShift::open()->lockForUpdate()->first())) {
+                $shift->movements()->create(['type' => CashMovement::TYPE_IN, 'category' => 'lainnya', 'amount' => $total,
                     'reason' => "Pesanan portal {$order->code} · {$order->member->name}", 'user_id' => $by->id]);
             }
             $this->log($order, $order->status, $order->status, 'Dibayar '.($method === 'tunai' ? 'tunai' : 'QRIS/transfer').' · '.Rupiah::format($total), $by->id, $by->name);
@@ -443,7 +449,7 @@ class OrderService
     public function log(Order $order, ?string $from, string $to, ?string $note, ?int $userId, string $actor): void
     {
         OrderStatusLog::create(['order_id' => $order->id, 'from_status' => $from, 'to_status' => $to, 'note' => $note,
-            'user_id' => $userId, 'actor_name' => mb_substr($actor, 0, 100), 'created_at' => now()]);
+            'user_id' => Actor::userId($userId), 'actor_name' => mb_substr((string) Actor::name($actor), 0, 100), 'created_at' => now()]);
     }
 
     /** Nomor pesanan berurutan per hari: ORD-YYYYMMDD-0001 (coba nomor berikutnya bila bentrok). */

@@ -2,8 +2,9 @@
 
 namespace App\Services;
 
-use App\Support\Petugas;
 use App\Models\ActivityLog;
+use App\Support\Actor;
+use App\Support\Petugas;
 use Illuminate\Support\Str;
 
 /**
@@ -86,8 +87,15 @@ class AuditLog
         ?string $reason = null,
     ): ?ActivityLog {
         try {
-            $user = $actor ?? (app()->runningInConsole() && ! app()->runningUnitTests() ? null : Petugas::current());
-            $request = app()->runningInConsole() && ! app()->runningUnitTests() ? null : request();
+            $web = ! app()->runningInConsole() || app()->runningUnitTests();
+            // selama impersonasi pelaku = admin pelaku (bukan akun target); keterangan impersonasi ikut ditandatangani HMAC
+            // (catatan impersonation.* sudah membawa admin & id sesinya sendiri — tidak ditimpa keadaan sesi)
+            $own = isset($properties['impersonation_id']);
+            $user = $web && ! $own ? Actor::forAudit($actor ?? Petugas::current()) : ($actor ?? ($web ? Petugas::current() : null));
+            $request = $web ? request() : null;
+            if ($web && ! $own && ($imp = Actor::impersonation())) {
+                $properties['impersonation'] = ['id' => $imp['id'], 'target_type' => $imp['target_type'], 'target_id' => $imp['target_id'], 'target_name' => $imp['target_name']];
+            }
 
             return ActivityLog::create([
                 'event' => $event,

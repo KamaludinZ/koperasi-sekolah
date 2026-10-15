@@ -122,6 +122,9 @@
                                             <span @class(['block text-sm', 'text-red-800' => $bad && $log->category === 'auth', 'text-stone-900' => ! ($bad && $log->category === 'auth')])>{{ $log->description }}</span>
                                             <span class="mt-0.5 block text-xs text-stone-500">
                                                 <span class="font-medium text-stone-700">{{ $log->actor_name ?? 'Sistem' }}</span>@if ($log->actor_role) · {{ $roles[$log->actor_role] ?? $log->actor_role }}@endif
+                                                @if ($via = $log->properties['impersonation']['target_name'] ?? null)
+                                                    <span class="ml-1 rounded bg-red-100 px-1.5 py-0.5 text-[11px] font-semibold text-red-800" data-impersonated-as title="Dilakukan saat impersonasi">sebagai {{ $via }}</span>
+                                                @endif
                                                 · {{ $log->category_label }}@if ($log->ip_address) · {{ $log->ip_address }}@endif
                                             </span>
                                         </span>
