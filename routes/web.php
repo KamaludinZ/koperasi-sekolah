@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Akun\MenuController;
 use App\Http\Controllers\Akun\PasswordController;
 use App\Http\Controllers\Akun\SessionController;
 use App\Http\Controllers\Anggota\CreditController;
@@ -217,6 +218,7 @@ Route::middleware('auth')->group(function () {
     Route::put('/akun/kata-sandi', PasswordController::class)
         ->middleware('throttle:10,1')
         ->name('akun.password.update');
+    Route::get('/akun/menu', MenuController::class)->middleware(['menu', 'throttle:120,1'])->name('akun.menu');
     Route::get('/akun/sesi/daftar', [SessionController::class, 'index'])->name('akun.sessions.list');
     Route::delete('/akun/sesi/{session}', [SessionController::class, 'destroy'])->name('akun.sessions.destroy');
     Route::post('/akun/sesi/keluarkan-lain', [SessionController::class, 'destroyOthers'])
