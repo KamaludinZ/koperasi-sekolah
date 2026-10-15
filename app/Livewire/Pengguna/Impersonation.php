@@ -8,6 +8,7 @@ use App\Models\User;
 use App\Services\ImpersonationService;
 use App\Support\ImpersonationPolicy;
 use App\Support\Menu;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
@@ -148,6 +149,25 @@ class Impersonation extends Component
         $this->target = null;
         $this->reset('reason', 'acknowledged', 'minutes');
         $this->resetErrorBag();
+    }
+
+    /**
+     * Riwayat impersonasi terakhir untuk akun yang sedang dikonfirmasi (3 terbaru): siapa, kapan, alasan, status —
+     * agar admin tahu bila akun ini baru saja/masih dibantu orang lain.
+     *
+     * @return Collection<int, \App\Models\Impersonation>
+     */
+    #[Computed]
+    public function targetHistory()
+    {
+        if (! $this->target) {
+            return collect();
+        }
+
+        return \App\Models\Impersonation::query()
+            ->where($this->target['type'] === 'anggota' ? 'target_member_id' : 'target_user_id', $this->target['id'])
+            ->where('target_type', $this->target['type'])
+            ->latest('started_at')->limit(3)->get();
     }
 
     /** Pakai alasan cepat (indeks daftar preset jenis akun target), bisa dilengkapi setelahnya. */

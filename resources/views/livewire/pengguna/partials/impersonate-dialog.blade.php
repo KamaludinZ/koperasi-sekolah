@@ -35,6 +35,23 @@
                 <p class="mt-0.5">{{ implode(' · ', $preview['items']) ?: '—' }}</p>
             </div>
 
+            {{-- Riwayat impersonasi akun ini --}}
+            @if ($this->targetHistory->isNotEmpty())
+                <div class="rounded-lg border border-stone-200 px-3 py-2 text-xs" data-target-history>
+                    <p class="font-medium text-stone-800">Riwayat impersonasi akun ini</p>
+                    <ul class="mt-1 space-y-1 text-stone-600">
+                        @foreach ($this->targetHistory as $h)
+                            <li wire:key="h-{{ $h->id }}">
+                                @if ($h->isActive())<span class="mr-1 rounded bg-red-100 px-1 font-semibold text-red-800" data-history-active>sedang berlangsung</span>@endif
+                                <span class="font-medium">{{ $h->admin_name }}</span> · {{ $h->started_at->diffForHumans() }}
+                                @if ($h->ended_at) · {{ $h->durationMinutes() }} menit @endif
+                                <span class="block truncate text-stone-500" title="{{ $h->reason }}">“{{ $h->reason }}”</span>
+                            </li>
+                        @endforeach
+                    </ul>
+                </div>
+            @endif
+
             {{-- Alasan --}}
             <div>
                 <label for="imp-reason" class="mb-1 block text-sm font-medium text-stone-700">Alasan <span class="font-normal text-stone-500">(dicatat di jejak audit)</span></label>
@@ -56,6 +73,14 @@
                        x-bind:class="len > 0 && len < {{ \App\Support\ImpersonationPolicy::REASON_MIN }} && 'text-red-500'"></p>
                 </div>
                 @error('reason') <span id="imp-reason-err" class="mt-1 block text-xs text-red-600">{{ $message }}</span> @enderror
+                <p class="mt-1 text-[11px] text-stone-500" data-reason-audit-note>
+                    Alasan, waktu, dan semua aksi Anda tercatat ber-HMAC dan tampil di
+                    @if (\App\Support\Menu::canReach('audit.peran'))
+                        <a href="{{ route('audit.peran', ['tampil' => 'impersonasi']) }}" wire:navigate class="font-medium text-emerald-800 hover:underline">Audit → Peran & impersonasi</a>.
+                    @else
+                        Audit → Peran & impersonasi.
+                    @endif
+                </p>
             </div>
 
             {{-- Lama sesi --}}
