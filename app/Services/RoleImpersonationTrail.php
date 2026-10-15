@@ -6,6 +6,7 @@ use App\Models\ActivityLog;
 use App\Models\Impersonation;
 use App\Models\Role;
 use App\Models\User;
+use App\Support\AuditVerificationStatus;
 use App\Support\Menu;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
@@ -35,27 +36,40 @@ class RoleImpersonationTrail
         return is_numeric($period) ? now()->subDays((int) $period)->startOfDay() : null;
     }
 
-    /** @param  array{period?: string, search?: string, actor?: string}  $f */
-    public function roleChanges(array $f, int $perPage = 15): LengthAwarePaginator
+    /** Jenis perubahan peran (saringan tab Perubahan peran). */
+    public const ROLE_KINDS = [
+        'akun' => ['label' => 'Peran akun', 'events' => ['user.role_changed', 'user.role_added', 'user.role_removed']],
+        'baru' => ['label' => 'Akun baru', 'events' => ['user.created']],
+        'menu' => ['label' => 'Hak menu peran', 'events' => ['role.permissions_updated']],
+        'perbaikan' => ['label' => 'Perbaikan konsistensi', 'events' => ['user.roles_repaired']],
+    ];
+
+    /**
+     * Saringan bersama: period (7|30|90|semua), search, actor, kind (tab peran), category (tab aksi),
+     * status (tab impersonasi: aktif|selesai), seal ('rusak' = hanya catatan yang tidak cocok pada pemeriksaan terakhir).
+     *
+     * @param  array<string, string>  $f
+     */
+    public function roleChangesQuery(array $f): Builder
     {
-        return $this->logs(ActivityLog::query()->whereIn('event', self::ROLE_EVENTS), $f)
-            ->where(fn ($q) => $q->where('event', '!=', 'user.created')->orWhereNotNull('properties')) // akun baru: hanya bila mencatat perannya
-            ->paginate($perPage, pageName: 'hal');
+        $events = isset(self::ROLE_KINDS[$f['kind'] ?? '']) ? self::ROLE_KINDS[$f['kind']]['events'] : self::ROLE_EVENTS;
+
+        return $this->logs(ActivityLog::query()->whereIn('event', $events), $f)
+            ->where(fn ($q) => $q->where('event', '!=', 'user.created')->orWhereNotNull('properties')); // akun baru: hanya bila mencatat perannya
     }
 
-    /** @param  array{period?: string, search?: string, actor?: string}  $f */
-    public function actions(array $f, int $perPage = 15): LengthAwarePaginator
+    public function actionsQuery(array $f): Builder
     {
-        $q = ActivityLog::query()->whereNotIn('event', self::IMPERSONATION_EVENTS);
+        $q = ActivityLog::query()->whereNotIn('event', self::IMPERSONATION_EVENTS)
+            ->when(isset(ActivityLog::CATEGORIES[$f['category'] ?? '']), fn ($w) => $w->where('category', $f['category']));
         DB::getDriverName() === 'pgsql'
             ? $q->whereRaw('properties::text LIKE ?', ['%"impersonation":{%'])
             : $q->where('properties', 'like', '%"impersonation":{%');
 
-        return $this->logs($q, $f)->paginate($perPage, pageName: 'hal');
+        return $this->logs($q, $f);
     }
 
-    /** @param  array{period?: string, search?: string, actor?: string, status?: string}  $f */
-    public function sessions(array $f, int $perPage = 15): LengthAwarePaginator
+    public function sessionsQuery(array $f): Builder
     {
         $since = $this->since($f['period'] ?? '30');
         $search = trim((string) ($f['search'] ?? ''));
@@ -67,8 +81,41 @@ class RoleImpersonationTrail
                 ->orWhere('admin_name', 'like', "%{$search}%")->orWhere('reason', 'like', "%{$search}%")))
             ->when(($f['status'] ?? '') === 'aktif', fn ($q) => $q->active())
             ->when(($f['status'] ?? '') === 'selesai', fn ($q) => $q->whereNotNull('ended_at'))
-            ->orderByDesc('started_at')
-            ->paginate($perPage, pageName: 'hal');
+            ->when(($f['seal'] ?? '') === 'rusak', function ($q) {
+                // sesi yang catatan mulai/selesainya tercatat tidak cocok pada pemeriksaan terakhir
+                $bad = AuditVerificationStatus::last()['invalid'] ?? [];
+                $ids = ActivityLog::query()->whereIn('id', $bad ?: [0])->whereIn('event', self::IMPERSONATION_EVENTS)->get()
+                    ->map(fn ($l) => $l->properties['impersonation_id'] ?? null)->filter()->all();
+                $q->whereIn('id', $ids ?: ['00000000-0000-0000-0000-000000000000']);
+            })
+            ->orderByDesc('started_at');
+    }
+
+    public function roleChanges(array $f, int $perPage = 15): LengthAwarePaginator
+    {
+        return $this->roleChangesQuery($f)->paginate($perPage, pageName: 'hal');
+    }
+
+    public function actions(array $f, int $perPage = 15): LengthAwarePaginator
+    {
+        return $this->actionsQuery($f)->paginate($perPage, pageName: 'hal');
+    }
+
+    public function sessions(array $f, int $perPage = 15): LengthAwarePaginator
+    {
+        return $this->sessionsQuery($f)->paginate($perPage, pageName: 'hal');
+    }
+
+    /** Jumlah per tab dengan saringan yang sama (saringan khusus tab lain diabaikan). @return array{peran: int, impersonasi: int, aksi: int} */
+    public function counts(array $f): array
+    {
+        $common = array_intersect_key($f, array_flip(['period', 'search', 'actor', 'seal']));
+
+        return [
+            'peran' => $this->roleChangesQuery($common + ['kind' => $f['kind'] ?? ''])->count(),
+            'impersonasi' => $this->sessionsQuery($common + ['status' => $f['status'] ?? ''])->count(),
+            'aksi' => $this->actionsQuery($common + ['category' => $f['category'] ?? ''])->count(),
+        ];
     }
 
     private function logs(Builder $q, array $f): Builder
@@ -80,6 +127,7 @@ class RoleImpersonationTrail
             ->when(($f['actor'] ?? '') !== '', fn ($w) => $w->where('actor_name', $f['actor']))
             ->when($search !== '', fn ($w) => $w->where(fn ($s) => $s->where('description', 'like', "%{$search}%")
                 ->orWhere('subject_label', 'like', "%{$search}%")->orWhere('reason', 'like', "%{$search}%")))
+            ->when(($f['seal'] ?? '') === 'rusak', fn ($w) => $w->whereIn('id', AuditVerificationStatus::last()['invalid'] ?? [0]))
             ->orderByDesc('created_at')->orderByDesc('id');
     }
 

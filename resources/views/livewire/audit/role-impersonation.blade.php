@@ -73,7 +73,8 @@
             <div class="flex gap-1 rounded-lg bg-stone-200/60 p-0.5 text-sm" role="tablist" aria-label="Jenis jejak">
                 @foreach (\App\Livewire\Audit\RoleImpersonation::TABS as $key => $label)
                     <button type="button" role="tab" wire:click="$set('tab', '{{ $key }}')" aria-selected="{{ $tab === $key ? 'true' : 'false' }}"
-                            @class(['rounded-md px-3 py-1.5 font-medium', 'bg-white text-stone-900 shadow-sm' => $tab === $key, 'text-stone-600 hover:text-stone-900' => $tab !== $key])>{{ $label }}</button>
+                            @class(['rounded-md px-3 py-1.5 font-medium', 'bg-white text-stone-900 shadow-sm' => $tab === $key, 'text-stone-600 hover:text-stone-900' => $tab !== $key])>{{ $label }}
+                        <span class="ml-1 rounded-full bg-stone-200 px-1.5 text-[11px] text-stone-700 tabular-nums" data-tab-count="{{ $key }}">{{ $counts[$key] }}</span></button>
                 @endforeach
             </div>
             <select wire:model.live="period" aria-label="Periode" class="rounded-lg border border-stone-300 bg-white px-3 py-2 text-sm">
@@ -83,6 +84,21 @@
                 <option value="">Semua pelaku</option>
                 @foreach ($actors as $a)<option value="{{ $a }}">{{ $a }}</option>@endforeach
             </select>
+            @if ($tab === 'peran')
+                <select wire:model.live="kind" aria-label="Jenis perubahan" class="rounded-lg border border-stone-300 bg-white px-3 py-2 text-sm">
+                    <option value="">Semua jenis</option>
+                    @foreach ($kinds as $k => $def)<option value="{{ $k }}">{{ $def['label'] }}</option>@endforeach
+                </select>
+            @endif
+            @if ($tab === 'aksi')
+                <select wire:model.live="category" aria-label="Kategori" class="rounded-lg border border-stone-300 bg-white px-3 py-2 text-sm">
+                    <option value="">Semua kategori</option>
+                    @foreach ($categories as $k => $l)<option value="{{ $k }}">{{ $l }}</option>@endforeach
+                </select>
+            @endif
+            <label class="flex items-center gap-1.5 rounded-lg border border-stone-300 bg-white px-3 py-2 text-sm">
+                <input type="checkbox" wire:model.live="seal" value="rusak" class="size-4 rounded border-stone-300 text-red-700"> Hanya yang tidak cocok
+            </label>
             @if ($tab === 'impersonasi')
                 <select wire:model.live="status" aria-label="Status sesi" class="rounded-lg border border-stone-300 bg-white px-3 py-2 text-sm">
                     <option value="">Semua sesi</option><option value="aktif">Sedang berlangsung</option><option value="selesai">Sudah berakhir</option>
@@ -90,7 +106,7 @@
             @endif
             <input type="search" wire:model.live.debounce.300ms="search" maxlength="60" placeholder="Cari nama, akun, alasan…" aria-label="Cari"
                    class="min-w-48 flex-1 rounded-lg border border-stone-300 bg-white px-3 py-2 text-sm">
-            @if ($search !== '' || $actor !== '' || $status !== '' || $period !== '30')
+            @if ($search !== '' || $actor !== '' || $status !== '' || $kind !== '' || $category !== '' || $seal !== '' || $period !== '30')
                 <button type="button" wire:click="resetFilters" class="text-sm font-medium text-emerald-800 hover:underline">Atur ulang</button>
             @endif
         </div>

@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Audit;
 
+use App\Models\ActivityLog;
 use App\Models\Impersonation;
 use App\Models\Role;
 use App\Services\AuditIntegrity;
@@ -44,6 +45,18 @@ class RoleImpersonation extends Component
     #[Url(as: 'status', except: '')]
     public $status = '';
 
+    /** Tab Perubahan peran: jenis (akun|baru|menu|perbaikan). */
+    #[Url(as: 'jenis', except: '')]
+    public $kind = '';
+
+    /** Tab Aksi selama impersonasi: kategori activity_logs. */
+    #[Url(as: 'kategori', except: '')]
+    public $category = '';
+
+    /** 'rusak' = hanya catatan yang tidak cocok checksum pada pemeriksaan terakhir. */
+    #[Url(as: 'segel', except: '')]
+    public $seal = '';
+
     /** Catatan perubahan peran yang rinciannya sedang dibuka (panel samping). */
     #[Url(as: 'rinci', except: null)]
     public $detailId = null;
@@ -66,6 +79,9 @@ class RoleImpersonation extends Component
         $this->search = is_string($this->search) ? mb_substr(trim($this->search), 0, 60) : '';
         $this->actor = is_string($this->actor) ? mb_substr($this->actor, 0, 120) : '';
         $this->status = in_array($this->status, ['aktif', 'selesai'], true) ? $this->status : '';
+        $this->kind = is_string($this->kind) && isset(RoleImpersonationTrail::ROLE_KINDS[$this->kind]) ? $this->kind : '';
+        $this->category = is_string($this->category) && isset(ActivityLog::CATEGORIES[$this->category]) ? $this->category : '';
+        $this->seal = in_array($this->seal, ['rusak', true, '1', 1], true) ? 'rusak' : ''; // kotak centang mengirim true
         $this->detailId = is_numeric($this->detailId) && (int) $this->detailId > 0 ? (int) $this->detailId : null;
     }
 
@@ -102,14 +118,15 @@ class RoleImpersonation extends Component
 
     public function resetFilters(): void
     {
-        $this->reset('search', 'actor', 'status');
+        $this->reset('search', 'actor', 'status', 'kind', 'category', 'seal');
         $this->period = '30';
         $this->resetPage('hal');
     }
 
     private function filters(): array
     {
-        return ['period' => $this->period, 'search' => $this->search, 'actor' => $this->actor, 'status' => $this->status];
+        return ['period' => $this->period, 'search' => $this->search, 'actor' => $this->actor, 'status' => $this->status,
+            'kind' => $this->kind, 'category' => $this->category, 'seal' => $this->seal];
     }
 
     #[Computed]
@@ -136,6 +153,9 @@ class RoleImpersonation extends Component
             'sessionLogs' => $sessionLogs,
             'integrity' => $this->trail->integrity(array_map('intval', $logIds)),
             'stats' => $this->trail->stats($this->period),
+            'counts' => $this->trail->counts($this->filters()),
+            'kinds' => RoleImpersonationTrail::ROLE_KINDS,
+            'categories' => ActivityLog::CATEGORIES,
             'actors' => $this->trail->actors(),
             'periods' => RoleImpersonationTrail::PERIODS,
             'endReasons' => Impersonation::END_REASONS,

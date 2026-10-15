@@ -1,6 +1,6 @@
 {
   "repo": "Koperasi Sekolah",
-  "generatedForCommit": "7bd2292ff5f1fa6e3396e6a41087bcb25fa1a2e4",
+  "generatedForCommit": "30078a875c350757e71415d8a01c56a5068e3861",
   "files": [
     {
       "path": ".claude/skills/ngodingpakeai/SKILL.md",
@@ -49,6 +49,12 @@
       "reason": "needs_summary",
       "language": "php",
       "size": 2081
+    },
+    {
+      "path": "app/Console/Commands/VerifyAuditLog.php",
+      "reason": "changed",
+      "language": "php",
+      "size": 2025
     },
     {
       "path": "app/Http/Controllers/Akun/MenuController.php",
@@ -196,9 +202,9 @@
     },
     {
       "path": "app/Livewire/Audit/RoleImpersonation.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 4168
+      "size": 5556
     },
     {
       "path": "app/Livewire/Concerns/GuardsSettings.php",
@@ -316,7 +322,7 @@
     },
     {
       "path": "app/Services/ImpersonationService.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 19101
     },
@@ -346,7 +352,7 @@
     },
     {
       "path": "app/Services/RoleImpersonationTrail.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 10732
     },
@@ -367,6 +373,12 @@
       "reason": "needs_summary",
       "language": "php",
       "size": 2153
+    },
+    {
+      "path": "app/Support/AuditVerificationStatus.php",
+      "reason": "new",
+      "language": "php",
+      "size": 2312
     },
     {
       "path": "app/Support/ImpersonationPolicy.php",
@@ -1216,7 +1228,7 @@
     },
     {
       "path": "resources/views/components/impersonation-banner.blade.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 4033
     },
@@ -1558,9 +1570,9 @@
     },
     {
       "path": "resources/views/livewire/audit/role-impersonation.blade.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 11560
+      "size": 15020
     },
     {
       "path": "resources/views/livewire/audit/trash.blade.php",
@@ -2271,6 +2283,12 @@
       "size": 4228
     },
     {
+      "path": "tests/Feature/Audit/IntegrityPanelTest.php",
+      "reason": "new",
+      "language": "php",
+      "size": 4396
+    },
+    {
       "path": "tests/Feature/Audit/RoleChangeDetailTest.php",
       "reason": "needs_summary",
       "language": "php",
@@ -2458,7 +2476,7 @@
     },
     {
       "path": "tests/Feature/Impersonasi/BannerAuditContextTest.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 2710
     },
