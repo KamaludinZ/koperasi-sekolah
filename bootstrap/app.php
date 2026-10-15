@@ -5,6 +5,7 @@ use App\Http\Middleware\EnsureMenuAccess;
 use App\Http\Middleware\EnsurePortalMember;
 use App\Http\Middleware\EnsureRole;
 use App\Http\Middleware\ForceHttps;
+use App\Http\Middleware\TrackImpersonation;
 use App\Http\Middleware\TrackSlowRequests;
 use App\Support\AccessDenied;
 use Illuminate\Auth\Access\AuthorizationException;
@@ -28,7 +29,8 @@ return Application::configure(basePath: dirname(__DIR__))
 
         // Batasi menu sesuai peran petugas.
         // Sesi petugas: keluarkan akun nonaktif / sesi yang terlalu lama tidak aktif.
-        $middleware->web(append: [EnsureActiveSession::class, TrackSlowRequests::class]);
+        // TrackImpersonation lebih dulu: impersonasi yang tak sah lagi diakhiri & admin dipulihkan sebelum sesi diperiksa.
+        $middleware->web(append: [TrackImpersonation::class, EnsureActiveSession::class, TrackSlowRequests::class]);
 
         // Tamu di portal anggota diarahkan ke halaman masuk anggota, bukan login petugas.
         $middleware->redirectGuestsTo(fn (Request $request) => $request->is('portal', 'portal/*') ? route('portal.login') : route('login'));
@@ -43,7 +45,7 @@ return Application::configure(basePath: dirname(__DIR__))
         // Penjaga akses dijalankan SEBELUM pengikatan model rute ({pinjaman}, {user}, …): petugas di luar gabungan
         // izinnya selalu mendapat 403 — tidak 404 untuk data yang tidak ada — sehingga ada/tidaknya data tidak bocor.
         // EnsureActiveSession tetap paling depan: akun nonaktif/tanpa peran/sesi kedaluwarsa dikeluarkan dulu, bukan 403.
-        foreach ([EnsureActiveSession::class, EnsureMenuAccess::class, EnsureRole::class, EnsurePortalMember::class] as $guard) {
+        foreach ([TrackImpersonation::class, EnsureActiveSession::class, EnsureMenuAccess::class, EnsureRole::class, EnsurePortalMember::class] as $guard) {
             $middleware->prependToPriorityList(SubstituteBindings::class, $guard);
         }
     })

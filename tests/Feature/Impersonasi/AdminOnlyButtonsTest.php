@@ -7,16 +7,16 @@ use App\Models\Member;
 use App\Models\Role;
 use App\Models\User;
 use App\Support\ImpersonationPolicy;
-use App\Support\ImpersonationSession;
 use Database\Seeders\UserSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Gate;
 use Livewire\Livewire;
+use Tests\Concerns\FakesImpersonation;
 use Tests\TestCase;
 
 class AdminOnlyButtonsTest extends TestCase
 {
-    use RefreshDatabase;
+    use FakesImpersonation, RefreshDatabase;
 
     private User $admin;
 
@@ -36,11 +36,11 @@ class AdminOnlyButtonsTest extends TestCase
 
     private function memberImpersonation(): array
     {
-        return [ImpersonationSession::KEY => [
-            'id' => 'x', 'admin_id' => $this->admin->id, 'admin_name' => $this->admin->name, 'target_type' => 'anggota',
+        return $this->impersonationRecord([
+            'id' => 'aaaaaaaa-0000-0000-0000-00000000000a', 'admin_id' => $this->admin->id, 'admin_name' => $this->admin->name, 'target_type' => 'anggota',
             'target_id' => $this->member->id, 'target_name' => 'Siti Portal', 'reason' => 'membantu anggota portal',
             'started_at' => now()->timestamp, 'expires_at' => now()->addMinutes(30)->timestamp,
-        ]];
+        ]);
     }
 
     public function test_gate_allows_only_active_admins_including_multi_role_admins(): void
@@ -94,7 +94,7 @@ class AdminOnlyButtonsTest extends TestCase
     public function test_no_nested_impersonation_while_already_impersonating(): void
     {
         // guard anggota dulu, lalu admin: guard bawaan tetap `web` seperti permintaan nyata
-        $this->actingAs($this->member->fresh(), 'member')->actingAs($this->admin)->withSession($this->memberImpersonation());
+        $this->actingAs($this->member->fresh(), 'member')->actingAs($this->admin, 'web')->withSession($this->memberImpersonation());
         session($this->memberImpersonation());
         $this->assertFalse(Gate::forUser($this->admin)->allows('impersonasi'));
         $this->assertStringContainsString('Selesaikan dulu', ImpersonationPolicy::actorDenial($this->admin));

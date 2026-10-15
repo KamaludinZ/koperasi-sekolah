@@ -7,11 +7,12 @@ use App\Models\User;
 use App\Support\ImpersonationSession;
 use Database\Seeders\UserSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\Concerns\FakesImpersonation;
 use Tests\TestCase;
 
 class BannerTest extends TestCase
 {
-    use RefreshDatabase;
+    use FakesImpersonation, RefreshDatabase;
 
     private User $admin;
 
@@ -24,12 +25,12 @@ class BannerTest extends TestCase
 
     private function state(array $override = []): array
     {
-        return [ImpersonationSession::KEY => [
+        return $this->impersonationRecord([
             'id' => 'aaaaaaaa-1111-2222-3333-444444444444', 'admin_id' => $this->admin->id, 'admin_name' => $this->admin->name,
-            'target_type' => 'petugas', 'target_id' => 2, 'target_name' => 'Bu Rina', 'target_label' => 'Kasir',
+            'target_type' => 'petugas', 'target_id' => User::where('email', 'kasir@koperasi.test')->value('id'), 'target_name' => 'Bu Rina', 'target_label' => 'Kasir',
             'reason' => 'Membantu kasir: struk/transaksi bermasalah', 'started_at' => now()->timestamp, 'expires_at' => now()->addMinutes(30)->timestamp,
             ...$override,
-        ]];
+        ]);
     }
 
     public function test_banner_shows_admin_target_reason_and_countdown_on_staff_pages(): void
@@ -49,7 +50,7 @@ class BannerTest extends TestCase
     {
         $m = Member::factory()->create(['name' => 'Siti Portal']);
         $m->forceFill(['password' => 'rahasia-portal-1'])->save();
-        $this->actingAs($m->fresh(), 'member')->withSession($this->state([
+        $this->actingAs($m->fresh(), 'member')->actingAs($this->admin, 'web')->withSession($this->state([
             'target_type' => 'anggota', 'target_id' => $m->id, 'target_name' => 'Siti Portal', 'target_label' => $m->member_code,
             'reason' => 'Membantu anggota yang tidak bisa memakai portal',
         ]));
@@ -65,8 +66,10 @@ class BannerTest extends TestCase
         $this->get('/pengguna')->assertOk()->assertDontSeeHtml('data-impersonation-banner');
 
         // keadaan rusak / tidak lengkap tidak pernah dipercaya
+        $valid = ['id' => 'aaaaaaaa-1111-2222-3333-444444444444', 'admin_id' => $this->admin->id, 'admin_name' => $this->admin->name,
+            'target_type' => 'petugas', 'target_id' => 1, 'target_name' => 'x', 'reason' => 'membantu memeriksa', 'started_at' => now()->timestamp, 'expires_at' => now()->addMinutes(5)->timestamp];
         foreach ([['target_type' => 'ratu'], ['reason' => null]] as $bad) {
-            $state = $this->state($bad);
+            $state = [ImpersonationSession::KEY => [...$valid, ...$bad]];
             $state[ImpersonationSession::KEY] = array_filter($state[ImpersonationSession::KEY], fn ($v) => $v !== null);
             $this->withSession($state)->get('/pengguna')->assertDontSeeHtml('data-impersonation-banner');
         }

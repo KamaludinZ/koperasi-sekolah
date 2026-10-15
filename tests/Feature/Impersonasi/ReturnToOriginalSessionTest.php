@@ -9,11 +9,12 @@ use App\Support\ImpersonationSession;
 use Database\Seeders\UserSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Auth;
+use Tests\Concerns\FakesImpersonation;
 use Tests\TestCase;
 
 class ReturnToOriginalSessionTest extends TestCase
 {
-    use RefreshDatabase;
+    use FakesImpersonation, RefreshDatabase;
 
     private User $admin;
 
@@ -29,11 +30,11 @@ class ReturnToOriginalSessionTest extends TestCase
 
     private function state(string $type, int $targetId, string $name): array
     {
-        return [ImpersonationSession::KEY => [
+        return $this->impersonationRecord([
             'id' => 'aaaaaaaa-1111-2222-3333-444444444444', 'admin_id' => $this->admin->id, 'admin_name' => $this->admin->name,
             'target_type' => $type, 'target_id' => $targetId, 'target_name' => $name, 'target_label' => null,
             'reason' => 'membantu memeriksa layar', 'started_at' => now()->timestamp, 'expires_at' => now()->addMinutes(30)->timestamp,
-        ]];
+        ]);
     }
 
     public function test_banner_and_sidebar_show_return_button_while_impersonating_staff(): void

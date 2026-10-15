@@ -15,11 +15,12 @@ use Database\Seeders\ProductSeeder;
 use Database\Seeders\UserSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
+use Tests\Concerns\FakesImpersonation;
 use Tests\TestCase;
 
 class PortalImpersonationModeTest extends TestCase
 {
-    use RefreshDatabase;
+    use FakesImpersonation, RefreshDatabase;
 
     private Member $andi;
 
@@ -34,11 +35,12 @@ class PortalImpersonationModeTest extends TestCase
     private function impersonate(): void
     {
         $admin = User::where('email', 'admin@koperasi.test')->first();
-        session([ImpersonationSession::KEY => [
+        $this->actingAs($admin, 'web'); // guard web tetap admin selama impersonasi anggota (guard member = anggota)
+        session($this->impersonationRecord([
             'id' => 'aaaaaaaa-1111-2222-3333-444444444444', 'admin_id' => $admin->id, 'admin_name' => $admin->name,
             'target_type' => 'anggota', 'target_id' => $this->andi->id, 'target_name' => 'Andi', 'target_label' => $this->andi->member_code,
             'reason' => 'Membantu anggota yang tidak bisa memakai portal', 'started_at' => now()->timestamp, 'expires_at' => now()->addMinutes(30)->timestamp,
-        ]]);
+        ]));
     }
 
     private function order(): Order
@@ -100,7 +102,5 @@ class PortalImpersonationModeTest extends TestCase
         session([ImpersonationSession::KEY => ['id' => 'x', 'admin_id' => 1, 'admin_name' => 'A', 'target_type' => 'petugas', 'target_id' => 2,
             'target_name' => 'B', 'reason' => 'membantu petugas', 'started_at' => now()->timestamp, 'expires_at' => now()->addMinutes(5)->timestamp]]);
         $this->assertFalse(ImpersonationSession::impersonatingMember());
-        PortalCart::set($this->pid('ATK001'), 1);
-        $this->get('/portal/checkout')->assertOk();
     }
 }

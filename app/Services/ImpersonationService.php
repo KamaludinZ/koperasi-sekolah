@@ -146,7 +146,7 @@ class ImpersonationService
      *
      * @return array{ok: bool, admin: ?User, target_name: ?string}
      */
-    public function stop(Request $request): array
+    public function stop(Request $request, string $endReason = 'manual'): array
     {
         $imp = ImpersonationSession::current();
         if (! $imp) {
@@ -155,7 +155,7 @@ class ImpersonationService
             return ['ok' => false, 'admin' => null, 'target_name' => null];
         }
 
-        $this->close($imp['id'], 'manual');
+        $this->close($imp['id'], $endReason);
         $admin = User::with(['role', 'roles'])->find($imp['admin_id']);
         if ($imp['target_type'] === 'anggota') {
             Auth::guard('member')->logout();
@@ -179,6 +179,52 @@ class ImpersonationService
         session()->put('last_activity_at', now()->timestamp);
 
         return ['ok' => true, 'admin' => $admin, 'target_name' => $imp['target_name']];
+    }
+
+    /**
+     * Periksa keabsahan impersonasi yang berjalan di sesi ini terhadap basis data & guard (dipanggil middleware di
+     * setiap permintaan). Null = sah / tidak sedang impersonasi; selain itu [cara berakhir, pesan untuk admin].
+     *
+     * @return ?array{0: string, 1: string}
+     */
+    public function problem(): ?array
+    {
+        $imp = ImpersonationSession::current();
+        if (! $imp) {
+            return null;
+        }
+        $record = Impersonation::find($imp['id']);
+        if (! $record || $record->ended_at !== null || $record->admin_id !== $imp['admin_id'] || $record->target_type !== $imp['target_type']
+            || ($record->target_user_id ?? $record->target_member_id) !== $imp['target_id']) {
+            return ['sesi_berakhir', 'Sesi impersonasi sudah ditutup.'];
+        }
+        if ($record->expires_at->isPast()) {
+            return ['kedaluwarsa', 'Waktu impersonasi ('.$record->started_at->diffInMinutes($record->expires_at).' menit) habis.'];
+        }
+
+        $admin = User::with(['role', 'roles'])->find($imp['admin_id']);
+        if (! $admin || ! $admin->is_active || ! $admin->hasRole(Role::ADMIN) || ! $admin->canOpen('pengguna')) {
+            return ['dicabut', 'Hak admin pemilik sesi impersonasi ini sudah berubah.'];
+        }
+        if ($imp['target_type'] === 'petugas') {
+            if (Auth::guard('web')->id() !== $imp['target_id']) {
+                return ['sesi_berakhir', 'Sesi impersonasi tidak lagi sesuai dengan akun yang masuk.'];
+            }
+            $target = User::with(['role', 'roles'])->find($imp['target_id']);
+            if (! $target || ($denial = ImpersonationPolicy::staffDenial($target, $admin)) !== null) {
+                return ['dicabut', 'Akun '.$imp['target_name'].' tidak lagi bisa dimasuki'.(isset($denial) ? ' ('.rtrim($denial, '.').')' : '').'.'];
+            }
+        } else {
+            if (Auth::guard('member')->id() !== $imp['target_id'] || Auth::guard('web')->id() !== $admin->id) {
+                return ['sesi_berakhir', 'Sesi impersonasi tidak lagi sesuai dengan akun yang masuk.'];
+            }
+            $member = Member::find($imp['target_id']);
+            if (! $member || ($denial = ImpersonationPolicy::memberDenial($member)) !== null) {
+                return ['dicabut', 'Anggota '.$imp['target_name'].' tidak lagi bisa dibuka portalnya'.(isset($denial) ? ' ('.rtrim($denial, '.').')' : '').'.'];
+            }
+        }
+
+        return null;
     }
 
     /** Tandai baris sesi impersonasi berakhir (sekali saja; baris yang sudah berakhir tidak diubah). */

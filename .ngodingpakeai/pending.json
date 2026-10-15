@@ -1,6 +1,6 @@
 {
   "repo": "Koperasi Sekolah",
-  "generatedForCommit": "965ef16b4ec19a198a26a4a658be3db63d89171a",
+  "generatedForCommit": "82df9ed27e2b46498912de846617e0c74bf61505",
   "files": [
     {
       "path": ".claude/skills/ngodingpakeai/SKILL.md",
@@ -93,8 +93,14 @@
       "size": 77
     },
     {
-      "path": "app/Http/Controllers/Impersonasi/StartStaffController.php",
+      "path": "app/Http/Controllers/Impersonasi/StartMemberController.php",
       "reason": "new",
+      "language": "php",
+      "size": 1359
+    },
+    {
+      "path": "app/Http/Controllers/Impersonasi/StartStaffController.php",
+      "reason": "needs_summary",
       "language": "php",
       "size": 1477
     },
@@ -244,7 +250,7 @@
     },
     {
       "path": "app/Livewire/Pengguna/Impersonation.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 7649
     },
@@ -300,7 +306,7 @@
       "path": "app/Services/ImpersonationService.php",
       "reason": "changed",
       "language": "php",
-      "size": 8713
+      "size": 9740
     },
     {
       "path": "app/Services/MemberCodeGenerator.php",
@@ -325,6 +331,12 @@
       "reason": "needs_summary",
       "language": "php",
       "size": 5077
+    },
+    {
+      "path": "app/Services/PortalAuthService.php",
+      "reason": "changed",
+      "language": "php",
+      "size": 3482
     },
     {
       "path": "app/Services/StockService.php",
@@ -2166,7 +2178,7 @@
       "path": "routes/web.php",
       "reason": "changed",
       "language": "php",
-      "size": 52854
+      "size": 53102
     },
     {
       "path": "tests/Concerns/MakesProductImports.php",
@@ -2415,8 +2427,14 @@
       "size": 5908
     },
     {
-      "path": "tests/Feature/Impersonasi/StartStaffImpersonationTest.php",
+      "path": "tests/Feature/Impersonasi/StartMemberImpersonationTest.php",
       "reason": "new",
+      "language": "php",
+      "size": 5481
+    },
+    {
+      "path": "tests/Feature/Impersonasi/StartStaffImpersonationTest.php",
+      "reason": "needs_summary",
       "language": "php",
       "size": 6763
     },
