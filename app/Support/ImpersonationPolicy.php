@@ -24,6 +24,23 @@ class ImpersonationPolicy
 
     public const REASON_MAX = 200;
 
+    /** Pilihan lama sesi (menit), semuanya ≤ MAX_MINUTES. */
+    public const DURATIONS = [10, 15, 30];
+
+    /** Alasan cepat (bisa dilengkapi admin) per jenis akun. */
+    public const REASON_PRESETS = [
+        'petugas' => [
+            'Memeriksa masalah yang dilaporkan petugas di layarnya',
+            'Membantu kasir: struk/transaksi bermasalah',
+            'Memastikan menu & hak akses sesuai peran barunya',
+        ],
+        'anggota' => [
+            'Membantu anggota yang tidak bisa memakai portal',
+            'Memeriksa saldo/simpanan yang dikeluhkan anggota',
+            'Memeriksa status pengajuan pinjaman anggota',
+        ],
+    ];
+
     /** Admin ini boleh memulai impersonasi? Null = boleh, string = alasan ditolak. */
     public static function actorDenial(?User $actor): ?string
     {
@@ -73,10 +90,13 @@ class ImpersonationPolicy
         return null;
     }
 
-    /** @return array<string, list<string>> aturan validasi alasan */
+    /** @return array<string, list<string>> aturan validasi alasan & lama sesi */
     public static function reasonRules(): array
     {
-        return ['reason' => ['required', 'string', 'min:'.self::REASON_MIN, 'max:'.self::REASON_MAX]];
+        return [
+            'reason' => ['required', 'string', 'min:'.self::REASON_MIN, 'max:'.self::REASON_MAX],
+            'minutes' => ['required', 'integer', 'in:'.implode(',', self::DURATIONS)],
+        ];
     }
 
     /** @return array<string, string> */
@@ -86,6 +106,8 @@ class ImpersonationPolicy
             'reason.required' => 'Tulis alasan masuk sebagai akun ini — dicatat di jejak audit.',
             'reason.min' => 'Alasan minimal '.self::REASON_MIN.' karakter (mis. "membantu kasir yang struknya gagal tercetak").',
             'reason.max' => 'Alasan maksimal '.self::REASON_MAX.' karakter.',
+            'minutes.in' => 'Pilih lama sesi '.implode(', ', self::DURATIONS).' menit.',
+            'minutes.required' => 'Pilih lama sesi.',
         ];
     }
 }

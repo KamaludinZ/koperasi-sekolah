@@ -1,6 +1,6 @@
 {
   "repo": "Koperasi Sekolah",
-  "generatedForCommit": "f5c3eb7b6658baa07c3655166c81ec6b51578257",
+  "generatedForCommit": "1332895359fefc1ac49ba10d60e82676f100d763",
   "files": [
     {
       "path": ".claude/skills/ngodingpakeai/SKILL.md",
@@ -231,6 +231,12 @@
       "size": 3110
     },
     {
+      "path": "app/Livewire/Pengguna/Impersonation.php",
+      "reason": "new",
+      "language": "php",
+      "size": 5628
+    },
+    {
       "path": "app/Livewire/Pengguna/Index.php",
       "reason": "needs_summary",
       "language": "php",
@@ -307,6 +313,12 @@
       "reason": "needs_summary",
       "language": "php",
       "size": 8693
+    },
+    {
+      "path": "app/Support/ImpersonationPolicy.php",
+      "reason": "new",
+      "language": "php",
+      "size": 3187
     },
     {
       "path": "app/Support/MockData.php",
@@ -1192,9 +1204,9 @@
     },
     {
       "path": "resources/views/components/pengguna/nav.blade.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 754
+      "size": 802
     },
     {
       "path": "resources/views/components/pin-input.blade.php",
@@ -1785,6 +1797,12 @@
       "size": 4997
     },
     {
+      "path": "resources/views/livewire/pengguna/impersonation.blade.php",
+      "reason": "new",
+      "language": "php",
+      "size": 8651
+    },
+    {
       "path": "resources/views/livewire/pengguna/index.blade.php",
       "reason": "needs_summary",
       "language": "php",
@@ -2098,9 +2116,9 @@
     },
     {
       "path": "routes/web.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 52035
+      "size": 52137
     },
     {
       "path": "tests/Concerns/MakesProductImports.php",
@@ -2182,7 +2200,7 @@
     },
     {
       "path": "tests/Feature/Auth/RoleCombinationAccessTest.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 8194
     },
@@ -2305,6 +2323,12 @@
       "reason": "needs_summary",
       "language": "php",
       "size": 758
+    },
+    {
+      "path": "tests/Feature/Impersonasi/AccountListPageTest.php",
+      "reason": "new",
+      "language": "php",
+      "size": 6098
     },
     {
       "path": "tests/Feature/Kasir/CheckoutTest.php",

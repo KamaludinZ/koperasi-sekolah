@@ -7,6 +7,7 @@ use App\Models\Member;
 use App\Models\User;
 use App\Services\ImpersonationService;
 use App\Support\ImpersonationPolicy;
+use App\Support\Menu;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Locked;
@@ -39,6 +40,9 @@ class Impersonation extends Component
     public string $reason = '';
 
     public bool $acknowledged = false;
+
+    /** Lama sesi impersonasi (menit) — salah satu ImpersonationPolicy::DURATIONS. */
+    public $minutes = ImpersonationPolicy::MAX_MINUTES.''; // string: nilai radio dari peramban selalu string
 
     public function mount(): void
     {
@@ -116,6 +120,7 @@ class Impersonation extends Component
         $this->resetErrorBag();
         $this->reason = '';
         $this->acknowledged = false;
+        $this->minutes = (string) ImpersonationPolicy::MAX_MINUTES;
         $model = $type === 'anggota' ? Member::find($id) : ($type === 'petugas' ? User::with(['role', 'roles'])->find($id) : null);
         $denial = $model ? $this->denial($model) : 'Akun tidak ditemukan.';
         if ($denial !== null) {
@@ -131,13 +136,43 @@ class Impersonation extends Component
     public function cancel(): void
     {
         $this->target = null;
-        $this->reset('reason', 'acknowledged');
+        $this->reset('reason', 'acknowledged', 'minutes');
         $this->resetErrorBag();
+    }
+
+    /** Pakai alasan cepat (indeks daftar preset jenis akun target), bisa dilengkapi setelahnya. */
+    public function usePreset(int $i): void
+    {
+        $preset = ImpersonationPolicy::REASON_PRESETS[$this->target['type'] ?? ''][$i] ?? null;
+        if ($preset !== null) {
+            $this->reason = $preset;
+            $this->resetErrorBag('reason');
+        }
+    }
+
+    /**
+     * Pratinjau yang akan dilihat admin: menu gabungan akun petugas, atau ringkasan portal anggota.
+     *
+     * @return array{kind: string, items: list<string>}
+     */
+    #[Computed]
+    public function preview(): array
+    {
+        $m = $this->targetModel;
+        if ($m instanceof User) {
+            return ['kind' => 'menu', 'items' => array_map(fn ($k) => Menu::ITEMS[$k]['label'], $m->permissions())];
+        }
+        if ($m instanceof Member) {
+            return ['kind' => 'portal', 'items' => ['Beranda & saldo', 'Simpanan', 'Pinjaman', 'Belanja & pesanan', 'Riwayat transaksi']];
+        }
+
+        return ['kind' => 'none', 'items' => []];
     }
 
     public function start()
     {
-        $this->reason = trim($this->reason);
+        $this->reason = is_string($this->reason) ? trim(preg_replace('/\s+/u', ' ', $this->reason)) : '';
+        $this->minutes = is_numeric($this->minutes) ? (int) $this->minutes : $this->minutes;
         $this->validate(ImpersonationPolicy::reasonRules() + ['acknowledged' => ['accepted']],
             ImpersonationPolicy::reasonMessages() + ['acknowledged.accepted' => 'Centang pernyataan bahwa semua aksi tercatat atas nama Anda.']);
 
@@ -151,7 +186,7 @@ class Impersonation extends Component
 
         // Layanan impersonasi (backend) memulai sesi & mengarahkan ke halaman akun target.
         if (class_exists(ImpersonationService::class)) {
-            return app(ImpersonationService::class)->startFromLivewire($this, auth()->user(), $model, $this->reason);
+            return app(ImpersonationService::class)->startFromLivewire($this, auth()->user(), $model, $this->reason, (int) $this->minutes);
         }
         $this->toast('info', 'Layanan impersonasi belum dipasang.');
 
@@ -169,6 +204,8 @@ class Impersonation extends Component
         return view('livewire.pengguna.impersonation', [
             'rows' => $this->tab === 'anggota' ? $this->members : $this->staff,
             'maxMinutes' => ImpersonationPolicy::MAX_MINUTES,
+            'durations' => ImpersonationPolicy::DURATIONS,
+            'presets' => ImpersonationPolicy::REASON_PRESETS[$this->target['type'] ?? 'petugas'] ?? [],
         ]);
     }
 }

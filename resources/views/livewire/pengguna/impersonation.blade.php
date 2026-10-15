@@ -85,35 +85,5 @@
         {{ $rows->links() }}
     </div>
 
-    @if ($target && $sel)
-        <div class="fixed inset-0 z-50 flex items-end justify-center sm:items-center sm:p-4" role="dialog" aria-modal="true" aria-labelledby="imp-title"
-             x-data x-on:keydown.escape.window="$wire.cancel()">
-            <div class="absolute inset-0 bg-stone-950/50" wire:click="cancel"></div>
-            <form wire:submit="start" class="relative w-full max-w-md space-y-3 rounded-t-2xl bg-white p-5 shadow-xl sm:rounded-2xl">
-                <h2 id="imp-title" class="font-semibold">Masuk sebagai {{ $sel->name }}?</h2>
-                <p class="text-sm text-stone-600">
-                    @if ($target['type'] === 'anggota')
-                        Anda akan membuka <strong>portal anggota</strong> sebagai {{ $sel->name }} ({{ $sel->member_code }}).
-                    @else
-                        Anda akan memakai aplikasi sebagai <strong>{{ $roleChips($sel->roleNames()) }}</strong> — menu & hak aksi mengikuti akun ini.
-                    @endif
-                    Sesi berakhir otomatis setelah {{ $maxMinutes }} menit.
-                </p>
-                <label class="block text-sm"><span class="mb-1 block font-medium text-stone-700">Alasan</span>
-                    <textarea wire:model="reason" rows="2" maxlength="{{ \App\Support\ImpersonationPolicy::REASON_MAX }}" placeholder="mis. kasir melapor struk gagal tercetak, saya periksa layarnya"
-                              class="w-full rounded-lg border border-stone-300 px-3 py-2 text-sm"></textarea>
-                    @error('reason') <span class="mt-1 block text-xs text-red-600">{{ $message }}</span> @enderror
-                </label>
-                <label class="flex items-start gap-2 text-sm text-stone-700">
-                    <input type="checkbox" wire:model="acknowledged" class="mt-0.5 size-4 rounded border-stone-300 text-emerald-700">
-                    <span>Saya memahami semua aksi selama sesi ini tercatat atas nama saya.</span>
-                </label>
-                @error('acknowledged') <span class="block text-xs text-red-600">{{ $message }}</span> @enderror
-                <div class="flex justify-end gap-2">
-                    <button type="button" wire:click="cancel" class="rounded-xl border border-stone-300 px-4 py-2 text-sm font-medium text-stone-700 hover:bg-stone-50">Batal</button>
-                    <button type="submit" wire:loading.attr="disabled" class="rounded-xl bg-emerald-700 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-800 disabled:opacity-60">Masuk sebagai {{ \Illuminate\Support\Str::of($sel->name)->words(2, '') }}</button>
-                </div>
-            </form>
-        </div>
-    @endif
+    @include('livewire.pengguna.partials.impersonate-dialog')
 </div>
