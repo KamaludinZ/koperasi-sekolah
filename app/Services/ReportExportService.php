@@ -74,7 +74,7 @@ class ReportExportService
     }
 
     /** @throws ValidationException bila rentang tidak sah/terlalu panjang atau masih banyak ekspor berjalan */
-    public function requestLoanRecap(User $user, Carbon $from, Carbon $to): ReportExport
+    public function requestLoanRecap(User $user, Carbon $from, Carbon $to, string $format = 'csv', ?string $label = null): ReportExport
     {
         if ($from->gt($to) || $from->copy()->startOfDay()->diffInDays($to->copy()->startOfDay()) + 1 > self::MAX_DAYS) {
             throw ValidationException::withMessages(['dari' => 'Rentang maksimal 366 hari.']);
@@ -82,8 +82,8 @@ class ReportExportService
         $this->guardPending($user);
 
         $export = ReportExport::create([
-            'user_id' => $user->id, 'type' => 'pinjaman_rekap', 'format' => 'csv',
-            'params' => ['from' => $from->toDateString(), 'to' => $to->toDateString()],
+            'user_id' => $user->id, 'type' => 'pinjaman_rekap', 'format' => $format === 'pdf' ? 'pdf' : 'csv',
+            'params' => ['from' => $from->toDateString(), 'to' => $to->toDateString()] + ($label ? ['label' => $label] : []),
         ]);
         \App\Jobs\ExportLoanRecap::dispatch($export->id);
 

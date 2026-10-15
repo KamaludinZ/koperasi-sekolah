@@ -81,6 +81,32 @@ class LoanRecapExport
         return ['content' => $content, 'rows' => $disb->count() + $pays->count()];
     }
 
+    /** Batas baris rincian pembayaran di PDF (CSV memuat semuanya). */
+    public const PDF_MAX_ROWS = 500;
+
+    public const FORMATS = ['csv' => 'Excel (CSV)', 'pdf' => 'PDF'];
+
+    /** @return array{content: string, rows: int} */
+    public function pdf(Carbon $from, Carbon $to, string $label): array
+    {
+        $r = $this->recap->recap($from, $to);
+        $query = LoanPayment::query()->whereNull('voided_at')->whereDayRange('paid_at', $from->toDateString(), $to->toDateString());
+        $total = (clone $query)->count();
+        $payments = $query->with('loan:id,code,member_id', 'loan.member:id,member_code,name,deleted_at')
+            ->orderByDesc('paid_at')->orderByDesc('id')->limit(self::PDF_MAX_ROWS)->get()
+            ->map(fn ($x) => ['date' => $x->paid_at->format('d/m/Y'), 'code' => $x->loan?->code, 'member' => $x->loan?->member?->name,
+                'amount' => (int) round((float) $x->amount), 'method' => Loan::METHODS[$x->payment_method] ?? $x->payment_method,
+                'reference' => LoanPaymentService::referenceLabel($x->payment_method, $x->reference),
+                'sequences' => implode(', ', array_column($x->allocations ?? [], 'sequence'))])->all();
+
+        $content = \Barryvdh\DomPDF\Facade\Pdf::loadView('pinjaman.rekap-pdf', [
+            'r' => $r, 'label' => $label, 'from' => $from, 'to' => $to, 'profile' => $this->settings->profile(),
+            'payments' => $payments, 'payments_truncated' => $total > self::PDF_MAX_ROWS,
+        ])->setPaper('a4')->output();
+
+        return ['content' => $content, 'rows' => $total];
+    }
+
     /** Netralkan rumus spreadsheet pada teks (angka dibiarkan). */
     public static function cell(mixed $v): mixed
     {

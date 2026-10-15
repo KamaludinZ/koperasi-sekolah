@@ -123,13 +123,14 @@ class Recap extends Component
     }
 
     /** Minta ekspor CSV periode yang sedang dilihat ke antrean latar. */
-    public function export(\App\Services\ReportExportService $exports): void
+    public function export(\App\Services\ReportExportService $exports, string $format = 'csv'): void
     {
-        [$from, $to] = $this->period;
+        $format = $format === 'pdf' ? 'pdf' : 'csv';
+        [$from, $to, $label] = $this->period;
         try {
-            $exports->requestLoanRecap(auth()->user(), $from, $to);
+            $exports->requestLoanRecap(auth()->user(), $from, $to, $format, $label);
             unset($this->exports);
-            $this->dispatch('toast', type: 'success', message: 'Ekspor CSV sedang disiapkan.');
+            $this->dispatch('toast', type: 'success', message: 'Ekspor '.strtoupper($format).' sedang disiapkan.');
         } catch (\Illuminate\Validation\ValidationException $e) {
             $this->dispatch('toast', type: 'error', message: collect($e->errors())->flatten()->first());
         }

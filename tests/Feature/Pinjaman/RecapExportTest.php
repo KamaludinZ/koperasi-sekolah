@@ -45,7 +45,8 @@ class RecapExportTest extends TestCase
             ->assertSeeHtml('data-export-status="done"')->assertSeeText('Belum diunduh');
 
         $export = ReportExport::where('type', 'pinjaman_rekap')->sole();
-        $this->assertSame(['from' => '2026-01-01', 'to' => '2026-12-31'], $export->params);
+        $this->assertSame(['from' => '2026-01-01', 'to' => '2026-12-31', 'label' => 'Tahun 2026'], $export->params);
+        $this->assertSame('csv', $export->format);
         $this->assertSame('rekap-pinjaman-20260101-20261231.csv', $export->file_name);
         $this->assertSame(2, $export->rows); // 1 pencairan + 1 pembayaran
 
@@ -69,6 +70,33 @@ class RecapExportTest extends TestCase
 
         Livewire::test(Recap::class)->assertSeeText('Diunduh 2×');
         $this->getJson(route('pinjaman.rekap.ekspor.index'))->assertOk()->assertJsonPath('data.0.download_count', 2);
+    }
+
+    public function test_pdf_export_from_page_and_endpoint(): void
+    {
+        Livewire::test(Recap::class)->set('month', '2026-09')->assertSeeHtml('data-export-format="pdf"')
+            ->call('export', 'pdf')->assertSeeHtml('data-export-status="done"');
+        $export = ReportExport::where('type', 'pinjaman_rekap')->sole();
+        $this->assertSame(['pdf', 'rekap-pinjaman-20260901-20260930.pdf', 1], [$export->format, $export->file_name, $export->rows]);
+        $this->assertStringStartsWith('%PDF-', Storage::disk('local')->get($export->file_path));
+        $this->get(route('pinjaman.rekap.ekspor.unduh', $export))->assertOk()->assertHeader('Content-Type', 'application/pdf')
+            ->assertDownload('rekap-pinjaman-20260901-20260930.pdf');
+        $this->assertSame(1, $export->fresh()->download_count);
+        $this->assertDatabaseHas('activity_logs', ['event' => 'report.exported', 'description' => 'Ekspor rekap pinjaman PDF periode 01 Sep 2026 – 30 Sep 2026']);
+
+        $this->postJson(route('pinjaman.rekap.ekspor'), ['bulan' => '2026-08', 'format' => 'pdf'])->assertStatus(202)->assertJsonPath('data.format', 'pdf');
+        $this->postJson(route('pinjaman.rekap.ekspor'), ['format' => 'xlsx'])->assertUnprocessable()->assertJsonValidationErrors(['format']);
+        Livewire::test(Recap::class)->call('export', 'exe'); // format tak dikenal → CSV
+        $this->assertSame('csv', ReportExport::latest('id')->value('format'));
+    }
+
+    public function test_pdf_detail_rows_are_capped(): void
+    {
+        $this->assertSame(500, LoanRecapExport::PDF_MAX_ROWS);
+        [$from, $to] = \App\Services\LoanRecapService::period('tahun', '2026');
+        $out = app(LoanRecapExport::class)->pdf($from, $to, 'Tahun 2026');
+        $this->assertStringStartsWith('%PDF-', $out['content']);
+        $this->assertSame(1, $out['rows']);
     }
 
     public function test_store_endpoint_validation_and_limits(): void

@@ -14,11 +14,11 @@ use Illuminate\Validation\Rule;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 /**
- * POST /pinjaman/rekap/ekspor {jenis: bulan|tahun|rentang, bulan|tahun|dari&sampai} → 202: ekspor CSV rekap pinjaman
+ * POST /pinjaman/rekap/ekspor {jenis: bulan|tahun|rentang, bulan|tahun|dari&sampai, format: csv|pdf} → 202: ekspor rekap pinjaman
  *      masuk antrean latar (maks. 366 hari; maks. 3 ekspor belum selesai per petugas).
  * GET  /pinjaman/rekap/ekspor          → ekspor rekap pinjaman milik petugas (terbaru dulu) + penanda unduhan.
  * GET  /pinjaman/rekap/ekspor/{export} → status satu ekspor.
- * GET  /pinjaman/rekap/ekspor/{export}/unduh → unduh CSV (hanya peminta & jenis rekap pinjaman; 409 bila belum siap);
+ * GET  /pinjaman/rekap/ekspor/{export}/unduh → unduh CSV/PDF (hanya peminta & jenis rekap pinjaman; 409 bila belum siap);
  *      setiap unduhan menambah penanda (waktu terakhir & jumlah) dan tercatat di jejak audit.
  */
 class RecapExportController extends Controller
@@ -31,7 +31,8 @@ class RecapExportController extends Controller
             'tahun' => ['nullable', 'regex:/^\d{4}$/'],
             'dari' => ['required_if:jenis,rentang', 'nullable', 'date_format:Y-m-d'],
             'sampai' => ['required_if:jenis,rentang', 'nullable', 'date_format:Y-m-d'],
-        ], ['bulan.regex' => 'Bulan harus berformat YYYY-MM.', 'tahun.regex' => 'Tahun tidak valid.']);
+            'format' => ['nullable', Rule::in(array_keys(\App\Services\LoanRecapExport::FORMATS))],
+        ], ['bulan.regex' => 'Bulan harus berformat YYYY-MM.', 'tahun.regex' => 'Tahun tidak valid.', 'format.in' => 'Format harus csv atau pdf.']);
 
         $period = ($data['jenis'] ?? 'bulan') === 'rentang'
             ? LoanRecapService::range($data['dari'], $data['sampai'])
@@ -39,7 +40,7 @@ class RecapExportController extends Controller
         if (! $period) {
             return response()->json(['message' => 'Rentang tidak sah (maks. 366 hari, tidak melewati hari ini).', 'errors' => ['dari' => ['Rentang tidak sah.']]], 422);
         }
-        $export = $exports->requestLoanRecap($request->user(), $period[0], $period[1]);
+        $export = $exports->requestLoanRecap($request->user(), $period[0], $period[1], $data['format'] ?? 'csv', $period[2]);
 
         return response()->json(['data' => self::toArray($export)], 202);
     }
@@ -64,7 +65,9 @@ class RecapExportController extends Controller
         AuditLog::record('pinjaman.rekap_diunduh', 'pinjaman', 'Unduh rekap pinjaman '.$export->file_name, null,
             ['export_id' => $export->id, 'from' => $export->params['from'] ?? null, 'to' => $export->params['to'] ?? null, 'download_count' => $export->download_count]);
 
-        return Storage::disk('local')->download($export->file_path, $export->file_name, ['Content-Type' => 'text/csv; charset=UTF-8', 'X-Content-Type-Options' => 'nosniff']);
+        $type = $export->format === 'pdf' ? 'application/pdf' : 'text/csv; charset=UTF-8';
+
+        return Storage::disk('local')->download($export->file_path, $export->file_name, ['Content-Type' => $type, 'X-Content-Type-Options' => 'nosniff']);
     }
 
     /** Ekspor hanya bisa dilihat/diunduh peminta, dan hanya jenis rekap pinjaman (lainnya 404). */
@@ -78,7 +81,7 @@ class RecapExportController extends Controller
     public static function toArray(ReportExport $e): array
     {
         return [
-            'id' => $e->id, 'from' => $e->params['from'] ?? null, 'to' => $e->params['to'] ?? null,
+            'id' => $e->id, 'format' => $e->format, 'from' => $e->params['from'] ?? null, 'to' => $e->params['to'] ?? null,
             'status' => $e->status, 'status_label' => ReportExport::STATUSES[$e->status] ?? $e->status,
             'rows' => $e->rows, 'file_name' => $e->file_name, 'error' => $e->error,
             'created_at' => $e->created_at?->toDateTimeString(), 'finished_at' => $e->finished_at?->toDateTimeString(),

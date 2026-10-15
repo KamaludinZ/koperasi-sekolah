@@ -11,11 +11,15 @@
                 <h1 class="text-lg font-semibold">Rekap Pinjaman</h1>
                 <p class="text-xs text-stone-500">Pengajuan, pencairan, dan angsuran yang diterima per periode, beserta posisi pinjaman saat ini.</p>
             </div>
-            <button type="button" wire:click="export" wire:loading.attr="disabled" wire:target="export" data-export-button
-                    class="inline-flex items-center gap-1.5 rounded-xl border border-stone-300 bg-white px-3 py-2 text-sm font-medium text-stone-700 hover:bg-stone-50 disabled:opacity-60">
-                <svg class="size-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v12m0 0 4-4m-4 4-4-4M4 20h16"/></svg>
-                Ekspor CSV {{ $label }}
-            </button>
+            <div class="flex gap-2" data-export-button>
+                @foreach (\App\Services\LoanRecapExport::FORMATS as $fmt => $fmtLabel)
+                    <button type="button" wire:click="export('{{ $fmt }}')" wire:loading.attr="disabled" wire:target="export" data-export-format="{{ $fmt }}"
+                            class="inline-flex items-center gap-1.5 rounded-xl border border-stone-300 bg-white px-3 py-2 text-sm font-medium text-stone-700 hover:bg-stone-50 disabled:opacity-60">
+                        <svg class="size-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v12m0 0 4-4m-4 4-4-4M4 20h16"/></svg>
+                        Ekspor {{ strtoupper($fmt) }}<span class="sr-only"> {{ $label }}</span>
+                    </button>
+                @endforeach
+            </div>
         </div>
         <x-pinjaman.nav active="pinjaman.rekap" />
     </header>
@@ -28,7 +32,7 @@
                 <ul class="divide-y divide-stone-100 text-sm">
                     @foreach ($exports as $e)
                         <li class="flex flex-wrap items-center justify-between gap-2 px-4 py-2" data-export="{{ $e['id'] }}" data-export-status="{{ $e['status'] }}">
-                            <span>@tanggal($e['from']) – @tanggal($e['to'])
+                            <span><span class="font-mono text-xs uppercase text-stone-500">{{ $e['format'] }}</span> @tanggal($e['from']) – @tanggal($e['to'])
                                 <span @class(['ml-1 rounded-md px-1.5 py-0.5 text-[11px] font-semibold', 'bg-emerald-100 text-emerald-800' => $e['status'] === 'done',
                                     'bg-red-100 text-red-800' => $e['status'] === 'failed', 'bg-stone-100 text-stone-700' => ! in_array($e['status'], ['done', 'failed'], true)])>{{ $e['status_label'] }}</span>
                                 @if ($e['status'] === 'failed')<span class="block text-xs text-red-700">{{ $e['error'] }}</span>@endif

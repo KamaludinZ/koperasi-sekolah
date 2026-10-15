@@ -13,7 +13,7 @@ use Illuminate\Support\Str;
 use Throwable;
 
 /**
- * Membuat CSV rekap pinjaman di antrean latar untuk satu ReportExport: status
+ * Membuat berkas rekap pinjaman (CSV atau PDF) di antrean latar untuk satu ReportExport: status
  * processing → done (berkas di disk privat) atau failed (pesan galat singkat).
  */
 class ExportLoanRecap implements ShouldQueue
@@ -42,16 +42,17 @@ class ExportLoanRecap implements ShouldQueue
 
         $from = Carbon::parse($export->params['from']);
         $to = Carbon::parse($export->params['to']);
-        $result = $builder->csv($from, $to);
+        $format = $export->format === 'pdf' ? 'pdf' : 'csv';
+        $result = $format === 'pdf' ? $builder->pdf($from, $to, $export->params['label'] ?? $from->format('d/m/Y').' – '.$to->format('d/m/Y')) : $builder->csv($from, $to);
 
-        $name = 'rekap-pinjaman-'.$from->format('Ymd').'-'.$to->format('Ymd').'.csv';
-        $path = 'exports/pinjaman/'.Str::random(24).'.csv';
+        $name = 'rekap-pinjaman-'.$from->format('Ymd').'-'.$to->format('Ymd').'.'.$format;
+        $path = 'exports/pinjaman/'.Str::random(24).'.'.$format;
         Storage::disk('local')->put($path, $result['content']);
 
         $export->update(['status' => 'done', 'file_path' => $path, 'file_name' => $name, 'rows' => $result['rows'], 'finished_at' => now()]);
 
-        AuditLog::record('report.exported', 'laporan', 'Ekspor rekap pinjaman CSV periode '.$from->translatedFormat('d M Y').' – '.$to->translatedFormat('d M Y'),
-            null, ['type' => 'pinjaman_rekap', 'format' => 'csv', 'from' => $from->toDateString(), 'to' => $to->toDateString(), 'rows' => $result['rows']],
+        AuditLog::record('report.exported', 'laporan', 'Ekspor rekap pinjaman '.strtoupper($format).' periode '.$from->translatedFormat('d M Y').' – '.$to->translatedFormat('d M Y'),
+            null, ['type' => 'pinjaman_rekap', 'format' => $format, 'from' => $from->toDateString(), 'to' => $to->toDateString(), 'rows' => $result['rows']],
             null, $export->user ? ['id' => $export->user->id, 'name' => $export->user->name, 'role' => $export->user->roleName()] : null);
     }
 
