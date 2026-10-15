@@ -20,7 +20,7 @@ class LoanInstallmentChange extends Model
     /** Kolom angsuran yang dilacak. */
     public const TRACKED = ['due_date', 'amount', 'principal_part', 'interest_part', 'paid_amount', 'paid_at', 'payment_method', 'status', 'note'];
 
-    protected $fillable = ['loan_id', 'loan_installment_id', 'sequence', 'event', 'changes', 'loan_payment_id', 'reason', 'user_id', 'actor_name', 'created_at'];
+    protected $fillable = ['loan_id', 'loan_installment_id', 'sequence', 'event', 'changes', 'loan_payment_id', 'reason', 'user_id', 'actor_name', 'created_at', 'checksum'];
 
     protected function casts(): array
     {
@@ -29,6 +29,11 @@ class LoanInstallmentChange extends Model
 
     protected static function booted(): void
     {
+        static::creating(function (self $c) {
+            $c->created_at ??= now();
+            $c->checksum = \App\Services\LoanAuditChain::changeChecksum($c->getAttributes());
+        });
+        static::created(fn (self $c) => app(\App\Services\LoanAuditChain::class)->append('installment_change', $c->id, (int) $c->loan_id, $c->checksum));
         static::updating(fn () => throw new LogicException('Riwayat perubahan angsuran tidak bisa diubah.'));
         static::deleting(fn () => throw new LogicException('Riwayat perubahan angsuran tidak bisa dihapus.'));
     }

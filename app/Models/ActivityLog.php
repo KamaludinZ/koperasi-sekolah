@@ -57,6 +57,12 @@ class ActivityLog extends Model
             $log->created_at ??= now();
             $log->checksum = AuditIntegrity::checksum($log->getAttributes());
         });
+        // jejak pinjaman ikut dirantai HMAC (LoanAuditChain)
+        static::created(function (ActivityLog $log) {
+            if ($log->category === 'pinjaman') {
+                app(\App\Services\LoanAuditChain::class)->append('activity', $log->id, $log->subject_type === 'loan' ? (int) $log->subject_id : null, $log->checksum);
+            }
+        });
     }
 
     protected function casts(): array
