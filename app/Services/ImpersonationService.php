@@ -114,9 +114,7 @@ class ImpersonationService
     {
         return DB::transaction(function () use ($admin, $type, $userId, $memberId, $name, $label, $reason, $minutes, $request) {
             Impersonation::where('admin_id', $admin->id)->whereNull('ended_at')->lockForUpdate()->get()
-                ->each(fn (Impersonation $old) => $old->update([
-                    'ended_at' => max(now(), $old->started_at), 'end_reason' => $old->expires_at->isPast() ? 'kedaluwarsa' : 'sesi_berakhir',
-                ]));
+                ->each(fn (Impersonation $old) => $this->closeRecord($old, $old->expires_at->isPast() ? 'kedaluwarsa' : 'sesi_berakhir'));
 
             $record = Impersonation::create([
                 'admin_id' => $admin->id, 'admin_name' => mb_substr($admin->name, 0, 120),
@@ -283,8 +281,60 @@ class ImpersonationService
     /** Tandai baris sesi impersonasi berakhir (sekali saja; baris yang sudah berakhir tidak diubah). */
     public function close(string $id, string $reason): void
     {
-        Impersonation::whereKey($id)->whereNull('ended_at')->get()
-            ->each(fn (Impersonation $r) => $r->update(['ended_at' => max(now(), $r->started_at), 'end_reason' => $reason]));
+        Impersonation::whereKey($id)->whereNull('ended_at')->get()->each(fn (Impersonation $r) => $this->closeRecord($r, $reason));
+    }
+
+    /**
+     * Tutup satu sesi impersonasi + catat `impersonation.ended` di activity_logs ber-HMAC (pelaku = admin pemilik
+     * sesi, subjek = akun target, cara berakhir, durasi, waktu mulai/berakhir/batas). Waktu berakhir sesi yang lewat
+     * batas dan baru ditutup belakangan (mis. oleh jadwal) dicatat = batas waktunya. Penutupan tetap terjadi walau
+     * pencatatan gagal (keamanan lebih dulu); kegagalan dilaporkan.
+     */
+    public function closeRecord(Impersonation $record, string $reason): void
+    {
+        DB::transaction(function () use ($record, $reason) {
+            $locked = Impersonation::whereKey($record->id)->whereNull('ended_at')->lockForUpdate()->first();
+            if (! $locked) {
+                return; // sudah ditutup proses lain — tidak dicatat dua kali
+            }
+            $endedAt = $reason === 'kedaluwarsa' && $locked->expires_at->isPast() ? $locked->expires_at : now();
+            $locked->update(['ended_at' => $endedAt->max($locked->started_at), 'end_reason' => $reason]);
+            $record->setRawAttributes($locked->getAttributes(), true);
+
+            $isMember = $locked->target_type === 'anggota';
+            $admin = $locked->admin_id ? User::with(['role', 'roles'])->find($locked->admin_id) : null;
+            $log = AuditLog::record('impersonation.ended', 'auth',
+                "{$locked->admin_name} selesai sebagai {$locked->target_name} — ".mb_strtolower(Impersonation::END_REASONS[$reason] ?? $reason)
+                    .' ('.$locked->durationMinutes().' menit)',
+                ['type' => $isMember ? 'member' : 'user', 'id' => $locked->target_member_id ?? $locked->target_user_id,
+                    'label' => $locked->target_name.($locked->target_label ? ' · '.$locked->target_label : '')],
+                [
+                    'impersonation_id' => $locked->id, 'target_type' => $locked->target_type, 'end_reason' => $reason,
+                    'duration_minutes' => $locked->durationMinutes(), 'started_at' => $locked->started_at->toIso8601String(),
+                    'ended_at' => $locked->ended_at->toIso8601String(), 'expires_at' => $locked->expires_at->toIso8601String(),
+                ],
+                actor: $admin ? AuthService::toArray($admin) : ['id' => null, 'name' => $locked->admin_name, 'role' => 'admin'],
+                reason: $locked->reason);
+            if (! $log) {
+                report(new \RuntimeException("Jejak akhir impersonasi {$locked->id} gagal dicatat."));
+            }
+        });
+    }
+
+    /**
+     * Tutup semua sesi impersonasi yang sudah lewat batas waktu tapi belum ditutup (peramban ditutup tanpa menekan
+     * "Kembali"). Dijalankan terjadwal; mengembalikan jumlah yang ditutup.
+     */
+    public function closeExpired(): int
+    {
+        $n = 0;
+        Impersonation::open()->where('expires_at', '<=', now())->orderBy('started_at')->get()
+            ->each(function (Impersonation $r) use (&$n) {
+                $this->closeRecord($r, 'kedaluwarsa');
+                $n++;
+            });
+
+        return $n;
     }
 
     /** Tujuan setelah kembali: halaman asal admin bila masih bisa ia buka, selain itu daftar Masuk sebagai akun. */
