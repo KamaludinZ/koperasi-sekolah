@@ -7,6 +7,7 @@ use App\Http\Controllers\Anggota\CreditController;
 use App\Http\Controllers\Anggota\MemberController;
 use App\Http\Controllers\Anggota\SavingsController;
 use App\Http\Controllers\Audit\AuditLogController;
+use App\Http\Controllers\Audit\RoleImpersonationTrailController;
 use App\Http\Controllers\Audit\TrashController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\LogoutController;
@@ -649,6 +650,13 @@ Route::middleware(['menu:audit', 'peran:admin,pengurus'])->group(function () {
     Route::get('/audit/perubahan', Audit\Changes::class)->name('audit.perubahan');
     Route::get('/audit/terhapus', Audit\Trash::class)->name('audit.terhapus');
     Route::get('/audit/peran-impersonasi', Audit\RoleImpersonation::class)->name('audit.peran');
+    Route::middleware('throttle:120,1')->group(function () {
+        Route::get('/audit/peran-impersonasi/data', [RoleImpersonationTrailController::class, 'index'])->name('audit.peran.data');
+        Route::get('/audit/peran-impersonasi/sesi/{impersonation}', [RoleImpersonationTrailController::class, 'session'])
+            ->whereUuid('impersonation')->name('audit.peran.sesi');
+        Route::get('/audit/peran-impersonasi/catatan/{log}', [RoleImpersonationTrailController::class, 'roleChange'])
+            ->whereNumber('log')->name('audit.peran.catatan');
+    });
     Route::get('/audit/data', [AuditLogController::class, 'index'])->name('audit.data');
     Route::get('/audit/perubahan/data', [AuditLogController::class, 'changes'])->name('audit.perubahan.data');
     Route::get('/audit/{log}/data', [AuditLogController::class, 'show'])->whereNumber('log')->name('audit.detail');
