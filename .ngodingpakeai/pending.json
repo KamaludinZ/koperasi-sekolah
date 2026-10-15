@@ -1,6 +1,6 @@
 {
   "repo": "Koperasi Sekolah",
-  "generatedForCommit": "f195a08965f1579eea40b62f3f0126ec2bb22920",
+  "generatedForCommit": "c690e6b4e221248363bb095ce66108b4d751ee28",
   "files": [
     {
       "path": ".claude/skills/ngodingpakeai/SKILL.md",
@@ -139,6 +139,12 @@
       "reason": "needs_summary",
       "language": "php",
       "size": 2198
+    },
+    {
+      "path": "app/Http/Controllers/Pinjaman/InstallmentController.php",
+      "reason": "new",
+      "language": "php",
+      "size": 3101
     },
     {
       "path": "app/Http/Controllers/Pinjaman/LoanApplicationController.php",
@@ -298,7 +304,7 @@
     },
     {
       "path": "app/Livewire/Pinjaman/Show.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 14316
     },
@@ -388,7 +394,7 @@
     },
     {
       "path": "app/Services/LoanPaymentService.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 24745
     },
@@ -1912,7 +1918,7 @@
     },
     {
       "path": "resources/views/livewire/pinjaman/show.blade.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 39137
     },
@@ -2128,9 +2134,9 @@
     },
     {
       "path": "routes/web.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 47045
+      "size": 47222
     },
     {
       "path": "tests/Concerns/MakesProductImports.php",
@@ -2553,6 +2559,12 @@
       "size": 7379
     },
     {
+      "path": "tests/Feature/Pinjaman/InstallmentListEndpointTest.php",
+      "reason": "new",
+      "language": "php",
+      "size": 6032
+    },
+    {
       "path": "tests/Feature/Pinjaman/InstallmentPaymentEndpointTest.php",
       "reason": "needs_summary",
       "language": "php",
@@ -2602,7 +2614,7 @@
     },
     {
       "path": "tests/Feature/Pinjaman/PaymentValidationTest.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 7028
     },
