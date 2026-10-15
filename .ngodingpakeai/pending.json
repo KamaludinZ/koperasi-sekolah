@@ -1,6 +1,6 @@
 {
   "repo": "Koperasi Sekolah",
-  "generatedForCommit": "71ff972036d4491e912d103f3314f6aabd276a0a",
+  "generatedForCommit": "9b413cc9e5fa50bf4c1746d540e05f730ccf99c9",
   "files": [
     {
       "path": ".claude/skills/ngodingpakeai/SKILL.md",
@@ -390,19 +390,19 @@
       "path": "app/Models/ActivityLog.php",
       "reason": "changed",
       "language": "php",
-      "size": 4273
+      "size": 4300
     },
     {
       "path": "app/Models/Loan.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 6756
     },
     {
       "path": "app/Models/LoanDisbursement.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 720
+      "size": 1095
     },
     {
       "path": "app/Models/LoanInstallment.php",
@@ -418,9 +418,9 @@
     },
     {
       "path": "app/Models/LoanPayment.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 1311
+      "size": 1676
     },
     {
       "path": "app/Models/Setting.php",
@@ -441,14 +441,8 @@
       "size": 2211
     },
     {
-      "path": "app/Providers/AppServiceProvider.php",
-      "reason": "changed",
-      "language": "php",
-      "size": 6798
-    },
-    {
       "path": "app/Services/LoanApplicationService.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 14182
     },
@@ -474,13 +468,13 @@
       "path": "app/Services/LoanAuditQuery.php",
       "reason": "changed",
       "language": "php",
-      "size": 5778
+      "size": 6064
     },
     {
       "path": "app/Services/LoanAutoAudit.php",
-      "reason": "new",
+      "reason": "changed",
       "language": "php",
-      "size": 5373
+      "size": 8064
     },
     {
       "path": "app/Services/LoanDisbursementService.php",
@@ -2830,9 +2824,9 @@
     },
     {
       "path": "tests/Feature/Pinjaman/LoanAutoAuditTest.php",
-      "reason": "new",
+      "reason": "changed",
       "language": "php",
-      "size": 5665
+      "size": 8472
     },
     {
       "path": "tests/Feature/Pinjaman/LoanChangeLogTest.php",
