@@ -34,6 +34,7 @@ class BannerTest extends TestCase
 
     public function test_banner_shows_admin_target_reason_and_countdown_on_staff_pages(): void
     {
+        $this->freezeTime(); // hitung mundur pasti 30:00 (tidak bergeser sedetik saat CI lambat)
         $this->actingAs(User::where('email', 'kasir@koperasi.test')->first())->withSession($this->state());
         $this->get('/kasir')->assertOk()
             ->assertSeeHtml('data-impersonation-banner')
@@ -74,6 +75,7 @@ class BannerTest extends TestCase
 
     public function test_session_helper_remaining_and_expired(): void
     {
+        $this->freezeTime();
         $this->actingAs($this->admin);
         session($this->state(['expires_at' => now()->addSeconds(90)->timestamp]));
         $this->assertTrue(ImpersonationSession::active());

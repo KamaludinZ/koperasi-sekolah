@@ -185,7 +185,7 @@ class Impersonation extends Component
         }
 
         // Layanan impersonasi (backend) memulai sesi & mengarahkan ke halaman akun target.
-        if (class_exists(ImpersonationService::class)) {
+        if (method_exists(ImpersonationService::class, 'startFromLivewire')) {
             return app(ImpersonationService::class)->startFromLivewire($this, auth()->user(), $model, $this->reason, (int) $this->minutes);
         }
         $this->toast('info', 'Layanan impersonasi belum dipasang.');

@@ -20,6 +20,7 @@ use App\Http\Controllers\Barang\ProductImportController;
 use App\Http\Controllers\Barang\ProductListController;
 use App\Http\Controllers\Barang\StockAlertController;
 use App\Http\Controllers\BerandaController;
+use App\Http\Controllers\Impersonasi\StopController;
 use App\Http\Controllers\Kas\CashExportController;
 use App\Http\Controllers\Kas\CashMovementController;
 use App\Http\Controllers\Kas\CashReportController;
@@ -105,10 +106,12 @@ use App\Livewire\Transaksi;
 use App\Models\ReportExport;
 use App\Services\AnnouncementService;
 use App\Services\HealthCheckService;
+use App\Services\ImpersonationService;
 use App\Services\LogoService;
 use App\Services\PortalAuthService;
 use App\Services\QrisImageService;
 use App\Services\SettingsService;
+use App\Support\ImpersonationSession;
 use App\Support\MockData;
 use App\Support\OpeningHours;
 use Illuminate\Http\Request;
@@ -184,6 +187,11 @@ Route::middleware('portal')->group(function () { // bukan auth:member — guard 
     Route::get('/portal/pesanan', Orders::class)->name('portal.pesanan');
     Route::get('/portal/pesanan/{order}', OrderShow::class)->whereNumber('order')->name('portal.pesanan.show');
     Route::post('/portal/keluar', function (Request $request) {
+        if (ImpersonationSession::impersonatingMember()) { // admin: kembali ke akunnya, bukan keluar
+            $svc = app(ImpersonationService::class);
+
+            return $svc->stopResponse($svc->stop($request));
+        }
         app(PortalAuthService::class)->logout();
         $request->session()->regenerateToken();
 
@@ -192,6 +200,7 @@ Route::middleware('portal')->group(function () { // bukan auth:member — guard 
 });
 Route::post('/masuk', LoginController::class)->middleware('throttle:30,1')->name('login.store');
 Route::post('/keluar', LogoutController::class)->name('logout');
+Route::post('/impersonasi/selesai', StopController::class)->middleware('throttle:30,1')->name('impersonasi.selesai');
 // Akun sendiri: cukup sudah masuk (semua peran).
 Route::get('/akun/kata-sandi', Akun\Password::class)->middleware(['menu', 'auth'])->name('akun.password');
 Route::get('/akun/sesi', Akun\Sessions::class)->middleware(['menu', 'auth'])->name('akun.sessions');

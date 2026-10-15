@@ -1,6 +1,6 @@
 {
   "repo": "Koperasi Sekolah",
-  "generatedForCommit": "27f11ea6687861666e64f42fc6f791085fd46089",
+  "generatedForCommit": "69fa58d444d17f026f6d355f9155800a4acdc6ad",
   "files": [
     {
       "path": ".claude/skills/ngodingpakeai/SKILL.md",
@@ -147,6 +147,12 @@
       "size": 1182
     },
     {
+      "path": "app/Http/Middleware/EnsurePortalMember.php",
+      "reason": "changed",
+      "language": "php",
+      "size": 1383
+    },
+    {
       "path": "app/Http/Middleware/EnsureRole.php",
       "reason": "needs_summary",
       "language": "php",
@@ -243,6 +249,12 @@
       "size": 9935
     },
     {
+      "path": "app/Livewire/Portal/OrderShow.php",
+      "reason": "changed",
+      "language": "php",
+      "size": 2319
+    },
+    {
       "path": "app/Livewire/Transaksi/Index.php",
       "reason": "needs_summary",
       "language": "php",
@@ -316,15 +328,15 @@
     },
     {
       "path": "app/Support/ImpersonationPolicy.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 4113
+      "size": 4675
     },
     {
       "path": "app/Support/ImpersonationSession.php",
-      "reason": "new",
+      "reason": "changed",
       "language": "php",
-      "size": 2314
+      "size": 2550
     },
     {
       "path": "app/Support/MockData.php",
@@ -1156,9 +1168,9 @@
     },
     {
       "path": "resources/views/components/impersonation-banner.blade.php",
-      "reason": "new",
+      "reason": "changed",
       "language": "php",
-      "size": 3241
+      "size": 3498
     },
     {
       "path": "resources/views/components/kas/difference-badge.blade.php",
@@ -1180,7 +1192,7 @@
     },
     {
       "path": "resources/views/components/layouts/app.blade.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 14721
     },
@@ -1194,7 +1206,7 @@
       "path": "resources/views/components/layouts/portal.blade.php",
       "reason": "changed",
       "language": "php",
-      "size": 5143
+      "size": 5311
     },
     {
       "path": "resources/views/components/menu-link.blade.php",
@@ -1942,9 +1954,9 @@
     },
     {
       "path": "resources/views/livewire/portal/order-show.blade.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 7489
+      "size": 7761
     },
     {
       "path": "resources/views/livewire/portal/orders.blade.php",
@@ -1966,9 +1978,9 @@
     },
     {
       "path": "resources/views/livewire/portal/shop.blade.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 7781
+      "size": 8076
     },
     {
       "path": "resources/views/livewire/promo/index.blade.php",
@@ -2350,9 +2362,15 @@
     },
     {
       "path": "tests/Feature/Impersonasi/BannerTest.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 4394
+    },
+    {
+      "path": "tests/Feature/Impersonasi/PortalImpersonationModeTest.php",
+      "reason": "new",
+      "language": "php",
+      "size": 4721
     },
     {
       "path": "tests/Feature/Impersonasi/ReasonDialogTest.php",
