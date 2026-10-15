@@ -14,7 +14,7 @@ class AccessDeniedAuditTest extends TestCase
 
     public function test_denied_access_is_audited_once_per_window(): void
     {
-        $this->get('/pengaturan')->assertForbidden()->assertSee('Akses tidak diizinkan');
+        $this->get('/pengaturan')->assertForbidden()->assertSee('Akses ditolak');
         $this->get('/pengaturan')->assertForbidden();
 
         $log = ActivityLog::where('event', 'auth.access_denied')->sole();

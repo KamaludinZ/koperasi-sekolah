@@ -20,7 +20,6 @@ class RoleMenuTest extends TestCase
         $this->seed([ProductSeeder::class, UserSeeder::class]);
     }
 
-
     public function test_menu_per_role(): void
     {
         $keys = fn (?string $role) => collect(Menu::for($role))->flatMap(fn ($g) => array_keys($g['items']))->all();
@@ -37,7 +36,7 @@ class RoleMenuTest extends TestCase
         $this->loginAs('kasir');
 
         $this->get('/kasir')->assertOk()->assertSee('Layanan harian')->assertDontSee(route('laporan'), false);
-        $this->get('/laporan')->assertForbidden()->assertSee('Akses tidak diizinkan');
+        $this->get('/laporan')->assertForbidden()->assertSee('Akses ditolak');
         $this->getJson('/laporan/hari-ini')->assertForbidden();
     }
 
@@ -82,6 +81,6 @@ class RoleMenuTest extends TestCase
             ->assertSee(route('kasir'), false);
 
         $this->get('/pengguna')->assertForbidden()->assertSee('Menu Pengguna hanya untuk peran Admin.');
-        $this->assertSame('Menu Barang &amp; Stok hanya untuk peran Admin, Kasir dan Pengurus.', e(Menu::deniedMessage('barang')));
+        $this->assertSame('Menu Barang &amp; Stok hanya untuk peran Admin, Pengurus dan Kasir.', e(Menu::deniedMessage('barang')));
     }
 }

@@ -25,7 +25,7 @@ class ErrorPagesTest extends TestCase
         Route::get('/_uji/{code}', fn (int $code) => abort($code));
 
         $this->get('/_uji/500')->assertStatus(500)->assertSee('Terjadi kesalahan');
-        $this->get('/_uji/403')->assertForbidden()->assertSee('Akses tidak diizinkan');
+        $this->get('/_uji/403')->assertForbidden()->assertSee('Akses ditolak');
         $this->get('/_uji/419')->assertStatus(419)->assertSee('Sesi sudah berakhir');
         $this->get('/_uji/429')->assertStatus(429)->assertSee('Terlalu banyak permintaan');
     }

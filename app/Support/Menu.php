@@ -256,17 +256,62 @@ class Menu
         return $groups;
     }
 
-    /** Pesan akses ditolak, mis. "Menu Laporan hanya untuk peran Admin dan Pengurus." */
+    /**
+     * Pesan akses ditolak, mis. "Menu Laporan hanya untuk peran Admin dan Pengurus." Mengikuti hak menu peran di
+     * basis data (roles.permissions); jatuh ke hak bawaan bila tabel peran belum tersedia.
+     */
     public static function deniedMessage(string $menu): string
     {
-        $roles = collect(self::DEFAULT_PERMISSIONS)
-            ->filter(fn ($menus) => in_array($menu, $menus, true))
-            ->keys()
-            ->map(fn ($role) => Role::LABELS[$role] ?? $role)
-            ->values();
+        $roles = collect(self::grantingRoles($menu))->map(fn ($role) => Role::LABELS[$role] ?? $role)->values();
         $list = $roles->count() > 1 ? $roles->slice(0, -1)->join(', ').' dan '.$roles->last() : $roles->join('');
 
-        return 'Menu '.(self::ITEMS[$menu]['label'] ?? $menu).' hanya untuk peran '.$list.'.';
+        return 'Menu '.(self::ITEMS[$menu]['label'] ?? $menu).($list === '' ? ' belum diberikan ke peran mana pun.' : ' hanya untuk peran '.$list.'.');
+    }
+
+    /** Peran (urut prioritas) yang memberi menu ini. @return list<string> */
+    public static function grantingRoles(string $menu): array
+    {
+        try {
+            $all = Role::query()->pluck('permissions', 'name')->map(fn ($p) => is_array($p) ? $p : (json_decode((string) $p, true) ?: []))->all();
+        } catch (\Throwable) {
+            $all = self::DEFAULT_PERMISSIONS;
+        }
+
+        return Role::sortNames(array_keys(array_filter($all, fn ($menus) => in_array($menu, $menus, true))));
+    }
+
+    /**
+     * Rincian penolakan rute bernama bagi petugas: menu & peran yang disyaratkan, peran milik petugas beserta
+     * apakah tiap peran memenuhi, dan peran mana yang bila ditambahkan akan membuka halaman ini.
+     * Null bila rute tak dijaga menu/peran (403 berasal dari aturan lain, mis. kebijakan data).
+     *
+     * @return ?array{menu: ?string, menu_label: ?string, required: list<string>, held: array<string, bool>, suggest: list<string>}
+     */
+    public static function denial(?string $routeName, ?array $user = null): ?array
+    {
+        $user ??= Petugas::current();
+        if (! $routeName || ! $user) {
+            return null;
+        }
+        [$menu, $required] = self::routeGuards($routeName);
+        if ($menu === null && $required === []) {
+            return null;
+        }
+        $granting = $menu !== null ? self::grantingRoles($menu) : [];
+        $passes = fn (string $role) => ($menu === null || in_array($role, $granting, true))
+            && ($required === [] || in_array($role, $required, true));
+        $held = [];
+        foreach ($user['roles'] ?? array_filter([$user['role'] ?? null]) as $r) {
+            $held[$r] = $passes($r);
+        }
+
+        return [
+            'menu' => $menu,
+            'menu_label' => $menu ? (self::ITEMS[$menu]['label'] ?? $menu) : null,
+            'required' => $required,
+            'held' => $held,
+            'suggest' => array_values(array_filter(Role::PRIORITY, fn ($r) => ! isset($held[$r]) && $passes($r))),
+        ];
     }
 
     /** Halaman pertama setelah masuk, sesuai peran. */
