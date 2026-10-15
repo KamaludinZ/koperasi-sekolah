@@ -1,6 +1,6 @@
 {
   "repo": "Koperasi Sekolah",
-  "generatedForCommit": "40de6f687fec7d9771ea2e3d9486eceda375bd56",
+  "generatedForCommit": "3097b5666bd86272a449b887188b8adee2aa9cf2",
   "files": [
     {
       "path": ".claude/skills/ngodingpakeai/SKILL.md",
@@ -51,6 +51,12 @@
       "size": 2081
     },
     {
+      "path": "app/Console/Commands/VerifyAuditLog.php",
+      "reason": "changed",
+      "language": "php",
+      "size": 2665
+    },
+    {
       "path": "app/Http/Controllers/Akun/MenuController.php",
       "reason": "needs_summary",
       "language": "php",
@@ -70,7 +76,7 @@
     },
     {
       "path": "app/Http/Controllers/Audit/RoleImpersonationTrailController.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 6209
     },
@@ -208,9 +214,9 @@
     },
     {
       "path": "app/Livewire/Audit/RoleImpersonation.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 6655
+      "size": 6822
     },
     {
       "path": "app/Livewire/Concerns/GuardsSettings.php",
@@ -297,6 +303,12 @@
       "size": 874
     },
     {
+      "path": "app/Models/AuditIntegrityFailure.php",
+      "reason": "new",
+      "language": "php",
+      "size": 822
+    },
+    {
       "path": "app/Models/Impersonation.php",
       "reason": "needs_summary",
       "language": "php",
@@ -325,6 +337,12 @@
       "reason": "needs_summary",
       "language": "php",
       "size": 2211
+    },
+    {
+      "path": "app/Services/AuditVerificationService.php",
+      "reason": "new",
+      "language": "php",
+      "size": 6407
     },
     {
       "path": "app/Services/ImpersonationService.php",
@@ -364,9 +382,9 @@
     },
     {
       "path": "app/Services/RoleImpersonationTrail.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 14683
+      "size": 14355
     },
     {
       "path": "app/Services/StockService.php",
@@ -1051,6 +1069,12 @@
       "reason": "needs_summary",
       "language": "php",
       "size": 5413
+    },
+    {
+      "path": "database/migrations/2026_10_19_000002_create_audit_integrity_failures_table.php",
+      "reason": "new",
+      "language": "php",
+      "size": 1541
     },
     {
       "path": "database/seeders/NotificationSeeder.php",
@@ -2230,13 +2254,13 @@
     },
     {
       "path": "routes/console.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 9957
+      "size": 10165
     },
     {
       "path": "routes/web.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 54174
     },
@@ -2314,7 +2338,7 @@
     },
     {
       "path": "tests/Feature/Audit/RoleImpersonationTrailEndpointTest.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 5635
     },
@@ -2325,10 +2349,16 @@
       "size": 4335
     },
     {
-      "path": "tests/Feature/Audit/TrailFiltersTest.php",
-      "reason": "needs_summary",
+      "path": "tests/Feature/Audit/ScheduledVerificationTest.php",
+      "reason": "new",
       "language": "php",
-      "size": 4017
+      "size": 6321
+    },
+    {
+      "path": "tests/Feature/Audit/TrailFiltersTest.php",
+      "reason": "changed",
+      "language": "php",
+      "size": 4172
     },
     {
       "path": "tests/Feature/Auth/ChangePasswordTest.php",

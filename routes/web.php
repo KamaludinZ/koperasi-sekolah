@@ -7,6 +7,7 @@ use App\Http\Controllers\Anggota\CreditController;
 use App\Http\Controllers\Anggota\MemberController;
 use App\Http\Controllers\Anggota\SavingsController;
 use App\Http\Controllers\Audit\AuditLogController;
+use App\Http\Controllers\Audit\IntegrityController;
 use App\Http\Controllers\Audit\RoleImpersonationTrailController;
 use App\Http\Controllers\Audit\TrashController;
 use App\Http\Controllers\Auth\LoginController;
@@ -651,6 +652,9 @@ Route::middleware(['menu:audit', 'peran:admin,pengurus'])->group(function () {
     Route::get('/audit/terhapus', Audit\Trash::class)->name('audit.terhapus');
     Route::get('/audit/peran-impersonasi', Audit\RoleImpersonation::class)->name('audit.peran');
     Route::middleware('throttle:120,1')->group(function () {
+        Route::get('/audit/integritas', [IntegrityController::class, 'show'])->name('audit.integritas');
+        Route::get('/audit/integritas/kegagalan', [IntegrityController::class, 'failures'])->name('audit.integritas.kegagalan');
+        Route::post('/audit/integritas/periksa', [IntegrityController::class, 'run'])->middleware('peran:admin')->name('audit.integritas.periksa');
         Route::get('/audit/peran-impersonasi/data', [RoleImpersonationTrailController::class, 'index'])->name('audit.peran.data');
         Route::get('/audit/peran-impersonasi/sesi/{impersonation}', [RoleImpersonationTrailController::class, 'session'])
             ->whereUuid('impersonation')->name('audit.peran.sesi');
