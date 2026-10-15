@@ -556,6 +556,7 @@ Route::middleware(['menu:pengguna', 'peran:admin'])->group(function () {
         ->whereNumber('lockout')->middleware('throttle:30,1')->name('pengguna.terkunci.unlock');
     Route::get('/pengguna/daftar', [UserController::class, 'index'])->name('pengguna.list');
     Route::get('/pengguna/peran', [UserController::class, 'roles'])->name('pengguna.roles');
+    Route::get('/pengguna/{user}/data', [UserController::class, 'show'])->whereNumber('user')->name('pengguna.show');
     Route::middleware('throttle:30,1')->group(function () {
         Route::post('/pengguna', [UserController::class, 'store'])->name('pengguna.store');
         Route::put('/pengguna/peran/{role:name}', [UserController::class, 'updateRole'])->name('pengguna.roles.update');

@@ -13,7 +13,10 @@ use Illuminate\Validation\Rule;
 
 /**
  * Kelola pengguna & peran (JSON, khusus admin):
- * - GET  /pengguna/daftar?q=&peran=     → akun petugas + ringkasan
+ * - GET  /pengguna/daftar?q=&peran=&status=&multi= → akun petugas beserta SELURUH perannya (label, peran utama, izin
+ *        gabungan, penanda multi-peran / tanpa peran) + ringkasan per peran. peran: admin|kasir|pengurus|tanpa;
+ *        status: aktif|nonaktif; multi=1 → hanya akun multi-peran.
+ * - GET  /pengguna/{user}/data          → satu akun beserta peran & izin gabungannya
  * - POST /pengguna                      → akun baru (201)
  * - PUT  /pengguna/{user}               → ubah akun / peran / status; `password` diisi = atur ulang
  * - POST /pengguna/{user}/status        → aktifkan / nonaktifkan
@@ -26,27 +29,54 @@ class UserController extends Controller
     {
         $data = $request->validate([
             'q' => ['nullable', 'string', 'max:100'],
-            'peran' => ['nullable', Rule::exists('roles', 'name')],
-        ]);
+            'peran' => ['nullable', Rule::in([...array_keys(Role::LABELS), 'tanpa'])],
+            'status' => ['nullable', Rule::in(['aktif', 'nonaktif'])],
+            'multi' => ['nullable', 'boolean'],
+        ], ['peran.in' => 'Peran tidak dikenal.', 'status.in' => 'Status harus aktif atau nonaktif.']);
+
+        $rows = $users->query(['search' => $data['q'] ?? '', 'role' => $data['peran'] ?? ''])
+            ->when(($data['status'] ?? null) === 'aktif', fn ($q) => $q->where('is_active', true))
+            ->when(($data['status'] ?? null) === 'nonaktif', fn ($q) => $q->where('is_active', false))
+            ->get()->map(fn (User $u) => self::row($u))
+            ->when(! empty($data['multi']), fn ($c) => $c->where('is_multi_role', true))->values();
 
         return response()->json([
-            'data' => $users->query(['search' => $data['q'] ?? '', 'role' => $data['peran'] ?? ''])->get()->map(fn (User $u) => UserService::toArray($u)),
-            'meta' => ['stats' => $users->stats()],
+            'data' => $rows,
+            'meta' => ['stats' => $users->stats(), 'roles' => Role::LABELS, 'filters' => ['q' => $data['q'] ?? null, 'peran' => $data['peran'] ?? null,
+                'status' => $data['status'] ?? null, 'multi' => (bool) ($data['multi'] ?? false)]],
         ]);
+    }
+
+    public function show(User $user): JsonResponse
+    {
+        return response()->json(['data' => self::row($user->load('role', 'roles'))]);
+    }
+
+    /** Baris akun untuk JSON: data akun + seluruh peran berlabel, peran utama, izin gabungan & penanda. */
+    public static function row(User $u): array
+    {
+        $names = $u->roleNames();
+
+        return UserService::toArray($u) + [
+            'roles_detail' => array_map(fn ($n) => ['name' => $n, 'label' => Role::LABELS[$n] ?? $n, 'primary' => $n === $u->role?->name], $names),
+            'primary_role' => $u->role?->name,
+            'is_multi_role' => count($names) > 1,
+            'has_no_role' => $names === [],
+        ];
     }
 
     public function store(Request $request, UserService $users): JsonResponse
     {
         $data = $request->validate(UserService::rules(), UserService::messages());
 
-        return response()->json(['data' => UserService::toArray($users->create($data))], 201);
+        return response()->json(['data' => self::row($users->create($data))], 201);
     }
 
     public function update(Request $request, User $user, UserService $users): JsonResponse
     {
         $data = $request->validate(UserService::rules($user->id), UserService::messages());
 
-        return response()->json(['data' => UserService::toArray($users->update($user, $data, $request->user()))]);
+        return response()->json(['data' => self::row($users->update($user, $data, $request->user()))]);
     }
 
     public function toggle(Request $request, User $user, UserService $users): JsonResponse
