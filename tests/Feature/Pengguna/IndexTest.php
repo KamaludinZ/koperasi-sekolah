@@ -56,7 +56,7 @@ class IndexTest extends TestCase
             ->call('create')
             ->set('form.name', 'Bu Ani')
             ->set('form.email', 'Ani@Koperasi.test')
-            ->set('form.role', 'pengurus')
+            ->set('form.roles', ['pengurus'])
             ->set('form.password', 'Rahasia123')
             ->set('form.password_confirmation', 'Rahasia123')
             ->call('save')
@@ -109,7 +109,7 @@ class IndexTest extends TestCase
         $c->call('toggleActive', $kasir->id)->assertSee('diaktifkan kembali');
 
         Livewire::test(Index::class)->call('toggleActive', $admin->id)->assertSee('Anda tidak bisa menonaktifkan akun sendiri.');
-        Livewire::test(Index::class)->call('edit', $admin->id)->set('form.role', 'kasir')->call('save')->assertHasErrors('form.role');
+        Livewire::test(Index::class)->call('edit', $admin->id)->set('form.roles', ['kasir'])->call('save')->assertHasErrors('form.roles');
         $this->assertSame('admin', $admin->fresh()->roleName());
     }
 
@@ -166,7 +166,7 @@ class IndexTest extends TestCase
     {
         $c = \Livewire\Livewire::test(\App\Livewire\Pengguna\Index::class)->call('create')
             ->assertSeeHtml('data-permission-matrix')->assertSee('Menu yang bisa dibuka tiap peran')->assertSee('Kas Harian');
-        $c->set('form.role', 'pengurus')->assertSeeHtml('bg-emerald-50');
+        $c->set('form.roles', ['pengurus'])->assertSeeHtml('bg-emerald-50');
         $html = $c->html();
         $this->assertGreaterThan(5, substr_count($html, '✓'));
     }

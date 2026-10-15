@@ -7,7 +7,8 @@ use App\Services\UserService;
 use Livewire\Form;
 
 /**
- * Form tambah/ubah akun petugas (aturan sama dengan endpoint JSON, UserService::rules).
+ * Form tambah/ubah akun petugas (aturan sama dengan endpoint JSON, UserService::rules). Satu akun bisa memegang
+ * beberapa peran sekaligus (kotak centang, minimal satu).
  * Kata sandi wajib untuk akun baru; saat mengubah, diisi = atur ulang kata sandi.
  */
 class UserForm extends Form
@@ -18,7 +19,8 @@ class UserForm extends Form
 
     public string $email = '';
 
-    public string $role = 'kasir';
+    /** @var list<string> peran yang dicentang (minimal satu) */
+    public array $roles = ['kasir'];
 
     public bool $is_active = true;
 
@@ -28,12 +30,15 @@ class UserForm extends Form
 
     protected function rules(): array
     {
-        return UserService::rules($this->id);
+        $rules = UserService::rules($this->id);
+        unset($rules['role']); // form memakai daftar peran
+
+        return ['roles' => ['required', 'array', 'min:1']] + $rules;
     }
 
     protected function messages(): array
     {
-        return UserService::messages();
+        return ['roles.required' => 'Pilih minimal satu peran.'] + UserService::messages();
     }
 
     public function blank(): void
@@ -46,7 +51,7 @@ class UserForm extends Form
     {
         $this->reset();
         $this->resetValidation();
-        $this->fill(['id' => $user->id, 'name' => $user->name, 'email' => $user->email, 'role' => $user->role?->name ?? 'kasir', 'is_active' => (bool) $user->is_active]);
+        $this->fill(['id' => $user->id, 'name' => $user->name, 'email' => $user->email, 'roles' => $user->roleNames() ?: ['kasir'], 'is_active' => (bool) $user->is_active]);
     }
 
     public function save(?User $actor): User

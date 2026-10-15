@@ -50,6 +50,17 @@ class User extends Authenticatable
      *
      * @return array<string, string>
      */
+    protected static function booted(): void
+    {
+        // peran utama selalu tercatat juga di pivot (akun dibuat lewat seeder/factory/perintah lama tetap konsisten)
+        static::saved(function (User $user) {
+            if ($user->role_id && $user->wasChanged('role_id') || ($user->wasRecentlyCreated && $user->role_id)) {
+                \Illuminate\Support\Facades\DB::table('user_roles')->insertOrIgnore(['user_id' => $user->id, 'role_id' => $user->role_id, 'created_at' => now()]);
+                $user->unsetRelation('roles');
+            }
+        });
+    }
+
     protected function casts(): array
     {
         return [
@@ -65,6 +76,22 @@ class User extends Authenticatable
     public function role(): BelongsTo
     {
         return $this->belongsTo(Role::class);
+    }
+
+    /** Semua peran yang dipegang akun (pivot user_roles); role() = peran utama. */
+    public function roles(): BelongsToMany
+    {
+        return $this->belongsToMany(Role::class, 'user_roles')->orderBy('roles.id');
+    }
+
+    /**
+     * Nama seluruh peran akun, urut prioritas (admin, pengurus, kasir). Peran utama selalu ikut.
+     *
+     * @return list<string>
+     */
+    public function roleNames(): array
+    {
+        return Role::sortNames(array_filter([...$this->roles->pluck('name')->all(), $this->role?->name]));
     }
 
     /** Notifikasi yang pernah dibaca/disembunyikan petugas ini (pivot notification_reads). */

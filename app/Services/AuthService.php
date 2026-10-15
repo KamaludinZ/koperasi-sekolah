@@ -89,6 +89,7 @@ class AuthService
             'email' => $user->email,
             'role' => $user->role?->name,
             'role_label' => $user->role?->label,
+            'roles' => $user->roleNames(),
             'permissions' => $user->role?->permissions ?? [],
             'is_active' => (bool) $user->is_active,
             'last_login_at' => $user->last_login_at?->toDateTimeString(),

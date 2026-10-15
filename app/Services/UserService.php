@@ -32,7 +32,10 @@ class UserService
                     $fail('Email ini sudah dipakai akun lain.');
                 }
             }],
-            'role' => ['required', Rule::exists('roles', 'name')],
+            // multi-peran: `roles` (daftar, minimal satu); `role` tunggal tetap diterima untuk klien lama
+            'roles' => ['required_without:role', 'array', 'min:1', 'max:'.count(Role::LABELS)],
+            'roles.*' => ['string', 'distinct', Rule::exists('roles', 'name')],
+            'role' => ['required_without:roles', 'nullable', Rule::exists('roles', 'name')],
             'is_active' => ['boolean'],
             'password' => [$ignoreId ? 'nullable' : 'required', 'string', 'min:8', 'max:100', 'regex:/[A-Za-z]/', 'regex:/\d/', 'confirmed'],
         ];
@@ -44,6 +47,10 @@ class UserService
             'required' => 'Wajib diisi.',
             'email.email' => 'Format email belum benar.',
             'role.exists' => 'Peran tidak dikenal.',
+            'roles.required_without' => 'Pilih minimal satu peran.',
+            'roles.min' => 'Pilih minimal satu peran.',
+            'roles.*.exists' => 'Peran tidak dikenal.',
+            'roles.*.distinct' => 'Peran tidak boleh dobel.',
             'password.min' => 'Minimal 8 karakter.',
             'password.regex' => 'Gunakan gabungan huruf dan angka.',
             'password.confirmed' => 'Konfirmasi kata sandi tidak sama.',
@@ -56,8 +63,8 @@ class UserService
     {
         $term = mb_strtolower(trim($filters['search'] ?? ''));
 
-        return User::query()->with('role')
-            ->when(($filters['role'] ?? '') !== '', fn ($q) => $q->whereHas('role', fn ($r) => $r->where('name', $filters['role'])))
+        return User::query()->with('role', 'roles')
+            ->when(($filters['role'] ?? '') !== '', fn ($q) => $q->whereHas('roles', fn ($r) => $r->where('name', $filters['role'])))
             ->when($term !== '', function (Builder $q) use ($term) {
                 $like = '%'.str_replace(['\\', '%', '_'], ['\\\\', '\\%', '\\_'], $term).'%';
                 $q->where(fn (Builder $w) => $w->whereRaw("LOWER(name) LIKE ? ESCAPE '\\'", [$like])
@@ -69,29 +76,62 @@ class UserService
 
     public function stats(): array
     {
-        $active = User::active()->with('role')->get();
+        $active = User::active()->with('role', 'roles')->get();
 
         return [
             'active' => $active->count(),
             'inactive' => User::where('is_active', false)->count(),
-            ...collect(Role::LABELS)->map(fn ($l, $name) => $active->filter(fn ($u) => $u->role?->name === $name)->count())->all(),
+            // akun multi-peran dihitung di setiap perannya
+            ...collect(Role::LABELS)->map(fn ($l, $name) => $active->filter(fn ($u) => in_array($name, $u->roleNames(), true))->count())->all(),
+            'multi' => $active->filter(fn ($u) => count($u->roleNames()) > 1)->count(),
         ];
+    }
+
+    /**
+     * Daftar peran dari data tervalidasi (`roles` atau `role` tunggal), urut prioritas; peran pertama = peran utama.
+     *
+     * @return list<string>
+     */
+    public static function roleList(array $data): array
+    {
+        $names = Role::sortNames(array_values(array_filter((array) ($data['roles'] ?? [$data['role'] ?? null]), 'is_string')));
+        if ($names === []) {
+            throw ValidationException::withMessages(['roles' => 'Pilih minimal satu peran.']);
+        }
+
+        return $names;
+    }
+
+    /** Pasang peran akun: role_id = peran utama, pivot = seluruh peran. */
+    private function assignRoles(User $user, array $names): void
+    {
+        $ids = Role::whereIn('name', $names)->pluck('id', 'name');
+        $user->forceFill(['role_id' => $ids[$names[0]]])->save();
+        $user->roles()->sync(collect($names)->mapWithKeys(fn ($n) => [$ids[$n] => ['created_at' => now()]])->all());
+        $user->load('role', 'roles');
     }
 
     /** @param  array<string, mixed>  $data  data tervalidasi */
     public function create(array $data): User
     {
-        $user = User::create([
-            'name' => trim($data['name']),
-            'email' => mb_strtolower(trim($data['email'])),
-            'password' => $data['password'],
-            'role_id' => Role::named($data['role'])->id,
-            'is_active' => (bool) ($data['is_active'] ?? true),
-        ])->load('role');
+        $names = self::roleList($data);
+        $user = DB::transaction(function () use ($data, $names) {
+            $user = User::create([
+                'name' => trim($data['name']),
+                'email' => mb_strtolower(trim($data['email'])),
+                'password' => $data['password'],
+                'role_id' => Role::named($names[0])->id,
+                'is_active' => (bool) ($data['is_active'] ?? true),
+            ]);
+            $this->assignRoles($user, $names);
 
-        AuditLog::record('user.created', 'pengguna', "Akun baru {$user->name} sebagai {$user->role->label}", self::subject($user),
-            ['email' => $user->email, 'role' => $user->role->name],
-            action: 'dibuat', new: ['name' => $user->name, 'email' => $user->email, 'role' => $user->role->name, 'is_active' => (bool) $user->is_active]);
+            return $user;
+        });
+        $labels = implode(' + ', array_map(fn ($n) => Role::LABELS[$n] ?? $n, $names));
+
+        AuditLog::record('user.created', 'pengguna', "Akun baru {$user->name} sebagai {$labels}", self::subject($user),
+            ['email' => $user->email, 'role' => $names[0], 'roles' => $names],
+            action: 'dibuat', new: ['name' => $user->name, 'email' => $user->email, 'role' => $names[0], 'roles' => $names, 'is_active' => (bool) $user->is_active]);
 
         return $user;
     }
@@ -99,31 +139,32 @@ class UserService
     /** @param  array<string, mixed>  $data  data tervalidasi */
     public function update(User $user, array $data, ?User $actor): User
     {
-        $user->loadMissing('role');
-        $role = Role::named($data['role']);
+        $user->loadMissing('role', 'roles');
+        $names = self::roleList($data);
         $active = (bool) ($data['is_active'] ?? $user->is_active);
-        $this->guardChange($user, $role->name, $active, $actor);
+        $this->guardChange($user, $names, $active, $actor);
 
-        $before = ['name' => $user->name, 'email' => $user->email, 'role' => $user->role?->name, 'is_active' => (bool) $user->is_active];
+        $before = ['name' => $user->name, 'email' => $user->email, 'roles' => implode(', ', $user->roleNames()), 'is_active' => (bool) $user->is_active];
+        $beforeRoles = $user->roleNames();
 
-        DB::transaction(function () use ($user, $data, $role, $active) {
+        DB::transaction(function () use ($user, $data, $names, $active) {
             $user->forceFill([
                 'name' => trim($data['name']),
                 'email' => mb_strtolower(trim($data['email'])),
-                'role_id' => $role->id,
                 'is_active' => $active,
             ]);
             if (filled($data['password'] ?? null)) {
                 $user->forceFill(['password' => $data['password'], 'password_changed_at' => now()]);
             }
             $user->save();
+            $this->assignRoles($user, $names);
         });
-        $user->load('role');
 
-        $after = ['name' => $user->name, 'email' => $user->email, 'role' => $user->role->name, 'is_active' => (bool) $user->is_active];
+        $after = ['name' => $user->name, 'email' => $user->email, 'roles' => implode(', ', $user->roleNames()), 'is_active' => (bool) $user->is_active];
         if ($changes = AuditLog::diff($before, $after, array_keys($after))) {
-            AuditLog::record(isset($changes['role']) ? 'user.role_changed' : 'user.updated', 'pengguna',
-                "Akun {$user->name} diubah: ".implode(', ', array_keys($changes)), self::subject($user), ['changes' => $changes],
+            $roleChange = isset($changes['roles']) ? ['added' => array_values(array_diff($names, $beforeRoles)), 'removed' => array_values(array_diff($beforeRoles, $names))] : null;
+            AuditLog::record($roleChange ? 'user.role_changed' : 'user.updated', 'pengguna',
+                "Akun {$user->name} diubah: ".implode(', ', array_keys($changes)), self::subject($user), ['changes' => $changes] + ($roleChange ?? []),
                 action: 'diubah', old: array_map(fn ($c) => $c['from'], $changes), new: array_map(fn ($c) => $c['to'], $changes));
         }
         if (filled($data['password'] ?? null)) {
@@ -139,8 +180,8 @@ class UserService
 
     public function toggleActive(User $user, ?User $actor): User
     {
-        $user->loadMissing('role');
-        $this->guardChange($user, $user->role?->name, ! $user->is_active, $actor);
+        $user->loadMissing('role', 'roles');
+        $this->guardChange($user, $user->roleNames(), ! $user->is_active, $actor);
 
         $user->forceFill(['is_active' => ! $user->is_active])->save();
         if (! $user->is_active) {
@@ -196,21 +237,24 @@ class UserService
     }
 
     /** @throws ValidationException */
-    private function guardChange(User $user, ?string $newRole, bool $newActive, ?User $actor): void
+    /** @param  list<string>  $newRoles */
+    private function guardChange(User $user, array $newRoles, bool $newActive, ?User $actor): void
     {
         $errors = [];
+        $wasAdmin = in_array(Role::ADMIN, $user->roleNames(), true);
+        $staysAdmin = in_array(Role::ADMIN, $newRoles, true);
         if ($actor && $actor->is($user)) {
             if (! $newActive) {
                 $errors['is_active'] = 'Anda tidak bisa menonaktifkan akun sendiri.';
             }
-            if ($user->role?->name === Role::ADMIN && $newRole !== Role::ADMIN) {
-                $errors['role'] = 'Anda tidak bisa menurunkan peran akun sendiri.';
+            if ($wasAdmin && ! $staysAdmin) {
+                $errors['roles'] = 'Anda tidak bisa mencabut peran admin dari akun sendiri.';
             }
         }
-        $losesAdmin = $user->role?->name === Role::ADMIN && $user->is_active && ($newRole !== Role::ADMIN || ! $newActive);
-        if (! isset($errors['role']) && $losesAdmin
-            && User::active()->whereKeyNot($user->id)->whereHas('role', fn ($r) => $r->where('name', Role::ADMIN))->doesntExist()) {
-            $errors['role'] = 'Harus ada minimal satu admin aktif.';
+        $losesAdmin = $wasAdmin && $user->is_active && (! $staysAdmin || ! $newActive);
+        if (! isset($errors['roles']) && $losesAdmin
+            && User::active()->whereKeyNot($user->id)->whereHas('roles', fn ($r) => $r->where('name', Role::ADMIN))->doesntExist()) {
+            $errors['roles'] = 'Harus ada minimal satu admin aktif.';
         }
 
         if ($errors) {

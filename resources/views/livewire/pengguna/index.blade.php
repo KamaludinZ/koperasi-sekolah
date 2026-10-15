@@ -41,12 +41,15 @@
                     @if ($this->stats['inactive'])<p class="text-xs text-stone-400">{{ $this->stats['inactive'] }} nonaktif</p>@endif
                 </div>
                 @foreach ($roles as $key => $label)
-                    <div class="rounded-xl border border-stone-200 bg-white px-4 py-3">
+                    <div class="rounded-xl border border-stone-200 bg-white px-4 py-3" data-role-count="{{ $key }}">
                         <p class="text-xs text-stone-500">{{ $label }}</p>
                         <p class="text-2xl font-bold tabular-nums">{{ $this->stats[$key] }}</p>
                     </div>
                 @endforeach
             </div>
+            @if ($this->stats['multi'] ?? 0)
+                <p class="text-xs text-stone-500" data-multi-count>{{ $this->stats['multi'] }} akun memegang lebih dari satu peran (dihitung di setiap perannya).</p>
+            @endif
 
             <div class="flex flex-col gap-2 sm:flex-row">
                 <label class="relative flex-1">
@@ -68,7 +71,7 @@
             @else
                 <ul class="divide-y divide-stone-100 overflow-hidden rounded-xl border border-stone-200 bg-white">
                     @foreach ($this->users as $u)
-                        @php $rn = $u->role?->name; @endphp
+                        @php $names = $u->roleNames(); @endphp
                         <li wire:key="user-{{ $u->id }}" @class(['flex flex-wrap items-center gap-x-4 gap-y-2 px-4 py-3 sm:flex-nowrap', 'bg-stone-50' => ! $u->is_active])>
                             <span @class(['grid size-10 shrink-0 place-items-center rounded-full text-sm font-semibold',
                                           'bg-emerald-950 text-amber-300' => $u->is_active, 'bg-stone-200 text-stone-500' => ! $u->is_active])>{{ $initials($u->name) }}</span>
@@ -79,7 +82,13 @@
                                 </p>
                                 <p class="truncate text-xs text-stone-500">{{ $u->email }}</p>
                             </div>
-                            <span class="w-20 shrink-0 rounded-full px-2.5 py-0.5 text-center text-xs font-semibold ring-1 {{ $roleBadge[$rn] ?? '' }}">{{ $u->role?->label ?? '—' }}</span>
+                            <span class="flex w-44 shrink-0 flex-wrap gap-1" data-user-roles="{{ implode(',', $names) }}" aria-label="Peran {{ implode(', ', array_map(fn ($n) => $roles[$n] ?? $n, $names)) }}">
+                                @forelse ($names as $n)
+                                    <span class="rounded-full px-2.5 py-0.5 text-center text-xs font-semibold ring-1 {{ $roleBadge[$n] ?? '' }}">{{ $roles[$n] ?? $n }}</span>
+                                @empty
+                                    <span class="rounded-full bg-red-50 px-2.5 py-0.5 text-xs font-semibold text-red-700 ring-1 ring-red-200">Tanpa peran</span>
+                                @endforelse
+                            </span>
                             <p class="w-36 text-xs text-stone-500 max-sm:order-last max-sm:w-full">
                                 @if (! $u->is_active)
                                     <span class="font-medium text-stone-500">Nonaktif</span>

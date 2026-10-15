@@ -27,8 +27,10 @@ class SettingsAndAccountHistoryTest extends TestCase
         $created = ActivityLog::where('event', 'user.created')->sole();
         $this->assertSame(['dibuat', 'user', 'kasir'], [$created->action, $created->subject_type, $created->new_values['role']]);
         $updated = ActivityLog::where('event', 'user.role_changed')->sole();
-        $this->assertSame(['diubah', ['name' => 'Pak Budi', 'role' => 'kasir'], ['name' => 'Pak Budi S.', 'role' => 'pengurus']],
+        // multi-peran: perubahan peran dicatat sebagai daftar peran (urut prioritas) + rincian ditambah/dicabut
+        $this->assertSame(['diubah', ['name' => 'Pak Budi', 'roles' => 'kasir'], ['name' => 'Pak Budi S.', 'roles' => 'pengurus']],
             [$updated->action, $updated->old_values, $updated->new_values]);
+        $this->assertSame([['pengurus'], ['kasir']], [$updated->properties['added'], $updated->properties['removed']]);
         $perm = ActivityLog::where('event', 'role.permissions_updated')->sole();
         $this->assertSame(['role', 'Kasir, Transaksi'], [$perm->subject_type, $perm->new_values['menus']]);
 

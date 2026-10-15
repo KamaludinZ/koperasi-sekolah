@@ -73,7 +73,7 @@ class Index extends Component
 
     public function edit(int $userId): void
     {
-        if ($user = User::with('role')->find($userId)) {
+        if ($user = User::with('role', 'roles')->find($userId)) {
             $this->form->load($user);
             $this->reset('flash', 'error');
             $this->editing = true;
@@ -95,7 +95,8 @@ class Index extends Component
         }
 
         $this->editing = false;
-        $this->flash = $isNew ? "Akun {$user->name} dibuat sebagai {$user->role->label}." : "Akun {$user->name} diperbarui.";
+        $labels = implode(' + ', array_map(fn ($n) => Role::LABELS[$n] ?? $n, $user->roleNames()));
+        $this->flash = $isNew ? "Akun {$user->name} dibuat sebagai {$labels}." : "Akun {$user->name} diperbarui ({$labels}).";
         unset($this->users, $this->stats);
     }
 

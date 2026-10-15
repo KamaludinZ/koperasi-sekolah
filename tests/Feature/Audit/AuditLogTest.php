@@ -146,12 +146,13 @@ class AuditLogTest extends TestCase
     {
         $this->loginAs('admin@koperasi.test'); // admin
         $id = fn (string $email) => \App\Models\User::where('email', $email)->value('id');
-        Livewire::test(\App\Livewire\Pengguna\Index::class)->call('edit', $id('kasir@koperasi.test'))->set('form.role', 'pengurus')->call('save');
+        Livewire::test(\App\Livewire\Pengguna\Index::class)->call('edit', $id('kasir@koperasi.test'))->set('form.roles', ['pengurus'])->call('save');
         Livewire::test(\App\Livewire\Pengguna\Index::class)->call('toggleActive', $id('pengurus@koperasi.test'));
 
         $role = $this->last('user.role_changed');
         $this->assertSame('Admin Koperasi', $role->actor_name);
-        $this->assertSame(['from' => 'kasir', 'to' => 'pengurus'], $role->properties['changes']['role']);
+        $this->assertSame(['from' => 'kasir', 'to' => 'pengurus'], $role->properties['changes']['roles']);
+        $this->assertSame([['pengurus'], ['kasir']], [$role->properties['added'], $role->properties['removed']]);
         $this->assertNotNull($this->last('user.deactivated'));
     }
 }
