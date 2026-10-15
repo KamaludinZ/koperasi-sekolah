@@ -69,7 +69,25 @@ class RecapPageTest extends TestCase
         $this->assertSame(900000, collect($y['months'])->firstWhere('month', '2026-08')['disbursed']);
         $this->assertSame(330000, collect($y['months'])->firstWhere('month', '2026-10')['collected']);
         $this->assertSame(['count' => 2, 'amount' => 1400000, 'approved' => 1, 'rejected' => 1], $y['applications']);
-        $this->assertSame(['active' => 1, 'outstanding' => 330000, 'overdue' => 0, 'overdue_outstanding' => 0, 'paid_off' => 0], $y['portfolio']);
+        $this->assertSame(['active' => 1, 'outstanding' => 330000, 'principal_outstanding' => 300000, 'interest_outstanding' => 30000,
+            'overdue' => 0, 'overdue_outstanding' => 0, 'paid_off' => 0, 'disbursed_total' => 900000, 'disbursed_count' => 1,
+            'collected_total' => 660000, 'collection_rate' => 66.7], $y['portfolio']);
+    }
+
+    public function test_summary_cards_independent_of_period(): void
+    {
+        foreach (['2026-10', '2025-01'] as $month) {
+            Livewire::test(Recap::class)->set('month', $month)
+                ->assertSeeHtml('data-summary="aktif"')->assertSeeText('1 pinjaman')->assertSeeText('Sisa Rp330.000')
+                ->assertSeeText('Pokok Rp300.000 · bunga Rp30.000')
+                ->assertSeeHtml('data-summary="tercairkan"')->assertSeeText('Rp900.000')->assertSeeText('1 pencairan · 0 pinjaman lunas')
+                ->assertSeeHtml('data-summary="kembali"')->assertSeeText('Rp660.000')->assertSeeText('66,7% dari pokok + bunga');
+        }
+
+        // tunggakan muncul di kartu ketika angsuran ke-3 (3 Nov) lewat
+        $this->travelTo('2026-11-10 10:00:00');
+        $this->assertSame(1, app(LoanRecapService::class)->portfolio()['overdue']);
+        Livewire::test(Recap::class)->assertSeeText('1 menunggak (Rp330.000)');
     }
 
     public function test_period_navigation_and_validation(): void

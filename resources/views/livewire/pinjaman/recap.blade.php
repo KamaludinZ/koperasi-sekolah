@@ -14,6 +14,8 @@
     </header>
 
     <div class="space-y-4 px-4 py-5 sm:px-6">
+        <x-pinjaman.recap-cards :portfolio="$r['portfolio']" />
+
         <div class="flex flex-wrap items-center gap-2">
             <div class="flex gap-1 rounded-xl bg-stone-100 p-1" role="tablist" aria-label="Jenis periode">
                 @foreach (['bulan' => 'Bulanan', 'tahun' => 'Tahunan'] as $k => $t)
@@ -31,7 +33,7 @@
             @endif
         </div>
 
-        <section class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4" aria-label="Rekap periode">
+        <section class="grid grid-cols-1 gap-3 sm:grid-cols-3" aria-label="Rekap periode">
             <div class="rounded-xl border border-stone-200 bg-white px-4 py-3" data-recap="pengajuan">
                 <p class="text-xs text-stone-500">Pengajuan masuk</p>
                 <p class="text-xl font-bold tabular-nums">{{ $r['applications']['count'] }}</p>
@@ -46,11 +48,6 @@
                 <p class="text-xs text-emerald-800">Angsuran diterima</p>
                 <p class="text-xl font-bold tabular-nums text-emerald-900">{{ $rp($r['collected']['amount']) }}</p>
                 <p class="text-xs text-emerald-800/80">{{ $r['collected']['count'] }} pembayaran · pokok {{ $rp($r['collected']['principal']) }} · bunga {{ $rp($r['collected']['interest']) }}</p>
-            </div>
-            <div @class(['rounded-xl border px-4 py-3', 'border-red-200 bg-red-50' => $r['portfolio']['overdue'] > 0, 'border-stone-200 bg-white' => $r['portfolio']['overdue'] === 0]) data-recap="portofolio">
-                <p class="text-xs text-stone-600">Posisi saat ini</p>
-                <p class="text-xl font-bold tabular-nums">{{ $rp($r['portfolio']['outstanding']) }}</p>
-                <p class="text-xs text-stone-500">{{ $r['portfolio']['active'] }} pinjaman aktif · <span @class(['font-semibold text-red-800' => $r['portfolio']['overdue'] > 0])>{{ $r['portfolio']['overdue'] }} menunggak</span></p>
             </div>
         </section>
 

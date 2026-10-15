@@ -57,16 +57,36 @@ class LoanRecapService
         ];
     }
 
-    /** Posisi saat ini: pinjaman aktif, sisa, dan yang menunggak (keadaan efektif). */
+    /**
+     * Posisi saat ini (tidak bergantung periode): pinjaman aktif & sisanya (pokok/bunga belum dibayar), yang menunggak
+     * (keadaan efektif), yang lunas, serta kumulatif dana tercairkan dan angsuran sah yang sudah kembali.
+     */
     public function portfolio(): array
     {
         $active = Loan::query()->whereIn('status', Loan::ACTIVE);
         $overdue = Loan::query()->effectivelyOverdue();
+        $open = LoanInstallment::query()->where('status', '!=', 'dibayar')->whereHas('loan', fn ($q) => $q->whereIn('status', Loan::ACTIVE))
+            ->get(['amount', 'paid_amount', 'interest_part']);
+        $interestLeft = (int) $open->sum(function ($i) {
+            $amount = (int) round((float) $i->amount);
+            $part = (int) round((float) $i->interest_part);
+
+            return $amount > 0 ? $part - intdiv($part * (int) round((float) $i->paid_amount), $amount) : 0;
+        });
+        $outstanding = (int) round((float) (clone $active)->sum('outstanding'));
+        $disbursed = (int) round((float) LoanDisbursement::query()->sum('amount'));
+        $collected = (int) round((float) LoanPayment::query()->whereNull('voided_at')->sum('amount'));
+        $due = (int) round((float) Loan::query()->whereIn('status', [...Loan::ACTIVE, 'lunas'])->sum(\Illuminate\Support\Facades\DB::raw('principal + interest')));
 
         return [
-            'active' => (clone $active)->count(), 'outstanding' => (int) round((float) (clone $active)->sum('outstanding')),
+            'active' => (clone $active)->count(), 'outstanding' => $outstanding,
+            'principal_outstanding' => $outstanding - $interestLeft, 'interest_outstanding' => $interestLeft,
             'overdue' => (clone $overdue)->count(), 'overdue_outstanding' => (int) round((float) (clone $overdue)->sum('outstanding')),
             'paid_off' => Loan::query()->where('status', 'lunas')->count(),
+            'disbursed_total' => $disbursed, 'disbursed_count' => LoanDisbursement::query()->count(),
+            'collected_total' => $collected,
+            // persentase kewajiban (pokok + bunga pinjaman yang sudah cair) yang sudah kembali
+            'collection_rate' => $due > 0 ? round($collected * 100 / $due, 1) : 0.0,
         ];
     }
 

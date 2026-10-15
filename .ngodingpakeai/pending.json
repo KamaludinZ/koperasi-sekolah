@@ -1,6 +1,6 @@
 {
   "repo": "Koperasi Sekolah",
-  "generatedForCommit": "2c3f13cc2d5e5c19146678163dc6bc49cf03bc8e",
+  "generatedForCommit": "760a318cc9d8d079c3958204e981cbaa2e12664e",
   "files": [
     {
       "path": ".claude/skills/ngodingpakeai/SKILL.md",
@@ -321,16 +321,16 @@
       "size": 3284
     },
     {
+      "path": "app/Livewire/Pinjaman/Recap.php",
+      "reason": "new",
+      "language": "php",
+      "size": 2657
+    },
+    {
       "path": "app/Livewire/Pinjaman/Show.php",
       "reason": "needs_summary",
       "language": "php",
       "size": 14316
-    },
-    {
-      "path": "app/Livewire/Portal/Home.php",
-      "reason": "changed",
-      "language": "php",
-      "size": 975
     },
     {
       "path": "app/Livewire/Portal/Loans.php",
@@ -427,6 +427,12 @@
       "reason": "needs_summary",
       "language": "php",
       "size": 31161
+    },
+    {
+      "path": "app/Services/LoanRecapService.php",
+      "reason": "new",
+      "language": "php",
+      "size": 5583
     },
     {
       "path": "app/Services/LoanScheduleGenerator.php",
@@ -1348,7 +1354,7 @@
     },
     {
       "path": "resources/views/components/portal/loan-alert.blade.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 2111
     },
@@ -1977,6 +1983,12 @@
       "size": 5974
     },
     {
+      "path": "resources/views/livewire/pinjaman/recap.blade.php",
+      "reason": "new",
+      "language": "php",
+      "size": 7130
+    },
+    {
       "path": "resources/views/livewire/pinjaman/show.blade.php",
       "reason": "needs_summary",
       "language": "php",
@@ -1990,7 +2002,7 @@
     },
     {
       "path": "resources/views/livewire/portal/home.blade.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 2023
     },
@@ -2194,9 +2206,9 @@
     },
     {
       "path": "routes/web.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 48712
+      "size": 48808
     },
     {
       "path": "tests/Concerns/MakesProductImports.php",
@@ -2721,6 +2733,12 @@
       "size": 8264
     },
     {
+      "path": "tests/Feature/Pinjaman/RecapPageTest.php",
+      "reason": "new",
+      "language": "php",
+      "size": 5579
+    },
+    {
       "path": "tests/Feature/Pinjaman/ScheduleGeneratorTest.php",
       "reason": "needs_summary",
       "language": "php",
@@ -2752,7 +2770,7 @@
     },
     {
       "path": "tests/Feature/Portal/OverdueBadgeTest.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 3410
     },
