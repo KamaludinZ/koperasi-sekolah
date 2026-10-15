@@ -157,4 +157,33 @@ class MemberLoanService
             ],
         ];
     }
+
+    /**
+     * Riwayat angsuran satu pinjaman untuk pemiliknya (pemanggil wajib memastikan pinjaman milik anggota): pembayaran
+     * sah terbaru dulu, total per metode, ringkasan sisa pokok/bunga, dan status tiap angsuran. Pinjaman yang belum
+     * cair mengembalikan riwayat kosong.
+     */
+    public function history(Loan $loan): array
+    {
+        $today = today();
+        $rows = $loan->disbursed_at ? self::memberHistory($this->payments->history($loan)) : [];
+        $balance = $loan->disbursed_at ? $this->payments->balance($loan) : null;
+
+        return [
+            'loan' => ['id' => $loan->id, 'code' => $loan->code, 'status' => $loan->status, 'status_label' => Loan::STATUSES[$loan->status] ?? $loan->status,
+                'principal' => (int) round((float) $loan->principal), 'interest' => (int) round((float) $loan->interest), 'total' => $loan->totalDue(),
+                'tenor_months' => $loan->tenor_months, 'outstanding' => (int) round((float) $loan->outstanding),
+                'disbursed_at' => $loan->disbursed_at?->toDateString(), 'paid_off_at' => $loan->paid_off_at?->toDateString()],
+            'payments' => $rows,
+            'by_method' => collect($rows)->groupBy('payment_label')->map(fn ($g, $label) => ['label' => $label, 'count' => $g->count(), 'amount' => (int) $g->sum('amount')])->values()->all(),
+            'paid_total' => (int) collect($rows)->sum('amount'),
+            'balance' => $balance ? array_diff_key($balance, ['last_payment' => true]) : null,
+            'installments' => $loan->installments()->get()->map(fn ($i) => [
+                'sequence' => $i->sequence, 'due_date' => $i->due_date->toDateString(), 'amount' => (int) round((float) $i->amount),
+                'paid_amount' => (int) round((float) $i->paid_amount), 'paid_at' => $i->paid_at?->toDateString(),
+                'status' => $i->status === 'dibayar' ? 'dibayar' : ($i->due_date->lt($today) ? 'menunggak' : 'belum'),
+                'status_label' => \App\Models\LoanInstallment::STATUSES[$i->status === 'dibayar' ? 'dibayar' : ($i->due_date->lt($today) ? 'menunggak' : 'belum')],
+            ])->all(),
+        ];
+    }
 }

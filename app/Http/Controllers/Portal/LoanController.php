@@ -18,6 +18,10 @@ use Illuminate\Validation\Rule;
  *
  * GET /portal/pinjaman/sisa → sisa pinjaman berjalan & angsuran berikutnya: total sisa (pokok/bunga), tunggakan,
  * tagihan s.d. akhir bulan ini, angsuran terdekat, dan per pinjaman aktif jadwal angsuran yang belum lunas.
+ *
+ * GET /portal/pinjaman/{loan}/riwayat → riwayat angsuran satu pinjaman MILIK anggota (pinjaman orang lain atau yang
+ * tidak ada sama-sama 404, tanpa membedakan): pembayaran sah terbaru dulu (metode, rujukan, angsuran ke-, sisa setelah
+ * bayar), total dibayar per metode, ringkasan pokok/bunga, dan status tiap angsuran.
  */
 class LoanController extends Controller
 {
@@ -45,5 +49,15 @@ class LoanController extends Controller
         abort_unless($member, 401);
 
         return response()->json(['data' => $loans->outstanding($member)]);
+    }
+
+    public function history(int $loan, MemberLoanService $loans): JsonResponse
+    {
+        $member = Auth::guard('member')->user();
+        abort_unless($member, 401);
+        $model = \App\Models\Loan::query()->whereKey($loan)->where('member_id', $member->id)->first();
+        abort_unless($model, 404);
+
+        return response()->json(['data' => $loans->history($model)]);
     }
 }

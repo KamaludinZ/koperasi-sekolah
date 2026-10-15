@@ -106,6 +106,38 @@ class LoansEndpointTest extends TestCase
         $this->getJson(route('portal.pinjaman.sisa'))->assertStatus(401);
     }
 
+    public function test_history_per_loan_only_for_owner(): void
+    {
+        $run = Loan::where('code', 'PJM-RUN')->first();
+        $this->travelTo('2026-08-20 10:00:00');
+        app(LoanPaymentService::class)->record($run, ['amount' => 100000, 'paid_at' => '2026-08-20', 'payment_method' => 'tunai']);
+
+        $res = $this->getJson(route('portal.pinjaman.riwayat', $run))->assertOk()
+            ->assertJsonPath('data.loan.code', 'PJM-RUN')->assertJsonPath('data.loan.outstanding', 560000)
+            ->assertJsonPath('data.paid_total', 430000)
+            ->assertJsonPath('data.by_method', [['label' => 'Tunai', 'count' => 1, 'amount' => 100000], ['label' => 'Transfer', 'count' => 1, 'amount' => 330000]])
+            ->assertJsonPath('data.balance.paid', 430000)
+            ->assertJsonPath('data.installments.0.status', 'dibayar')->assertJsonPath('data.installments.1.paid_amount', 100000)
+            ->assertJsonPath('data.installments.1.status_label', 'Belum dibayar');
+        $this->assertSame([[2, 100000, 560000], [1, 330000, 660000]], array_map(fn ($p) => [$p['number'], $p['amount'], $p['balance_after']], $res->json('data.payments')));
+        foreach (['TRX-SALAH', 'CATATAN-INTERNAL', 'Nominal salah ketik', 'last_payment', '"user"'] as $leak) {
+            $this->assertStringNotContainsString($leak, $res->getContent(), $leak);
+        }
+
+        $this->travelTo('2026-09-05 10:00:00');
+        $this->getJson(route('portal.pinjaman.riwayat', $run))->assertJsonPath('data.installments.1.status', 'menunggak');
+
+        $this->getJson(route('portal.pinjaman.riwayat', Loan::where('code', 'PJM-NEW')->first()))->assertOk()
+            ->assertJsonPath('data.payments', [])->assertJsonPath('data.balance', null)->assertJsonPath('data.installments', []);
+
+        // milik orang lain & tidak ada: sama-sama 404
+        $this->getJson(route('portal.pinjaman.riwayat', Loan::where('code', 'PJM-OTHER')->first()))->assertNotFound();
+        $this->getJson('/portal/pinjaman/999999/riwayat')->assertNotFound();
+        $this->getJson('/portal/pinjaman/abc/riwayat')->assertNotFound();
+        auth('member')->logout();
+        $this->getJson(route('portal.pinjaman.riwayat', $run))->assertStatus(401);
+    }
+
     public function test_no_id_parameter_and_requires_member_session(): void
     {
         $this->getJson('/portal/pinjaman/data?member_id='.Member::where('name', 'Pak Lain')->value('id'))->assertOk()
