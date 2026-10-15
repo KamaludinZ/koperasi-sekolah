@@ -1,6 +1,6 @@
 {
   "repo": "Koperasi Sekolah",
-  "generatedForCommit": "82df9ed27e2b46498912de846617e0c74bf61505",
+  "generatedForCommit": "92b330d64b6aa648923a9df4b5e21408beb3709d",
   "files": [
     {
       "path": ".claude/skills/ngodingpakeai/SKILL.md",
@@ -94,7 +94,7 @@
     },
     {
       "path": "app/Http/Controllers/Impersonasi/StartMemberController.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 1359
     },
@@ -169,6 +169,12 @@
       "reason": "needs_summary",
       "language": "php",
       "size": 3868
+    },
+    {
+      "path": "app/Http/Middleware/TrackImpersonation.php",
+      "reason": "new",
+      "language": "php",
+      "size": 2743
     },
     {
       "path": "app/Livewire/Akun/Password.php",
@@ -306,7 +312,7 @@
       "path": "app/Services/ImpersonationService.php",
       "reason": "changed",
       "language": "php",
-      "size": 9740
+      "size": 12251
     },
     {
       "path": "app/Services/MemberCodeGenerator.php",
@@ -331,12 +337,6 @@
       "reason": "needs_summary",
       "language": "php",
       "size": 5077
-    },
-    {
-      "path": "app/Services/PortalAuthService.php",
-      "reason": "changed",
-      "language": "php",
-      "size": 3482
     },
     {
       "path": "app/Services/StockService.php",
@@ -382,9 +382,9 @@
     },
     {
       "path": "bootstrap/app.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 3180
+      "size": 3402
     },
     {
       "path": "bootstrap/providers.php",
@@ -2176,9 +2176,15 @@
     },
     {
       "path": "routes/web.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 53102
+    },
+    {
+      "path": "tests/Concerns/FakesImpersonation.php",
+      "reason": "new",
+      "language": "php",
+      "size": 1368
     },
     {
       "path": "tests/Concerns/MakesProductImports.php",
@@ -2398,21 +2404,27 @@
     },
     {
       "path": "tests/Feature/Impersonasi/AdminOnlyButtonsTest.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 5045
+      "size": 5105
     },
     {
       "path": "tests/Feature/Impersonasi/BannerTest.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 4521
+      "size": 5028
+    },
+    {
+      "path": "tests/Feature/Impersonasi/ImpersonationMiddlewareTest.php",
+      "reason": "new",
+      "language": "php",
+      "size": 6437
     },
     {
       "path": "tests/Feature/Impersonasi/PortalImpersonationModeTest.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 4721
+      "size": 4792
     },
     {
       "path": "tests/Feature/Impersonasi/ReasonDialogTest.php",
@@ -2422,13 +2434,13 @@
     },
     {
       "path": "tests/Feature/Impersonasi/ReturnToOriginalSessionTest.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 5908
+      "size": 5964
     },
     {
       "path": "tests/Feature/Impersonasi/StartMemberImpersonationTest.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 5481
     },

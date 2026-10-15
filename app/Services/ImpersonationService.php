@@ -13,6 +13,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
 use Livewire\Component;
@@ -135,8 +136,34 @@ class ImpersonationService
             'target_type' => $record->target_type, 'target_id' => $record->target_user_id ?? $record->target_member_id,
             'target_name' => $record->target_name, 'target_label' => $record->target_label, 'reason' => $record->reason,
             'started_at' => $record->started_at->timestamp, 'expires_at' => $record->expires_at->timestamp,
+            'return_to' => self::safeReturnPath((string) ($request->input('return_to') ?: $request->headers->get('referer', ''))),
         ]);
         session()->put('last_activity_at', now()->timestamp);
+    }
+
+    /**
+     * Halaman asal admin (untuk kembali setelah impersonasi) — hanya path internal aplikasi petugas: harus diawali
+     * satu "/", host (bila ada) sama dengan aplikasi, bukan portal/livewire/rute keluar-masuk impersonasi, ≤ 255 karakter.
+     * Selain itu null (cegah open redirect).
+     */
+    public static function safeReturnPath(string $url): ?string
+    {
+        $parts = parse_url(trim($url));
+        if ($parts === false || $url === '' || strlen($url) > 2000) {
+            return null;
+        }
+        if (isset($parts['host']) && strcasecmp($parts['host'], (string) parse_url(config('app.url'), PHP_URL_HOST)) !== 0
+            && strcasecmp($parts['host'], (string) request()->getHost()) !== 0) {
+            return null;
+        }
+        $path = $parts['path'] ?? '/';
+        if (! str_starts_with($path, '/') || str_starts_with($path, '//') || str_contains($path, '\\')
+            || preg_match('#^/(portal|livewire|impersonasi|keluar|masuk)(/|$)#', $path)) {
+            return null;
+        }
+        $full = $path.(isset($parts['query']) ? '?'.$parts['query'] : '');
+
+        return strlen($full) <= 255 ? $full : $path;
     }
 
     /**
@@ -176,9 +203,10 @@ class ImpersonationService
             Auth::guard('web')->login($admin);
         }
         session()->regenerate();
+        session()->regenerateToken(); // identitas berganti → token CSRF lama tidak berlaku
         session()->put('last_activity_at', now()->timestamp);
 
-        return ['ok' => true, 'admin' => $admin, 'target_name' => $imp['target_name']];
+        return ['ok' => true, 'admin' => $admin, 'target_name' => $imp['target_name'], 'return_to' => $imp['return_to'] ?? null];
     }
 
     /**
@@ -234,11 +262,29 @@ class ImpersonationService
             ->each(fn (Impersonation $r) => $r->update(['ended_at' => max(now(), $r->started_at), 'end_reason' => $reason]));
     }
 
+    /** Tujuan setelah kembali: halaman asal admin bila masih bisa ia buka, selain itu daftar Masuk sebagai akun. */
+    public function returnUrl(array $result): string
+    {
+        $path = $result['return_to'] ?? null;
+        if ($path && $result['admin']) {
+            try {
+                $route = Route::getRoutes()->match(Request::create($path, 'GET'));
+            } catch (\Throwable) {
+                $route = null;
+            }
+            if ($route?->getName() && Menu::canReach($route->getName(), AuthService::toArray($result['admin']))) {
+                return $path;
+            }
+        }
+
+        return route('pengguna.impersonasi', absolute: false);
+    }
+
     /** Respons standar setelah stop(): kembali ke daftar akun impersonasi dengan toast, atau ke halaman masuk. */
     public function stopResponse(array $result): RedirectResponse
     {
         if ($result['ok']) {
-            return redirect()->route('pengguna.impersonasi')->with('toast', ['type' => 'success',
+            return redirect()->to($this->returnUrl($result))->with('toast', ['type' => 'success',
                 'message' => "Anda kembali sebagai {$result['admin']->name}. Sesi sebagai {$result['target_name']} ditutup."]);
         }
         if ($result['target_name'] === null) {

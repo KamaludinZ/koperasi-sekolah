@@ -6,7 +6,8 @@ namespace App\Support;
  * Status impersonasi yang sedang berjalan di sesi ini (kontrak data antara layanan impersonasi, spanduk penanda,
  * dan pencatat audit). Disimpan di session `impersonation`:
  *   id (uuid sesi impersonasi), admin_id, admin_name, target_type ('petugas'|'anggota'), target_id, target_name,
- *   target_label (mis. "Kasir" / "SIS-0012 · 7A"), reason, started_at & expires_at (unix timestamp).
+ *   target_label (mis. "Kasir" / "SIS-0012 · 7A"), reason, started_at & expires_at (unix timestamp),
+ *   return_to (opsional: halaman asal admin, path internal yang sudah disaring).
  * Nilai yang rusak/tidak lengkap dianggap tidak ada (tidak pernah dipercaya setengah-setengah).
  */
 class ImpersonationSession
@@ -31,6 +32,7 @@ class ImpersonationSession
             'target_type' => $s['target_type'], 'target_id' => (int) $s['target_id'], 'target_name' => (string) $s['target_name'],
             'target_label' => isset($s['target_label']) ? (string) $s['target_label'] : null, 'reason' => (string) $s['reason'],
             'started_at' => (int) $s['started_at'], 'expires_at' => (int) $s['expires_at'],
+            'return_to' => isset($s['return_to']) && is_string($s['return_to']) ? $s['return_to'] : null,
         ];
     }
 

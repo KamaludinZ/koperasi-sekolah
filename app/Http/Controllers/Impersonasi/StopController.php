@@ -18,8 +18,10 @@ class StopController extends Controller
     {
         $result = $impersonation->stop($request);
         if ($request->expectsJson()) {
-            return response()->json(['ok' => $result['ok'], 'message' => $result['ok']
-                ? "Kembali sebagai {$result['admin']->name}." : 'Tidak ada sesi impersonasi yang aktif.']);
+            return response()->json($result['ok']
+                ? ['ok' => true, 'message' => "Kembali sebagai {$result['admin']->name}.", 'admin' => ['id' => $result['admin']->id, 'name' => $result['admin']->name],
+                    'ended' => ['target_name' => $result['target_name']], 'redirect' => $impersonation->returnUrl($result)]
+                : ['ok' => false, 'message' => $result['target_name'] ? 'Sesi impersonasi ditutup. Silakan masuk lagi.' : 'Tidak ada sesi impersonasi yang aktif.']);
         }
 
         return $impersonation->stopResponse($result);
