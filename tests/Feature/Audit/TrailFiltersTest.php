@@ -4,6 +4,7 @@ namespace Tests\Feature\Audit;
 
 use App\Livewire\Audit\RoleImpersonation;
 use App\Models\ActivityLog;
+use App\Models\AuditIntegrityFailure;
 use App\Models\Role;
 use App\Models\User;
 use App\Services\AuditLog;
@@ -63,17 +64,18 @@ class TrailFiltersTest extends TestCase
             ->set('category', 'bukan-kategori')->assertSet('category', '');
     }
 
-    public function test_only_invalid_filter_uses_last_verification(): void
+    public function test_only_invalid_filter_uses_open_failure_markers(): void
     {
         $roleLog = ActivityLog::where('event', 'role.permissions_updated')->value('id');
-        AuditVerificationStatus::store(['checked' => 10, 'invalid' => [$roleLog], 'unsigned' => 0, 'first_id' => 1, 'last_id' => 10], 'manual', 'uji');
+        $failure = AuditIntegrityFailure::create(['kind' => 'checksum', 'activity_log_id' => $roleLog, 'event' => 'role.permissions_updated',
+            'detail' => 'uji', 'first_detected_at' => now(), 'last_detected_at' => now()]);
 
         Livewire::test(RoleImpersonation::class)->set('seal', true)->assertSet('seal', 'rusak')
             ->assertSeeHtml('data-log="'.$roleLog.'"')->assertSeeHtml('data-tab-count="peran">1<')
             ->assertSeeHtml('data-tab-count="impersonasi">0<');
         $this->assertSame(1, app(RoleImpersonationTrail::class)->counts(['period' => '30', 'seal' => 'rusak'])['peran']);
 
-        Cache::forget(AuditVerificationStatus::KEY);
+        $failure->update(['cleared_at' => now()]); // pulih → tidak lagi tersaring
         $this->assertSame(0, app(RoleImpersonationTrail::class)->counts(['period' => '30', 'seal' => 'rusak'])['peran']);
     }
 

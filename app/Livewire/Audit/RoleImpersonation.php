@@ -5,7 +5,7 @@ namespace App\Livewire\Audit;
 use App\Models\ActivityLog;
 use App\Models\Impersonation;
 use App\Models\Role;
-use App\Services\AuditIntegrity;
+use App\Services\AuditVerificationService;
 use App\Services\RoleImpersonationTrail;
 use App\Support\AuditVerificationStatus;
 use Illuminate\Support\Facades\Auth;
@@ -111,9 +111,11 @@ class RoleImpersonation extends Component
             return;
         }
         RateLimiter::hit($key, 600);
-        $row = AuditVerificationStatus::store(app(AuditIntegrity::class)->verify(), 'manual', $user->name);
-        $this->dispatch('toast', type: $row['ok'] ? 'success' : 'error',
-            message: $row['ok'] ? "Jejak audit utuh — {$row['checked']} catatan diperiksa." : "{$row['invalid_count']} catatan tidak cocok dengan checksum-nya!");
+        $s = app(AuditVerificationService::class)->run('penuh', 'manual', $user->name);
+        $bad = count($s['invalid']) + $s['chain_failures'];
+        $this->dispatch('toast', type: $bad === 0 ? 'success' : 'error',
+            message: $bad === 0 ? "Jejak audit utuh — {$s['checked']} catatan & {$s['chains_checked']} rantai sesi diperiksa."
+                : count($s['invalid']).' catatan tidak cocok checksum'.($s['chain_failures'] ? " & {$s['chain_failures']} rantai sesi putus" : '').'!');
     }
 
     public function resetFilters(): void

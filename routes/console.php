@@ -59,6 +59,8 @@ Artisan::command('kupon:hitung-ulang', function () {
 
 // Periksa keaslian jejak audit setiap malam; baris yang diubah langsung di database memicu notifikasi Admin.
 Schedule::command('audit:verifikasi')->dailyAt('02:30');
+// Pemeriksaan cepat tiap jam untuk catatan peran & impersonasi (termasuk rantai mulai–selesai sesi 7 hari terakhir).
+Schedule::command('audit:verifikasi', ['--cepat'])->hourlyAt(17)->withoutOverlapping();
 
 // Hitung ulang pinjaman: tandai angsuran lewat jatuh tempo (menunggak) dan selaraskan sisa/status lunas dengan
 // pembayaran sah. Penyimpangan dicatat di riwayat perubahan angsuran & jejak audit.

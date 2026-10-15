@@ -3,10 +3,10 @@
 namespace App\Services;
 
 use App\Models\ActivityLog;
+use App\Models\AuditIntegrityFailure;
 use App\Models\Impersonation;
 use App\Models\Role;
 use App\Models\User;
-use App\Support\AuditVerificationStatus;
 use App\Support\Menu;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
@@ -46,7 +46,7 @@ class RoleImpersonationTrail
 
     /**
      * Saringan bersama: period (7|30|90|semua), search, actor, kind (tab peran), category (tab aksi),
-     * status (tab impersonasi: aktif|selesai), seal ('rusak' = hanya catatan yang tidak cocok pada pemeriksaan terakhir).
+     * status (tab impersonasi: aktif|selesai), seal ('rusak' = hanya catatan/sesi yang masih ditandai gagal verifikasi (audit_integrity_failures)).
      *
      * @param  array<string, string>  $f
      */
@@ -78,13 +78,7 @@ class RoleImpersonationTrail
                 ->orWhere('admin_name', 'like', "%{$search}%")->orWhere('reason', 'like', "%{$search}%")))
             ->when(($f['status'] ?? '') === 'aktif', fn ($q) => $q->active())
             ->when(($f['status'] ?? '') === 'selesai', fn ($q) => $q->whereNotNull('ended_at'))
-            ->when(($f['seal'] ?? '') === 'rusak', function ($q) {
-                // sesi yang catatan mulai/selesainya tercatat tidak cocok pada pemeriksaan terakhir
-                $bad = AuditVerificationStatus::last()['invalid'] ?? [];
-                $ids = ActivityLog::query()->whereIn('id', $bad ?: [0])->whereIn('event', self::IMPERSONATION_EVENTS)->get()
-                    ->map(fn ($l) => $l->properties['impersonation_id'] ?? null)->filter()->all();
-                $q->whereIn('id', $ids ?: ['00000000-0000-0000-0000-000000000000']);
-            })
+            ->when(($f['seal'] ?? '') === 'rusak', fn ($q) => $q->whereIn('id', AuditIntegrityFailure::open()->whereNotNull('impersonation_id')->select('impersonation_id')))
             ->orderByDesc('started_at');
     }
 
@@ -124,7 +118,7 @@ class RoleImpersonationTrail
             ->when(($f['actor'] ?? '') !== '', fn ($w) => $w->where('actor_name', $f['actor']))
             ->when($search !== '', fn ($w) => $w->where(fn ($s) => $s->where('description', 'like', "%{$search}%")
                 ->orWhere('subject_label', 'like', "%{$search}%")->orWhere('reason', 'like', "%{$search}%")))
-            ->when(($f['seal'] ?? '') === 'rusak', fn ($w) => $w->whereIn('id', AuditVerificationStatus::last()['invalid'] ?? [0]))
+            ->when(($f['seal'] ?? '') === 'rusak', fn ($w) => $w->whereIn('id', AuditIntegrityFailure::open()->whereNotNull('activity_log_id')->select('activity_log_id')))
             ->orderByDesc('created_at')->orderByDesc('id');
     }
 

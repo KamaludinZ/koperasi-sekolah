@@ -1,6 +1,6 @@
 {
   "repo": "Koperasi Sekolah",
-  "generatedForCommit": "820f6176c8f0966b3f610385dc317021a6185c3e",
+  "generatedForCommit": "40de6f687fec7d9771ea2e3d9486eceda375bd56",
   "files": [
     {
       "path": ".claude/skills/ngodingpakeai/SKILL.md",
@@ -67,6 +67,12 @@
       "reason": "needs_summary",
       "language": "php",
       "size": 1337
+    },
+    {
+      "path": "app/Http/Controllers/Audit/RoleImpersonationTrailController.php",
+      "reason": "new",
+      "language": "php",
+      "size": 6209
     },
     {
       "path": "app/Http/Controllers/Auth/LoginController.php",
@@ -291,12 +297,6 @@
       "size": 874
     },
     {
-      "path": "app/Models/Concerns/SoftDeletesWithReason.php",
-      "reason": "changed",
-      "language": "php",
-      "size": 2060
-    },
-    {
       "path": "app/Models/Impersonation.php",
       "reason": "needs_summary",
       "language": "php",
@@ -316,7 +316,7 @@
     },
     {
       "path": "app/Models/UserRole.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 2690
     },
@@ -325,12 +325,6 @@
       "reason": "needs_summary",
       "language": "php",
       "size": 2211
-    },
-    {
-      "path": "app/Providers/AppServiceProvider.php",
-      "reason": "changed",
-      "language": "php",
-      "size": 7844
     },
     {
       "path": "app/Services/ImpersonationService.php",
@@ -388,7 +382,7 @@
     },
     {
       "path": "app/Support/Actor.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 3104
     },
@@ -2242,9 +2236,9 @@
     },
     {
       "path": "routes/web.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 53538
+      "size": 54174
     },
     {
       "path": "tests/Concerns/FakesImpersonation.php",
@@ -2317,6 +2311,12 @@
       "reason": "needs_summary",
       "language": "php",
       "size": 5375
+    },
+    {
+      "path": "tests/Feature/Audit/RoleImpersonationTrailEndpointTest.php",
+      "reason": "new",
+      "language": "php",
+      "size": 5635
     },
     {
       "path": "tests/Feature/Audit/RoleImpersonationTrailPageTest.php",
@@ -2524,7 +2524,7 @@
     },
     {
       "path": "tests/Feature/Impersonasi/ByColumnAttributionTest.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 3277
     },
