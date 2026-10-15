@@ -1,6 +1,6 @@
 {
   "repo": "Koperasi Sekolah",
-  "generatedForCommit": "6f14d85251c2c8296f32c81a258f3fecff585801",
+  "generatedForCommit": "f8300e953e3d59fd891272eddf5c8aadebc07b08",
   "files": [
     {
       "path": ".claude/skills/ngodingpakeai/SKILL.md",
@@ -136,9 +136,9 @@
     },
     {
       "path": "app/Http/Controllers/Pinjaman/AuditTrailController.php",
-      "reason": "new",
+      "reason": "changed",
       "language": "php",
-      "size": 5082
+      "size": 7893
     },
     {
       "path": "app/Http/Controllers/Pinjaman/DisbursementController.php",
@@ -334,9 +334,9 @@
     },
     {
       "path": "app/Livewire/Pinjaman/AuditTrail.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 7020
+      "size": 7094
     },
     {
       "path": "app/Livewire/Pinjaman/Disbursements.php",
@@ -460,9 +460,9 @@
     },
     {
       "path": "app/Services/LoanAuditExport.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 2578
+      "size": 3883
     },
     {
       "path": "app/Services/LoanAuditQuery.php",
@@ -2328,7 +2328,7 @@
       "path": "routes/web.php",
       "reason": "changed",
       "language": "php",
-      "size": 51055
+      "size": 51229
     },
     {
       "path": "tests/Concerns/MakesProductImports.php",
@@ -2686,9 +2686,9 @@
     },
     {
       "path": "tests/Feature/Pinjaman/AuditTrailEndpointTest.php",
-      "reason": "new",
+      "reason": "changed",
       "language": "php",
-      "size": 5573
+      "size": 7726
     },
     {
       "path": "tests/Feature/Pinjaman/AuditTrailPageTest.php",

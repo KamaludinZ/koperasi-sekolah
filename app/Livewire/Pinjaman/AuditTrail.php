@@ -188,6 +188,22 @@ class AuditTrail extends Component
             'X-Content-Type-Options' => 'nosniff', 'X-Audit-Signature' => $file['signature'], 'X-Audit-Rows' => (string) $file['rows']]);
     }
 
+    /** Hasil pemeriksaan rantai HMAC terakhir (untuk spanduk status). */
+    #[Computed]
+    public function integrity(): ?array
+    {
+        return \App\Services\LoanAuditGuard::last();
+    }
+
+    /** Periksa keaslian rantai jejak audit sekarang. */
+    public function verifyChain(): void
+    {
+        $r = app(\App\Services\LoanAuditGuard::class)->check();
+        unset($this->integrity, $this->logs, $this->counts);
+        $this->dispatch('toast', type: $r['valid'] ? 'success' : 'error',
+            message: $r['valid'] ? "Rantai jejak audit utuh ({$r['checked']} mata rantai)." : 'Rantai tidak utuh: '.\App\Services\LoanAuditGuard::describe($r).'.');
+    }
+
     public function render()
     {
         return view('livewire.pinjaman.audit-trail');

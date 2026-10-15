@@ -76,6 +76,10 @@ class AppServiceProvider extends ServiceProvider
         \Illuminate\Support\Facades\Event::listen(\Illuminate\Database\Events\TransactionRolledBack::class,
             fn ($e) => \App\Services\LoanAutoAudit::rolledBack($e->connection->transactionLevel()));
 
+        // Pemeriksaan rantai HMAC jejak audit pinjaman cukup berat: batas sendiri (tidak berbagi hitungan dengan rute lain).
+        \Illuminate\Support\Facades\RateLimiter::for('verifikasi-audit-pinjaman', fn (\Illuminate\Http\Request $r) => \Illuminate\Cache\RateLimiting\Limit::perMinute(10)
+            ->by('verifikasi-audit-pinjaman:'.($r->user()?->getAuthIdentifier() ?? $r->ip())));
+
         Gate::define('menu', fn (User $user, string $menu) => $user->canOpen($menu));
 
         // Melihat pengaturan cukup punya menu "pengaturan" (bisa dibagikan ke peran lain);

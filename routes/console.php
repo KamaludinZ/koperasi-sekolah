@@ -76,6 +76,22 @@ Artisan::command('pinjaman:hitung-ulang {--kode= : Hanya satu pinjaman (kode PJM
 
 Schedule::command('pinjaman:hitung-ulang')->dailyAt('00:15');
 
+// Periksa rantai HMAC log audit pinjaman tiap malam; temuan → jejak audit + notifikasi Admin & Pengurus.
+Artisan::command('pinjaman:verifikasi-audit', function () {
+    $r = app(\App\Services\LoanAuditGuard::class)->check();
+    $this->info("Diperiksa {$r['checked']} mata rantai.");
+    if ($r['valid']) {
+        $this->info('Rantai jejak audit pinjaman utuh.');
+
+        return 0;
+    }
+    $this->error('Rantai tidak utuh: '.\App\Services\LoanAuditGuard::describe($r).'.');
+
+    return 1;
+})->purpose('Periksa keaslian rantai HMAC log audit pinjaman');
+
+Schedule::command('pinjaman:verifikasi-audit')->dailyAt('02:40');
+
 // Deteksi angsuran lewat jatuh tempo: tandai menunggak, catat jejak audit & kabari pengurus (job di antrean notifikasi).
 Artisan::command('pinjaman:deteksi-tunggakan', function () {
     $r = app(\App\Services\LoanOverdueDetector::class)->run();

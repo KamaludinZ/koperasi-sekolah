@@ -26,6 +26,23 @@
     </header>
 
     <div class="space-y-4 px-4 py-5 sm:px-6">
+        @php $integrity = $this->integrity; @endphp
+        <div @class(['flex flex-wrap items-center justify-between gap-2 rounded-xl border px-4 py-2.5 text-sm',
+                     'border-emerald-200 bg-emerald-50 text-emerald-900' => $integrity && $integrity['valid'],
+                     'border-red-300 bg-red-50 text-red-900' => $integrity && ! $integrity['valid'],
+                     'border-stone-200 bg-white text-stone-700' => ! $integrity]) role="status" data-integrity="{{ $integrity ? ($integrity['valid'] ? 'utuh' : 'rusak') : 'belum' }}">
+            <span>
+                @if (! $integrity)
+                    Keaslian rantai HMAC jejak audit belum pernah diperiksa.
+                @elseif ($integrity['valid'])
+                    Rantai HMAC jejak audit utuh — {{ $integrity['checked'] }} mata rantai, diperiksa @tanggal($integrity['checked_at'], true).
+                @else
+                    <strong>Jejak audit terindikasi diubah:</strong> {{ \App\Services\LoanAuditGuard::describe($integrity) }} (diperiksa @tanggal($integrity['checked_at'], true)).
+                @endif
+            </span>
+            <button type="button" wire:click="verifyChain" wire:loading.attr="disabled" wire:target="verifyChain" class="rounded-lg border border-current/30 px-3 py-1 text-xs font-semibold hover:bg-white/60" data-verify-chain>Periksa sekarang</button>
+        </div>
+
         <div class="inline-flex gap-1 rounded-xl border border-stone-200 bg-white p-1" role="tablist" aria-label="Tampilan">
             @foreach (['jejak' => 'Jejak peristiwa', 'transaksi' => 'Pencairan & angsuran'] as $k => $t)
                 <button type="button" role="tab" wire:click="setView('{{ $k }}')" aria-selected="{{ $view === $k ? 'true' : 'false' }}" data-view="{{ $k }}"

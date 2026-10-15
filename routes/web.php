@@ -489,6 +489,8 @@ Route::middleware(['menu:pinjaman', 'peran:admin,pengurus', 'can:kelola-pinjaman
     Route::get('/pinjaman/audit/data', [\App\Http\Controllers\Pinjaman\AuditTrailController::class, 'index'])->middleware('throttle:120,1')->name('pinjaman.audit.data');
     Route::get('/pinjaman/audit/transaksi', [\App\Http\Controllers\Pinjaman\AuditTrailController::class, 'ledger'])->middleware('throttle:120,1')->name('pinjaman.audit.transaksi');
     Route::get('/pinjaman/audit/ekspor', [\App\Http\Controllers\Pinjaman\AuditTrailController::class, 'export'])->middleware('throttle:20,1')->name('pinjaman.audit.ekspor');
+    Route::get('/pinjaman/audit/verifikasi', [\App\Http\Controllers\Pinjaman\AuditTrailController::class, 'verify'])->middleware('throttle:verifikasi-audit-pinjaman')->name('pinjaman.audit.verifikasi');
+    Route::post('/pinjaman/audit/verifikasi-berkas', [\App\Http\Controllers\Pinjaman\AuditTrailController::class, 'verifyFile'])->middleware('throttle:20,1')->name('pinjaman.audit.verifikasi-berkas');
     Route::get('/pinjaman/rekap', \App\Livewire\Pinjaman\Recap::class)->middleware('can:lihat-rekap-pinjaman')->name('pinjaman.rekap');
     Route::get('/pinjaman/rekap/berjalan', [\App\Http\Controllers\Pinjaman\RecapController::class, 'running'])->middleware('throttle:120,1')->middleware('can:lihat-rekap-pinjaman')->name('pinjaman.rekap.berjalan');
     Route::get('/pinjaman/rekap/data', [\App\Http\Controllers\Pinjaman\RecapController::class, 'period'])->middleware('throttle:120,1')->middleware('can:lihat-rekap-pinjaman')->name('pinjaman.rekap.data');

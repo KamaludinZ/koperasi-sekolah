@@ -22,6 +22,8 @@ use Illuminate\Validation\Rule;
  *   angsuran termasuk yang dikoreksi + total.
  * - GET /pinjaman/audit/ekspor?tampil=jejak|transaksi&(saringan sama) → unduh CSV (maks. 20.000 baris; kolom HMAC rantai
  *   untuk jejak), header X-Audit-Signature = HMAC-SHA256 isi berkas, X-Audit-Rows = jumlah baris; ekspor dicatat di jejak.
+ * - GET  /pinjaman/audit/verifikasi → periksa rantai HMAC sekarang (valid, jumlah diperiksa, temuan: diubah/hilang/putus/tanpa rantai).
+ * - POST /pinjaman/audit/verifikasi-berkas {berkas: CSV hasil ekspor, tanda: X-Audit-Signature} → cocok/tidak (berkas diubah?).
  * periode: hari-ini|7-hari|30-hari|semua (bawaan 30-hari); dari/sampai (Y-m-d) menimpa periode. Parameter salah → 422.
  */
 class AuditTrailController extends Controller
@@ -119,5 +121,26 @@ class AuditTrailController extends Controller
             'X-Audit-Signature' => $file['signature'], 'X-Audit-Rows' => (string) $file['rows'],
             'X-Content-Type-Options' => 'nosniff', 'Cache-Control' => 'private, no-store',
         ]);
+    }
+
+    public function verify(\App\Services\LoanAuditGuard $guard): JsonResponse
+    {
+        $r = $guard->check();
+
+        return response()->json(['data' => $r, 'message' => $r['valid'] ? 'Rantai jejak audit pinjaman utuh.' : 'Rantai tidak utuh: '.\App\Services\LoanAuditGuard::describe($r).'.']);
+    }
+
+    public function verifyFile(Request $request): JsonResponse
+    {
+        $data = $request->validate([
+            'berkas' => ['required', 'file', 'max:20480', 'mimetypes:text/csv,text/plain,application/csv,application/vnd.ms-excel'],
+            'tanda' => ['required', 'string', 'regex:/^[a-f0-9]{64}$/'],
+        ], ['berkas.required' => 'Pilih berkas CSV hasil ekspor.', 'berkas.max' => 'Berkas maksimal 20 MB.', 'tanda.regex' => 'Tanda harus 64 karakter heksadesimal (header X-Audit-Signature).']);
+        $content = (string) file_get_contents($request->file('berkas')->getRealPath());
+        $ok = \App\Services\LoanAuditExport::signatureMatches($content, $data['tanda']);
+        $recorded = \App\Models\ActivityLog::where('event', 'pinjaman.audit_diekspor')->where('properties->signature', $data['tanda'])->latest('id')->first();
+
+        return response()->json(['data' => ['valid' => $ok, 'exported_at' => $recorded?->created_at?->toDateTimeString(), 'exported_by' => $recorded?->actor_name],
+            'message' => $ok ? 'Berkas asli: isi cocok dengan tandanya'.($recorded ? ' (diekspor '.$recorded->actor_name.')' : '').'.' : 'Berkas TIDAK cocok dengan tandanya — isinya sudah diubah atau tanda salah.']);
     }
 }
