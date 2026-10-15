@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\Loan;
 use App\Models\Member;
+use App\Support\LoanOverdue;
 
 /**
  * Data pinjaman untuk portal anggota (halaman "Pinjaman saya" & GET /portal/pinjaman/data): hanya pinjaman milik
@@ -32,19 +33,19 @@ class MemberLoanService
             ->orderByDesc('applied_at')->orderByDesc('id')->get()
             ->map(function (Loan $l) use ($today, $payments) {
                 $next = $l->installments->first();
-                $late = in_array($l->status, Loan::ACTIVE, true) ? $l->installments->filter(fn ($i) => $i->due_date->lt($today)) : collect();
+                $late = in_array($l->status, Loan::ACTIVE, true) ? $l->installments->filter(fn ($i) => LoanOverdue::isLate($i, $today)) : collect();
                 $paid = $l->totalDue() - (int) round((float) $l->outstanding);
 
                 return array_diff_key(LoanService::toArray($l->setRelation('member', null)), ['member' => true]) + [
                     'progress' => in_array($l->status, [...Loan::ACTIVE, 'lunas'], true) && $l->totalDue() > 0 ? min(100, intdiv(max(0, $paid) * 100, $l->totalDue())) : null,
                     'next' => $next ? ['sequence' => $next->sequence, 'due_date' => $next->due_date->toDateString(),
-                        'remaining' => (int) round((float) $next->amount - (float) $next->paid_amount), 'late' => $next->due_date->lt($today)] : null,
+                        'remaining' => (int) round((float) $next->amount - (float) $next->paid_amount), 'late' => LoanOverdue::isLate($next, $today)] : null,
                     'late_count' => $late->count(),
                     'late_amount' => (int) $late->sum(fn ($i) => (int) round((float) $i->amount - (float) $i->paid_amount)),
                     // menunggak bila status sudah ditandai ATAU ada angsuran lewat jatuh tempo yang belum tercatat statusnya
                     'overdue' => $l->status === 'menunggak' || $late->isNotEmpty(),
                     'late_since' => $late->first()?->due_date->toDateString(),
-                    'days_late' => $late->isNotEmpty() ? (int) $late->first()->due_date->diffInDays($today) : 0,
+                    'days_late' => $late->isNotEmpty() ? LoanOverdue::daysLate($late->first(), $today) : 0,
                     'balance' => in_array($l->status, Loan::ACTIVE, true) ? $payments->balance($l) : null,
                     'payments' => $l->disbursed_at ? self::memberHistory($payments->history($l)) : [],
                     'paid_off_at' => $l->paid_off_at?->toDateString(),
@@ -55,11 +56,10 @@ class MemberLoanService
     /** Jumlah pinjaman anggota yang punya angsuran lewat jatuh tempo (atau berstatus menunggak) — untuk tanda di navigasi. */
     public static function overdueCount(int $memberId): int
     {
-        $today = today()->toDateString();
 
         return Loan::query()->ownedBy($memberId)->whereIn('status', Loan::ACTIVE)
             ->where(fn ($q) => $q->where('status', 'menunggak')
-                ->orWhereHas('installments', fn ($i) => $i->where('status', '!=', 'dibayar')->where('due_date', '<', $today)))
+                ->orWhereHas('installments', fn ($i) => LoanOverdue::scope($i)))
             ->count();
     }
 
@@ -126,7 +126,7 @@ class MemberLoanService
             $schedule = $l->installments->map(fn ($i) => [
                 'sequence' => $i->sequence, 'due_date' => $i->due_date->toDateString(),
                 'amount' => (int) round((float) $i->amount), 'remaining' => (int) round((float) $i->amount - (float) $i->paid_amount),
-                'late' => $i->due_date->lt($today), 'days_late' => $i->due_date->lt($today) ? (int) $i->due_date->diffInDays($today) : 0,
+                'late' => LoanOverdue::isLate($i, $today), 'days_late' => LoanOverdue::daysLate($i, $today),
             ])->values();
             $b = $this->payments->balance($l);
 
@@ -181,8 +181,8 @@ class MemberLoanService
             'installments' => $loan->installments()->get()->map(fn ($i) => [
                 'sequence' => $i->sequence, 'due_date' => $i->due_date->toDateString(), 'amount' => (int) round((float) $i->amount),
                 'paid_amount' => (int) round((float) $i->paid_amount), 'paid_at' => $i->paid_at?->toDateString(),
-                'status' => $i->status === 'dibayar' ? 'dibayar' : ($i->due_date->lt($today) ? 'menunggak' : 'belum'),
-                'status_label' => \App\Models\LoanInstallment::STATUSES[$i->status === 'dibayar' ? 'dibayar' : ($i->due_date->lt($today) ? 'menunggak' : 'belum')],
+                'status' => LoanOverdue::status($i, $today),
+                'status_label' => \App\Models\LoanInstallment::STATUSES[LoanOverdue::status($i, $today)],
             ])->all(),
         ];
     }

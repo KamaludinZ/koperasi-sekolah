@@ -525,7 +525,7 @@ class LoanPaymentService
             if ($i->status === 'dibayar') {
                 continue;
             }
-            $should = $i->due_date->lt($today) ? 'menunggak' : 'belum';
+            $should = \App\Support\LoanOverdue::status($i, $today);
             if ($i->status !== $should) {
                 $i->update(['status' => $should]);
             }

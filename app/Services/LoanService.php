@@ -65,7 +65,7 @@ class LoanService
         $open = LoanInstallment::query()->where('status', '!=', 'dibayar')->whereHas('loan', fn ($q) => $q->whereIn('status', Loan::ACTIVE));
         $sum = fn ($q) => (int) round((float) $q->sum(\Illuminate\Support\Facades\DB::raw('amount - paid_amount')));
         $dueMonth = (clone $open)->whereDayRange('due_date', $today->copy()->startOfMonth()->toDateString(), $today->copy()->endOfMonth()->toDateString());
-        $late = (clone $open)->where('due_date', '<', $today->toDateString());
+        $late = \App\Support\LoanOverdue::scope(clone $open, $today);
 
         $stats = $this->stats();
 
@@ -100,8 +100,8 @@ class LoanService
             'payment_label' => $i->payment_method ? (Loan::METHODS[$i->payment_method] ?? $i->payment_method) : null,
             'status' => $i->status, 'status_label' => LoanInstallment::STATUSES[$i->status] ?? $i->status,
             'remaining' => max(0, (int) round((float) $i->amount - (float) $i->paid_amount)),
-            'late' => $late = $i->status !== 'dibayar' && $i->due_date->lt($today),
-            'days_late' => $late ? (int) $i->due_date->diffInDays($today) : 0, 'note' => $i->note, 'user' => $i->user?->name,
+            'late' => \App\Support\LoanOverdue::isLate($i, $today),
+            'days_late' => \App\Support\LoanOverdue::daysLate($i, $today), 'note' => $i->note, 'user' => $i->user?->name,
         ])->all();
 
         $disbursements = $loan->disbursements->map(fn (LoanDisbursement $d) => [

@@ -8,6 +8,9 @@ return [
     */
     'idle_minutes' => env('KOPERASI_IDLE_MINUTES'),
 
+    // Toleransi (hari) sebelum angsuran pinjaman yang lewat jatuh tempo dianggap menunggak (0–30). Lihat App\Support\LoanOverdue.
+    'loan_grace_days' => (int) env('KOPERASI_PINJAMAN_TOLERANSI_HARI', 0),
+
     /*
     | Paksa HTTPS: permintaan http dialihkan ke https, URL dibuat dengan https, dan header HSTS
     | dikirim. Bawaan: aktif di production. Matikan (FORCE_HTTPS=false) hanya bila TLS ditangani
