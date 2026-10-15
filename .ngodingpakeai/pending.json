@@ -1,6 +1,6 @@
 {
   "repo": "Koperasi Sekolah",
-  "generatedForCommit": "46fa4b7558cc7715cc4adab82c760e50dfc7f2d9",
+  "generatedForCommit": "bb836aba0c0001536191e9bf0cbe0cc6c9afcc80",
   "files": [
     {
       "path": ".claude/skills/ngodingpakeai/SKILL.md",
@@ -196,7 +196,7 @@
     },
     {
       "path": "app/Livewire/Audit/RoleImpersonation.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 6655
     },
@@ -285,10 +285,16 @@
       "size": 874
     },
     {
-      "path": "app/Models/Impersonation.php",
-      "reason": "needs_summary",
+      "path": "app/Models/ActivityLog.php",
+      "reason": "changed",
       "language": "php",
-      "size": 2635
+      "size": 4377
+    },
+    {
+      "path": "app/Models/Impersonation.php",
+      "reason": "changed",
+      "language": "php",
+      "size": 3250
     },
     {
       "path": "app/Models/Setting.php",
@@ -315,10 +321,22 @@
       "size": 2211
     },
     {
-      "path": "app/Services/ImpersonationService.php",
-      "reason": "needs_summary",
+      "path": "app/Services/AuditIntegrity.php",
+      "reason": "changed",
       "language": "php",
-      "size": 19101
+      "size": 3654
+    },
+    {
+      "path": "app/Services/AuditLog.php",
+      "reason": "changed",
+      "language": "php",
+      "size": 5321
+    },
+    {
+      "path": "app/Services/ImpersonationService.php",
+      "reason": "changed",
+      "language": "php",
+      "size": 19313
     },
     {
       "path": "app/Services/MemberCodeGenerator.php",
@@ -348,7 +366,7 @@
       "path": "app/Services/RoleImpersonationTrail.php",
       "reason": "changed",
       "language": "php",
-      "size": 13155
+      "size": 12736
     },
     {
       "path": "app/Services/StockService.php",
@@ -1029,6 +1047,12 @@
       "size": 3560
     },
     {
+      "path": "database/migrations/2026_10_19_000001_add_impersonation_columns_to_audit_tables.php",
+      "reason": "new",
+      "language": "php",
+      "size": 5413
+    },
+    {
       "path": "database/seeders/NotificationSeeder.php",
       "reason": "needs_summary",
       "language": "php",
@@ -1564,7 +1588,7 @@
     },
     {
       "path": "resources/views/livewire/audit/role-impersonation.blade.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 16326
     },
@@ -2296,7 +2320,7 @@
     },
     {
       "path": "tests/Feature/Audit/TrailFiltersTest.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 4017
     },
@@ -2389,6 +2413,12 @@
       "reason": "needs_summary",
       "language": "php",
       "size": 1866
+    },
+    {
+      "path": "tests/Feature/Database/ImpersonationAuditColumnsTest.php",
+      "reason": "new",
+      "language": "php",
+      "size": 5588
     },
     {
       "path": "tests/Feature/Database/ImpersonationSchemaTest.php",

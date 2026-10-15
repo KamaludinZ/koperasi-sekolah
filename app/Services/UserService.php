@@ -150,7 +150,7 @@ class UserService
         $labels = implode(' + ', array_map(fn ($n) => Role::LABELS[$n] ?? $n, $names));
 
         AuditLog::record('user.created', 'pengguna', "Akun baru {$user->name} sebagai {$labels}", self::subject($user),
-            ['email' => $user->email, 'role' => $names[0], 'roles' => $names],
+            ['email' => $user->email, 'role' => $names[0]] + app(RoleAuditService::class)->createdProperties($names),
             action: 'dibuat', new: ['name' => $user->name, 'email' => $user->email, 'role' => $names[0], 'roles' => $names, 'is_active' => (bool) $user->is_active]);
 
         return $user;
@@ -182,10 +182,11 @@ class UserService
 
         $after = ['name' => $user->name, 'email' => $user->email, 'roles' => implode(', ', $user->roleNames()), 'is_active' => (bool) $user->is_active];
         if ($changes = AuditLog::diff($before, $after, array_keys($after))) {
-            $roleChange = isset($changes['roles']) ? ['added' => array_values(array_diff($names, $beforeRoles)), 'removed' => array_values(array_diff($beforeRoles, $names))] : null;
-            AuditLog::record($roleChange ? 'user.role_changed' : 'user.updated', 'pengguna',
-                "Akun {$user->name} diubah: ".implode(', ', array_keys($changes)), self::subject($user), ['changes' => $changes] + ($roleChange ?? []),
-                action: 'diubah', old: array_map(fn ($c) => $c['from'], $changes), new: array_map(fn ($c) => $c['to'], $changes));
+            app(RoleAuditService::class)->recordUserRoles($user, $beforeRoles, $user->roleNames(), [
+                'source' => 'formulir', 'other_changes' => array_diff_key($changes, ['roles' => true]),
+                'primary_from' => $beforeRoles[0] ?? null, 'primary_to' => $user->role?->name,
+                'description' => "Akun {$user->name} diubah: ".implode(', ', array_keys($changes)),
+            ]);
         }
         if (filled($data['password'] ?? null)) {
             $this->sessions->revokeAll($user);
@@ -205,7 +206,7 @@ class UserService
      * @param  list<string>  $roles
      * @return array{user: User, added: list<string>, removed: list<string>}
      */
-    public function updateRoles(User $user, array $roles, ?User $actor): array
+    public function updateRoles(User $user, array $roles, ?User $actor, ?string $reason = null, string $source = 'peran'): array
     {
         $user->loadMissing('role', 'roles');
         $known = array_keys(Role::LABELS);
@@ -222,14 +223,13 @@ class UserService
         }
 
         $menusBefore = $user->permissions();
-        DB::transaction(function () use ($user, $names, $before, $added, $removed, $menusBefore, $actor) {
+        $primaryBefore = $user->role?->name;
+        DB::transaction(function () use ($user, $names, $before, $added, $removed, $menusBefore, $actor, $reason, $source, $primaryBefore) {
             $this->assignRoles($user, $names);
             $this->notifyRolesChanged($user, $added, $removed, $menusBefore, $actor);
-            $label = fn (array $n) => implode(', ', array_map(fn ($x) => Role::LABELS[$x] ?? $x, $n));
-            AuditLog::record('user.role_changed', 'pengguna',
-                "Peran {$user->name} diubah".($added ? ': + '.$label($added) : '').($removed ? ($added ? ';' : ':').' − '.$label($removed) : ''),
-                self::subject($user), ['changes' => ['roles' => ['from' => implode(', ', $before), 'to' => implode(', ', $names)]], 'added' => $added, 'removed' => $removed],
-                action: 'diubah', old: ['roles' => implode(', ', $before)], new: ['roles' => implode(', ', $names)]);
+            app(RoleAuditService::class)->recordUserRoles($user, $before, $names, [
+                'source' => $source, 'reason' => $reason, 'primary_from' => $primaryBefore, 'primary_to' => $user->role?->name,
+            ]);
         });
 
         return ['user' => $user, 'added' => $added, 'removed' => $removed];
@@ -279,15 +279,15 @@ class UserService
     }
 
     /** Tambah satu peran ke akun (peran lain tetap). */
-    public function addRole(User $user, string $role, ?User $actor): array
+    public function addRole(User $user, string $role, ?User $actor, ?string $reason = null): array
     {
         $user->loadMissing('role', 'roles');
 
-        return $this->updateRoles($user, [...$user->roleNames(), $role], $actor);
+        return $this->updateRoles($user, [...$user->roleNames(), $role], $actor, $reason, 'tambah');
     }
 
     /** Cabut satu peran dari akun; peran terakhir tidak bisa dicabut (akun wajib punya minimal satu peran). */
-    public function removeRole(User $user, string $role, ?User $actor): array
+    public function removeRole(User $user, string $role, ?User $actor, ?string $reason = null): array
     {
         $user->loadMissing('role', 'roles');
         $rest = array_values(array_diff($user->roleNames(), [$role]));
@@ -298,7 +298,7 @@ class UserService
             throw ValidationException::withMessages(['roles' => "Peran terakhir {$user->name} tidak bisa dicabut — akun wajib punya minimal satu peran."]);
         }
 
-        return $this->updateRoles($user, $rest, $actor);
+        return $this->updateRoles($user, $rest, $actor, $reason, 'cabut');
     }
 
     public function toggleActive(User $user, ?User $actor): User
@@ -326,7 +326,7 @@ class UserService
      *
      * @param  list<string>  $menus
      */
-    public function updatePermissions(Role $role, array $menus): Role
+    public function updatePermissions(Role $role, array $menus, ?string $reason = null): Role
     {
         $menus = array_values(array_intersect(array_keys(Menu::ITEMS), $menus)); // urutan & kunci valid saja
         if ($forbidden = array_intersect($menus, Role::FORBIDDEN[$role->name] ?? [])) {
@@ -344,11 +344,7 @@ class UserService
         $removed = array_values(array_diff($before, $menus));
         if ($added || $removed) {
             $this->notifyRolePermissionsChanged($role, $added, $removed);
-            $label = fn (array $keys) => implode(', ', array_map(fn ($k) => Menu::ITEMS[$k]['label'] ?? $k, $keys));
-            AuditLog::record('role.permissions_updated', 'pengguna',
-                "Hak akses peran {$role->label} diubah".($added ? ' (+'.$label($added).')' : '').($removed ? ' (−'.$label($removed).')' : ''),
-                ['type' => 'role', 'id' => $role->id, 'label' => $role->label], ['added' => $added, 'removed' => $removed],
-                action: 'diubah', old: ['menus' => $label($before)], new: ['menus' => $label($menus)]);
+            app(RoleAuditService::class)->recordRolePermissions($role, $before, $menus, $reason);
         }
 
         return $role;
@@ -428,6 +424,12 @@ class UserService
         if ($errors) {
             throw ValidationException::withMessages($errors);
         }
+    }
+
+    /** Subjek jejak audit untuk akun petugas (dipakai juga RoleAuditService). */
+    public static function subjectFor(User $user): array
+    {
+        return self::subject($user);
     }
 
     private static function subject(User $user): array

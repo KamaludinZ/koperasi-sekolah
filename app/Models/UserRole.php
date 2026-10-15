@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Services\AuditLog;
+use App\Services\RoleAuditService;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\Pivot;
 use Illuminate\Support\Facades\Auth;
@@ -70,10 +71,6 @@ class UserRole extends Pivot
         if (! $user || ! $role) {
             return;
         }
-        AuditLog::record("user.role_{$kind}", 'pengguna',
-            'Peran '.$role->label.($kind === 'added' ? ' ditambahkan ke ' : ' dicabut dari ').$user->name.' (di luar halaman Pengguna)',
-            ['type' => 'user', 'id' => $user->id, 'label' => "{$user->name} · {$user->email}"],
-            [$kind => [$role->name], 'otomatis' => true], action: 'diubah',
-            old: $kind === 'removed' ? ['role' => $role->name] : null, new: $kind === 'added' ? ['role' => $role->name] : null);
+        app(RoleAuditService::class)->recordPivotChange($kind, $user, $role);
     }
 }

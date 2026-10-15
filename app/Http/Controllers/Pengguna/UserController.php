@@ -104,6 +104,7 @@ class UserController extends Controller
             'roles.*' => ['string', 'distinct', Rule::in(array_keys(Role::LABELS))],
             'expected_roles' => ['sometimes', 'array'],
             'expected_roles.*' => ['string'],
+            'alasan' => ['nullable', 'string', 'max:200'],
         ], ['roles.present' => UserService::MSG_MIN_ROLE, 'roles.array' => UserService::MSG_MIN_ROLE, 'roles.*.in' => 'Peran tidak dikenal.', 'roles.*.distinct' => 'Peran tidak boleh dobel.']);
         $user->load('role', 'roles');
         if (array_key_exists('expected_roles', $data) && Role::sortNames($data['expected_roles']) !== $user->roleNames()) {
@@ -114,21 +115,25 @@ class UserController extends Controller
             return response()->json(['message' => UserService::MSG_MIN_ROLE, 'errors' => ['roles' => [UserService::MSG_MIN_ROLE]]], 422);
         }
 
-        return $this->roleResult($users->updateRoles($user, $data['roles'], $request->user()));
+        return $this->roleResult($users->updateRoles($user, $data['roles'], $request->user(), $data['alasan'] ?? null));
     }
 
     public function addRole(Request $request, User $user, string $role, UserService $users): JsonResponse
     {
         abort_unless(array_key_exists($role, Role::LABELS), 404, 'Peran tidak dikenal.');
 
-        return $this->roleResult($users->addRole($user->load('role', 'roles'), $role, $request->user()));
+        $reason = $request->validate(['alasan' => ['nullable', 'string', 'max:200']])['alasan'] ?? null;
+
+        return $this->roleResult($users->addRole($user->load('role', 'roles'), $role, $request->user(), $reason));
     }
 
     public function removeRole(Request $request, User $user, string $role, UserService $users): JsonResponse
     {
         abort_unless(array_key_exists($role, Role::LABELS), 404, 'Peran tidak dikenal.');
 
-        return $this->roleResult($users->removeRole($user->load('role', 'roles'), $role, $request->user()));
+        $reason = $request->validate(['alasan' => ['nullable', 'string', 'max:200']])['alasan'] ?? null;
+
+        return $this->roleResult($users->removeRole($user->load('role', 'roles'), $role, $request->user(), $reason));
     }
 
     private function roleResult(array $r): JsonResponse
@@ -177,8 +182,9 @@ class UserController extends Controller
         $data = $request->validate([
             'permissions' => ['present', 'array'],
             'permissions.*' => [Rule::in(array_keys(Menu::ITEMS))],
+            'alasan' => ['nullable', 'string', 'max:200'],
         ]);
 
-        return response()->json(['data' => $users->updatePermissions($role, $data['permissions'])->only('id', 'name', 'label', 'permissions')]);
+        return response()->json(['data' => $users->updatePermissions($role, $data['permissions'], $data['alasan'] ?? null)->only('id', 'name', 'label', 'permissions')]);
     }
 }

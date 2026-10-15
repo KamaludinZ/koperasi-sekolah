@@ -45,13 +45,14 @@ class RoleChangeAuditTest extends TestCase
 
         $u->roles()->attach($pengurus->id, ['created_at' => now()]);
         $added = ActivityLog::where('event', 'user.role_added')->sole();
-        $this->assertSame([$admin->name, (int) $added->subject_id, ['pengurus'], ['role' => 'pengurus']],
-            [$added->actor_name, $u->id, $added->properties['added'], $added->new_values]);
-        $this->assertTrue($added->properties['otomatis']);
+        // format diff seragam (RoleAuditService): peran sebelum → sesudah, ditambah/dicabut, sumber
+        $this->assertSame([$admin->name, (int) $added->subject_id, ['pengurus'], ['roles' => 'pengurus, kasir'], ['roles' => 'kasir']],
+            [$added->actor_name, $u->id, $added->properties['added'], $added->new_values, $added->old_values]);
+        $this->assertSame('otomatis', $added->properties['source']);
 
         $u->roles()->detach($pengurus->id);
         $removed = ActivityLog::where('event', 'user.role_removed')->sole();
-        $this->assertSame([['pengurus'], ['role' => 'pengurus']], [$removed->properties['removed'], $removed->old_values]);
+        $this->assertSame([['pengurus'], ['roles' => 'pengurus, kasir'], ['roles' => 'kasir']], [$removed->properties['removed'], $removed->old_values, $removed->new_values]);
 
         $u->roles()->sync([Role::named('admin')->id => ['created_at' => now()], Role::named('kasir')->id => ['created_at' => now()]]);
         $this->assertSame(2, ActivityLog::where('event', 'user.role_added')->count());
