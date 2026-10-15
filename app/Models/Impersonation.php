@@ -71,10 +71,12 @@ class Impersonation extends Model
         return $this->ended_at === null && $this->expires_at->isFuture();
     }
 
-    /** Lama sesi berjalan (menit, dibulatkan ke atas) sampai berakhir atau sampai sekarang. */
+    /** Lama sesi berjalan (menit, dibulatkan ke menit terdekat; minimal 1 bila sudah berjalan) sampai berakhir atau sekarang. */
     public function durationMinutes(): int
     {
-        return (int) ceil($this->started_at->diffInSeconds($this->ended_at ?? now()) / 60);
+        $seconds = max(0, (int) $this->started_at->diffInSeconds($this->ended_at ?? now()));
+
+        return $seconds === 0 ? 0 : max(1, (int) round($seconds / 60));
     }
 
     public function startLog(): BelongsTo

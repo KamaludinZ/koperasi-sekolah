@@ -90,6 +90,7 @@ class ReturnEndpointTest extends TestCase
 
     public function test_end_reason_and_duration_recorded(): void
     {
+        $this->freezeTime();
         $this->startFrom(null);
         $this->travel(4)->minutes();
         $this->post('/impersonasi/selesai');

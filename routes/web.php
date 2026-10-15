@@ -208,6 +208,7 @@ Route::post('/keluar', LogoutController::class)->name('logout');
 Route::post('/impersonasi/selesai', StopController::class)->middleware('throttle:30,1')->name('impersonasi.selesai');
 // Akun sendiri: cukup sudah masuk (semua peran).
 Route::get('/akun/kata-sandi', Akun\Password::class)->middleware(['menu', 'auth'])->name('akun.password');
+Route::get('/panduan', App\Livewire\Panduan\Index::class)->middleware(['menu', 'auth'])->name('panduan');
 Route::get('/akun/sesi', Akun\Sessions::class)->middleware(['menu', 'auth'])->name('akun.sessions');
 Route::get('/notifikasi', Notifikasi\Index::class)->middleware(['menu', 'auth'])->name('notifikasi');
 Route::get('/notifikasi/data', [NotificationController::class, 'index'])->middleware(['menu', 'auth'])->name('notifikasi.data');
