@@ -1,6 +1,6 @@
 {
   "repo": "Koperasi Sekolah",
-  "generatedForCommit": "2245e180cc636fdbf6b75476bd1ad24f1b44f6b0",
+  "generatedForCommit": "7f7f3c909446f179ed89791c9f474c2d7b3d9ceb",
   "files": [
     {
       "path": ".claude/skills/ngodingpakeai/SKILL.md",
@@ -124,7 +124,7 @@
     },
     {
       "path": "app/Http/Controllers/Pengguna/UserController.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 7313
     },
@@ -133,6 +133,12 @@
       "reason": "needs_summary",
       "language": "php",
       "size": 745
+    },
+    {
+      "path": "app/Http/Middleware/EnsureActiveSession.php",
+      "reason": "changed",
+      "language": "php",
+      "size": 2483
     },
     {
       "path": "app/Http/Middleware/EnsureMenuAccess.php",
@@ -255,6 +261,12 @@
       "size": 2211
     },
     {
+      "path": "app/Services/AuthService.php",
+      "reason": "changed",
+      "language": "php",
+      "size": 4823
+    },
+    {
       "path": "app/Services/MemberCodeGenerator.php",
       "reason": "needs_summary",
       "language": "php",
@@ -277,6 +289,12 @@
       "reason": "needs_summary",
       "language": "php",
       "size": 3493
+    },
+    {
+      "path": "app/Services/UserService.php",
+      "reason": "changed",
+      "language": "php",
+      "size": 18302
     },
     {
       "path": "app/Support/MockData.php",
@@ -2044,7 +2062,7 @@
     },
     {
       "path": "routes/web.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 52211
     },
@@ -2361,6 +2379,12 @@
       "size": 3160
     },
     {
+      "path": "tests/Feature/Pengguna/RejectNoRoleTest.php",
+      "reason": "new",
+      "language": "php",
+      "size": 4639
+    },
+    {
       "path": "tests/Feature/Pengguna/RoleCheckboxFormTest.php",
       "reason": "needs_summary",
       "language": "php",
@@ -2368,7 +2392,7 @@
     },
     {
       "path": "tests/Feature/Pengguna/SaveRolesEndpointTest.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 5157
     },

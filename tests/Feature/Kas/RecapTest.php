@@ -21,6 +21,7 @@ class RecapTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
+        \Illuminate\Support\Facades\Storage::fake('local'); // ekspor tes tidak menumpuk di storage asli
         Carbon::setTestNow('2026-10-14 16:00:00'); // Rabu, semua shift sudah ditutup
         $this->seed([ProductSeeder::class, TransactionSeeder::class, CashShiftSeeder::class]);
     }

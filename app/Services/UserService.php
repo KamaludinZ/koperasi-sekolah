@@ -114,7 +114,8 @@ class UserService
     {
         $ids = Role::whereIn('name', $names)->pluck('id', 'name');
         $user->forceFill(['role_id' => $ids[$names[0]]])->save();
-        $user->roles()->sync(collect($names)->mapWithKeys(fn ($n) => [$ids[$n] => ['created_at' => now()]])->all());
+        // alur resmi: pemanggil mencatat user.created / user.role_changed sendiri (catatan per baris pivot dilewati)
+        \App\Models\UserRole::official(fn () => $user->roles()->sync(collect($names)->mapWithKeys(fn ($n) => [$ids[$n] => ['created_at' => now()]])->all()));
         $user->load('role', 'roles');
     }
 

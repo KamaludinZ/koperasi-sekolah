@@ -18,6 +18,7 @@ class IndexTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
+        \Illuminate\Support\Facades\Storage::fake('local'); // berkas ekspor tes tidak boleh menumpuk di storage asli
         Carbon::setTestNow('2026-10-14 15:00:00');
         $this->seed([ProductSeeder::class, TransactionSeeder::class]); // ±90 hari riwayat contoh
     }

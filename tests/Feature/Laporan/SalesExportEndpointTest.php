@@ -18,6 +18,7 @@ class SalesExportEndpointTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
+        \Illuminate\Support\Facades\Storage::fake('local'); // berkas ekspor tes tidak boleh menumpuk di storage asli
         $this->seed(ProductSeeder::class);
         $this->travelTo('2026-10-14 10:00:00');
 

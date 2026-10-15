@@ -81,7 +81,7 @@ class User extends Authenticatable
     /** Semua peran yang dipegang akun (pivot user_roles); role() = peran utama. */
     public function roles(): BelongsToMany
     {
-        return $this->belongsToMany(Role::class, 'user_roles')->orderBy('roles.id');
+        return $this->belongsToMany(Role::class, 'user_roles')->using(UserRole::class)->withPivot('created_at')->orderBy('roles.id');
     }
 
     /**
