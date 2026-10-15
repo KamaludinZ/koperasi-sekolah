@@ -1,6 +1,6 @@
 {
   "repo": "Koperasi Sekolah",
-  "generatedForCommit": "a76e570c7c32cbc3fb47049ee554a4c05f9a93de",
+  "generatedForCommit": "1415b39d0445b8c9be64f6e4613e0dd67334dedd",
   "files": [
     {
       "path": ".claude/skills/ngodingpakeai/SKILL.md",
@@ -184,7 +184,7 @@
     },
     {
       "path": "app/Http/Controllers/Pinjaman/RecapExportController.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 5120
     },
@@ -220,7 +220,7 @@
     },
     {
       "path": "app/Jobs/ExportLoanRecap.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 2590
     },
@@ -354,7 +354,7 @@
       "path": "app/Livewire/Pinjaman/Recap.php",
       "reason": "changed",
       "language": "php",
-      "size": 5537
+      "size": 5875
     },
     {
       "path": "app/Livewire/Pinjaman/Show.php",
@@ -429,6 +429,12 @@
       "size": 2211
     },
     {
+      "path": "app/Providers/AppServiceProvider.php",
+      "reason": "changed",
+      "language": "php",
+      "size": 6495
+    },
+    {
       "path": "app/Services/LoanApplicationService.php",
       "reason": "needs_summary",
       "language": "php",
@@ -466,7 +472,7 @@
     },
     {
       "path": "app/Services/LoanRecapExport.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 6778
     },
@@ -511,12 +517,6 @@
       "reason": "needs_summary",
       "language": "php",
       "size": 2848
-    },
-    {
-      "path": "app/Services/ReportExportService.php",
-      "reason": "changed",
-      "language": "php",
-      "size": 3864
     },
     {
       "path": "app/Services/StockService.php",
@@ -1402,9 +1402,9 @@
     },
     {
       "path": "resources/views/components/pinjaman/nav.blade.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 1468
+      "size": 1605
     },
     {
       "path": "resources/views/components/pinjaman/recap-cards.blade.php",
@@ -2050,7 +2050,7 @@
     },
     {
       "path": "resources/views/livewire/pinjaman/recap.blade.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 14065
     },
@@ -2254,7 +2254,7 @@
     },
     {
       "path": "resources/views/pinjaman/rekap-pdf.blade.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 4572
     },
@@ -2278,9 +2278,9 @@
     },
     {
       "path": "routes/web.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 50283
+      "size": 50603
     },
     {
       "path": "tests/Concerns/MakesProductImports.php",
@@ -2452,9 +2452,9 @@
     },
     {
       "path": "tests/Feature/Database/TransactionSeederTest.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 1972
+      "size": 2569
     },
     {
       "path": "tests/Feature/Database/UserRoleTest.php",
@@ -2829,6 +2829,12 @@
       "size": 8264
     },
     {
+      "path": "tests/Feature/Pinjaman/RecapAccessTest.php",
+      "reason": "new",
+      "language": "php",
+      "size": 4489
+    },
+    {
       "path": "tests/Feature/Pinjaman/RecapAggregationTest.php",
       "reason": "needs_summary",
       "language": "php",
@@ -2842,7 +2848,7 @@
     },
     {
       "path": "tests/Feature/Pinjaman/RecapExportTest.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 9274
     },
