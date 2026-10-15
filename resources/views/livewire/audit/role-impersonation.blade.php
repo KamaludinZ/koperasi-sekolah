@@ -32,6 +32,42 @@
             </div>
         </section>
 
+        {{-- Hasil verifikasi integritas seluruh jejak audit --}}
+        <section @class(['rounded-xl border p-4', 'border-red-300 bg-red-50' => $verification && ! $verification['ok'], 'border-stone-200 bg-white' => ! $verification || $verification['ok']]) aria-labelledby="verif-title" data-verification-panel>
+            <div class="flex flex-wrap items-start gap-3">
+                <div class="min-w-0 flex-1">
+                    <h2 id="verif-title" class="text-sm font-semibold">Verifikasi integritas log</h2>
+                    @if ($verification)
+                        <p @class(['mt-0.5 text-sm', 'font-semibold text-red-800' => ! $verification['ok'], 'text-emerald-800' => $verification['ok']]) data-verification-status="{{ $verification['ok'] ? 'utuh' : 'rusak' }}">
+                            {{ $verification['ok'] ? '✓ Seluruh jejak audit utuh' : '✗ '.$verification['invalid_count'].' catatan tidak cocok dengan checksum HMAC-nya' }}
+                        </p>
+                        <p class="mt-0.5 text-xs text-stone-500">
+                            {{ \Illuminate\Support\Carbon::parse($verification['at'])->translatedFormat('d M Y H:i') }} ({{ \Illuminate\Support\Carbon::parse($verification['at'])->diffForHumans() }})
+                            · {{ $verification['source'] === 'manual' ? 'diperiksa manual'.($verification['by'] ? ' oleh '.$verification['by'] : '') : 'pemeriksaan terjadwal' }}
+                            · {{ number_format($verification['checked'], 0, ',', '.') }} catatan @if ($verification['first_id'])(id {{ $verification['first_id'] }}–{{ $verification['last_id'] }})@endif
+                            @if ($verification['unsigned']) · {{ $verification['unsigned'] }} catatan lama belum bertanda @endif
+                        </p>
+                    @else
+                        <p class="mt-0.5 text-xs text-stone-500" data-verification-status="belum">Belum pernah diperiksa. Pemeriksaan terjadwal berjalan setiap hari pukul 02.30.</p>
+                    @endif
+                </div>
+                @if (\Illuminate\Support\Facades\Auth::guard('web')->user()?->hasRole('admin'))
+                    <button type="button" wire:click="verifyNow" wire:loading.attr="disabled" wire:target="verifyNow"
+                            class="rounded-lg border border-stone-300 bg-white px-3 py-1.5 text-sm font-medium text-stone-700 hover:bg-stone-50 disabled:opacity-60" data-verify-now>
+                        <span wire:loading.remove wire:target="verifyNow">Periksa sekarang</span><span wire:loading wire:target="verifyNow">Memeriksa…</span>
+                    </button>
+                @endif
+            </div>
+            @if ($invalidRows)
+                <ul class="mt-3 divide-y divide-red-100 rounded-lg border border-red-200 bg-white text-xs" data-invalid-rows>
+                    @foreach ($invalidRows as $bad)
+                        <li class="flex gap-2 px-3 py-1.5"><span class="font-mono text-red-700">#{{ $bad['id'] }}</span><span class="text-stone-500">{{ $bad['at'] }}</span><span class="min-w-0 flex-1 truncate">{{ $bad['event'] }} — {{ $bad['description'] }}</span></li>
+                    @endforeach
+                    @if ($verification['invalid_count'] > count($invalidRows))<li class="px-3 py-1.5 text-stone-500">… dan {{ $verification['invalid_count'] - count($invalidRows) }} lainnya</li>@endif
+                </ul>
+            @endif
+        </section>
+
         {{-- Tab & saringan --}}
         <div class="flex flex-wrap items-center gap-2">
             <div class="flex gap-1 rounded-lg bg-stone-200/60 p-0.5 text-sm" role="tablist" aria-label="Jenis jejak">

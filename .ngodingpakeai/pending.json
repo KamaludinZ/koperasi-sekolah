@@ -1,6 +1,6 @@
 {
   "repo": "Koperasi Sekolah",
-  "generatedForCommit": "b0bede09ccd1158125b190c24bacac99b8b608a4",
+  "generatedForCommit": "7bd2292ff5f1fa6e3396e6a41087bcb25fa1a2e4",
   "files": [
     {
       "path": ".claude/skills/ngodingpakeai/SKILL.md",
@@ -262,7 +262,7 @@
     },
     {
       "path": "app/Livewire/Pengguna/Impersonation.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 8372
     },
@@ -316,9 +316,9 @@
     },
     {
       "path": "app/Services/ImpersonationService.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 18892
+      "size": 19101
     },
     {
       "path": "app/Services/MemberCodeGenerator.php",
@@ -346,9 +346,9 @@
     },
     {
       "path": "app/Services/RoleImpersonationTrail.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 10133
+      "size": 10732
     },
     {
       "path": "app/Services/StockService.php",
@@ -1216,9 +1216,9 @@
     },
     {
       "path": "resources/views/components/impersonation-banner.blade.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 3498
+      "size": 4033
     },
     {
       "path": "resources/views/components/kas/difference-badge.blade.php",
@@ -1900,7 +1900,7 @@
     },
     {
       "path": "resources/views/livewire/pengguna/partials/impersonate-dialog.blade.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 8473
     },
@@ -2457,6 +2457,12 @@
       "size": 5105
     },
     {
+      "path": "tests/Feature/Impersonasi/BannerAuditContextTest.php",
+      "reason": "new",
+      "language": "php",
+      "size": 2710
+    },
+    {
       "path": "tests/Feature/Impersonasi/BannerTest.php",
       "reason": "needs_summary",
       "language": "php",
@@ -2464,7 +2470,7 @@
     },
     {
       "path": "tests/Feature/Impersonasi/DialogAuditContextTest.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 3667
     },

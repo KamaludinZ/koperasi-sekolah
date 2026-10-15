@@ -4,6 +4,7 @@ namespace App\Console\Commands;
 
 use App\Models\Notification;
 use App\Services\AuditIntegrity;
+use App\Support\AuditVerificationStatus;
 use Illuminate\Console\Command;
 
 /**
@@ -20,6 +21,9 @@ class VerifyAuditLog extends Command
     public function handle(AuditIntegrity $integrity): int
     {
         $r = $integrity->verify($this->option('dari') ? (int) $this->option('dari') : null);
+        if (! $this->option('dari')) { // hanya pemeriksaan penuh yang menjadi "hasil terakhir"
+            AuditVerificationStatus::store($r, 'jadwal');
+        }
         $this->info("Diperiksa {$r['checked']} baris".($r['checked'] ? " (id {$r['first_id']}–{$r['last_id']})" : '').'.');
         if ($r['unsigned']) {
             $this->warn("{$r['unsigned']} baris belum bertanda (dibuat sebelum penguncian).");

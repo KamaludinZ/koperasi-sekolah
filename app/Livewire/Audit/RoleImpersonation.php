@@ -3,7 +3,12 @@
 namespace App\Livewire\Audit;
 
 use App\Models\Impersonation;
+use App\Models\Role;
+use App\Services\AuditIntegrity;
 use App\Services\RoleImpersonationTrail;
+use App\Support\AuditVerificationStatus;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\RateLimiter;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
@@ -74,6 +79,27 @@ class RoleImpersonation extends Component
         $this->detailId = null;
     }
 
+    /** Admin: periksa ulang checksum seluruh jejak audit sekarang (dibatasi 3× per 10 menit per admin). */
+    public function verifyNow(): void
+    {
+        $user = Auth::guard('web')->user();
+        if (! $user?->hasRole(Role::ADMIN)) {
+            $this->dispatch('toast', type: 'error', message: 'Hanya Admin yang dapat menjalankan pemeriksaan.');
+
+            return;
+        }
+        $key = 'verifikasi-audit-manual:'.$user->id;
+        if (RateLimiter::tooManyAttempts($key, 3)) {
+            $this->dispatch('toast', type: 'error', message: 'Terlalu sering — coba lagi dalam '.ceil(RateLimiter::availableIn($key) / 60).' menit.');
+
+            return;
+        }
+        RateLimiter::hit($key, 600);
+        $row = AuditVerificationStatus::store(app(AuditIntegrity::class)->verify(), 'manual', $user->name);
+        $this->dispatch('toast', type: $row['ok'] ? 'success' : 'error',
+            message: $row['ok'] ? "Jejak audit utuh — {$row['checked']} catatan diperiksa." : "{$row['invalid_count']} catatan tidak cocok dengan checksum-nya!");
+    }
+
     public function resetFilters(): void
     {
         $this->reset('search', 'actor', 'status');
@@ -114,6 +140,8 @@ class RoleImpersonation extends Component
             'periods' => RoleImpersonationTrail::PERIODS,
             'endReasons' => Impersonation::END_REASONS,
             'detail' => $this->detailId ? $this->trail->roleChangeDetail((int) $this->detailId) : null,
+            'verification' => $last = AuditVerificationStatus::last(),
+            'invalidRows' => AuditVerificationStatus::invalidRows($last),
         ]);
     }
 }
