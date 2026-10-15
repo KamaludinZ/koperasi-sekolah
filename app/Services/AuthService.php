@@ -49,10 +49,15 @@ class AuthService
             throw $lock->isLocked() ? self::lockedException($lock->secondsLeft()) : ValidationException::withMessages(['email' => 'Email atau kata sandi salah.']);
         }
 
-        if (! $user->is_active || ! $user->role) {
+        if (! $user->is_active) {
             AuditLog::record('auth.inactive', 'auth', "Akun nonaktif {$user->email} mencoba masuk", null, ['email' => $user->email], null, self::actor($user));
 
             throw ValidationException::withMessages(['email' => 'Akun ini dinonaktifkan. Hubungi admin koperasi.']);
+        }
+        if ($user->loadMissing('role', 'roles')->roleNames() === []) { // akun tanpa peran tidak bisa membuka apa pun
+            AuditLog::record('auth.no_role', 'auth', "Akun tanpa peran {$user->email} mencoba masuk", null, ['email' => $user->email], null, self::actor($user));
+
+            throw ValidationException::withMessages(['email' => 'Akun ini belum memiliki peran. Minta admin koperasi menetapkan perannya.']);
         }
 
         $this->lockouts->clear($email);

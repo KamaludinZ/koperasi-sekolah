@@ -26,10 +26,13 @@ class EnsureActiveSession
         }
 
         $reason = null;
-        $user->loadMissing('role');
-        if (! $user->is_active || ! $user->role) {
+        $user->loadMissing('role', 'roles');
+        if (! $user->is_active) {
             $reason = 'Akun Anda dinonaktifkan oleh admin.';
             AuditLog::record('auth.forced_logout', 'auth', "{$user->name} dikeluarkan karena akun dinonaktifkan");
+        } elseif ($user->roleNames() === []) {
+            $reason = 'Akun Anda tidak lagi memiliki peran. Minta admin koperasi menetapkan perannya.';
+            AuditLog::record('auth.forced_logout', 'auth', "{$user->name} dikeluarkan karena akunnya tidak memiliki peran", null, ['reason' => 'tanpa_peran']);
         } elseif (($idle = SessionPolicy::idleMinutes()) > 0
             && ($last = $request->session()->get('last_activity_at'))
             && now()->timestamp - $last > $idle * 60) {

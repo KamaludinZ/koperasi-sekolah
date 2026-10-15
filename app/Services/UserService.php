@@ -147,7 +147,7 @@ class UserService
     public function update(User $user, array $data, ?User $actor): User
     {
         $user->loadMissing('role', 'roles');
-        $names = self::roleList($data);
+        $names = self::roleList($data); // akun tanpa peran ditolak (MSG_MIN_ROLE)
         $active = (bool) ($data['is_active'] ?? $user->is_active);
         $this->guardChange($user, $names, $active, $actor);
 
@@ -289,6 +289,9 @@ class UserService
     public function toggleActive(User $user, ?User $actor): User
     {
         $user->loadMissing('role', 'roles');
+        if (! $user->is_active && $user->roleNames() === []) {
+            throw ValidationException::withMessages(['roles' => "Tetapkan minimal satu peran untuk {$user->name} sebelum mengaktifkannya."]);
+        }
         $this->guardChange($user, $user->roleNames(), ! $user->is_active, $actor);
 
         $user->forceFill(['is_active' => ! $user->is_active])->save();
