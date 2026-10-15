@@ -1,6 +1,6 @@
 {
   "repo": "Koperasi Sekolah",
-  "generatedForCommit": "ca6f7ee5625ce94f2141bb2d9ea83dc3b371b446",
+  "generatedForCommit": "a423e216dc5a41d59bdaaf179b7ea6caba79d3e1",
   "files": [
     {
       "path": ".claude/skills/ngodingpakeai/SKILL.md",
@@ -316,9 +316,9 @@
     },
     {
       "path": "app/Models/Loan.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 4730
+      "size": 4957
     },
     {
       "path": "app/Models/LoanDisbursement.php",
@@ -330,7 +330,13 @@
       "path": "app/Models/LoanInstallment.php",
       "reason": "changed",
       "language": "php",
-      "size": 3563
+      "size": 6658
+    },
+    {
+      "path": "app/Models/LoanInstallmentChange.php",
+      "reason": "new",
+      "language": "php",
+      "size": 3013
     },
     {
       "path": "app/Models/LoanPayment.php",
@@ -364,7 +370,7 @@
     },
     {
       "path": "app/Services/LoanDisbursementService.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 7913
     },
@@ -378,7 +384,7 @@
       "path": "app/Services/LoanPaymentService.php",
       "reason": "changed",
       "language": "php",
-      "size": 19295
+      "size": 20204
     },
     {
       "path": "app/Services/LoanScheduleGenerator.php",
@@ -1000,9 +1006,15 @@
     },
     {
       "path": "database/migrations/2026_10_16_000007_add_parts_to_loan_installments.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 2386
+    },
+    {
+      "path": "database/migrations/2026_10_16_000008_create_loan_installment_changes_table.php",
+      "reason": "new",
+      "language": "php",
+      "size": 3137
     },
     {
       "path": "database/seeders/LoanSeeder.php",
@@ -2230,7 +2242,7 @@
     },
     {
       "path": "tests/Feature/Database/LoanSchemaTest.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 13410
     },
@@ -2521,6 +2533,12 @@
       "reason": "needs_summary",
       "language": "php",
       "size": 8553
+    },
+    {
+      "path": "tests/Feature/Pinjaman/InstallmentChangeHistoryTest.php",
+      "reason": "new",
+      "language": "php",
+      "size": 7379
     },
     {
       "path": "tests/Feature/Pinjaman/InstallmentsPageTest.php",

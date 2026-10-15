@@ -81,6 +81,27 @@ class LoanPaymentService
     }
 
     /**
+     * Pembayaran yang sudah tercatat dengan kunci idempoten ini (ditandai wasReplayed), atau null. Kunci yang sama
+     * untuk pinjaman lain ditolak.
+     */
+    public static function replayed(Loan $loan, ?string $clientRef): ?LoanPayment
+    {
+        if ($clientRef === null) {
+            return null;
+        }
+        $existing = LoanPayment::where('client_ref', $clientRef)->first();
+        if (! $existing) {
+            return null;
+        }
+        if ($existing->loan_id !== $loan->id) {
+            throw ValidationException::withMessages(['client_ref' => 'Kunci idempoten sudah dipakai untuk pinjaman lain.']);
+        }
+        $existing->wasReplayed = true;
+
+        return $existing;
+    }
+
+    /**
      * Rencana alokasi tanpa menyimpan (untuk pratinjau form).
      *
      * @param  Collection<int, LoanInstallment>  $installments  urut ke-n
@@ -106,13 +127,19 @@ class LoanPaymentService
     }
 
     /** @param  array  $data  data tervalidasi (rules()) */
-    public function record(Loan $loan, array $data, ?int $userId = null): LoanPayment
+    public function record(Loan $loan, array $data, ?int $userId = null, ?string $clientRef = null): LoanPayment
     {
+        if ($replay = self::replayed($loan, $clientRef)) {
+            return $replay;
+        }
         $note = filled($data['note'] ?? null) ? trim($data['note']) : null;
         $reference = self::normalizeReference($data['payment_method'], $data['reference'] ?? null);
 
-        return DB::transaction(function () use ($loan, $data, $note, $reference, $userId) {
+        return DB::transaction(function () use ($loan, $data, $note, $reference, $userId, $clientRef) {
             $locked = Loan::whereKey($loan->id)->lockForUpdate()->firstOrFail();
+            if ($replay = self::replayed($locked, $clientRef)) { // kiriman paralel dengan kunci sama
+                return $replay;
+            }
             if (! in_array($locked->status, Loan::ACTIVE, true)) {
                 throw ValidationException::withMessages(['loan' => "Pinjaman {$locked->code} berstatus ".mb_strtolower(Loan::STATUSES[$locked->status] ?? $locked->status)
                     .'; angsuran hanya bisa dicatat untuk pinjaman yang berjalan atau menunggak.']);
@@ -127,7 +154,7 @@ class LoanPaymentService
             $plan = self::allocate($installments, $amount);
             $payment = LoanPayment::create(['loan_id' => $locked->id, 'paid_at' => $data['paid_at'], 'amount' => $amount, 'payment_method' => $data['payment_method'],
                 'reference' => $reference, 'note' => $note, 'allocations' => array_map(fn ($r) => ['installment_id' => $r['installment_id'], 'sequence' => $r['sequence'], 'amount' => $r['amount']], $plan),
-                'user_id' => $userId]);
+                'user_id' => $userId, 'client_ref' => $clientRef]);
             $byId = $installments->keyBy('id');
             LoanInstallment::withHistoryContext(['event' => 'pembayaran', 'loan_payment_id' => $payment->id, 'user_id' => $userId], function () use ($plan, $byId, $data, $userId) {
                 foreach ($plan as $row) {
