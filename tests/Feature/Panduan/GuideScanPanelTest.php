@@ -53,7 +53,7 @@ class GuideScanPanelTest extends TestCase
         $this->assertMatchesRegularExpression('/data-scan-cell="pengguna:kasir">\s*(<!--\[if BLOCK\]><!\[endif\]-->)?<span class="text-stone-300"/', $html);
         $this->assertMatchesRegularExpression('/data-scan-cell="kasir:kasir">\s*(<!--\[if BLOCK\]><!\[endif\]-->)?<span class="text-emerald-700"/', $html);
         $this->assertSame(count(Menu::ITEMS), $c->instance()->scan['totals']['menus']);
-        Livewire::withQueryParams(['tab' => 'aneh'])->test(Updates::class)->assertSet('tab', 'ringkasan')->assertDontSeeHtml('data-guide-scan');
+        Livewire::withQueryParams(['tab' => 'aneh'])->test(Updates::class)->assertSet('tab', 'ringkasan')->assertDontSeeHtml('data-scan-matrix');
     }
 
     public function test_warnings_for_unassigned_menu_missing_guide_and_uncovered_pages(): void

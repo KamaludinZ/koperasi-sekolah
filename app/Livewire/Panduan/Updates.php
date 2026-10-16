@@ -9,11 +9,13 @@ use App\Models\Role;
 use App\Services\AuditLog;
 use App\Services\GuideGenerator;
 use App\Services\GuideService;
+use App\Services\GuideSyncInProgress;
 use App\Services\GuideSyncRecorder;
 use App\Support\Menu;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\RateLimiter;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
@@ -116,7 +118,13 @@ class Updates extends Component
         if ($key === '' || ! isset($this->draftOptions[$key])) {
             return;
         }
-        ['stats' => $stats] = $recorder->run('manual', Auth::guard('web')->user(), 'Draf panduan diterapkan dari pratinjau', [$key]);
+        try {
+            ['stats' => $stats] = $recorder->run('manual', Auth::guard('web')->user(), 'Draf panduan diterapkan dari pratinjau', [$key]);
+        } catch (GuideSyncInProgress $e) {
+            $this->draftApplied = 'belum diterapkan — '.mb_strtolower($e->getMessage());
+
+            return;
+        }
         $done = $stats['created'] ? 'dibuat' : ($stats['updated'] ? 'diperbarui' : ($stats['skipped_manual'] ? 'dilewati (manual)' : 'sudah sesuai'));
         if ($stats['created'] || $stats['updated']) {
             AuditLog::record('guide.synced', 'panduan', "Draf panduan {$key} diterapkan: {$done}", null,
@@ -179,7 +187,13 @@ class Updates extends Component
         Gate::authorize('kelola-panduan');
         $this->validate(['note' => ['nullable', 'string', 'max:200']], [], ['note' => 'catatan']);
         $note = trim($this->note) !== '' ? trim($this->note) : 'Disusun ulang dari panel pembaruan';
-        ['stats' => $stats] = $recorder->run('manual', Auth::guard('web')->user(), $note);
+        try {
+            ['stats' => $stats] = $recorder->run('manual', Auth::guard('web')->user(), $note);
+        } catch (GuideSyncInProgress $e) {
+            $this->addError('note', $e->getMessage());
+
+            return;
+        }
         $counts = array_map('count', $stats);
         AuditLog::record('guide.synced', 'panduan',
             "Panduan disusun ulang: {$counts['created']} baru, {$counts['updated']} diperbarui, {$counts['unchanged']} tetap, {$counts['skipped_manual']} manual dilewati",
@@ -188,6 +202,49 @@ class Updates extends Component
         $this->plan = null;
         $this->note = '';
         unset($this->stats, $this->stale, $this->history, $this->titles, $this->runs, $this->lastRun);
+    }
+
+    /** Pesan hasil tombol pindai sekarang. */
+    public ?string $scanMessage = null;
+
+    public bool $scanFailed = false;
+
+    /**
+     * Tombol pemicu manual: pindai menu/halaman/izin lalu susun ulang semua panduan otomatis sekarang (tanpa
+     * pratinjau), tercatat di riwayat sinkronisasi & audit. Dibatasi 5x/menit per pengguna dan satu proses sekaligus.
+     */
+    public function scanNow(GuideSyncRecorder $recorder): void
+    {
+        Gate::authorize('kelola-panduan');
+        $user = Auth::guard('web')->user();
+        $key = 'panduan-pindai:'.$user->id;
+        if (RateLimiter::tooManyAttempts($key, 5)) {
+            [$this->scanMessage, $this->scanFailed] = ['Terlalu sering. Coba lagi dalam '.RateLimiter::availableIn($key).' detik.', true];
+
+            return;
+        }
+        RateLimiter::hit($key, 60);
+        try {
+            ['stats' => $stats] = $recorder->run('manual', $user, 'Pindai & perbarui sekarang dari panel');
+        } catch (GuideSyncInProgress $e) {
+            [$this->scanMessage, $this->scanFailed] = [$e->getMessage(), true];
+
+            return;
+        } catch (\Throwable $e) {
+            report($e);
+            [$this->scanMessage, $this->scanFailed] = ['Pemindaian gagal. Rinciannya ada di Riwayat sinkronisasi.', true];
+            unset($this->runs, $this->lastRun);
+
+            return;
+        }
+        $c = array_map('count', $stats);
+        if ($c['created'] || $c['updated']) {
+            AuditLog::record('guide.synced', 'panduan', "Panduan dipindai & disusun ulang: {$c['created']} baru, {$c['updated']} diperbarui",
+                null, ['created' => $stats['created'], 'updated' => $stats['updated']] + $c, action: 'diubah', reason: 'Pemicu manual dari panel');
+        }
+        [$this->scanMessage, $this->scanFailed] = ["Pemindaian selesai: {$c['created']} baru, {$c['updated']} diperbarui, {$c['unchanged']} tetap, {$c['skipped_manual']} manual dilewati.", false];
+        $this->plan = null;
+        unset($this->stats, $this->stale, $this->staleDetails, $this->history, $this->titles, $this->runs, $this->lastRun, $this->draftPreview, $this->scan);
     }
 
     /** Tandai panduan usang sudah ditinjau (penanda dilepas, tercatat di audit). */

@@ -1,6 +1,6 @@
 {
   "repo": "Koperasi Sekolah",
-  "generatedForCommit": "459546590343bd70d18b73b388bdfc9b7417647e",
+  "generatedForCommit": "8f46e74de7e142fa8f2ff307cf739c7ce5a5270d",
   "files": [
     {
       "path": ".claude/skills/ngodingpakeai/SKILL.md",
@@ -192,7 +192,7 @@
       "path": "app/Livewire/Panduan/Updates.php",
       "reason": "changed",
       "language": "php",
-      "size": 11393
+      "size": 13339
     },
     {
       "path": "app/Livewire/Pengaturan/Index.php",
@@ -232,9 +232,9 @@
     },
     {
       "path": "app/Models/GuideEntry.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 2003
+      "size": 2041
     },
     {
       "path": "app/Models/GuideOverride.php",
@@ -244,7 +244,7 @@
     },
     {
       "path": "app/Models/GuideSyncJob.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 1175
     },
@@ -268,9 +268,9 @@
     },
     {
       "path": "app/Services/GuideGenerator.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 10773
+      "size": 10793
     },
     {
       "path": "app/Services/GuideMerger.php",
@@ -280,13 +280,13 @@
     },
     {
       "path": "app/Services/GuideService.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 19174
+      "size": 21029
     },
     {
       "path": "app/Services/GuideSyncRecorder.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 1446
     },
@@ -994,9 +994,15 @@
     },
     {
       "path": "database/migrations/2026_10_20_000003_create_guide_sync_jobs_table.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 1897
+    },
+    {
+      "path": "database/migrations/2026_10_20_000004_add_stale_at_to_guide_entries.php",
+      "reason": "new",
+      "language": "php",
+      "size": 642
     },
     {
       "path": "database/seeders/GuideSeeder.php",
@@ -1780,9 +1786,9 @@
     },
     {
       "path": "resources/views/livewire/panduan/index.blade.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 24456
+      "size": 25385
     },
     {
       "path": "resources/views/livewire/panduan/partials/draft-preview.blade.php",
@@ -1797,8 +1803,14 @@
       "size": 5807
     },
     {
-      "path": "resources/views/livewire/panduan/partials/sync-runs.blade.php",
+      "path": "resources/views/livewire/panduan/partials/stale-guides.blade.php",
       "reason": "new",
+      "language": "php",
+      "size": 5240
+    },
+    {
+      "path": "resources/views/livewire/panduan/partials/sync-runs.blade.php",
+      "reason": "needs_summary",
       "language": "php",
       "size": 4176
     },
@@ -1806,7 +1818,7 @@
       "path": "resources/views/livewire/panduan/updates.blade.php",
       "reason": "changed",
       "language": "php",
-      "size": 11243
+      "size": 11373
     },
     {
       "path": "resources/views/livewire/pengadaan/index.blade.php",
@@ -2236,7 +2248,7 @@
     },
     {
       "path": "routes/console.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 10745
     },
@@ -2584,7 +2596,7 @@
     },
     {
       "path": "tests/Feature/Panduan/GuideSyncRunsTest.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 4277
     },
@@ -2623,6 +2635,12 @@
       "reason": "needs_summary",
       "language": "php",
       "size": 2673
+    },
+    {
+      "path": "tests/Feature/Panduan/StaleGuidesPanelTest.php",
+      "reason": "new",
+      "language": "php",
+      "size": 5520
     },
     {
       "path": "tests/Feature/Pengaturan/IndexTest.php",

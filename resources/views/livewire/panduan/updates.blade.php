@@ -4,8 +4,20 @@
             <h1 class="text-lg font-semibold">Pembaruan Panduan</h1>
             <p class="text-xs text-stone-500">Susun ulang panduan otomatis dari konfigurasi menu, halaman, dan izin peran. Panduan yang disunting manual tidak ditimpa.</p>
         </div>
-        <a href="{{ route('panduan') }}" wire:navigate class="text-sm font-medium text-emerald-800 hover:underline">← Pusat Panduan</a>
+        <div class="flex flex-wrap items-center gap-3">
+            <a href="{{ route('panduan') }}" wire:navigate class="text-sm font-medium text-emerald-800 hover:underline">← Pusat Panduan</a>
+            <button type="button" wire:click="scanNow" wire:loading.attr="disabled" wire:target="scanNow"
+                    wire:confirm="Pindai menu, halaman & izin lalu perbarui semua panduan otomatis sekarang? Panduan manual dan suntingan admin tidak berubah."
+                    class="inline-flex items-center gap-2 rounded-xl bg-emerald-700 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-800 disabled:opacity-60" data-guide-scan-now>
+                <svg class="size-4" wire:loading.class="animate-spin" wire:target="scanNow" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12a9 9 0 1 1-3-6.7L21 8M21 3v5h-5"/></svg>
+                <span wire:loading.remove wire:target="scanNow">Pindai & perbarui sekarang</span><span wire:loading wire:target="scanNow">Memindai…</span>
+            </button>
+        </div>
     </header>
+    @if ($scanMessage)
+        <p @class(['border-b px-4 py-2 text-sm sm:px-6', 'border-red-200 bg-red-50 text-red-800' => $scanFailed, 'border-emerald-200 bg-emerald-50 text-emerald-900' => ! $scanFailed])
+           role="{{ $scanFailed ? 'alert' : 'status' }}" data-guide-scan-message>{{ $scanMessage }}</p>
+    @endif
 
     <nav class="flex gap-1 overflow-x-auto border-b border-stone-200 bg-white px-4 sm:px-6" aria-label="Bagian panel">
         @foreach (\App\Livewire\Panduan\Updates::TABS as $t => $label)
