@@ -16,7 +16,9 @@ use Livewire\Component;
 /**
  * Pusat Panduan petugas (/panduan): daftar panduan per menu dikelompokkan seperti menu samping, pencarian kata kunci
  * (judul, ringkasan, langkah, tips), dan isi panduan terpilih berupa ringkasan + langkah praktis berurutan, tips,
- * serta tautan ke halaman terkait. Sumber isi: GuideCatalog.
+ * serta tautan ke halaman terkait. Sumber isi: GuideService (isi otomatis + suntingan admin).
+ * Sesuai peran: hanya menu dari gabungan izin semua peran petugas; petugas multi-peran bisa menyaring per peran
+ * (?peran=) dan tiap panduan menandai lewat peran mana menunya terbuka.
  */
 #[Layout('components.layouts.app')]
 #[Title('Pusat Panduan')]
@@ -31,6 +33,10 @@ class Index extends Component
     /** Tampilkan juga menu yang tidak bisa dibuka (ditandai Terbatas, tanpa langkah). */
     #[Url(as: 'terbatas', except: false)]
     public $showRestricted = false;
+
+    /** Saring panduan menu ke satu peran milik petugas (kosong = gabungan semua perannya). */
+    #[Url(as: 'peran', except: '')]
+    public $role = '';
 
     public function mount(): void
     {
@@ -47,6 +53,7 @@ class Index extends Component
         $this->search = is_string($this->search) ? mb_substr(trim($this->search), 0, 60) : '';
         $this->selected = is_string($this->selected) && isset($this->entries[$this->selected]) ? $this->selected : '';
         $this->showRestricted = filter_var($this->showRestricted, FILTER_VALIDATE_BOOLEAN);
+        $this->role = is_string($this->role) && count($this->myRoles) > 1 && in_array($this->role, $this->myRoles, true) ? $this->role : '';
         // panduan menu terbatas hanya bisa dibuka bila penandanya ditampilkan
         if ($this->selected !== '' && ! $this->showRestricted && ! $this->allowed($this->selected)) {
             $this->showRestricted = true;
@@ -59,6 +66,52 @@ class Index extends Component
         $menu = $this->entries[$key]['menu'] ?? null;
 
         return $menu === null || Menu::userCan(Petugas::current() ?? ['permissions' => []], $menu);
+    }
+
+    /** Peran petugas yang sedang masuk (urut prioritas). @return list<string> */
+    #[Computed]
+    public function myRoles(): array
+    {
+        $user = Petugas::current();
+
+        return $user ? array_values($user['roles'] ?: array_filter([$user['role']])) : [];
+    }
+
+    /** Asal peran tiap menu milik petugas: [menu => [peran, …]]. @return array<string, list<string>> */
+    #[Computed]
+    public function sources(): array
+    {
+        $user = Petugas::current();
+
+        return $user ? Menu::sourcesFor($user) : [];
+    }
+
+    /**
+     * Peran milik petugas yang membuka menu panduan ini — hanya untuk petugas multi-peran dan bila tidak semua
+     * perannya memiliki menu itu (selain itu tidak ada yang perlu ditandai). @return list<string>
+     */
+    public function via(string $key): array
+    {
+        $menu = $this->entries[$key]['menu'] ?? null;
+        $from = $menu !== null ? ($this->sources[$menu] ?? []) : [];
+
+        return count($this->myRoles) > 1 && $from && count($from) < count($this->myRoles) ? $from : [];
+    }
+
+    /** Jumlah menu yang dibuka tiap peran milik petugas (untuk tombol saring peran). @return array<string, int> */
+    #[Computed]
+    public function roleCounts(): array
+    {
+        $counts = array_fill_keys($this->myRoles, 0);
+        foreach ($this->sources as $from) {
+            foreach ($from as $r) {
+                if (isset($counts[$r])) {
+                    $counts[$r]++;
+                }
+            }
+        }
+
+        return $counts;
     }
 
     /** Jumlah panduan menu yang tersembunyi karena tidak bisa dibuka. */
@@ -83,11 +136,20 @@ class Index extends Component
     #[Computed]
     public function groups(): array
     {
-        $words = array_filter(explode(' ', Str::lower(Str::ascii($this->search))));
+        return $this->grouped($this->search);
+    }
+
+    /** @return array<string, array<string, array>> */
+    private function grouped(string $search): array
+    {
+        $words = array_filter(explode(' ', Str::lower(Str::ascii($search))));
         $groups = [];
         foreach ($this->entries as $key => $e) {
             if (! $this->showRestricted && ! $this->allowed($key)) {
                 continue;
+            }
+            if ($this->role !== '' && $e['menu'] !== null && $this->allowed($key) && ! in_array($this->role, $this->sources[$e['menu']] ?? [], true)) {
+                continue; // disaring ke satu peran: menu milik peran lain disembunyikan (panduan umum & terbatas tetap)
             }
             $hay = GuideCatalog::haystack($key, $e);
             if ($words && collect($words)->contains(fn ($w) => ! str_contains($hay, $w))) {
@@ -126,10 +188,16 @@ class Index extends Component
         // tanpa pilihan → ikhtisar kartu semua panduan (hasil pencarian); dengan pilihan → isi panduan
         $current = $this->selected !== '' ? $this->entries[$this->selected] : null;
         $restricted = $current && ! $this->allowed($this->selected);
+        // sebelum/sesudah mengikuti daftar yang terlihat (tanpa kata kunci), agar tidak melompat ke panduan tersembunyi
+        $visible = array_keys(array_merge([], ...array_values($this->grouped(''))));
+        if ($current && ! in_array($this->selected, $visible, true)) {
+            $visible = array_keys($this->entries);
+        }
 
         return view('livewire.panduan.index', [
             'current' => $current, 'currentKey' => $this->selected, 'restricted' => $restricted,
             'requiredRoles' => $restricted ? Menu::grantingRoles($current['menu']) : [],
+            'visible' => $visible,
         ]);
     }
 }

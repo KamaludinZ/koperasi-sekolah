@@ -4,10 +4,27 @@
         <p class="text-xs text-stone-500">Cara memakai tiap menu: ringkasan singkat dan langkah praktis berurutan.</p>
     </header>
 
-    @php $hay = fn ($k, $e) => \App\Support\GuideCatalog::haystack($k, $e); @endphp
+    @php
+        $hay = fn ($k, $e) => \App\Support\GuideCatalog::haystack($k, $e);
+        $roleLabel = fn ($r) => \App\Models\Role::LABELS[$r] ?? $r;
+    @endphp
     <div class="grid flex-1 gap-5 px-4 py-5 sm:px-6 lg:grid-cols-[19rem_minmax(0,1fr)]" x-data="guideSearch(@js($search))" data-guide-root>
         {{-- Daftar panduan --}}
         <aside class="space-y-3 lg:sticky lg:top-0 lg:self-start print:hidden" aria-label="Daftar panduan">
+            {{-- Panduan sesuai peran: gabungan menu semua peran, bisa disaring per peran bila lebih dari satu --}}
+            <div class="rounded-xl border border-emerald-100 bg-emerald-50/60 px-3 py-2.5 text-xs text-emerald-950" data-guide-roles>
+                <p>Panduan untuk peran <strong>{{ collect($this->myRoles)->map($roleLabel)->join(', ', ' & ') ?: '—' }}</strong> · {{ count($this->sources) }} menu</p>
+                @if (count($this->myRoles) > 1)
+                    <div class="mt-2 flex flex-wrap gap-1" role="group" aria-label="Saring panduan per peran">
+                        <button type="button" wire:click="$set('role', '')" aria-pressed="{{ $role === '' ? 'true' : 'false' }}" data-guide-role=""
+                                @class(['rounded-full px-2.5 py-0.5 font-medium', 'bg-emerald-700 text-white' => $role === '', 'border border-emerald-200 bg-white text-emerald-900 hover:bg-emerald-100' => $role !== ''])>Semua peran</button>
+                        @foreach ($this->roleCounts as $r => $n)
+                            <button type="button" wire:click="$set('role', '{{ $r }}')" aria-pressed="{{ $role === $r ? 'true' : 'false' }}" data-guide-role="{{ $r }}"
+                                    @class(['rounded-full px-2.5 py-0.5 font-medium', 'bg-emerald-700 text-white' => $role === $r, 'border border-emerald-200 bg-white text-emerald-900 hover:bg-emerald-100' => $role !== $r])>{{ $roleLabel($r) }} ({{ $n }})</button>
+                        @endforeach
+                    </div>
+                @endif
+            </div>
             <label class="relative block">
                 <span class="sr-only">Cari panduan</span>
                 <svg class="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-stone-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
@@ -35,6 +52,7 @@
                                 <button type="button" wire:click="open('{{ $key }}')" data-guide-item="{{ $key }}" data-hay="{{ $hay($key, $e) }}" @if ($currentKey === $key) aria-current="true" @endif
                                         @class(['w-full rounded-lg px-3 py-2 text-left text-sm', 'bg-emerald-50 font-semibold text-emerald-900 ring-1 ring-emerald-200' => $currentKey === $key, 'text-stone-700 hover:bg-stone-100' => $currentKey !== $key])>
                                     {{ $e['menu'] ? (\App\Support\Menu::ITEMS[$e['menu']]['label'] ?? $e['title']) : 'Akun saya' }}
+                                    @if ($via = $this->via($key))<span class="ml-1 rounded bg-sky-50 px-1.5 py-0.5 text-[10px] font-semibold text-sky-800 ring-1 ring-sky-200" data-guide-via="{{ $key }}" title="Terbuka lewat peran {{ collect($via)->map($roleLabel)->join(', ') }}">{{ collect($via)->map($roleLabel)->join(' · ') }}</span>@endif
                                     @unless ($this->allowed($key))<span class="ml-1 rounded bg-stone-200 px-1.5 py-0.5 text-[10px] font-semibold text-stone-600" data-restricted="{{ $key }}">🔒 Terbatas</span>@endunless
                                     <span class="block truncate text-xs font-normal text-stone-500">{{ $e['title'] }}</span>
                                 </button>
@@ -93,7 +111,9 @@
                                 </span>
                                 <span class="line-clamp-2 text-xs text-stone-600">{{ $e['summary'] }}</span>
                                 @if ($this->allowed($key))
-                                    <span class="text-[11px] font-medium text-emerald-800">{{ count($e['steps']) }} langkah →</span>
+                                    <span class="flex flex-wrap items-center gap-2 text-[11px] font-medium text-emerald-800">{{ count($e['steps']) }} langkah →
+                                        @if ($via = $this->via($key))<span class="rounded bg-sky-50 px-1.5 py-0.5 font-semibold text-sky-800 ring-1 ring-sky-200" data-guide-card-via="{{ $key }}">lewat peran {{ collect($via)->map($roleLabel)->join(' / ') }}</span>@endif
+                                    </span>
                                 @else
                                     <span class="text-[11px] font-semibold text-stone-500" data-restricted-card="{{ $key }}">🔒 Terbatas — menu ini tidak termasuk peran Anda</span>
                                 @endif
@@ -108,6 +128,9 @@
                 <button type="button" wire:click="closeGuide" class="mb-3 text-xs font-medium text-stone-500 hover:text-stone-800 print:hidden" data-guide-back>← Semua panduan</button>
                 <p class="text-xs font-semibold tracking-wider text-emerald-700 uppercase">{{ $current['menu'] ? (\App\Support\Menu::ITEMS[$current['menu']]['label'] ?? '') : 'Akun saya' }}</p>
                 <h2 id="guide-title" class="mt-1 text-xl font-semibold text-stone-900">{{ $current['title'] }}</h2>
+                @if (! $restricted && ($via = $this->via($currentKey)))
+                    <p class="mt-1 text-xs text-sky-800" data-guide-article-via>Menu ini terbuka untuk Anda lewat peran <strong>{{ collect($via)->map($roleLabel)->join(', ', ' dan ') }}</strong>.</p>
+                @endif
                 <p class="mt-2 max-w-prose text-sm leading-relaxed text-stone-700" data-guide-summary>{{ $current['summary'] }}</p>
 
                 @if ($restricted)
@@ -169,7 +192,7 @@
                 @endif
                 @endif
                 @php
-                    $keys = array_keys($this->entries);
+                    $keys = $visible;
                     $pos = array_search($currentKey, $keys, true);
                     $prev = $pos > 0 ? $keys[$pos - 1] : null;
                     $next = $pos !== false && $pos < count($keys) - 1 ? $keys[$pos + 1] : null;
