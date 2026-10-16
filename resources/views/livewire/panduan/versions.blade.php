@@ -48,6 +48,45 @@
             </div>
         @endif
 
+        @if ($cmp = $this->comparison)
+            @php $opClass = ['same' => 'text-stone-700', 'add' => 'bg-emerald-50 text-emerald-900', 'del' => 'bg-red-50 text-red-800 line-through decoration-red-300']; @endphp
+            <section class="rounded-2xl border-2 border-sky-300 bg-white p-4 text-sm" aria-labelledby="cmp-title" data-versions-compare="{{ $from }}-{{ $to }}">
+                <div class="flex flex-wrap items-center justify-between gap-2">
+                    <h2 id="cmp-title" class="font-semibold">Perbandingan v{{ $from }} → v{{ $to }}</h2>
+                    <button type="button" wire:click="closeCompare" class="text-xs font-medium text-stone-600 hover:underline" data-compare-close>Tutup</button>
+                </div>
+                <p class="text-xs text-stone-500">v{{ $from }}: {{ \App\Models\GuideVersion::TYPES[$cmp['a']->change_type] ?? '' }} · {{ $cmp['a']->created_at?->translatedFormat('j M Y H:i') }} · {{ $cmp['a']->author?->name ?? 'Sistem' }}
+                    — v{{ $to }}: {{ \App\Models\GuideVersion::TYPES[$cmp['b']->change_type] ?? '' }} · {{ $cmp['b']->created_at?->translatedFormat('j M Y H:i') }} · {{ $cmp['b']->author?->name ?? 'Sistem' }}</p>
+                @if (! $cmp['diff']['changed'] && ! $cmp['diff']['overridden']['added'] && ! $cmp['diff']['overridden']['removed'])
+                    <p class="mt-3 rounded-lg bg-stone-50 px-3 py-2 text-stone-600" data-compare-same>Isi kedua versi sama.</p>
+                @endif
+                @foreach ($cmp['diff']['fields'] as $f => $d)
+                    @continue(! $d['changed'])
+                    <div class="mt-3" data-compare-field="{{ $f }}">
+                        <p class="text-xs font-semibold text-stone-500 uppercase">{{ \App\Support\GuideVersionDiff::label($f) }}</p>
+                        @if ($d['type'] === 'text')
+                            <p class="mt-1 rounded bg-red-50 px-2 py-1 text-red-800 line-through decoration-red-300" data-compare-old>{{ $d['old'] }}</p>
+                            <p class="mt-1 rounded bg-emerald-50 px-2 py-1 text-emerald-900" data-compare-new>{{ $d['new'] }}</p>
+                        @else
+                            <ul class="mt-1 space-y-0.5">
+                                @foreach ($d['lines'] as $l)
+                                    <li class="rounded px-2 py-0.5 {{ $opClass[$l['op']] }}" data-compare-line="{{ $l['op'] }}">{{ ['same' => '  ', 'add' => '+ ', 'del' => '− '][$l['op']] }}{{ $l['text'] }}</li>
+                                @endforeach
+                            </ul>
+                        @endif
+                    </div>
+                @endforeach
+                @if ($cmp['diff']['overridden']['added'] || $cmp['diff']['overridden']['removed'])
+                    <p class="mt-3 text-xs text-sky-800" data-compare-overridden>
+                        @if ($cmp['diff']['overridden']['added'])Mulai disunting manual: {{ collect($cmp['diff']['overridden']['added'])->map(fn ($f) => mb_strtolower(\App\Support\GuideVersionDiff::label($f)))->join(', ') }}. @endif
+                        @if ($cmp['diff']['overridden']['removed'])Kembali ke otomatis: {{ collect($cmp['diff']['overridden']['removed'])->map(fn ($f) => mb_strtolower(\App\Support\GuideVersionDiff::label($f)))->join(', ') }}.@endif
+                    </p>
+                @endif
+            </section>
+        @elseif ($this->entry && ($from || $to))
+            <p class="rounded-xl bg-sky-50 px-3 py-2 text-xs text-sky-900 ring-1 ring-sky-200" data-compare-pending>Pilih versi {{ $from ? 'baru (B)' : 'lama (A)' }} untuk dibandingkan dengan v{{ $from ?: $to }}.</p>
+        @endif
+
         <ol class="space-y-2">
             @forelse ($this->versions as $v)
                 @php $changed = $this->changedFields($v); @endphp
@@ -64,6 +103,15 @@
                         <span class="text-xs text-stone-500">{{ $v->created_at?->translatedFormat('j M Y H:i') }} · {{ $v->author?->name ?? 'Sistem' }}@if ($v->sync_job_id) · sinkronisasi #{{ $v->sync_job_id }}@endif</span>
                     </div>
                     @if ($v->change_note)<p class="mt-1 text-stone-700">{{ $v->change_note }}</p>@endif
+                    @if ($this->entry)
+                        <div class="mt-2 flex flex-wrap gap-2 text-xs">
+                            @if ($v->version > 1)
+                                <button type="button" wire:click="compareWithPrevious({{ $v->version }})" class="rounded-lg border border-sky-300 px-2.5 py-1 font-medium text-sky-800 hover:bg-sky-50" data-compare-prev="{{ $v->version }}">Bandingkan dengan v{{ $v->version - 1 }}</button>
+                            @endif
+                            <button type="button" wire:click="pick('dari', {{ $v->version }})" @class(['rounded-lg border px-2.5 py-1 font-medium', 'border-sky-600 bg-sky-600 text-white' => $from === $v->version, 'border-stone-300 hover:bg-stone-50' => $from !== $v->version]) data-compare-pick-a="{{ $v->version }}">Jadikan A</button>
+                            <button type="button" wire:click="pick('ke', {{ $v->version }})" @class(['rounded-lg border px-2.5 py-1 font-medium', 'border-sky-600 bg-sky-600 text-white' => $to === $v->version, 'border-stone-300 hover:bg-stone-50' => $to !== $v->version]) data-compare-pick-b="{{ $v->version }}">Jadikan B</button>
+                        </div>
+                    @endif
                     <p class="mt-1 text-xs text-stone-500" data-version-changed>
                         {{ $changed === null ? 'Versi awal' : ($changed ? 'Berubah: '.implode(', ', array_map('mb_strtolower', $changed)) : 'Tanpa perubahan isi') }}
                         · {{ $v->snapshot['title'] ?? '' }}

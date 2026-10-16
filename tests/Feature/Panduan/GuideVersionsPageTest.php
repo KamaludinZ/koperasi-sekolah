@@ -80,4 +80,19 @@ class GuideVersionsPageTest extends TestCase
         $all = Livewire::withQueryParams([])->test(Versions::class)->html();                          // semua panduan: satu aktif per panduan
         $this->assertGreaterThan(0, substr_count($all, 'data-version-active'));
     }
+
+    public function test_compare_two_versions(): void
+    {
+        $this->actingAs($this->admin, 'web');
+        $c = Livewire::withQueryParams(['panduan' => 'kas'])->test(Versions::class)
+            ->call('compareWithPrevious', 2)->assertSet('from', 1)->assertSet('to', 2)
+            ->assertSeeHtml('data-versions-compare="1-2"')->assertSeeHtml('data-compare-field="title"')->assertDontSeeHtml('data-compare-field="steps"')
+            ->assertSeeText('Judul kas versi kami')->assertSeeHtml('data-compare-overridden')->assertSeeText('Mulai disunting manual: judul');
+        $c->call('closeCompare')->assertSet('from', 0)->assertDontSeeHtml('data-versions-compare=');
+        $c->call('pick', 'ke', 3)->assertSeeHtml('data-compare-pending')->call('pick', 'dari', 1)
+            ->assertSeeHtml('data-versions-compare="1-3"')->assertSeeHtml('data-compare-same');               // v3 dikembalikan = v1
+        $c->call('pick', 'dari', 3)->call('pick', 'ke', 2)->assertSet('from', 2)->assertSet('to', 3);          // urutan dirapikan
+        Livewire::withQueryParams(['panduan' => 'kas', 'dari' => 1, 'ke' => 99])->test(Versions::class)->assertDontSeeHtml('data-versions-compare=');
+        Livewire::withQueryParams(['panduan' => '', 'dari' => 1, 'ke' => 2])->test(Versions::class)->assertSet('from', 0);
+    }
 }

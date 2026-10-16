@@ -6,6 +6,7 @@ use App\Models\GuideEntry;
 use App\Models\GuideOverride;
 use App\Models\GuideVersion;
 use App\Services\GuideService;
+use App\Support\GuideVersionDiff;
 use Illuminate\Support\Facades\Gate;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
@@ -31,6 +32,13 @@ class Versions extends Component
     #[Url(as: 'jenis', except: '')]
     public $type = '';
 
+    /** Perbandingan dua versi panduan terpilih: nomor versi lama (dari) & baru (ke). */
+    #[Url(as: 'dari', except: 0)]
+    public $from = 0;
+
+    #[Url(as: 'ke', except: 0)]
+    public $to = 0;
+
     public function mount(): void
     {
         Gate::authorize('lihat-riwayat-panduan');
@@ -40,6 +48,9 @@ class Versions extends Component
     public function updated(string $property): void
     {
         $this->normalize();
+        if ($property === 'key') {
+            $this->from = $this->to = 0;
+        }
         if (in_array($property, ['key', 'type'], true)) {
             $this->resetPage();
         }
@@ -49,6 +60,52 @@ class Versions extends Component
     {
         $this->key = is_string($this->key) && GuideEntry::where('key', $this->key)->exists() ? $this->key : '';
         $this->type = is_string($this->type) && isset(GuideVersion::TYPES[$this->type]) ? $this->type : '';
+        $this->from = filter_var($this->from, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]) ?: 0;
+        $this->to = filter_var($this->to, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]) ?: 0;
+        if ($this->key === '') {
+            $this->from = $this->to = 0;
+        }
+    }
+
+    /** Bandingkan versi ini dengan versi sebelumnya. */
+    public function compareWithPrevious(int $version): void
+    {
+        if ($version > 1) {
+            [$this->from, $this->to] = [$version - 1, $version];
+        }
+    }
+
+    /** Pilih versi sebagai sisi lama (A) atau baru (B) perbandingan. */
+    public function pick(string $side, int $version): void
+    {
+        $side === 'dari' ? $this->from = $version : $this->to = $version;
+        if ($this->from && $this->to && $this->from > $this->to) {
+            [$this->from, $this->to] = [$this->to, $this->from];
+        }
+    }
+
+    public function closeCompare(): void
+    {
+        $this->from = $this->to = 0;
+    }
+
+    /**
+     * Perbandingan dua versi terpilih (null bila belum lengkap/tidak valid).
+     *
+     * @return ?array{a: GuideVersion, b: GuideVersion, diff: array}
+     */
+    #[Computed]
+    public function comparison(): ?array
+    {
+        if (! $this->entry || ! $this->from || ! $this->to || $this->from === $this->to) {
+            return null;
+        }
+        $vs = GuideVersion::where('guide_entry_id', $this->entry->id)->whereIn('version', [$this->from, $this->to])->with('author:id,name')->get()->keyBy('version');
+        if (! isset($vs[$this->from], $vs[$this->to])) {
+            return null;
+        }
+
+        return ['a' => $vs[$this->from], 'b' => $vs[$this->to], 'diff' => GuideVersionDiff::compare($vs[$this->from]->snapshot, $vs[$this->to]->snapshot)];
     }
 
     #[Computed]
