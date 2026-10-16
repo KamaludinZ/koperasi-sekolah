@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Panduan;
 
+use App\Models\ActivityLog;
 use App\Models\GuideEntry;
 use App\Models\GuideOverride;
 use App\Models\GuideVersion;
@@ -43,6 +44,9 @@ class Editor extends Component
 
     public ?string $saved = null;
 
+    /** Bagian yang sedang dikonfirmasi sebelum disimpan ('all' = semua yang berubah); null = tidak ada. */
+    public ?string $confirming = null;
+
     public function mount(): void
     {
         Gate::authorize('kelola-panduan');
@@ -55,7 +59,8 @@ class Editor extends Component
         $this->key = is_string($this->key) && GuideEntry::where('key', $this->key)->exists() ? $this->key : (string) GuideEntry::for('petugas')->value('key');
         $this->saved = null;
         $this->resetValidation();
-        unset($this->entry, $this->effective, $this->pageOptions, $this->versions);
+        unset($this->entry, $this->effective, $this->pageOptions, $this->versions, $this->changes);
+        $this->confirming = null;
         $this->load();
     }
 
@@ -142,6 +147,58 @@ class Editor extends Component
         };
     }
 
+    /** Tampilkan konfirmasi (sebelum → sesudah) sebelum menyimpan satu bagian atau semua yang berubah. */
+    public function confirmSave(string $field): void
+    {
+        Gate::authorize('kelola-panduan');
+        $this->confirming = ($field === 'all' && $this->dirtyFields) || (isset(GuideOverride::FIELDS[$field]) && $this->dirty($field)) ? $field : null;
+    }
+
+    public function cancelSave(): void
+    {
+        $this->confirming = null;
+    }
+
+    /** Lanjutkan penyimpanan yang sudah dikonfirmasi. */
+    public function confirmed(GuideService $guides): void
+    {
+        $field = $this->confirming;
+        $this->confirming = null;
+        if ($field === 'all') {
+            $this->saveAll($guides);
+        } elseif ($field !== null) {
+            $this->save($field, $guides);
+        }
+    }
+
+    /** Ringkas isi satu bagian untuk tampilan sebelum → sesudah. @return list<string> */
+    public function lines(string $field, bool $form): array
+    {
+        $v = $form ? $this->value($field) : ($this->effective[$field] ?? null);
+
+        return match ($field) {
+            'steps' => array_values(array_map(fn ($s) => trim($s['text'] ?? '').(! empty($s['route']) ? ' → '.($this->pageOptions[$s['route']] ?? $s['route']) : ''), array_filter((array) $v, fn ($s) => trim($s['text'] ?? '') !== ''))),
+            'tips' => array_values(array_filter(array_map('trim', (array) $v), 'strlen')),
+            default => [trim((string) $v)],
+        };
+    }
+
+    /**
+     * Riwayat perubahan panduan ini dari jejak audit (suntingan, pengembalian, penandaan usang/tinjau): siapa, kapan,
+     * bagian, sebelum → sesudah, alasan.
+     */
+    #[Computed]
+    public function changes()
+    {
+        if (! $this->entry) {
+            return collect();
+        }
+
+        return ActivityLog::where('subject_type', 'guide')->where('subject_id', $this->entry->id)
+            ->whereIn('event', ['guide.overridden', 'guide.reverted', 'guide.stale_marked', 'guide.reviewed', 'guide.draft_applied'])
+            ->latest('id')->limit(15)->get(['id', 'event', 'description', 'actor_name', 'created_at', 'old_values', 'new_values', 'reason']);
+    }
+
     public function save(string $field, GuideService $guides): void
     {
         Gate::authorize('kelola-panduan');
@@ -157,7 +214,7 @@ class Editor extends Component
             return;
         }
         $this->saved = GuideOverride::FIELDS[$field].' disimpan sebagai suntingan.';
-        unset($this->entry, $this->effective, $this->versions, $this->dirtyFields);
+        unset($this->entry, $this->effective, $this->versions, $this->dirtyFields, $this->changes);
         $this->load();
     }
 
@@ -188,7 +245,7 @@ class Editor extends Component
             }
         }
         $kept = array_intersect_key(['title' => $this->title, 'summary' => $this->summary, 'steps' => $this->steps, 'tips' => $this->tips], $failed);
-        unset($this->entry, $this->effective, $this->versions, $this->dirtyFields);
+        unset($this->entry, $this->effective, $this->versions, $this->dirtyFields, $this->changes);
         $this->load();
         foreach ($kept as $field => $value) { // isian yang gagal tidak hilang
             $this->{$field} = $value;
@@ -207,7 +264,7 @@ class Editor extends Component
         }
         $guides->clearOverride($this->entry, $field, Auth::guard('web')->user(), trim($this->note) ?: null);
         $this->saved = GuideOverride::FIELDS[$field].' dikembalikan ke hasil otomatis.';
-        unset($this->entry, $this->effective, $this->versions, $this->dirtyFields);
+        unset($this->entry, $this->effective, $this->versions, $this->dirtyFields, $this->changes);
         $this->load();
     }
 
@@ -224,7 +281,7 @@ class Editor extends Component
             $this->entry->unsetRelation('overrides');
         }
         $this->saved = $fields ? 'Semua bagian ('.implode(', ', array_map(fn ($f) => mb_strtolower(GuideOverride::FIELDS[$f]), $fields)).') dikembalikan ke hasil otomatis.' : null;
-        unset($this->entry, $this->effective, $this->versions, $this->dirtyFields);
+        unset($this->entry, $this->effective, $this->versions, $this->dirtyFields, $this->changes);
         $this->resetValidation();
         $this->load();
     }

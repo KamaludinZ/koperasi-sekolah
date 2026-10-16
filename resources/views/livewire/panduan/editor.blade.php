@@ -47,8 +47,27 @@
             @if ($this->dirtyFields)
                 <div class="sticky top-0 z-10 flex flex-wrap items-center justify-between gap-2 rounded-xl bg-amber-50 px-3 py-2 text-sm text-amber-950 ring-1 ring-amber-200" data-editor-unsaved>
                     <span>{{ count($this->dirtyFields) }} bagian belum disimpan: {{ collect($this->dirtyFields)->map(fn ($f) => mb_strtolower($fields[$f]))->join(', ') }}.</span>
-                    <button type="button" wire:click="saveAll" class="rounded-lg bg-emerald-700 px-3 py-1 text-xs font-semibold text-white hover:bg-emerald-800" data-editor-save-all>Simpan semua perubahan</button>
+                    <button type="button" wire:click="confirmSave('all')" class="rounded-lg bg-emerald-700 px-3 py-1 text-xs font-semibold text-white hover:bg-emerald-800" data-editor-save-all>Simpan semua perubahan</button>
                 </div>
+            @endif
+            @if ($confirming)
+                @php $toConfirm = $confirming === 'all' ? $this->dirtyFields : [$confirming]; @endphp
+                <section class="rounded-2xl border-2 border-emerald-600 bg-white p-4 text-sm shadow-sm" role="dialog" aria-labelledby="confirm-title" data-editor-confirm="{{ $confirming }}">
+                    <h2 id="confirm-title" class="font-semibold">Simpan suntingan {{ collect($toConfirm)->map(fn ($f) => mb_strtolower($fields[$f]))->join(', ') }}?</h2>
+                    <p class="text-xs text-stone-500">Periksa perubahan di bawah. Suntingan menimpa isi otomatis bagian itu sampai dikembalikan; versi & jejak audit dicatat{{ trim($note) !== '' ? ' dengan catatan “'.trim($note).'”' : '' }}.</p>
+                    @foreach ($toConfirm as $f)
+                        <div class="mt-3 grid gap-2 sm:grid-cols-2" data-confirm-diff="{{ $f }}">
+                            <div class="rounded-lg bg-red-50 p-2 text-xs text-red-900"><p class="font-semibold">{{ $fields[$f] }} — sebelum</p>
+                                <ul class="mt-1 list-disc space-y-0.5 pl-4">@foreach ($this->lines($f, false) as $l)<li>{{ $l }}</li>@endforeach</ul></div>
+                            <div class="rounded-lg bg-emerald-50 p-2 text-xs text-emerald-900"><p class="font-semibold">{{ $fields[$f] }} — sesudah</p>
+                                <ul class="mt-1 list-disc space-y-0.5 pl-4">@foreach ($this->lines($f, true) as $l)<li>{{ $l }}</li>@endforeach</ul></div>
+                        </div>
+                    @endforeach
+                    <div class="mt-3 flex justify-end gap-2">
+                        <button type="button" wire:click="cancelSave" class="rounded-xl px-4 py-2 text-sm font-medium text-stone-600 hover:bg-stone-100" data-confirm-cancel>Batal</button>
+                        <button type="button" wire:click="confirmed" class="rounded-xl bg-emerald-700 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-800" data-confirm-ok>Ya, simpan</button>
+                    </div>
+                </section>
             @endif
             @if ($saved)
                 <p class="rounded-xl bg-emerald-50 px-3 py-2 text-sm text-emerald-900 ring-1 ring-emerald-200" role="status" data-editor-saved>{{ $saved }} Versi baru & jejak audit dicatat.</p>
@@ -74,7 +93,7 @@
                                 @if ($o)
                                     <button type="button" wire:click="revert('{{ $field }}')" wire:confirm="Kembalikan {{ mb_strtolower($label) }} ke hasil otomatis? Suntingan bagian ini dihapus (tetap tersimpan di riwayat versi)." class="rounded-lg border border-stone-300 px-2.5 py-1 font-medium hover:bg-stone-50" data-editor-revert="{{ $field }}">Kembalikan ke otomatis</button>
                                 @endif
-                                <button type="button" wire:click="save('{{ $field }}')" @disabled(! $dirty) class="rounded-lg bg-emerald-700 px-3 py-1 font-semibold text-white hover:bg-emerald-800 disabled:opacity-40" data-editor-save="{{ $field }}">Simpan {{ mb_strtolower($label) }}</button>
+                                <button type="button" wire:click="confirmSave('{{ $field }}')" @disabled(! $dirty) class="rounded-lg bg-emerald-700 px-3 py-1 font-semibold text-white hover:bg-emerald-800 disabled:opacity-40" data-editor-save="{{ $field }}">Simpan {{ mb_strtolower($label) }}</button>
                             </div>
                         </div>
 
@@ -164,6 +183,26 @@
                     @endif
                 </div>
             @endif
+            <div class="rounded-2xl border border-stone-200 bg-white p-4 text-sm" data-editor-changes>
+                <h2 class="font-semibold">Riwayat perubahan</h2>
+                <ul class="mt-2 space-y-2 text-xs">
+                    @forelse ($this->changes as $log)
+                        <li wire:key="chg-{{ $log->id }}" data-change="{{ $log->event }}">
+                            <p class="font-medium text-stone-800">{{ $log->description }}</p>
+                            <p class="text-stone-500">{{ $log->created_at?->translatedFormat('j M Y H:i') }} · {{ $log->actor_name ?? 'Sistem' }}</p>
+                            @foreach ((array) $log->new_values as $k => $new)
+                                @php $old = ((array) $log->old_values)[$k] ?? null; @endphp
+                                @if (is_string($old) || is_string($new))
+                                    <p class="mt-0.5 text-stone-600"><span class="text-red-700 line-through">{{ \Illuminate\Support\Str::limit((string) $old, 80) }}</span> → <span class="text-emerald-800">{{ \Illuminate\Support\Str::limit((string) $new, 80) }}</span></p>
+                                @endif
+                            @endforeach
+                            @if ($log->reason)<p class="text-stone-500">Catatan: {{ $log->reason }}</p>@endif
+                        </li>
+                    @empty
+                        <li class="text-stone-500" data-changes-empty>Belum ada perubahan manual.</li>
+                    @endforelse
+                </ul>
+            </div>
             <div class="rounded-2xl border border-stone-200 bg-white p-4 text-sm">
                 <h2 class="font-semibold">Versi terakhir</h2>
                 <ul class="mt-2 space-y-2 text-xs">

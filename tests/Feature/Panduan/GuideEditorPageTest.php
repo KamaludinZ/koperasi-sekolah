@@ -137,4 +137,34 @@ class GuideEditorPageTest extends TestCase
         $this->assertSame(2, ActivityLog::where('event', 'guide.reverted')->where('reason', 'Kembali ke standar')->count());
         $this->editor('barang')->assertDontSeeHtml('data-editor-revert-all')->call('revertAll')->assertHasNoErrors();
     }
+
+    public function test_save_requires_confirmation_showing_before_and_after(): void
+    {
+        $kas = GuideEntry::where('key', 'kas')->first();
+        $c = $this->editor()->set('title', 'Judul kas versi koperasi')->call('confirmSave', 'title')
+            ->assertSet('confirming', 'title')->assertSeeHtml('data-editor-confirm="title"')->assertSeeHtml('data-confirm-diff="title"')
+            ->assertSeeText($kas->title)->assertSeeText('Judul kas versi koperasi');
+        $this->assertSame(0, GuideOverride::count());                                       // belum tersimpan sebelum dikonfirmasi
+        $c->call('cancelSave')->assertSet('confirming', null)->assertSet('title', 'Judul kas versi koperasi');
+        $this->assertSame(0, GuideOverride::count());
+        $c->call('confirmSave', 'title')->call('confirmed')->assertSet('confirming', null)->assertSeeHtml('data-editor-overridden="title"');
+        $this->assertSame('Judul kas versi koperasi', GuideOverride::where('field', 'title')->value('value'));
+
+        $this->editor()->call('confirmSave', 'summary')->assertSet('confirming', null);       // tidak berubah → tidak perlu konfirmasi
+        $this->editor()->set('summary', 'Ringkasan baru yang cukup panjang')->set('tips', ['Tips baru'])
+            ->call('confirmSave', 'all')->assertSeeHtml('data-confirm-diff="summary"')->assertSeeHtml('data-confirm-diff="tips"')
+            ->call('confirmed')->assertHasNoErrors();
+        $this->assertSame(3, GuideOverride::count());
+    }
+
+    public function test_change_history_from_audit_trail(): void
+    {
+        $this->editor()->assertSeeHtml('data-changes-empty');
+        $this->editor()->set('title', 'Judul kas versi koperasi')->set('note', 'Sesuaikan istilah')->call('save', 'title');
+        $this->editor()->call('revert', 'title');
+        $c = $this->editor()->assertSeeHtml('data-change="guide.overridden"')->assertSeeHtml('data-change="guide.reverted"')
+            ->assertSeeText('Catatan: Sesuaikan istilah')->assertSeeText('Judul kas versi koperasi');
+        $this->assertStringContainsString(User::where('email', 'admin@koperasi.test')->value('name'), $c->html());
+        $this->editor('barang')->assertSeeHtml('data-changes-empty');
+    }
 }
