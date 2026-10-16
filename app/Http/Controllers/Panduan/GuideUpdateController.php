@@ -35,6 +35,10 @@ use Illuminate\Http\Request;
  * - DELETE /panduan/pembaruan/usang/{key}    → {catatan?} tandai sudah ditinjau (409 bila tidak sedang usang);
  * - DELETE /panduan/pembaruan/usang          → {catatan?} tandai semua sudah ditinjau.
  * Semua penandaan & peninjauan tercatat di audit.
+ * Gabungan otomatis + override:
+ * - GET /panduan/pembaruan/gabung?audience=&disunting=1 → semua panduan: isi gabungan ringkas + bagian yang disunting;
+ * - GET /panduan/pembaruan/gabung/{key}               → satu panduan: isi gabungan + asal tiap bagian (otomatis/suntingan,
+ *   kedua isi, penyunting, catatan, isi otomatis berubah sejak disunting).
  */
 class GuideUpdateController extends Controller
 {
@@ -173,6 +177,29 @@ class GuideUpdateController extends Controller
         }
 
         return $this->json(['reviewed' => $keys, 'count' => count($keys)]);
+    }
+
+    public function mergedIndex(Request $request, GuideService $guides): JsonResponse
+    {
+        $f = $request->validate(['audience' => ['nullable', 'in:'.implode(',', array_keys(GuideEntry::AUDIENCES))], 'disunting' => ['nullable', 'boolean']]);
+        $rows = GuideEntry::with('overrides.editor:id,name')
+            ->when($f['audience'] ?? null, fn ($q, $a) => $q->where('audience', $a))
+            ->when($request->boolean('disunting'), fn ($q) => $q->whereHas('overrides'))
+            ->orderBy('audience')->orderBy('position')->get();
+        $data = $rows->map(function (GuideEntry $e) use ($guides) {
+            $m = $guides->merged($e);
+
+            return ['key' => $m['key'], 'title' => $m['merged']['title'], 'menu' => $m['menu'], 'audience' => $m['audience'], 'source' => $m['source'],
+                'is_stale' => $m['is_stale'], 'overridden' => $m['overridden'],
+                'auto_changed' => array_keys(array_filter($m['sections'], fn ($s) => $s['auto_changed'] === true))]; // isi otomatis berubah setelah disunting
+        })->values();
+
+        return $this->json(['total' => $data->count(), 'overridden_guides' => $data->filter(fn ($g) => $g['overridden'])->count(), 'guides' => $data]);
+    }
+
+    public function mergedShow(string $key, GuideService $guides): JsonResponse
+    {
+        return $this->json($guides->merged(GuideEntry::where('key', $key)->firstOrFail()));
     }
 
     private function presentStale(GuideEntry $e): array

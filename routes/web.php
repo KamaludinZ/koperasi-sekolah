@@ -233,6 +233,8 @@ Route::middleware(['menu', 'auth', 'can:kelola-panduan', 'throttle:30,1'])->pref
     Route::get('/sinkron', [GuideUpdateController::class, 'syncStatus'])->name('panduan.pembaruan.sync');
     Route::get('/sinkron/{job}', [GuideUpdateController::class, 'syncShow'])->whereNumber('job')->name('panduan.pembaruan.sync.show');
     Route::post('/sinkron', [GuideUpdateController::class, 'syncNow'])->middleware('throttle:5,1')->name('panduan.pembaruan.sync.now');
+    Route::get('/gabung', [GuideUpdateController::class, 'mergedIndex'])->name('panduan.pembaruan.merged');
+    Route::get('/gabung/{key}', [GuideUpdateController::class, 'mergedShow'])->where('key', '[a-z0-9._-]{1,60}')->name('panduan.pembaruan.merged.show');
     Route::get('/usang', [GuideUpdateController::class, 'staleIndex'])->name('panduan.pembaruan.stale');
     Route::delete('/usang', [GuideUpdateController::class, 'staleClearAll'])->name('panduan.pembaruan.stale.clear-all');
     Route::post('/usang/{key}', [GuideUpdateController::class, 'staleMark'])->where('key', '[a-z0-9._-]{1,60}')->name('panduan.pembaruan.stale.mark');

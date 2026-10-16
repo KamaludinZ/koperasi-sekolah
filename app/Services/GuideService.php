@@ -257,6 +257,36 @@ class GuideService
         return $guide;
     }
 
+    /**
+     * Gabungan isi otomatis & lapisan override dengan asal tiap bagian: nilai yang tampil, sumber (otomatis/suntingan),
+     * isi otomatis, isi suntingan, penyunting & waktu, catatan, dan apakah isi otomatis berubah sejak disunting.
+     *
+     * @return array{key: string, menu: ?string, audience: string, source: string, is_stale: bool, generated_at: ?string, merged: array, sections: array<string, array>, overridden: list<string>}
+     */
+    public function merged(GuideEntry $entry): array
+    {
+        $entry->loadMissing('overrides.editor:id,name');
+        $auto = $entry->toGuide();
+        $effective = $this->effective($entry);
+        $byField = $entry->overrides->keyBy('field');
+        $sections = [];
+        foreach (array_keys(GuideOverride::FIELDS) as $f) {
+            $o = $byField[$f] ?? null;
+            $sections[$f] = [
+                'label' => GuideOverride::FIELDS[$f], 'source' => $o ? 'override' : 'auto', 'value' => $effective[$f],
+                'auto' => $auto[$f], 'override' => $o?->value, 'updated_by' => $o?->editor?->name, 'updated_at' => $o?->updated_at?->toIso8601String(),
+                'note' => $o?->note, 'auto_changed' => $o?->autoChanged($entry),
+            ];
+        }
+
+        return [
+            'key' => $entry->key, 'menu' => $entry->menu_key, 'audience' => $entry->audience, 'source' => $entry->source,
+            'is_stale' => (bool) $entry->is_stale, 'generated_at' => $entry->generated_at?->toIso8601String(),
+            'merged' => array_intersect_key($effective, array_flip(['menu', 'audience', 'title', 'summary', 'steps', 'tips', 'related'])),
+            'sections' => $sections, 'overridden' => $effective['overridden'],
+        ];
+    }
+
     /** Cuplikan isi yang disimpan sebagai versi (bagian yang bisa berubah). */
     public function snapshot(GuideEntry $entry): array
     {
