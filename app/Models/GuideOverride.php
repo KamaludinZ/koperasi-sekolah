@@ -2,10 +2,13 @@
 
 namespace App\Models;
 
+use App\Observers\GuideContentObserver;
+use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /** Suntingan manual satu bagian panduan (lapisan override di atas isi otomatis guide_entries). */
+#[ObservedBy(GuideContentObserver::class)]
 class GuideOverride extends Model
 {
     public const FIELDS = ['title' => 'Judul', 'summary' => 'Ringkasan', 'steps' => 'Langkah', 'tips' => 'Tips'];

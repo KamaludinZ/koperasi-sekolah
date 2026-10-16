@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Observers\GuideContentObserver;
+use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -10,6 +12,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * Satu panduan di Pusat Panduan (tabel guide_entries). Bentuk array-nya (toGuide) sama dengan entri
  * App\Support\GuideCatalog sehingga tampilan bisa memakai keduanya.
  */
+#[ObservedBy(GuideContentObserver::class)]
 class GuideEntry extends Model
 {
     public const AUDIENCES = ['petugas' => 'Petugas', 'anggota' => 'Anggota portal'];
