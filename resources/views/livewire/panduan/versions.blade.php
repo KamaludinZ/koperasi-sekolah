@@ -40,16 +40,23 @@
         @if ($this->entry)
             <div class="rounded-2xl border border-stone-200 bg-white px-4 py-3 text-sm" data-versions-entry>
                 <p class="font-semibold">{{ $this->entry->title }}</p>
-                <p class="text-xs text-stone-500">{{ \App\Models\GuideEntry::SOURCES[$this->entry->source] ?? $this->entry->source }} · {{ $this->versions->total() }} versi{{ $this->entry->generated_at ? ' · terakhir disusun '.$this->entry->generated_at->translatedFormat('j M Y H:i') : '' }}</p>
+                <p class="text-xs text-stone-500">{{ \App\Models\GuideEntry::SOURCES[$this->entry->source] ?? $this->entry->source }} · {{ $this->versions->total() }} versi{{ $this->entry->generated_at ? ' · terakhir disusun '.$this->entry->generated_at->translatedFormat('j M Y H:i') : '' }}
+                    @if ($this->active[$this->entry->id] ?? null) · versi aktif <strong>v{{ $this->active[$this->entry->id] }}</strong>@endif</p>
+                @if (($this->active[$this->entry->id] ?? null) === null)
+                    <p class="mt-1 text-xs text-amber-800" data-versions-no-active>Isi yang tampil sekarang belum tercatat sebagai versi mana pun — versi baru tercatat saat panduan disunting atau disusun ulang.</p>
+                @endif
             </div>
         @endif
 
         <ol class="space-y-2">
             @forelse ($this->versions as $v)
                 @php $changed = $this->changedFields($v); @endphp
-                <li class="rounded-2xl border border-stone-200 bg-white p-4 text-sm" wire:key="v-{{ $v->id }}" data-version="{{ $v->guide_entry_id }}:{{ $v->version }}">
+                @php $isActive = ($this->active[$v->guide_entry_id] ?? null) === $v->version; @endphp
+                <li @class(['rounded-2xl border bg-white p-4 text-sm', 'border-emerald-500 ring-2 ring-emerald-500/20' => $isActive, 'border-stone-200' => ! $isActive])
+                    wire:key="v-{{ $v->id }}" data-version="{{ $v->guide_entry_id }}:{{ $v->version }}" @if ($isActive) data-version-active aria-current="true" @endif>
                     <div class="flex flex-wrap items-center gap-2">
                         <span class="font-mono text-xs font-semibold">v{{ $v->version }}</span>
+                        @if ($isActive)<span class="rounded bg-emerald-700 px-1.5 py-0.5 text-[11px] font-semibold text-white">Aktif</span>@endif
                         <span class="rounded px-1.5 py-0.5 text-[11px] font-semibold {{ $typeBadge($v->change_type) }}">{{ \App\Models\GuideVersion::TYPES[$v->change_type] ?? $v->change_type }}</span>
                         @unless ($this->entry)
                             <button type="button" wire:click="$set('key', '{{ $v->entry?->key }}')" class="font-medium text-emerald-800 hover:underline" data-versions-open="{{ $v->entry?->key }}">{{ $v->entry?->title }}</button>

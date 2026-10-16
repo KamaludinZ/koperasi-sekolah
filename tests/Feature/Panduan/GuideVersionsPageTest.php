@@ -64,4 +64,20 @@ class GuideVersionsPageTest extends TestCase
         $this->actingAs(User::where('email', 'kasir@koperasi.test')->first(), 'web');
         $this->get('/panduan/versi')->assertForbidden();
     }
+
+    public function test_active_version_marker(): void
+    {
+        $this->actingAs($this->admin, 'web');
+        $kas = GuideEntry::where('key', 'kas')->first();
+        // v3 (dikembalikan) sama isinya dengan v1 & isi sekarang → v3 aktif (yang terbaru dari yang sama)
+        $html = Livewire::withQueryParams(['panduan' => 'kas'])->test(Versions::class)->assertSeeText('versi aktif v3')->html();
+        $this->assertMatchesRegularExpression('/data-version="'.$kas->id.':3"\s+data-version-active/', $html);
+        $this->assertSame(1, substr_count($html, 'data-version-active'));
+
+        GuideEntry::whereKey($kas->id)->update(['title' => 'Diubah di luar alur versi']);
+        Livewire::withQueryParams(['panduan' => 'kas'])->test(Versions::class)->assertSeeHtml('data-versions-no-active')->assertDontSeeHtml('data-version-active');
+
+        $all = Livewire::withQueryParams([])->test(Versions::class)->html();                          // semua panduan: satu aktif per panduan
+        $this->assertGreaterThan(0, substr_count($all, 'data-version-active'));
+    }
 }

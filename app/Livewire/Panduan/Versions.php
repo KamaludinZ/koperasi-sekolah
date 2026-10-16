@@ -5,6 +5,7 @@ namespace App\Livewire\Panduan;
 use App\Models\GuideEntry;
 use App\Models\GuideOverride;
 use App\Models\GuideVersion;
+use App\Services\GuideService;
 use Illuminate\Support\Facades\Gate;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
@@ -117,6 +118,35 @@ class Versions extends Component
         $labels = GuideOverride::FIELDS + ['overridden' => 'Penanda suntingan'];
 
         return array_values(array_map(fn ($f) => $labels[$f], array_filter(array_keys($labels), fn ($f) => ($before[$f] ?? null) != ($v->snapshot[$f] ?? null))));
+    }
+
+    /**
+     * Versi aktif tiap panduan di halaman ini: versi yang cuplikannya sama dengan isi yang sedang tampil (biasanya
+     * versi terbaru). null bila isi sekarang tidak sama dengan versi mana pun (mis. diubah di luar alur versi).
+     *
+     * @return array<int, ?int> entry_id → nomor versi aktif
+     */
+    #[Computed]
+    public function active(): array
+    {
+        $ids = $this->entry ? [$this->entry->id] : $this->versions->getCollection()->pluck('guide_entry_id')->unique()->values()->all();
+        if ($ids === []) {
+            return [];
+        }
+        $guides = app(GuideService::class);
+        $out = [];
+        foreach (GuideEntry::with('overrides')->whereKey($ids)->get() as $e) {
+            $current = $guides->snapshot($e);
+            $out[$e->id] = null;
+            foreach (GuideVersion::where('guide_entry_id', $e->id)->orderByDesc('version')->limit(50)->get(['version', 'snapshot']) as $v) {
+                if ($v->snapshot == $current) {
+                    $out[$e->id] = $v->version;
+                    break;
+                }
+            }
+        }
+
+        return $out;
     }
 
     public function render()
