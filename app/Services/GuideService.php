@@ -11,7 +11,6 @@ use App\Models\User;
 use App\Support\GuideCatalog;
 use App\Support\Menu;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
@@ -264,50 +263,20 @@ class GuideService
         return array_intersect_key($this->effective($entry), array_flip(['title', 'summary', 'steps', 'tips', 'overridden']));
     }
 
-    /**
-     * Pasang suntingan manual untuk satu bagian (divalidasi & dirapikan), lalu catat versi.
-     *
-     * @throws ValidationException
-     */
+    /** Pasang suntingan manual satu bagian (lihat GuideOverrideService::save). @throws ValidationException */
     public function setOverride(GuideEntry $entry, string $field, mixed $value, ?User $by, ?string $note = null): GuideOverride
     {
-        $value = $this->clean($field, $value);
-
-        return DB::transaction(function () use ($entry, $field, $value, $by, $note) {
-            $before = $this->effective($entry)[$field];
-            $o = GuideOverride::updateOrCreate(['guide_entry_id' => $entry->id, 'field' => $field], [
-                'value' => $value, 'updated_by' => $by?->id, 'note' => $note !== null ? mb_substr(trim($note), 0, 200) : null,
-                'base_hash' => GuideOverride::hashOf($entry->toGuide()[$field] ?? null), // isi otomatis yang menjadi dasar suntingan
-            ]);
-            $entry->unsetRelation('overrides');
-            $version = $this->recordVersion($entry, 'override', $note ?? 'Bagian '.mb_strtolower(GuideOverride::FIELDS[$field]).' disunting', $by);
-            if ($version) {
-                $this->audit('guide.overridden', $entry, $field, $before, $value, $version, $note);
-                if ($before != $value) { // isi bagian benar-benar berubah (bukan hanya ditandai disunting)
-                    $this->logChange($entry, 'override', $field, $before, $value, $note, $by, $version);
-                }
-            }
-
-            return $o;
-        });
+        try {
+            return app(GuideOverrideService::class)->save($entry, $field, $value, $by, $note);
+        } catch (ValidationException $e) {
+            throw ValidationException::withMessages(['value' => collect($e->errors())->flatten()->first()]); // bentuk lama: kunci 'value'
+        }
     }
 
-    /** Lepas suntingan satu bagian sehingga kembali ke isi otomatis; catat versi. Tidak ada suntingan → false. */
+    /** Lepas suntingan satu bagian (lihat GuideOverrideService::revert). */
     public function clearOverride(GuideEntry $entry, string $field, ?User $by, ?string $note = null): bool
     {
-        return DB::transaction(function () use ($entry, $field, $by, $note) {
-            $before = $this->effective($entry)[$field] ?? null;
-            $deleted = GuideOverride::where('guide_entry_id', $entry->id)->where('field', $field)->delete() > 0;
-            if ($deleted) {
-                $entry->unsetRelation('overrides');
-                $version = $this->recordVersion($entry, 'revert', $note ?? 'Bagian '.mb_strtolower(GuideOverride::FIELDS[$field] ?? $field).' dikembalikan ke hasil otomatis', $by);
-                $after = $this->effective($entry)[$field];
-                $this->audit('guide.reverted', $entry, $field, $before, $after, $version, $note);
-                $this->logChange($entry, 'revert', $field, $before, $after, $note, $by, $version);
-            }
-
-            return $deleted;
-        });
+        return app(GuideOverrideService::class)->revert($entry, $field, $by, $note);
     }
 
     /** Tandai panduan perlu ditinjau ulang (alasan 5–200 karakter), dicatat di jejak audit. @throws ValidationException */
@@ -373,67 +342,4 @@ class GuideService
     }
 
     /** Catat perubahan panduan di jejak audit ber-HMAC (siapa, panduan & bagian mana, sebelum → sesudah, versi). */
-    private function audit(string $event, GuideEntry $entry, string $field, mixed $before, mixed $after, ?GuideVersion $version, ?string $note): void
-    {
-        $label = GuideOverride::FIELDS[$field] ?? $field;
-        $flat = fn ($v) => is_array($v) ? implode(' | ', array_map(fn ($x) => is_array($x) ? ($x['text'] ?? '') : (string) $x, $v)) : (string) $v;
-        AuditLog::record($event, 'panduan',
-            ($event === 'guide.overridden' ? "Panduan “{$entry->title}”: {$label} disunting" : "Panduan “{$entry->title}”: {$label} dikembalikan ke hasil otomatis")
-                .($version ? " (versi {$version->version})" : ''),
-            ['type' => 'guide', 'id' => $entry->id, 'label' => $entry->key],
-            ['field' => $field, 'version' => $version?->version],
-            action: 'diubah', old: [$field => mb_substr($flat($before), 0, 500)], new: [$field => mb_substr($flat($after), 0, 500)], reason: $note);
-    }
-
-    /** Rapikan & validasi nilai suntingan per bagian. @throws ValidationException */
-    private function clean(string $field, mixed $value): mixed
-    {
-        $fail = fn (string $m) => throw ValidationException::withMessages(['value' => $m]);
-        $text = fn ($v) => is_string($v) ? trim(preg_replace('/[ \t]+/u', ' ', str_replace("\r", '', $v))) : null;
-
-        return match ($field) {
-            'title' => (($t = $text($value)) !== null && $t !== '' && mb_strlen($t) <= self::MAX['title']) ? $t : $fail('Judul wajib diisi, maksimal '.self::MAX['title'].' karakter.'),
-            'summary' => (($t = $text($value)) !== null && mb_strlen($t) >= 10 && mb_strlen($t) <= self::MAX['summary']) ? $t : $fail('Ringkasan 10–'.self::MAX['summary'].' karakter.'),
-            'steps' => $this->cleanSteps($value, $fail, $text),
-            'tips' => $this->cleanTips($value, $fail, $text),
-            default => $fail('Bagian panduan tidak dikenal.'),
-        };
-    }
-
-    private function cleanSteps(mixed $value, callable $fail, callable $text): array
-    {
-        if (! is_array($value)) {
-            $fail('Langkah harus berupa daftar.');
-        }
-        $steps = [];
-        foreach ($value as $s) {
-            $t = $text(is_array($s) ? ($s['text'] ?? null) : $s);
-            if ($t === null || $t === '') {
-                continue;
-            }
-            if (mb_strlen($t) > self::MAX['step']) {
-                $fail('Satu langkah maksimal '.self::MAX['step'].' karakter.');
-            }
-            $route = is_array($s) && is_string($s['route'] ?? null) && Route::has($s['route']) ? $s['route'] : null;
-            $steps[] = array_filter(['text' => $t, 'route' => $route]);
-        }
-        if ($steps === [] || count($steps) > self::MAX['steps']) {
-            $fail('Isi 1–'.self::MAX['steps'].' langkah.');
-        }
-
-        return $steps;
-    }
-
-    private function cleanTips(mixed $value, callable $fail, callable $text): array
-    {
-        if (! is_array($value)) {
-            $fail('Tips harus berupa daftar.');
-        }
-        $tips = array_values(array_filter(array_map($text, $value), fn ($t) => $t !== null && $t !== ''));
-        if (count($tips) > self::MAX['tips'] || collect($tips)->contains(fn ($t) => mb_strlen($t) > self::MAX['tip'])) {
-            $fail('Maksimal '.self::MAX['tips'].' tips, masing-masing '.self::MAX['tip'].' karakter.');
-        }
-
-        return $tips;
-    }
 }

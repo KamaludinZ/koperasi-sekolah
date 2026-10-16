@@ -7,6 +7,7 @@ use App\Livewire\Panduan\Index;
 use App\Models\ActivityLog;
 use App\Models\GuideEntry;
 use App\Models\GuideOverride;
+use App\Models\GuideVersion;
 use App\Models\User;
 use App\Services\GuideGenerator;
 use App\Services\GuideService;
@@ -114,15 +115,27 @@ class GuideEditorPageTest extends TestCase
             ->assertSeeText('Langkah pertama yang diubah');                                      // pratinjau pembaca ikut berubah
     }
 
-    public function test_save_all_saves_valid_sections_and_keeps_invalid_input(): void
+    public function test_save_all_is_atomic_and_keeps_input_on_error(): void
     {
-        $c = $this->editor()->set('title', 'Judul kas versi koperasi')->set('summary', 'pendek')->set('tips', ['Tips baru dari admin'])
-            ->set('note', 'Simpan sekaligus')->call('saveAll')
-            ->assertHasErrors('summary')->assertSet('summary', 'pendek')->assertSet('title', 'Judul kas versi koperasi')
-            ->assertSeeText('Judul, Tips disimpan sebagai suntingan.');
+        $versions = GuideVersion::count();
+        $this->editor()->set('title', 'Judul kas versi koperasi')->set('summary', 'pendek')->set('tips', ['Tips baru dari admin'])
+            ->call('saveAll')->assertHasErrors('summary')
+            ->assertSet('summary', 'pendek')->assertSet('title', 'Judul kas versi koperasi')->assertSeeHtml('data-dirty-count="3"');
+        $this->assertSame(0, GuideOverride::count());                                        // tidak ada yang tersimpan sebagian
+
+        $this->editor()->set('title', 'Judul kas versi koperasi')->set('tips', ['Tips baru dari admin'])->set('note', 'Simpan sekaligus')
+            ->call('saveAll')->assertHasNoErrors()->assertSeeText('Judul, Tips disimpan sebagai suntingan.')->assertSeeHtml('data-dirty-count="0"');
         $this->assertEqualsCanonicalizing(['title', 'tips'], GuideOverride::pluck('field')->all());
+        $this->assertSame($versions + 1, GuideVersion::count());                // satu versi untuk dua bagian
         $this->assertSame(2, ActivityLog::where('event', 'guide.overridden')->where('reason', 'Simpan sekaligus')->count());
-        $c->assertSeeHtml('data-dirty-count="1"');
+    }
+
+    public function test_save_rejected_when_section_changed_by_someone_else(): void
+    {
+        $c = $this->editor()->set('title', 'Judul versi saya');
+        app(GuideService::class)->setOverride(GuideEntry::where('key', 'kas')->first(), 'title', 'Judul versi admin lain', null); // orang lain menyimpan dulu
+        $c->call('save', 'title')->assertHasErrors('title')->assertSeeText('sudah diubah orang lain');
+        $this->assertSame('Judul versi admin lain', GuideOverride::where('field', 'title')->value('value'));
     }
 
     public function test_revert_all_restores_every_section(): void

@@ -6,6 +6,7 @@ use App\Models\GuideChange;
 use App\Models\GuideEntry;
 use App\Models\GuideOverride;
 use App\Models\GuideVersion;
+use App\Services\GuideOverrideService;
 use App\Services\GuideScanner;
 use App\Services\GuideService;
 use Illuminate\Support\Facades\Auth;
@@ -13,6 +14,7 @@ use Illuminate\Support\Facades\Gate;
 use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
+use Livewire\Attributes\Locked;
 use Livewire\Attributes\Title;
 use Livewire\Attributes\Url;
 use Livewire\Component;
@@ -20,7 +22,7 @@ use Livewire\Component;
 /**
  * Editor panduan (/panduan/sunting?panduan=kunci, pengelola panduan): menyunting judul, ringkasan, langkah (teks +
  * tautan halaman, urutan bisa diubah) dan tips tiap panduan. Suntingan disimpan per bagian di lapisan override
- * (GuideService::setOverride) sehingga tidak hilang saat panduan disusun ulang; isi otomatis ditampilkan berdampingan,
+ * (GuideOverrideService) sehingga tidak hilang saat panduan disusun ulang; isi otomatis ditampilkan berdampingan,
  * dan tiap bagian bisa dikembalikan ke hasil otomatis. Setiap simpan/kembalikan menulis versi & jejak audit.
  */
 #[Layout('components.layouts.app')]
@@ -41,6 +43,10 @@ class Editor extends Component
     public array $tips = [];
 
     public string $note = '';
+
+    /** Sidik jari isi efektif tiap bagian saat formulir dimuat — untuk menolak simpan bila diubah orang lain. */
+    #[Locked]
+    public array $bases = [];
 
     public ?string $saved = null;
 
@@ -76,6 +82,7 @@ class Editor extends Component
         $this->steps = array_map(fn ($s) => ['text' => $s['text'] ?? '', 'route' => $s['route'] ?? ''], $e['steps']);
         $this->tips = array_values($e['tips']);
         $this->note = '';
+        $this->bases = array_map(fn ($f) => GuideOverride::hashOf($e[$f] ?? null), array_combine(array_keys(GuideOverride::FIELDS), array_keys(GuideOverride::FIELDS)));
     }
 
     #[Computed]
@@ -160,14 +167,14 @@ class Editor extends Component
     }
 
     /** Lanjutkan penyimpanan yang sudah dikonfirmasi. */
-    public function confirmed(GuideService $guides): void
+    public function confirmed(GuideOverrideService $overrides): void
     {
         $field = $this->confirming;
         $this->confirming = null;
         if ($field === 'all') {
-            $this->saveAll($guides);
+            $this->saveAll($overrides);
         } elseif ($field !== null) {
-            $this->save($field, $guides);
+            $this->save($field, $overrides);
         }
     }
 
@@ -197,25 +204,6 @@ class Editor extends Component
         return GuideChange::where('guide_entry_id', $this->entry->id)->with(['author:id,name', 'version:id,version'])->latest('id')->limit(20)->get();
     }
 
-    public function save(string $field, GuideService $guides): void
-    {
-        Gate::authorize('kelola-panduan');
-        if (! isset(GuideOverride::FIELDS[$field]) || ! $this->entry) {
-            return;
-        }
-        $this->validate(['note' => ['nullable', 'string', 'max:200']], [], ['note' => 'catatan']);
-        try {
-            $guides->setOverride($this->entry, $field, $this->value($field), Auth::guard('web')->user(), trim($this->note) ?: null);
-        } catch (ValidationException $e) {
-            $this->addError($field, collect($e->errors())->flatten()->first());
-
-            return;
-        }
-        $this->saved = GuideOverride::FIELDS[$field].' disimpan sebagai suntingan.';
-        unset($this->entry, $this->effective, $this->versions, $this->dirtyFields, $this->changes);
-        $this->load();
-    }
-
     /** Bagian yang berubah tetapi belum disimpan. @return list<string> */
     #[Computed]
     public function dirtyFields(): array
@@ -223,51 +211,60 @@ class Editor extends Component
         return array_values(array_filter(array_keys(GuideOverride::FIELDS), fn ($f) => $this->dirty($f)));
     }
 
-    /** Simpan semua bagian yang berubah sekaligus; bagian yang gagal validasi tetap di formulir dengan pesannya. */
-    public function saveAll(GuideService $guides): void
+    public function save(string $field, GuideOverrideService $overrides): void
+    {
+        if (isset(GuideOverride::FIELDS[$field])) {
+            $this->store([$field], $overrides);
+        }
+    }
+
+    /** Simpan semua bagian yang berubah sekaligus — satu versi; bila ada yang tidak sah, tidak ada yang disimpan. */
+    public function saveAll(GuideOverrideService $overrides): void
+    {
+        $this->store($this->dirtyFields, $overrides);
+    }
+
+    /** @param  list<string>  $fields */
+    private function store(array $fields, GuideOverrideService $overrides): void
     {
         Gate::authorize('kelola-panduan');
-        if (! $this->entry) {
+        if (! $this->entry || $fields === []) {
             return;
         }
         $this->validate(['note' => ['nullable', 'string', 'max:200']], [], ['note' => 'catatan']);
-        $done = [];
-        $failed = [];
-        foreach ($this->dirtyFields as $field) {
-            try {
-                $guides->setOverride($this->entry, $field, $this->value($field), Auth::guard('web')->user(), trim($this->note) ?: null);
-                $done[] = GuideOverride::FIELDS[$field];
-                $this->entry->unsetRelation('overrides');
-            } catch (ValidationException $e) {
-                $failed[$field] = collect($e->errors())->flatten()->first();
+        $values = array_combine($fields, array_map(fn ($f) => $this->value($f), $fields));
+        try {
+            $overrides->saveMany($this->entry, $values, Auth::guard('web')->user(), trim($this->note) ?: null, array_intersect_key($this->bases, $values));
+        } catch (ValidationException $e) {
+            foreach ($e->errors() as $field => $messages) {
+                $this->addError($field, $messages[0]);
             }
+
+            return;
         }
-        $kept = array_intersect_key(['title' => $this->title, 'summary' => $this->summary, 'steps' => $this->steps, 'tips' => $this->tips], $failed);
+        $this->saved = implode(', ', array_map(fn ($f) => GuideOverride::FIELDS[$f], $fields)).' disimpan sebagai suntingan.';
+        $kept = array_diff_key(['title' => $this->title, 'summary' => $this->summary, 'steps' => $this->steps, 'tips' => $this->tips], $values);
         unset($this->entry, $this->effective, $this->versions, $this->dirtyFields, $this->changes);
         $this->load();
-        foreach ($kept as $field => $value) { // isian yang gagal tidak hilang
+        foreach ($kept as $field => $value) { // bagian lain yang belum disimpan tetap di formulir
             $this->{$field} = $value;
         }
-        foreach ($failed as $field => $message) {
-            $this->addError($field, $message);
-        }
-        $this->saved = $done ? implode(', ', $done).' disimpan sebagai suntingan.' : null;
     }
 
-    public function revert(string $field, GuideService $guides): void
+    public function revert(string $field, GuideOverrideService $overrides): void
     {
         Gate::authorize('kelola-panduan');
         if (! isset(GuideOverride::FIELDS[$field]) || ! $this->entry) {
             return;
         }
-        $guides->clearOverride($this->entry, $field, Auth::guard('web')->user(), trim($this->note) ?: null);
+        $overrides->revert($this->entry, $field, Auth::guard('web')->user(), trim($this->note) ?: null);
         $this->saved = GuideOverride::FIELDS[$field].' dikembalikan ke hasil otomatis.';
         unset($this->entry, $this->effective, $this->versions, $this->dirtyFields, $this->changes);
         $this->load();
     }
 
     /** Kembalikan semua bagian yang disunting ke hasil otomatis (versi & audit per bagian). */
-    public function revertAll(GuideService $guides): void
+    public function revertAll(GuideOverrideService $overrides): void
     {
         Gate::authorize('kelola-panduan');
         if (! $this->entry) {
@@ -275,7 +272,7 @@ class Editor extends Component
         }
         $fields = $this->entry->overrides->pluck('field')->all();
         foreach ($fields as $field) {
-            $guides->clearOverride($this->entry, $field, Auth::guard('web')->user(), trim($this->note) ?: 'Semua bagian dikembalikan ke hasil otomatis');
+            $overrides->revert($this->entry, $field, Auth::guard('web')->user(), trim($this->note) ?: 'Semua bagian dikembalikan ke hasil otomatis');
             $this->entry->unsetRelation('overrides');
         }
         $this->saved = $fields ? 'Semua bagian ('.implode(', ', array_map(fn ($f) => mb_strtolower(GuideOverride::FIELDS[$f]), $fields)).') dikembalikan ke hasil otomatis.' : null;
