@@ -83,7 +83,9 @@ class GuideDraftPreviewTest extends TestCase
             ->assertSeeText('Panduan manual')->assertDontSeeHtml('data-guide-draft-apply')
             ->call('applyDraft')->assertSet('draftApplied', 'dilewati (manual)');
         $this->assertSame('Versi manual', GuideEntry::where('key', 'kas')->value('title'));
-        $this->assertSame(0, ActivityLog::where('event', 'guide.synced')->count());
+        $log = ActivityLog::where('event', 'guide.synced')->sole();                     // draf tinjauan disusun → tercatat
+        $this->assertSame(['kas'], $log->properties['drafted']);
+        $this->assertArrayNotHasKey('updated', $log->properties);
     }
 
     public function test_draft_tab_requires_manager(): void

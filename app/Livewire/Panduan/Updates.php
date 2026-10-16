@@ -6,7 +6,6 @@ use App\Models\GuideEntry;
 use App\Models\GuideSyncJob;
 use App\Models\GuideVersion;
 use App\Models\Role;
-use App\Services\AuditLog;
 use App\Services\GuideGenerator;
 use App\Services\GuideScanner;
 use App\Services\GuideService;
@@ -127,10 +126,6 @@ class Updates extends Component
             return;
         }
         $done = $stats['created'] ? 'dibuat' : ($stats['updated'] ? 'diperbarui' : ($stats['skipped_manual'] ? 'dilewati (manual)' : 'sudah sesuai'));
-        if ($stats['created'] || $stats['updated']) {
-            AuditLog::record('guide.synced', 'panduan', "Draf panduan {$key} diterapkan: {$done}", null,
-                ['only' => $key, 'created' => $stats['created'], 'updated' => $stats['updated']], action: 'diubah', reason: 'Diterapkan dari pratinjau draf');
-        }
         $this->draftApplied = $done;
         unset($this->draftPreview, $this->stats, $this->history, $this->titles, $this->runs, $this->lastRun);
     }
@@ -200,10 +195,7 @@ class Updates extends Component
 
             return;
         }
-        $counts = array_map('count', $stats);
-        AuditLog::record('guide.synced', 'panduan',
-            "Panduan disusun ulang: {$counts['created']} baru, {$counts['updated']} diperbarui, {$counts['unchanged']} tetap, {$counts['skipped_manual']} manual dilewati",
-            null, ['created' => $stats['created'], 'updated' => $stats['updated']] + $counts, action: 'diubah', reason: $note);
+        $counts = array_map('count', $stats); // jejak audit guide.synced ditulis GuideSyncRecorder
         $this->result = $counts + ['keys' => array_merge($stats['created'], $stats['updated'])];
         $this->plan = null;
         $this->note = '';
@@ -243,11 +235,7 @@ class Updates extends Component
 
             return;
         }
-        $c = array_map('count', $stats);
-        if ($c['created'] || $c['updated']) {
-            AuditLog::record('guide.synced', 'panduan', "Panduan dipindai & disusun ulang: {$c['created']} baru, {$c['updated']} diperbarui",
-                null, ['created' => $stats['created'], 'updated' => $stats['updated']] + $c, action: 'diubah', reason: 'Pemicu manual dari panel');
-        }
+        $c = array_map('count', $stats); // jejak audit guide.synced ditulis GuideSyncRecorder
         [$this->scanMessage, $this->scanFailed] = ["Pemindaian selesai: {$c['created']} baru, {$c['updated']} diperbarui, {$c['unchanged']} tetap, {$c['skipped_manual']} manual dilewati.", false];
         $this->plan = null;
         unset($this->stats, $this->stale, $this->staleDetails, $this->history, $this->titles, $this->runs, $this->lastRun, $this->draftPreview, $this->scan);

@@ -55,7 +55,29 @@ class GuideSyncRecorder
             throw $e;
         }
         $job->update(['status' => 'done', 'finished_at' => now(), 'stats' => array_map('count', $stats)]);
+        $this->audit($job, $stats, $by, $note);
 
         return ['job' => $job, 'stats' => $stats];
+    }
+
+    /**
+     * Satu jejak audit ber-HMAC per sinkronisasi yang mengubah sesuatu (panduan dibuat/diperbarui, draf disusun, ditandai
+     * usang): pemicu, proses, cakupan, dan kunci panduan terdampak. Sinkronisasi tanpa perubahan tidak dicatat.
+     */
+    private function audit(GuideSyncJob $job, array $stats, ?User $by, ?string $note): void
+    {
+        $touched = array_filter(array_intersect_key($stats, array_flip(['created', 'updated', 'drafted', 'stale'])));
+        if ($touched === []) {
+            return;
+        }
+        $c = array_map('count', $stats);
+        $parts = array_filter(['created' => "{$c['created']} baru", 'updated' => "{$c['updated']} diperbarui", 'drafted' => ($c['drafted'] ?? 0).' draf', 'stale' => ($c['stale'] ?? 0).' ditandai usang'],
+            fn ($k) => ($c[$k] ?? 0) > 0, ARRAY_FILTER_USE_KEY);
+        AuditLog::record('guide.synced', 'panduan',
+            'Panduan disusun ulang ('.(GuideSyncJob::TRIGGERS[$job->trigger] ?? $job->trigger).', #'.$job->id.'): '.implode(', ', $parts),
+            ['type' => 'guide_sync', 'id' => $job->id, 'label' => '#'.$job->id],
+            ['sync_job_id' => $job->id, 'trigger' => $job->trigger, 'scope' => $job->scope] + $touched + ['counts' => $c],
+            actor: $by ? ['id' => $by->id, 'name' => $by->name, 'role' => $by->role?->name] : null,
+            action: 'diubah', reason: $note);
     }
 }
