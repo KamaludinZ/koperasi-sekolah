@@ -28,6 +28,7 @@ class AccessPreview
         'setujui-retur' => 'Setujui retur & pembatalan transaksi',
         'kelola-katalog' => 'Kelola kategori & impor barang',
         'kelola-pengadaan' => 'Kelola supplier, pesanan & hutang pengadaan',
+        'kelola-promo' => 'Buat & ubah promo otomatis dan kupon',
         'kelola-anggota' => 'Hapus anggota & atur batas bon khusus',
         'kelola-simpanan' => 'Kelola jenis & mutasi simpanan',
         'kelola-pinjaman' => 'Kelola pengajuan, pencairan & angsuran pinjaman',

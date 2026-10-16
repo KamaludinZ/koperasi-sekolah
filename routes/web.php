@@ -372,6 +372,12 @@ Route::middleware('menu:kas')->group(function () {
 Route::middleware('menu:promo')->group(function () {
     Route::get('/promo', Promo\Index::class)->name('promo');
     Route::get('/promo/jadwal', Promo\Schedule::class)->name('promo.jadwal');
+    Route::middleware('can:kelola-promo')->group(function () {
+        Route::get('/promo/baru', Promo\PromoForm::class)->name('promo.buat');
+        Route::get('/promo/{promo}/ubah', Promo\PromoForm::class)->whereNumber('promo')->name('promo.ubah');
+        Route::get('/promo/kupon/baru', Promo\CouponForm::class)->name('promo.kupon.buat');
+        Route::get('/promo/kupon/{coupon}/ubah', Promo\CouponForm::class)->whereNumber('coupon')->name('promo.kupon.ubah');
+    });
     Route::middleware('throttle:120,1')->group(function () {
         Route::get('/promo/data', [PromoController::class, 'index'])->name('promo.data');
         Route::get('/promo/jadwal/data', [PromoController::class, 'schedule'])->name('promo.schedule.data');
@@ -769,6 +775,7 @@ Route::middleware('menu:pengaturan')->group(function () {
     Route::get('/pengaturan/bon', Pengaturan\Credit::class)->name('pengaturan.bon');
     Route::get('/pengaturan/retur', Pengaturan\Returns::class)->name('pengaturan.retur');
     Route::get('/pengaturan/kasir', Pengaturan\Cashier::class)->name('pengaturan.kasir');
+    Route::get('/pengaturan/diskon', Pengaturan\Discount::class)->name('pengaturan.diskon');
 
     Route::get('/pengaturan/data', [SettingsController::class, 'index'])->name('pengaturan.data');
     Route::get('/pengaturan/data/{section}', [SettingsController::class, 'show'])->whereIn('section', SettingsService::SECTIONS)->name('pengaturan.data.show');

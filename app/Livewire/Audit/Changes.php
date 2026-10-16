@@ -6,6 +6,8 @@ use App\Models\ActivityLog;
 use App\Models\Role;
 use App\Services\AuditChangeQuery;
 use App\Services\AuditQuery;
+use Illuminate\Support\Carbon;
+use Illuminate\Support\Str;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
@@ -31,6 +33,8 @@ class Changes extends Component
         'anggota' => 'Anggota',
         'pengaturan' => 'Pengaturan',
         'supplier' => 'Supplier',
+        'promo' => 'Promo',
+        'kupon' => 'Kupon',
         'retur' => 'Retur & pembatalan',
         'pengguna' => 'Akun petugas',
         'peran' => 'Peran & hak menu',
@@ -62,18 +66,19 @@ class Changes extends Component
         'kind' => 'Jenis', 'status' => 'Status', 'amount' => 'Nilai', 'quantity' => 'Jumlah barang', 'refund_method' => 'Pengembalian dana',
         'restock' => 'Kembali ke stok', 'reason' => 'Alasan', 'decided_by' => 'Diputus oleh',
         'role' => 'Peran', 'password' => 'Kata sandi', 'menus' => 'Menu yang boleh dibuka',
+        'value' => 'Nilai potongan', 'buy_qty' => 'Beli (pcs)', 'free_qty' => 'Gratis (pcs)', 'min_qty' => 'Minimal jumlah', 'min_purchase' => 'Minimal belanja',
+        'scope' => 'Cakupan', 'targets' => 'Sasaran', 'starts_on' => 'Mulai', 'ends_on' => 'Berakhir', 'days' => 'Hari berlaku', 'time_from' => 'Jam mulai', 'time_to' => 'Jam selesai',
+        'max_discount' => 'Potongan maks.', 'quota' => 'Kuota', 'per_member' => 'Batas per anggota',
     ];
 
     /** Kolom bernilai uang (ditampilkan sebagai Rupiah). */
-    public const MONEY = ['price', 'cost_price', 'discount.max_amount', 'amount'];
+    public const MONEY = ['price', 'cost_price', 'discount.max_amount', 'amount', 'min_purchase', 'max_discount'];
 
     /** Label kolom; kolom tanpa label dibaca dari namanya (mis. "show_logo" → "Show logo"). */
     public static function label(string $field): string
     {
-        return self::FIELDS[$field] ?? ucfirst(str_replace('_', ' ', \Illuminate\Support\Str::afterLast($field, '.')));
+        return self::FIELDS[$field] ?? ucfirst(str_replace('_', ' ', Str::afterLast($field, '.')));
     }
-
-
 
     /** Kolom sensitif: perubahannya (bukan pengisian awal) ditandai agar mudah ditinjau, begitu pula penghapusan. */
     public const SENSITIVE = AuditChangeQuery::SENSITIVE;
@@ -175,7 +180,7 @@ class Changes extends Component
         };
     }
 
-    /** @return array{0: ?\Illuminate\Support\Carbon, 1: ?\Illuminate\Support\Carbon} */
+    /** @return array{0: ?Carbon, 1: ?Carbon} */
     #[Computed]
     public function range(): array
     {

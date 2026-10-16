@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\Auditable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -11,10 +12,17 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * Kupon/voucher: kode (huruf besar tanpa spasi), potongan persen (dengan batas maks.) atau
  * rupiah, minimal belanja, kuota total & per anggota, masa berlaku. Pemakaian dicatat di
  * transaction_discounts (source = kupon) dan penghitung used_count (sisa kuota). Status: aktif | terjadwal | berakhir | habis | nonaktif.
+ * Setiap perubahan tercatat di audit.
  */
 class Coupon extends Model
 {
+    use Auditable;
     use HasFactory;
+
+    public const AUDIT = [
+        'type' => 'coupon', 'category' => 'promo', 'noun' => 'kupon',
+        'fields' => ['code', 'name', 'type', 'value', 'max_discount', 'min_purchase', 'quota', 'per_member', 'starts_on', 'ends_on', 'is_active'],
+    ];
 
     public const TYPES = ['persen' => 'Potongan persen', 'nominal' => 'Potongan rupiah'];
 
@@ -47,6 +55,21 @@ class Coupon extends Model
     public static function normalize(string $code): string
     {
         return mb_strtoupper(preg_replace('/\s+/', '', $code));
+    }
+
+    public function auditLabel(): string
+    {
+        return $this->code.' · '.$this->name;
+    }
+
+    public function auditTitle(): string
+    {
+        return $this->code;
+    }
+
+    public function auditValues(array $values): array
+    {
+        return Promo::readable($values, ['type' => self::TYPES]);
     }
 
     public function redemptions(): HasMany

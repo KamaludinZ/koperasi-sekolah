@@ -5,6 +5,7 @@
         'pengaturan.profil' => 'Profil koperasi',
         'pengaturan.struk' => 'Struk',
         'pengaturan.pajak' => 'Pajak & pembulatan',
+        'pengaturan.diskon' => 'Diskon manual',
         'pengaturan.keamanan' => 'Keamanan & retensi',
         'pengaturan.bon' => 'Bon anggota',
         'pengaturan.retur' => 'Retur & pembatalan',

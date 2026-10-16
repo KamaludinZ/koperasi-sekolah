@@ -33,6 +33,7 @@ class ActivityLog extends Model
         'pengaturan' => 'Pengaturan',
         'pengumuman' => 'Pengumuman',
         'pengadaan' => 'Pengadaan',
+        'promo' => 'Diskon & promo',
         'pesanan' => 'Pesanan anggota',
         'panduan' => 'Panduan',
     ];

@@ -7,6 +7,7 @@ use App\Models\Coupon;
 use App\Models\Product;
 use App\Models\Promo;
 use App\Models\User;
+use App\Services\AuditLog;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 
@@ -41,7 +42,7 @@ class PromoSeeder extends Seeder
             ['OSIS100', 'Hadiah pengurus OSIS', 'nominal', 10000, null, 30000, 30, 1, 3, 33],
         ];
 
-        DB::transaction(function () use ($promos, $coupons, $admin, $t) {
+        AuditLog::quietly(fn () => DB::transaction(function () use ($promos, $coupons, $admin, $t) {
             foreach ($promos as [$name, $type, $value, $buy, $free, $minQty, $minPurchase, $scope, $targets, $start, $end, $days, $from, $to, $active]) {
                 $promo = Promo::create([
                     'name' => $name, 'type' => $type, 'value' => $value, 'buy_qty' => $buy, 'free_qty' => $free,
@@ -62,6 +63,6 @@ class PromoSeeder extends Seeder
                     'starts_on' => $t->copy()->addDays($start), 'ends_on' => $t->copy()->addDays($end), 'is_active' => true, 'created_by' => $admin,
                 ]);
             }
-        });
+        }));
     }
 }

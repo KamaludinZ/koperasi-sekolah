@@ -22,6 +22,8 @@ class AuditChangeQuery
         'anggota' => 'member',
         'pengaturan' => 'setting',
         'supplier' => 'supplier',
+        'promo' => 'promo',
+        'kupon' => 'coupon',
         'retur' => 'transaction_return',
         'pengguna' => 'user',
         'peran' => 'role',

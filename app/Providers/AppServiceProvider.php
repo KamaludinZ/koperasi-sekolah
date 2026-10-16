@@ -134,6 +134,9 @@ class AppServiceProvider extends ServiceProvider
 
         Gate::define('kelola-pengadaan', fn (User $user) => $user->hasRole(Role::ADMIN, Role::PENGURUS) && $user->canOpen('pengadaan'));
 
+        // Promo otomatis & kupon dibuat/diubah Admin & Pengurus pemegang menu Diskon & Promo; kasir hanya melihat.
+        Gate::define('kelola-promo', fn (User $user) => $user->hasRole(Role::ADMIN, Role::PENGURUS) && $user->canOpen('promo'));
+
         // Retur & pembatalan transaksi disetujui/ditolak oleh Admin & Pengurus pemegang menu Transaksi.
         Gate::define('setujui-retur', fn (User $user) => $user->hasRole(Role::ADMIN, Role::PENGURUS) && $user->canOpen('transaksi'));
         // Tinjau kiriman kasir offline yang bermasalah (stok kurang, tanpa shift, ditolak).

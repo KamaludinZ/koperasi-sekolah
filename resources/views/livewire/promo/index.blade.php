@@ -16,7 +16,8 @@
         'beli_gratis' => 'M20 12v9H4v-9M2 7h20v5H2zM12 21V7M12 7H8a2 2 0 110-4c3 0 4 4 4 4zm0 0h4a2 2 0 100-4c-3 0-4 4-4 4z',
         'grosir' => 'M20 7l-8-4-8 4m16 0v10l-8 4m8-14l-8 4m0 10l-8-4V7m8 14V11',
     ];
-    $soon = 'inline-flex cursor-not-allowed items-center gap-1.5 rounded-xl border border-stone-200 bg-white px-3 py-2 text-sm font-medium text-stone-400';
+    $manage = $this->canManage;
+    $act = 'rounded-lg border border-stone-300 px-2.5 py-1 text-xs font-medium text-stone-700 hover:bg-stone-50';
 @endphp
 <div class="flex min-h-0 flex-1 flex-col overflow-y-auto">
     <header class="border-b border-stone-200 bg-white px-4 pt-4 sm:px-6">
@@ -27,8 +28,8 @@
             </div>
             @if ($this->canManage)
                 <div class="flex flex-wrap gap-2">
-                    <span class="{{ $soon }}" title="Segera hadir">Buat kupon · segera</span>
-                    <span class="{{ $soon }}" title="Segera hadir">Buat promo · segera</span>
+                    <a href="{{ route('promo.kupon.buat') }}" wire:navigate class="rounded-xl border border-stone-300 bg-white px-4 py-2.5 text-sm font-medium text-stone-700 hover:bg-stone-50">Buat kupon</a>
+                    <a href="{{ route('promo.buat') }}" wire:navigate class="rounded-xl bg-emerald-700 px-4 py-2.5 text-sm font-semibold text-white hover:bg-emerald-800">Buat promo</a>
                 </div>
             @endif
         </div>
@@ -109,6 +110,12 @@
                                 </div>
                             </div>
                             <p class="mt-2 text-xs text-stone-500 sm:hidden">{{ $p['usage_count'] }}× dipakai · potongan {{ $rp($p['discount_given']) }}</p>
+                            @if ($manage)
+                                <div class="mt-3 flex flex-wrap justify-end gap-2 border-t border-stone-100 pt-3">
+                                    <button type="button" wire:click="togglePromo({{ $p['id'] }})" wire:loading.attr="disabled" class="{{ $act }}">{{ $p['is_active'] ? 'Nonaktifkan' : 'Aktifkan' }}</button>
+                                    <a href="{{ route('promo.ubah', $p['id']) }}" wire:navigate class="{{ $act }}">Ubah</a>
+                                </div>
+                            @endif
                         </article>
                     @empty
                         <p class="rounded-xl border border-dashed border-stone-300 px-4 py-8 text-center text-sm text-stone-400">
@@ -130,13 +137,16 @@
                         <div class="flex justify-between gap-3"><dt class="text-stone-500">Alasan</dt><dd class="font-medium">{{ $m['reason_required'] ? 'Wajib diisi' : 'Opsional' }}</dd></div>
                         <div class="flex justify-between gap-3"><dt class="text-stone-500">7 hari terakhir</dt><dd class="font-medium tabular-nums">{{ $m['used_7_days'] }}× · {{ $rp($m['given_7_days']) }}</dd></div>
                     </dl>
-                    <p class="mt-3 text-xs text-stone-500">Potongan di atas batas ini perlu persetujuan admin.</p>
+                    <p class="mt-3 text-xs text-stone-500">Potongan di atas batas ini perlu persetujuan admin.@if (\App\Support\Menu::canReach('pengaturan.diskon')) <a href="{{ route('pengaturan.diskon') }}" wire:navigate class="font-medium text-emerald-800 hover:underline">Atur batas</a>@endif</p>
                 </section>
 
                 {{-- Kupon & voucher --}}
                 <section class="rounded-xl border border-stone-200 bg-white" aria-labelledby="coupon-title">
                     <h2 id="coupon-title" class="px-4 pt-4 text-sm font-semibold">Kupon & voucher</h2>
                     <ul class="mt-2 divide-y divide-stone-100">
+                        @if ($this->coupons === [])
+                            <li class="px-4 pt-1 pb-4 text-sm text-stone-400">Belum ada kupon.</li>
+                        @endif
                         @foreach ($this->coupons as $c)
                             @php [$cLabel, $cClass] = $statusBadge[$c['status']]; $pct = $c['quota'] ? min(100, round($c['used'] / $c['quota'] * 100)) : null; $left = $promoClass::daysLeft($c); @endphp
                             <li class="px-4 py-3" wire:key="coupon-{{ $c['id'] }}">
@@ -160,6 +170,12 @@
                                         <span class="text-[11px] text-stone-500">{{ $c['used'] }}× dipakai · tanpa batas kuota</span>
                                     @endif
                                 </div>
+                                @if ($manage)
+                                    <div class="mt-2 flex justify-end gap-2">
+                                        <button type="button" wire:click="toggleCoupon({{ $c['id'] }})" wire:loading.attr="disabled" class="{{ $act }}">{{ $c['is_active'] ? 'Nonaktifkan' : 'Aktifkan' }}</button>
+                                        <a href="{{ route('promo.kupon.ubah', $c['id']) }}" wire:navigate class="{{ $act }}">Ubah</a>
+                                    </div>
+                                @endif
                             </li>
                         @endforeach
                     </ul>

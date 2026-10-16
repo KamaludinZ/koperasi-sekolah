@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Livewire\Promo\Index;
+use App\Models\Concerns\Auditable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -14,11 +16,17 @@ use Illuminate\Support\Carbon;
  * Promo otomatis di kasir. Jenis: persen (potongan % per barang), nominal (potongan rupiah
  * per barang), beli_gratis (beli X gratis Y), grosir (harga per pcs mulai min_qty).
  * Cakupan: semua barang, kategori, atau barang tertentu (promo_targets). Status dihitung dari
- * saklar aktif & periode: aktif | terjadwal | berakhir | nonaktif.
+ * saklar aktif & periode: aktif | terjadwal | berakhir | nonaktif. Setiap perubahan tercatat di audit.
  */
 class Promo extends Model
 {
+    use Auditable;
     use HasFactory;
+
+    public const AUDIT = [
+        'type' => 'promo', 'category' => 'promo', 'noun' => 'promo',
+        'fields' => ['name', 'type', 'value', 'buy_qty', 'free_qty', 'min_qty', 'min_purchase', 'scope', 'starts_on', 'ends_on', 'days', 'time_from', 'time_to', 'is_active'],
+    ];
 
     public const TYPES = [
         'persen' => 'Potongan persen',
@@ -80,6 +88,29 @@ class Promo extends Model
     {
         $day = Carbon::parse($date)->toDateString();
         $query->where('is_active', true)->whereDate('starts_on', '<=', $day)->whereDate('ends_on', '>=', $day);
+    }
+
+    /** Nilai audit terbaca: tanggal Y-m-d, hari "Sen, Sel", jam H:i, angka bulat, jenis & cakupan berlabel. */
+    public function auditValues(array $values): array
+    {
+        return self::readable($values, ['type' => self::TYPES, 'scope' => self::SCOPES]);
+    }
+
+    /** @param  array<string, array<string, string>>  $labels */
+    public static function readable(array $values, array $labels = []): array
+    {
+        foreach ($values as $key => $v) {
+            $values[$key] = match (true) {
+                $v instanceof Carbon => $v->toDateString(),
+                $key === 'days' => implode(', ', array_map(fn ($d) => Index::DAY_LABELS[(int) $d] ?? $d, is_array($v) ? $v : (json_decode((string) $v, true) ?: []))),
+                in_array($key, ['time_from', 'time_to'], true) && $v !== null => substr((string) $v, 0, 5),
+                in_array($key, ['value', 'min_purchase', 'max_discount'], true) && $v !== null => (int) round((float) $v),
+                isset($labels[$key]) => $labels[$key][$v] ?? $v,
+                default => $v,
+            };
+        }
+
+        return $values;
     }
 
     public function getStatusAttribute(): string

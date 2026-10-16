@@ -2,8 +2,12 @@
 
 namespace App\Livewire\Promo;
 
+use App\Models\Coupon;
+use App\Models\Promo;
+use App\Services\PromoManager;
 use App\Services\PromoService;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Gate;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
@@ -54,7 +58,27 @@ class Index extends Component
     #[Computed]
     public function canManage(): bool
     {
-        return (bool) auth()->user()?->hasRole('admin', 'pengurus');
+        return Gate::allows('kelola-promo');
+    }
+
+    /** Nyalakan/matikan promo dari daftar (tercatat di audit). */
+    public function togglePromo(int $id): void
+    {
+        Gate::authorize('kelola-promo');
+        $promo = Promo::findOrFail($id);
+        app(PromoManager::class)->toggle($promo, ! $promo->is_active);
+        unset($this->allPromos, $this->promos, $this->counts, $this->stats);
+        $this->dispatch('toast', type: 'success', message: "Promo {$promo->name} ".($promo->is_active ? 'diaktifkan.' : 'dinonaktifkan.'));
+    }
+
+    /** Nyalakan/matikan kupon dari daftar (tercatat di audit). */
+    public function toggleCoupon(int $id): void
+    {
+        Gate::authorize('kelola-promo');
+        $coupon = Coupon::findOrFail($id);
+        app(PromoManager::class)->toggle($coupon, ! $coupon->is_active);
+        unset($this->coupons, $this->stats);
+        $this->dispatch('toast', type: 'success', message: "Kupon {$coupon->code} ".($coupon->is_active ? 'diaktifkan.' : 'dinonaktifkan.'));
     }
 
     /** Semua promo dari database (PromoService), sekali per permintaan. */

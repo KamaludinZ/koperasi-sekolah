@@ -37,7 +37,7 @@ class RoleCombinationAccessTest extends TestCase
             '/barang/impor', '/barang/impor/riwayat',
             '/pengadaan', '/pengadaan/hutang', '/pengadaan/hutang/bayar', '/pengadaan/penerimaan', '/pengadaan/pesanan',
             '/pengadaan/pesanan/baru', '/pengadaan/supplier', '/pengadaan/supplier/baru',
-            '/promo', '/promo/jadwal', '/anggota', '/anggota/piutang',
+            '/promo', '/promo/jadwal', '/promo/baru', '/promo/kupon/baru', '/anggota', '/anggota/piutang',
             '/simpanan', '/simpanan/mutasi', '/simpanan/setoran-bulanan', '/simpanan/setoran-bulanan/rekap',
             '/pinjaman', '/pinjaman/angsuran', '/pinjaman/angsuran/riwayat', '/pinjaman/audit', '/pinjaman/pencairan',
             '/pinjaman/pengajuan', '/pinjaman/rekap', '/pinjaman/tunggakan',
@@ -49,7 +49,7 @@ class RoleCombinationAccessTest extends TestCase
     /** Hak aksi tiap peran tunggal (bawaan). */
     private const ABILITY_SPEC = [
         'kasir' => ['kelola-shift'],
-        'pengurus' => ['setujui-retur', 'kelola-katalog', 'kelola-pengadaan', 'kelola-anggota', 'kelola-simpanan', 'kelola-pinjaman', 'lihat-rekap-pinjaman'],
+        'pengurus' => ['setujui-retur', 'kelola-katalog', 'kelola-pengadaan', 'kelola-promo', 'kelola-anggota', 'kelola-simpanan', 'kelola-pinjaman', 'lihat-rekap-pinjaman'],
         'admin' => '*',
     ];
 
