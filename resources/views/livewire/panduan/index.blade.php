@@ -87,6 +87,7 @@
                                         @class(['w-full rounded-lg px-3 py-2 text-left text-sm', 'bg-emerald-50 font-semibold text-emerald-900 ring-1 ring-emerald-200' => $currentKey === $key, 'text-stone-700 hover:bg-stone-100' => $currentKey !== $key && $this->allowed($key), 'text-stone-500 hover:bg-stone-100' => $currentKey !== $key && ! $this->allowed($key)])>
                                     {{ $e['menu'] ? (\App\Support\Menu::ITEMS[$e['menu']]['label'] ?? $e['title']) : 'Akun saya' }}
                                     @if ($via = $this->via($key))<span class="ml-1 rounded bg-sky-50 px-1.5 py-0.5 text-[10px] font-semibold text-sky-800 ring-1 ring-sky-200" data-guide-via="{{ $key }}" title="Terbuka lewat peran {{ collect($via)->map($roleLabel)->join(', ') }}">{{ collect($via)->map($roleLabel)->join(' · ') }}</span>@endif
+                                    @if ($this->canPreview() && ($e['stale'] ?? false))<span class="ml-1 rounded bg-amber-100 px-1.5 py-0.5 text-[10px] font-semibold text-amber-900" data-guide-stale-badge="{{ $key }}">Perlu ditinjau</span>@endif
                                     @unless ($this->allowed($key))<span class="ml-1 rounded bg-stone-200 px-1.5 py-0.5 text-[10px] font-semibold text-stone-600" data-restricted="{{ $key }}" title="Untuk peran {{ $roleList($this->requiredFor($key)) ?: '—' }}">{!! $lock !!} Terbatas</span>@endunless
                                     <span class="block truncate text-xs font-normal text-stone-500">{{ $e['title'] }}</span>
                                 </button>
@@ -187,6 +188,14 @@
                     <p class="mt-1 text-xs text-sky-800" data-guide-article-via>Menu ini terbuka untuk Anda lewat peran <strong>{{ collect($via)->map($roleLabel)->join(', ', ' dan ') }}</strong>.</p>
                 @endif
                 <p class="mt-2 max-w-prose text-sm leading-relaxed text-stone-700" data-guide-summary>{{ $current['summary'] }}</p>
+                @if (! $restricted && ($current['stale'] ?? false))
+                    <p class="mt-3 max-w-prose rounded-xl bg-amber-50 px-3 py-2 text-sm text-amber-900 ring-1 ring-amber-200 print:hidden" role="note" data-guide-stale-note>
+                        Panduan ini sedang ditinjau ulang karena ada perubahan fitur — beberapa langkah mungkin belum sesuai tampilan terbaru.
+                        @if ($this->canPreview())
+                            <a href="{{ route('panduan.pembaruan', ['tab' => 'usang']) }}" wire:navigate class="font-semibold underline">Tinjau di panel pembaruan</a>
+                        @endif
+                    </p>
+                @endif
 
                 @if ($restricted)
                     <div class="mt-6 rounded-xl border border-stone-200 bg-stone-50 px-4 py-4 text-sm text-stone-700" data-restricted-panel>

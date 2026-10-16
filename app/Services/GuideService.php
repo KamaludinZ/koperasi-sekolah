@@ -301,6 +301,34 @@ class GuideService
         });
     }
 
+    /** Tandai panduan perlu ditinjau ulang (alasan 5–200 karakter), dicatat di jejak audit. @throws ValidationException */
+    public function markStale(GuideEntry $entry, string $reason, ?User $by = null): void
+    {
+        $reason = trim(preg_replace('/\s+/u', ' ', $reason));
+        if (mb_strlen($reason) < 5 || mb_strlen($reason) > 200) {
+            throw ValidationException::withMessages(['reason' => 'Alasan 5–200 karakter.']);
+        }
+        $entry->forceFill(['is_stale' => true, 'stale_reason' => $reason, 'stale_at' => $entry->is_stale ? ($entry->stale_at ?? now()) : now()])->save();
+        AuditLog::record('guide.stale_marked', 'panduan', "Panduan “{$entry->title}” ditandai perlu ditinjau",
+            ['type' => 'guide', 'id' => $entry->id, 'label' => $entry->key], [], actor: $by ? ['id' => $by->id, 'name' => $by->name, 'role' => $by->role?->name] : null,
+            action: 'diubah', new: ['stale_reason' => $reason], reason: $reason);
+    }
+
+    /** Lepas penanda usang (sudah ditinjau), opsional dengan catatan; false bila panduan tidak sedang usang. */
+    public function markReviewed(GuideEntry $entry, ?User $by = null, ?string $note = null): bool
+    {
+        if (! $entry->is_stale) {
+            return false;
+        }
+        $old = $entry->stale_reason;
+        $entry->forceFill(['is_stale' => false, 'stale_reason' => null, 'stale_at' => null])->save();
+        AuditLog::record('guide.reviewed', 'panduan', "Panduan “{$entry->title}” sudah ditinjau",
+            ['type' => 'guide', 'id' => $entry->id, 'label' => $entry->key], [], actor: $by ? ['id' => $by->id, 'name' => $by->name, 'role' => $by->role?->name] : null,
+            action: 'diubah', old: ['stale_reason' => $old], reason: $note !== null && trim($note) !== '' ? mb_substr(trim($note), 0, 200) : null);
+
+        return true;
+    }
+
     /**
      * Catat versi baru bila isi efektif berbeda dari versi terakhir (nomor urut dikunci per panduan).
      */

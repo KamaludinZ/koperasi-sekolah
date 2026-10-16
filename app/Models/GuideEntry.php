@@ -18,14 +18,14 @@ class GuideEntry extends Model
 
     protected $fillable = [
         'key', 'menu_key', 'audience', 'title', 'summary', 'steps', 'tips', 'related', 'keywords',
-        'required_permissions', 'source', 'is_stale', 'stale_reason', 'generated_at', 'position',
+        'required_permissions', 'source', 'is_stale', 'stale_reason', 'stale_at', 'generated_at', 'position',
     ];
 
     protected function casts(): array
     {
         return [
             'steps' => 'array', 'tips' => 'array', 'related' => 'array', 'required_permissions' => 'array',
-            'is_stale' => 'boolean', 'generated_at' => 'datetime', 'position' => 'integer',
+            'is_stale' => 'boolean', 'stale_at' => 'datetime', 'generated_at' => 'datetime', 'position' => 'integer',
         ];
     }
 

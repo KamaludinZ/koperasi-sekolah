@@ -193,7 +193,7 @@ class GuideGenerator
 
                         continue;
                     }
-                    $entry->fill(['generated_at' => now(), 'is_stale' => false, 'stale_reason' => null])->save();
+                    $entry->fill(['generated_at' => now(), 'is_stale' => false, 'stale_reason' => null, 'stale_at' => null])->save();
                     $stats['updated'][] = $key;
                 }
                 $this->guides->recordVersion($entry, 'generate', $note, $by);

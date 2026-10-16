@@ -48,7 +48,12 @@ class Updates extends Component
     #[Url(as: 'tab', except: 'ringkasan')]
     public $tab = 'ringkasan';
 
-    public const TABS = ['ringkasan' => 'Ringkasan & penerapan', 'pemindaian' => 'Hasil pemindaian', 'draf' => 'Pratinjau draf', 'riwayat' => 'Riwayat sinkronisasi'];
+    public const TABS = ['ringkasan' => 'Ringkasan & penerapan', 'pemindaian' => 'Hasil pemindaian', 'draf' => 'Pratinjau draf', 'usang' => 'Panduan usang', 'riwayat' => 'Riwayat sinkronisasi'];
+
+    /** Form tandai perlu ditinjau (tab usang). */
+    public string $staleKey = '';
+
+    public string $staleReason = '';
 
     /** Saring riwayat sinkronisasi per status (kosong = semua). */
     #[Url(as: 'status', except: '')]
@@ -185,12 +190,47 @@ class Updates extends Component
         unset($this->stats, $this->stale, $this->history, $this->titles, $this->runs, $this->lastRun);
     }
 
-    /** Tandai panduan usang sudah ditinjau (penanda dilepas). */
+    /** Tandai panduan usang sudah ditinjau (penanda dilepas, tercatat di audit). */
     public function markReviewed(int $id): void
     {
         Gate::authorize('kelola-panduan');
-        GuideEntry::whereKey($id)->where('is_stale', true)->update(['is_stale' => false, 'stale_reason' => null]);
-        unset($this->stats, $this->stale);
+        if ($entry = GuideEntry::find($id)) {
+            app(GuideService::class)->markReviewed($entry, Auth::guard('web')->user());
+        }
+        unset($this->stats, $this->stale, $this->staleDetails);
+    }
+
+    /** Lepas semua penanda usang sekaligus. */
+    public function markAllReviewed(): void
+    {
+        Gate::authorize('kelola-panduan');
+        GuideEntry::where('is_stale', true)->get()->each(fn ($e) => app(GuideService::class)->markReviewed($e, Auth::guard('web')->user(), 'Ditinjau bersamaan'));
+        unset($this->stats, $this->stale, $this->staleDetails);
+    }
+
+    /** Tandai satu panduan perlu ditinjau ulang dengan alasan. */
+    public function markStale(): void
+    {
+        Gate::authorize('kelola-panduan');
+        $this->validate(['staleKey' => ['required', 'string', 'exists:guide_entries,key'], 'staleReason' => ['required', 'string', 'min:5', 'max:200']],
+            [], ['staleKey' => 'panduan', 'staleReason' => 'alasan']);
+        app(GuideService::class)->markStale(GuideEntry::where('key', $this->staleKey)->firstOrFail(), $this->staleReason, Auth::guard('web')->user());
+        $this->reset('staleKey', 'staleReason');
+        unset($this->stats, $this->stale, $this->staleDetails);
+    }
+
+    /**
+     * Panduan usang beserta apa yang akan diubah draf terbaru (dari GuideGenerator::plan) — dibaca saat tab dibuka.
+     *
+     * @return list<array{entry: GuideEntry, changes: ?list<string>, manual: bool}>
+     */
+    #[Computed]
+    public function staleDetails(): array
+    {
+        $rows = GuideEntry::where('is_stale', true)->withCount('overrides')->orderBy('stale_at')->orderBy('position')->get();
+        $plan = $rows->isNotEmpty() ? app(GuideGenerator::class)->plan() : ['updated' => [], 'skipped_manual' => []];
+
+        return $rows->map(fn ($e) => ['entry' => $e, 'changes' => $plan['updated'][$e->key] ?? null, 'manual' => $e->source === 'manual'])->all();
     }
 
     /** @return array{total: int, auto: int, manual: int, overridden: int, stale: int, last: ?Carbon} */
@@ -212,7 +252,7 @@ class Updates extends Component
     #[Computed]
     public function stale()
     {
-        return GuideEntry::where('is_stale', true)->orderBy('position')->get(['id', 'key', 'menu_key', 'title', 'stale_reason', 'generated_at']);
+        return GuideEntry::where('is_stale', true)->orderBy('position')->get(['id', 'key', 'menu_key', 'title', 'stale_reason', 'stale_at', 'generated_at']);
     }
 
     /** Proses sinkronisasi terakhir (status terkini di ringkasan). */

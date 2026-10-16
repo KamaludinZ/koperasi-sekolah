@@ -7,10 +7,10 @@
         <a href="{{ route('panduan') }}" wire:navigate class="text-sm font-medium text-emerald-800 hover:underline">← Pusat Panduan</a>
     </header>
 
-    <nav class="flex gap-1 border-b border-stone-200 bg-white px-4 sm:px-6" aria-label="Bagian panel">
+    <nav class="flex gap-1 overflow-x-auto border-b border-stone-200 bg-white px-4 sm:px-6" aria-label="Bagian panel">
         @foreach (\App\Livewire\Panduan\Updates::TABS as $t => $label)
             <button type="button" wire:click="$set('tab', '{{ $t }}')" @if ($tab === $t) aria-current="page" @endif data-guide-tab="{{ $t }}"
-                    @class(['-mb-px border-b-2 px-3 py-2 text-sm font-medium', 'border-emerald-700 text-emerald-900' => $tab === $t, 'border-transparent text-stone-500 hover:text-stone-800' => $tab !== $t])>{{ $label }}</button>
+                    @class(['-mb-px border-b-2 px-3 py-2 text-sm font-medium whitespace-nowrap', 'border-emerald-700 text-emerald-900' => $tab === $t, 'border-transparent text-stone-500 hover:text-stone-800' => $tab !== $t])>{{ $label }}@if ($t === 'usang' && $this->stats['stale'] > 0) <span class="ml-1 rounded-full bg-amber-100 px-1.5 text-[11px] font-semibold text-amber-900" data-stale-count>{{ $this->stats['stale'] }}</span>@endif</button>
         @endforeach
     </nav>
 
@@ -18,6 +18,8 @@
         @include('livewire.panduan.partials.scan-report', ['scan' => $this->scan])
     @elseif ($tab === 'riwayat')
         @include('livewire.panduan.partials.sync-runs', ['runs' => $this->runs])
+    @elseif ($tab === 'usang')
+        @include('livewire.panduan.partials.stale-guides', ['rows' => $this->staleDetails])
     @elseif ($tab === 'draf')
         @include('livewire.panduan.partials.draft-preview', ['p' => $this->draftPreview])
     @else
@@ -109,23 +111,21 @@
         </section>
 
         <div class="grid gap-5 lg:grid-cols-2">
-            {{-- Panduan usang --}}
+            {{-- Panduan usang (ringkas; kelola di tab Panduan usang) --}}
             <section class="rounded-2xl border border-stone-200 bg-white p-5" aria-labelledby="stale-title" data-guide-stale-list>
                 <h2 id="stale-title" class="font-semibold">Perlu ditinjau ulang</h2>
                 <p class="text-xs text-stone-500">Panduan yang ditandai usang setelah ada perubahan menu atau fitur.</p>
                 <ul class="mt-3 divide-y divide-stone-100 text-sm">
-                    @forelse ($this->stale as $e)
-                        <li class="flex flex-wrap items-center justify-between gap-2 py-2" wire:key="stale-{{ $e->id }}" data-stale-item="{{ $e->key }}">
-                            <div class="min-w-0">
-                                <a href="{{ route('panduan', ['menu' => $e->key]) }}" wire:navigate class="font-medium text-stone-900 hover:underline">{{ $e->title }}</a>
-                                <p class="text-xs text-stone-500">{{ $e->stale_reason ?: 'Ada perubahan sejak panduan disusun.' }}</p>
-                            </div>
-                            <button type="button" wire:click="markReviewed({{ $e->id }})" class="rounded-lg border border-stone-300 px-2.5 py-1 text-xs font-medium hover:bg-stone-50" data-mark-reviewed="{{ $e->key }}">Tandai sudah ditinjau</button>
+                    @forelse ($this->stale->take(5) as $e)
+                        <li class="py-2" wire:key="stale-{{ $e->id }}" data-stale-item="{{ $e->key }}">
+                            <span class="font-medium text-stone-900">{{ $e->title }}</span>
+                            <p class="text-xs text-stone-500">{{ $e->stale_reason ?: 'Ada perubahan sejak panduan disusun.' }}</p>
                         </li>
                     @empty
                         <li class="py-3 text-stone-500" data-stale-empty>Tidak ada panduan yang perlu ditinjau.</li>
                     @endforelse
                 </ul>
+                <button type="button" wire:click="$set('tab', 'usang')" class="mt-2 text-sm font-medium text-emerald-800 hover:underline" data-open-stale-tab>Kelola panduan usang →</button>
             </section>
 
             {{-- Riwayat penyusunan --}}
