@@ -1,6 +1,6 @@
 {
   "repo": "Koperasi Sekolah",
-  "generatedForCommit": "6a661df15aef6335bafc784d12a5eb8726b7add4",
+  "generatedForCommit": "155e574003a7cb85d4ef25c1e9190955f6a38460",
   "files": [
     {
       "path": ".claude/skills/ngodingpakeai/SKILL.md",
@@ -174,7 +174,7 @@
       "path": "app/Livewire/Panduan/Index.php",
       "reason": "changed",
       "language": "php",
-      "size": 4011
+      "size": 4782
     },
     {
       "path": "app/Livewire/Pengaturan/Index.php",
@@ -250,9 +250,9 @@
     },
     {
       "path": "app/Support/GuideCatalog.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 26135
+      "size": 26180
     },
     {
       "path": "app/Support/MockData.php",
@@ -1012,9 +1012,9 @@
     },
     {
       "path": "resources/js/guide-search.js",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "javascript",
-      "size": 2506
+      "size": 3184
     },
     {
       "path": "resources/js/menu-watch.js",
@@ -1686,7 +1686,7 @@
       "path": "resources/views/livewire/panduan/index.blade.php",
       "reason": "changed",
       "language": "php",
-      "size": 13745
+      "size": 16264
     },
     {
       "path": "resources/views/livewire/pengadaan/index.blade.php",
@@ -2386,7 +2386,7 @@
     },
     {
       "path": "tests/Feature/Panduan/GuideCenterPageTest.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 4692
     },
@@ -2404,9 +2404,15 @@
     },
     {
       "path": "tests/Feature/Panduan/RestrictedGuidesTest.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 3194
+    },
+    {
+      "path": "tests/Feature/Panduan/SearchEmptyStateTest.php",
+      "reason": "new",
+      "language": "php",
+      "size": 2673
     },
     {
       "path": "tests/Feature/Pengaturan/IndexTest.php",

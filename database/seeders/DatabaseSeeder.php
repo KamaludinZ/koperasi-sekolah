@@ -16,6 +16,7 @@ class DatabaseSeeder extends Seeder
     {
         // Peran admin/kasir/pengurus sudah diisi oleh migrasi.
         $this->call(ProductSeeder::class);
+        $this->call(GuideSeeder::class); // isi awal Pusat Panduan (juga di produksi; aman diulang)
 
         // Akun demo, anggota, & riwayat contoh hanya untuk pengembangan.
         // Produksi: buat admin dengan `php artisan koperasi:buat-admin`.
