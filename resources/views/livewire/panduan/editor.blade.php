@@ -212,7 +212,7 @@
                 </ul>
             </div>
             <div class="rounded-2xl border border-stone-200 bg-white p-4 text-sm">
-                <h2 class="font-semibold">Versi terakhir</h2>
+                <h2 class="flex items-center justify-between font-semibold">Versi terakhir <a href="{{ route('panduan.versi', ['panduan' => $key]) }}" wire:navigate class="text-xs font-medium text-emerald-800 hover:underline" data-editor-all-versions>Semua versi →</a></h2>
                 <ul class="mt-2 space-y-2 text-xs">
                     @forelse ($this->versions as $v)
                         <li wire:key="ver-{{ $v->id }}">

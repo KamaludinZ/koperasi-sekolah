@@ -7,6 +7,7 @@
         <div class="flex flex-wrap items-center gap-3">
             <a href="{{ route('panduan') }}" wire:navigate class="text-sm font-medium text-emerald-800 hover:underline">← Pusat Panduan</a>
             <a href="{{ route('panduan.sunting') }}" wire:navigate class="text-sm font-medium text-emerald-800 hover:underline" data-updates-editor-link>Sunting panduan</a>
+            <a href="{{ route('panduan.versi') }}" wire:navigate class="text-sm font-medium text-emerald-800 hover:underline" data-updates-versions-link>Riwayat versi</a>
             <button type="button" wire:click="scanNow" wire:loading.attr="disabled" wire:target="scanNow"
                     wire:confirm="Pindai menu, halaman & izin lalu perbarui semua panduan otomatis sekarang? Panduan manual dan suntingan admin tidak berubah."
                     class="inline-flex items-center gap-2 rounded-xl bg-emerald-700 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-800 disabled:opacity-60" data-guide-scan-now>

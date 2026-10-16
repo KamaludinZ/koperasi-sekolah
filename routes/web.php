@@ -91,6 +91,7 @@ use App\Livewire\Laporan;
 use App\Livewire\Notifikasi;
 use App\Livewire\Panduan\Editor;
 use App\Livewire\Panduan\Updates;
+use App\Livewire\Panduan\Versions;
 use App\Livewire\Pengadaan;
 use App\Livewire\Pengaturan;
 use App\Livewire\Pengguna;
@@ -221,6 +222,7 @@ Route::post('/impersonasi/selesai', StopController::class)->middleware('throttle
 Route::get('/akun/kata-sandi', Akun\Password::class)->middleware(['menu', 'auth'])->name('akun.password');
 Route::get('/panduan', App\Livewire\Panduan\Index::class)->middleware(['menu', 'auth'])->name('panduan');
 Route::get('/panduan/pembaruan', Updates::class)->middleware(['menu', 'auth', 'can:kelola-panduan'])->name('panduan.pembaruan');
+Route::get('/panduan/versi', Versions::class)->middleware(['menu', 'auth', 'can:lihat-riwayat-panduan'])->name('panduan.versi');
 Route::get('/panduan/sunting', Editor::class)->middleware(['menu', 'auth', 'can:kelola-panduan'])->name('panduan.sunting');
 Route::middleware(['menu', 'auth', 'throttle:120,1'])->group(function () {
     Route::get('/panduan/data', [GuideController::class, 'index'])->name('panduan.data');
