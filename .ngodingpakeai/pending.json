@@ -1,6 +1,6 @@
 {
   "repo": "Koperasi Sekolah",
-  "generatedForCommit": "3acf15a6b5ddd7fc07bd691094f31a22a3427691",
+  "generatedForCommit": "b6c1a6e5883f348b35150ff8a2fd71cd80e116cb",
   "files": [
     {
       "path": ".claude/skills/ngodingpakeai/SKILL.md",
@@ -100,7 +100,7 @@
     },
     {
       "path": "app/Http/Controllers/Panduan/GuideController.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 2392
     },
@@ -178,7 +178,7 @@
     },
     {
       "path": "app/Livewire/Panduan/Index.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 4868
     },
@@ -202,7 +202,7 @@
     },
     {
       "path": "app/Livewire/Portal/Guide.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 1263
     },
@@ -249,8 +249,14 @@
       "size": 2211
     },
     {
+      "path": "app/Services/GuideGenerator.php",
+      "reason": "new",
+      "language": "php",
+      "size": 6788
+    },
+    {
       "path": "app/Services/GuideService.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 10156
     },
@@ -280,7 +286,7 @@
     },
     {
       "path": "app/Support/GuideCatalog.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 26361
     },
@@ -952,9 +958,9 @@
     },
     {
       "path": "database/seeders/GuideSeeder.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 1416
+      "size": 574
     },
     {
       "path": "database/seeders/NotificationSeeder.php",
@@ -2164,13 +2170,13 @@
     },
     {
       "path": "routes/console.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 10165
+      "size": 10667
     },
     {
       "path": "routes/web.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 55302
     },
@@ -2428,7 +2434,7 @@
     },
     {
       "path": "tests/Feature/Panduan/GuideApiTest.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 4931
     },
@@ -2445,6 +2451,12 @@
       "size": 4692
     },
     {
+      "path": "tests/Feature/Panduan/GuideGeneratorTest.php",
+      "reason": "new",
+      "language": "php",
+      "size": 5085
+    },
+    {
       "path": "tests/Feature/Panduan/GuideOverrideVersionTest.php",
       "reason": "needs_summary",
       "language": "php",
@@ -2452,9 +2464,9 @@
     },
     {
       "path": "tests/Feature/Panduan/GuideSchemaTest.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 3463
+      "size": 3595
     },
     {
       "path": "tests/Feature/Panduan/GuideSearchTest.php",

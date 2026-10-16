@@ -120,9 +120,13 @@ class GuideService
         $value = $this->clean($field, $value);
 
         return DB::transaction(function () use ($entry, $field, $value, $by, $note) {
+            $before = $this->effective($entry)[$field];
             $o = GuideOverride::updateOrCreate(['guide_entry_id' => $entry->id, 'field' => $field], ['value' => $value, 'updated_by' => $by?->id]);
             $entry->unsetRelation('overrides');
-            $this->recordVersion($entry, 'override', $note ?? 'Bagian '.mb_strtolower(GuideOverride::FIELDS[$field]).' disunting', $by);
+            $version = $this->recordVersion($entry, 'override', $note ?? 'Bagian '.mb_strtolower(GuideOverride::FIELDS[$field]).' disunting', $by);
+            if ($version) {
+                $this->audit('guide.overridden', $entry, $field, $before, $value, $version, $note);
+            }
 
             return $o;
         });
@@ -132,10 +136,12 @@ class GuideService
     public function clearOverride(GuideEntry $entry, string $field, ?User $by, ?string $note = null): bool
     {
         return DB::transaction(function () use ($entry, $field, $by, $note) {
+            $before = $this->effective($entry)[$field] ?? null;
             $deleted = GuideOverride::where('guide_entry_id', $entry->id)->where('field', $field)->delete() > 0;
             if ($deleted) {
                 $entry->unsetRelation('overrides');
-                $this->recordVersion($entry, 'revert', $note ?? 'Bagian '.mb_strtolower(GuideOverride::FIELDS[$field] ?? $field).' dikembalikan ke hasil otomatis', $by);
+                $version = $this->recordVersion($entry, 'revert', $note ?? 'Bagian '.mb_strtolower(GuideOverride::FIELDS[$field] ?? $field).' dikembalikan ke hasil otomatis', $by);
+                $this->audit('guide.reverted', $entry, $field, $before, $this->effective($entry)[$field], $version, $note);
             }
 
             return $deleted;
@@ -161,6 +167,19 @@ class GuideService
                 'changed_by' => $by?->id, 'created_at' => now(),
             ]);
         });
+    }
+
+    /** Catat perubahan panduan di jejak audit ber-HMAC (siapa, panduan & bagian mana, sebelum → sesudah, versi). */
+    private function audit(string $event, GuideEntry $entry, string $field, mixed $before, mixed $after, ?GuideVersion $version, ?string $note): void
+    {
+        $label = GuideOverride::FIELDS[$field] ?? $field;
+        $flat = fn ($v) => is_array($v) ? implode(' | ', array_map(fn ($x) => is_array($x) ? ($x['text'] ?? '') : (string) $x, $v)) : (string) $v;
+        AuditLog::record($event, 'panduan',
+            ($event === 'guide.overridden' ? "Panduan “{$entry->title}”: {$label} disunting" : "Panduan “{$entry->title}”: {$label} dikembalikan ke hasil otomatis")
+                .($version ? " (versi {$version->version})" : ''),
+            ['type' => 'guide', 'id' => $entry->id, 'label' => $entry->key],
+            ['field' => $field, 'version' => $version?->version],
+            action: 'diubah', old: [$field => mb_substr($flat($before), 0, 500)], new: [$field => mb_substr($flat($after), 0, 500)], reason: $note);
     }
 
     /** Rapikan & validasi nilai suntingan per bagian. @throws ValidationException */

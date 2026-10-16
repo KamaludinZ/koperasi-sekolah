@@ -40,6 +40,7 @@ use App\Http\Controllers\Laporan\SalesExportController;
 use App\Http\Controllers\Laporan\SalesReportController;
 use App\Http\Controllers\Notifikasi\AnnouncementController;
 use App\Http\Controllers\Notifikasi\NotificationController;
+use App\Http\Controllers\Panduan\GuideAdminController;
 use App\Http\Controllers\Panduan\GuideController;
 use App\Http\Controllers\Pengadaan\GoodsReceiptController;
 use App\Http\Controllers\Pengadaan\PurchaseOrderController;
@@ -216,6 +217,12 @@ Route::get('/panduan', App\Livewire\Panduan\Index::class)->middleware(['menu', '
 Route::middleware(['menu', 'auth', 'throttle:120,1'])->group(function () {
     Route::get('/panduan/data', [GuideController::class, 'index'])->name('panduan.data');
     Route::get('/panduan/data/{key}', [GuideController::class, 'show'])->where('key', '[a-z0-9._-]{1,60}')->name('panduan.show');
+});
+// Edit manual panduan (Admin): lapisan override + versi + audit
+Route::middleware(['menu', 'auth', 'can:kelola-panduan', 'throttle:30,1'])->prefix('/panduan/kelola/{key}')->where(['key' => '[a-z0-9._-]{1,60}'])->group(function () {
+    Route::get('/', [GuideAdminController::class, 'show'])->name('panduan.kelola');
+    Route::put('/{field}', [GuideAdminController::class, 'update'])->whereIn('field', ['title', 'summary', 'steps', 'tips'])->name('panduan.kelola.update');
+    Route::delete('/{field}', [GuideAdminController::class, 'destroy'])->whereIn('field', ['title', 'summary', 'steps', 'tips'])->name('panduan.kelola.revert');
 });
 Route::get('/akun/sesi', Akun\Sessions::class)->middleware(['menu', 'auth'])->name('akun.sessions');
 Route::get('/notifikasi', Notifikasi\Index::class)->middleware(['menu', 'auth'])->name('notifikasi');

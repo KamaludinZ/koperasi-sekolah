@@ -141,6 +141,9 @@ class AppServiceProvider extends ServiceProvider
         // Masuk sebagai akun lain (impersonasi): hanya Admin aktif pemegang menu Pengguna, tidak berantai.
         Gate::define('impersonasi', fn (User $user) => ImpersonationPolicy::actorDenial($user) === null);
 
+        // Menyunting isi Pusat Panduan (lapisan override & versi): khusus Admin aktif.
+        Gate::define('kelola-panduan', fn (User $user) => $user->is_active && $user->hasRole(Role::ADMIN));
+
         Gate::define('pulihkan-data', fn (User $user) => $user->hasRole(Role::ADMIN) && $user->canOpen('audit'));
     }
 }
