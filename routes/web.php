@@ -43,6 +43,7 @@ use App\Http\Controllers\Notifikasi\AnnouncementController;
 use App\Http\Controllers\Notifikasi\NotificationController;
 use App\Http\Controllers\Panduan\GuideAdminController;
 use App\Http\Controllers\Panduan\GuideController;
+use App\Http\Controllers\Panduan\GuideHistoryController;
 use App\Http\Controllers\Panduan\GuideUpdateController;
 use App\Http\Controllers\Pengadaan\GoodsReceiptController;
 use App\Http\Controllers\Pengadaan\PurchaseOrderController;
@@ -242,6 +243,12 @@ Route::middleware(['menu', 'auth', 'can:kelola-panduan', 'throttle:30,1'])->pref
 });
 
 // Edit manual panduan (Admin): lapisan override + versi + audit
+// Riwayat perubahan panduan untuk audit (pengelola panduan & pemegang menu Audit, baca saja)
+Route::middleware(['menu', 'auth', 'can:lihat-riwayat-panduan', 'throttle:60,1'])->prefix('/panduan/riwayat')->group(function () {
+    Route::get('/', [GuideHistoryController::class, 'index'])->name('panduan.riwayat');
+    Route::get('/ekspor', [GuideHistoryController::class, 'export'])->middleware('throttle:10,1')->name('panduan.riwayat.export');
+    Route::get('/{change}', [GuideHistoryController::class, 'show'])->whereNumber('change')->name('panduan.riwayat.show');
+});
 Route::middleware(['menu', 'auth', 'can:kelola-panduan', 'throttle:30,1'])->prefix('/panduan/kelola/{key}')->where(['key' => '[a-z0-9._-]{1,60}'])->group(function () {
     Route::get('/', [GuideAdminController::class, 'show'])->name('panduan.kelola');
     Route::delete('/', [GuideAdminController::class, 'destroyAll'])->name('panduan.kelola.revert-all');

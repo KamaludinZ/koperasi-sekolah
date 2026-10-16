@@ -145,6 +145,8 @@ class AppServiceProvider extends ServiceProvider
 
         // Menyunting isi Pusat Panduan (lapisan override & versi): khusus Admin aktif.
         Gate::define('kelola-panduan', fn (User $user) => $user->is_active && $user->hasRole(Role::ADMIN));
+        // Riwayat perubahan panduan (baca saja) untuk pengelola panduan & pemegang menu Audit.
+        Gate::define('lihat-riwayat-panduan', fn (User $user) => $user->is_active && (Gate::forUser($user)->allows('kelola-panduan') || $user->canOpen('audit')));
 
         Gate::define('pulihkan-data', fn (User $user) => $user->hasRole(Role::ADMIN) && $user->canOpen('audit'));
     }
