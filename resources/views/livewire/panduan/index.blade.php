@@ -194,6 +194,7 @@
                     $edited = $this->canPreview() ? $this->overrideInfo : [];
                     $editedBadge = fn (string $f) => isset($edited[$f])
                         ? '<span class="ml-2 inline-block rounded bg-sky-100 px-1.5 py-0.5 align-middle text-[10px] font-semibold text-sky-800" data-guide-edited="'.$f.'">Disunting'.($edited[$f]['by'] ? ' oleh '.e($edited[$f]['by']) : '').($edited[$f]['at'] ? ' · '.e($edited[$f]['at']) : '').'</span>'
+                          .'<button type="button" wire:click="revertSection(\''.$f.'\')" wire:confirm="Kembalikan bagian ini ke hasil otomatis?" class="ml-1 align-middle text-[10px] font-semibold text-sky-800 underline print:hidden" data-guide-revert="'.$f.'">kembalikan</button>'
                         : '';
                 @endphp
                 <h2 id="guide-title" class="mt-1 text-xl font-semibold text-stone-900">{{ $current['title'] }}{!! $editedBadge('title') !!}</h2>

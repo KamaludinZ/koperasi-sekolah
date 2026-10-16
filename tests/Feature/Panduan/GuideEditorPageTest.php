@@ -124,4 +124,17 @@ class GuideEditorPageTest extends TestCase
         $this->assertSame(2, ActivityLog::where('event', 'guide.overridden')->where('reason', 'Simpan sekaligus')->count());
         $c->assertSeeHtml('data-dirty-count="1"');
     }
+
+    public function test_revert_all_restores_every_section(): void
+    {
+        $kas = GuideEntry::where('key', 'kas')->first();
+        app(GuideService::class)->setOverride($kas, 'title', 'Judul versi admin', null);
+        app(GuideService::class)->setOverride($kas, 'steps', [['text' => 'Langkah versi admin']], null);
+        $this->editor()->assertSeeHtml('data-editor-overrides-bar')->assertSeeText('2 bagian memakai suntingan manual')
+            ->set('note', 'Kembali ke standar')->call('revertAll')
+            ->assertSet('title', $kas->title)->assertDontSeeHtml('data-editor-overrides-bar')->assertSeeText('dikembalikan ke hasil otomatis');
+        $this->assertSame(0, GuideOverride::count());
+        $this->assertSame(2, ActivityLog::where('event', 'guide.reverted')->where('reason', 'Kembali ke standar')->count());
+        $this->editor('barang')->assertDontSeeHtml('data-editor-revert-all')->call('revertAll')->assertHasNoErrors();
+    }
 }

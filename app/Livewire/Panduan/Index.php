@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Panduan;
 
+use App\Models\GuideEntry;
 use App\Models\GuideOverride;
 use App\Models\Role;
 use App\Services\GuideMerger;
@@ -10,6 +11,7 @@ use App\Support\GuideCatalog;
 use App\Support\Menu;
 use App\Support\Petugas;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Str;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
@@ -199,6 +201,18 @@ class Index extends Component
 
         return GuideOverride::query()->whereHas('entry', fn ($q) => $q->where('key', $this->selected))->with('editor:id,name')->get()
             ->mapWithKeys(fn ($o) => [$o->field => ['by' => $o->editor?->name, 'at' => $o->updated_at?->translatedFormat('j M Y')]])->all();
+    }
+
+    /** Pengelola: kembalikan satu bagian panduan yang dibuka ke hasil otomatis (versi & audit). */
+    public function revertSection(string $field): void
+    {
+        Gate::authorize('kelola-panduan');
+        $entry = GuideEntry::where('key', $this->selected)->first();
+        if ($entry && isset(GuideOverride::FIELDS[$field])) {
+            app(GuideService::class)->clearOverride($entry, $field, Auth::guard('web')->user(), 'Dikembalikan dari Pusat Panduan');
+            $this->dispatch('toast', type: 'success', message: GuideOverride::FIELDS[$field].' dikembalikan ke hasil otomatis.');
+        }
+        unset($this->entries, $this->overrideInfo, $this->groups);
     }
 
     /** Jumlah panduan menu yang tersembunyi karena tidak bisa dibuka. */

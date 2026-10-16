@@ -35,6 +35,12 @@
                     <input type="text" wire:model="note" maxlength="200" class="mt-1 {{ $input }}" placeholder="mis. sesuaikan dengan alur koperasi kami" data-editor-note>
                 </label>
             </div>
+            @if ($this->entry && $overrides->isNotEmpty())
+                <div class="flex flex-wrap items-center justify-between gap-2 rounded-xl bg-sky-50 px-3 py-2 text-sm text-sky-900 ring-1 ring-sky-200" data-editor-overrides-bar>
+                    <span>{{ $overrides->count() }} bagian memakai suntingan manual: {{ $overrides->keys()->map(fn ($f) => mb_strtolower($fields[$f]))->join(', ') }}.</span>
+                    <button type="button" wire:click="revertAll" wire:confirm="Kembalikan SEMUA bagian yang disunting ke hasil otomatis? Isi suntingan tetap tersimpan di riwayat versi." class="rounded-lg border border-sky-300 bg-white px-3 py-1 text-xs font-semibold text-sky-900 hover:bg-sky-100" data-editor-revert-all>Kembalikan semua ke otomatis</button>
+                </div>
+            @endif
             @if ($this->entry?->is_stale)
                 <p class="rounded-xl bg-amber-50 px-3 py-2 text-sm text-amber-900 ring-1 ring-amber-200" data-editor-stale>Panduan ini ditandai perlu ditinjau: {{ $this->entry->stale_reason }}</p>
             @endif

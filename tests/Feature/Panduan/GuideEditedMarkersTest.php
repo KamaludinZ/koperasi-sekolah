@@ -3,7 +3,9 @@
 namespace Tests\Feature\Panduan;
 
 use App\Livewire\Panduan\Index;
+use App\Models\ActivityLog;
 use App\Models\GuideEntry;
+use App\Models\GuideOverride;
 use App\Models\User;
 use App\Services\GuideService;
 use Database\Seeders\GuideSeeder;
@@ -56,5 +58,19 @@ class GuideEditedMarkersTest extends TestCase
         $this->admin->update(['name' => '<b>Admin</b>']);
         $this->actingAs($this->admin->fresh(), 'web');
         Livewire::test(Index::class)->call('open', 'kas')->assertSeeHtml('oleh &lt;b&gt;Admin&lt;/b&gt;')->assertDontSeeHtml('oleh <b>Admin</b>');
+    }
+
+    public function test_manager_can_revert_section_from_guide_center(): void
+    {
+        $this->actingAs($this->admin, 'web');
+        Livewire::test(Index::class)->call('open', 'kas')->assertSeeHtml('data-guide-revert="summary"')
+            ->call('revertSection', 'summary')->assertDontSeeHtml('data-guide-edited="summary"')->assertSeeHtml('data-guide-edited="tips"')
+            ->assertDontSeeText('Ringkasan kas versi koperasi kami');
+        $this->assertSame(['tips'], GuideOverride::pluck('field')->all());
+        $this->assertSame('Dikembalikan dari Pusat Panduan', ActivityLog::where('event', 'guide.reverted')->value('reason'));
+
+        $this->actingAs(User::where('email', 'kasir@koperasi.test')->first(), 'web');
+        Livewire::test(Index::class)->call('open', 'kas')->assertDontSeeHtml('data-guide-revert=')->call('revertSection', 'tips')->assertForbidden();
+        $this->assertSame(['tips'], GuideOverride::pluck('field')->all());
     }
 }

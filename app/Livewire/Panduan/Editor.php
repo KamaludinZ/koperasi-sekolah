@@ -211,6 +211,24 @@ class Editor extends Component
         $this->load();
     }
 
+    /** Kembalikan semua bagian yang disunting ke hasil otomatis (versi & audit per bagian). */
+    public function revertAll(GuideService $guides): void
+    {
+        Gate::authorize('kelola-panduan');
+        if (! $this->entry) {
+            return;
+        }
+        $fields = $this->entry->overrides->pluck('field')->all();
+        foreach ($fields as $field) {
+            $guides->clearOverride($this->entry, $field, Auth::guard('web')->user(), trim($this->note) ?: 'Semua bagian dikembalikan ke hasil otomatis');
+            $this->entry->unsetRelation('overrides');
+        }
+        $this->saved = $fields ? 'Semua bagian ('.implode(', ', array_map(fn ($f) => mb_strtolower(GuideOverride::FIELDS[$f]), $fields)).') dikembalikan ke hasil otomatis.' : null;
+        unset($this->entry, $this->effective, $this->versions, $this->dirtyFields);
+        $this->resetValidation();
+        $this->load();
+    }
+
     /** Batalkan perubahan yang belum disimpan pada satu bagian. */
     public function discard(string $field): void
     {
