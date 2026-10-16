@@ -1,0 +1,34 @@
+<?php
+
+namespace App\Services;
+
+use App\Models\GuideSyncJob;
+use App\Models\User;
+
+/**
+ * Menjalankan penyusunan ulang panduan (GuideGenerator::sync) sambil mencatat prosesnya di guide_sync_jobs:
+ * running → done (dengan hitungan hasil) atau failed (pesan galat dipotong; galat tetap dilempar ulang).
+ */
+class GuideSyncRecorder
+{
+    public function __construct(private GuideGenerator $generator) {}
+
+    /**
+     * @param  ?list<string>  $only  batasi ke kunci panduan tertentu
+     * @return array{job: GuideSyncJob, stats: array<string, list<string>>}
+     */
+    public function run(string $trigger, ?User $by = null, ?string $note = null, ?array $only = null, ?GuideSyncJob $job = null): array
+    {
+        $job ??= GuideSyncJob::create(['status' => 'queued', 'trigger' => $trigger, 'triggered_by' => $by?->id, 'scope' => $only, 'note' => $note]);
+        $job->update(['status' => 'running', 'started_at' => now(), 'error' => null]);
+        try {
+            $stats = $this->generator->sync($by, $note ?? 'Disusun otomatis dari konfigurasi menu', $only);
+        } catch (\Throwable $e) {
+            $job->update(['status' => 'failed', 'finished_at' => now(), 'error' => mb_substr(class_basename($e).': '.$e->getMessage(), 0, 500)]);
+            throw $e;
+        }
+        $job->update(['status' => 'done', 'finished_at' => now(), 'stats' => array_map('count', $stats)]);
+
+        return ['job' => $job, 'stats' => $stats];
+    }
+}

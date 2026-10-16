@@ -16,6 +16,8 @@
 
     @if ($tab === 'pemindaian')
         @include('livewire.panduan.partials.scan-report', ['scan' => $this->scan])
+    @elseif ($tab === 'riwayat')
+        @include('livewire.panduan.partials.sync-runs', ['runs' => $this->runs])
     @elseif ($tab === 'draf')
         @include('livewire.panduan.partials.draft-preview', ['p' => $this->draftPreview])
     @else
@@ -38,8 +40,12 @@
             @endforeach
         </section>
         <p class="text-xs text-stone-500" data-guide-last-generated>
-            Terakhir disusun: {{ $s['last'] ? $s['last']->translatedFormat('j M Y H:i') : 'belum pernah' }} ·
-            Penyusunan berjalan saat tombol di bawah ditekan atau lewat perintah <span class="font-mono">panduan:susun</span>.
+            Terakhir disusun: {{ $s['last'] ? $s['last']->translatedFormat('j M Y H:i') : 'belum pernah' }}
+            @if ($run = $this->lastRun)
+                · Sinkronisasi terakhir: <span @class(['font-semibold', 'text-red-700' => $run->status === 'failed', 'text-stone-700' => $run->status !== 'failed']) data-last-run-status="{{ $run->status }}">{{ \App\Models\GuideSyncJob::STATUSES[$run->status] }}</span>
+                ({{ \App\Models\GuideSyncJob::TRIGGERS[$run->trigger] ?? $run->trigger }}, {{ $run->created_at?->diffForHumans() }})
+                <button type="button" wire:click="$set('tab', 'riwayat')" class="font-medium text-emerald-800 hover:underline">lihat riwayat</button>
+            @endif
         </p>
 
         @if ($result)

@@ -1,6 +1,6 @@
 {
   "repo": "Koperasi Sekolah",
-  "generatedForCommit": "f955ad6e9bb05fce00ddfc38f86c8ca7b3bf915b",
+  "generatedForCommit": "d472b5e1abd4f8ce15f62b8cf97bebc54b8aa79e",
   "files": [
     {
       "path": ".claude/skills/ngodingpakeai/SKILL.md",
@@ -192,7 +192,7 @@
       "path": "app/Livewire/Panduan/Updates.php",
       "reason": "changed",
       "language": "php",
-      "size": 7863
+      "size": 10161
     },
     {
       "path": "app/Livewire/Pengaturan/Index.php",
@@ -264,7 +264,7 @@
       "path": "app/Services/GuideGenerator.php",
       "reason": "changed",
       "language": "php",
-      "size": 8649
+      "size": 10773
     },
     {
       "path": "app/Services/GuideMerger.php",
@@ -1767,8 +1767,14 @@
       "size": 24456
     },
     {
-      "path": "resources/views/livewire/panduan/partials/scan-report.blade.php",
+      "path": "resources/views/livewire/panduan/partials/draft-preview.blade.php",
       "reason": "new",
+      "language": "php",
+      "size": 5407
+    },
+    {
+      "path": "resources/views/livewire/panduan/partials/scan-report.blade.php",
+      "reason": "needs_summary",
       "language": "php",
       "size": 5807
     },
@@ -1776,7 +1782,7 @@
       "path": "resources/views/livewire/panduan/updates.blade.php",
       "reason": "changed",
       "language": "php",
-      "size": 10527
+      "size": 10647
     },
     {
       "path": "resources/views/livewire/pengadaan/index.blade.php",
@@ -2499,6 +2505,12 @@
       "size": 4692
     },
     {
+      "path": "tests/Feature/Panduan/GuideDraftPreviewTest.php",
+      "reason": "new",
+      "language": "php",
+      "size": 4671
+    },
+    {
       "path": "tests/Feature/Panduan/GuideGeneratorTest.php",
       "reason": "needs_summary",
       "language": "php",
@@ -2524,7 +2536,7 @@
     },
     {
       "path": "tests/Feature/Panduan/GuideScanPanelTest.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 3797
     },

@@ -3,11 +3,13 @@
 namespace App\Livewire\Panduan;
 
 use App\Models\GuideEntry;
+use App\Models\GuideSyncJob;
 use App\Models\GuideVersion;
 use App\Models\Role;
 use App\Services\AuditLog;
 use App\Services\GuideGenerator;
 use App\Services\GuideService;
+use App\Services\GuideSyncRecorder;
 use App\Support\Menu;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
@@ -46,7 +48,11 @@ class Updates extends Component
     #[Url(as: 'tab', except: 'ringkasan')]
     public $tab = 'ringkasan';
 
-    public const TABS = ['ringkasan' => 'Ringkasan & penerapan', 'pemindaian' => 'Hasil pemindaian', 'draf' => 'Pratinjau draf'];
+    public const TABS = ['ringkasan' => 'Ringkasan & penerapan', 'pemindaian' => 'Hasil pemindaian', 'draf' => 'Pratinjau draf', 'riwayat' => 'Riwayat sinkronisasi'];
+
+    /** Saring riwayat sinkronisasi per status (kosong = semua). */
+    #[Url(as: 'status', except: '')]
+    public $runStatus = '';
 
     /** Panduan yang dipratinjau di tab draf. */
     #[Url(as: 'panduan', except: '')]
@@ -69,6 +75,7 @@ class Updates extends Component
     private function normalize(): void
     {
         $this->tab = is_string($this->tab) && isset(self::TABS[$this->tab]) ? $this->tab : 'ringkasan';
+        $this->runStatus = is_string($this->runStatus) && isset(GuideSyncJob::STATUSES[$this->runStatus]) ? $this->runStatus : '';
         if ($this->tab !== 'draf') { // pemindaian draf hanya saat tab dibuka
             $this->draftKey = is_string($this->draftKey) ? mb_substr($this->draftKey, 0, 60) : '';
 
@@ -97,21 +104,21 @@ class Updates extends Component
     }
 
     /** Terapkan draf panduan yang sedang dipratinjau saja (panduan manual tetap dilewati). */
-    public function applyDraft(GuideGenerator $generator): void
+    public function applyDraft(GuideSyncRecorder $recorder): void
     {
         Gate::authorize('kelola-panduan');
         $key = $this->draftKey;
         if ($key === '' || ! isset($this->draftOptions[$key])) {
             return;
         }
-        $stats = $generator->sync(Auth::guard('web')->user(), 'Draf panduan diterapkan dari pratinjau', [$key]);
+        ['stats' => $stats] = $recorder->run('manual', Auth::guard('web')->user(), 'Draf panduan diterapkan dari pratinjau', [$key]);
         $done = $stats['created'] ? 'dibuat' : ($stats['updated'] ? 'diperbarui' : ($stats['skipped_manual'] ? 'dilewati (manual)' : 'sudah sesuai'));
         if ($stats['created'] || $stats['updated']) {
             AuditLog::record('guide.synced', 'panduan', "Draf panduan {$key} diterapkan: {$done}", null,
                 ['only' => $key, 'created' => $stats['created'], 'updated' => $stats['updated']], action: 'diubah', reason: 'Diterapkan dari pratinjau draf');
         }
         $this->draftApplied = $done;
-        unset($this->draftPreview, $this->stats, $this->history, $this->titles);
+        unset($this->draftPreview, $this->stats, $this->history, $this->titles, $this->runs, $this->lastRun);
     }
 
     /**
@@ -162,12 +169,12 @@ class Updates extends Component
     }
 
     /** Terapkan penyusunan ulang: buat/perbarui panduan otomatis, panduan manual tidak disentuh. */
-    public function apply(GuideGenerator $generator): void
+    public function apply(GuideSyncRecorder $recorder): void
     {
         Gate::authorize('kelola-panduan');
         $this->validate(['note' => ['nullable', 'string', 'max:200']], [], ['note' => 'catatan']);
         $note = trim($this->note) !== '' ? trim($this->note) : 'Disusun ulang dari panel pembaruan';
-        $stats = $generator->sync(Auth::guard('web')->user(), $note);
+        ['stats' => $stats] = $recorder->run('manual', Auth::guard('web')->user(), $note);
         $counts = array_map('count', $stats);
         AuditLog::record('guide.synced', 'panduan',
             "Panduan disusun ulang: {$counts['created']} baru, {$counts['updated']} diperbarui, {$counts['unchanged']} tetap, {$counts['skipped_manual']} manual dilewati",
@@ -175,7 +182,7 @@ class Updates extends Component
         $this->result = $counts + ['keys' => array_merge($stats['created'], $stats['updated'])];
         $this->plan = null;
         $this->note = '';
-        unset($this->stats, $this->stale, $this->history, $this->titles);
+        unset($this->stats, $this->stale, $this->history, $this->titles, $this->runs, $this->lastRun);
     }
 
     /** Tandai panduan usang sudah ditinjau (penanda dilepas). */
@@ -206,6 +213,24 @@ class Updates extends Component
     public function stale()
     {
         return GuideEntry::where('is_stale', true)->orderBy('position')->get(['id', 'key', 'menu_key', 'title', 'stale_reason', 'generated_at']);
+    }
+
+    /** Proses sinkronisasi terakhir (status terkini di ringkasan). */
+    #[Computed]
+    public function lastRun(): ?GuideSyncJob
+    {
+        return GuideSyncJob::with('user:id,name')->latest('id')->first();
+    }
+
+    /** Riwayat sinkronisasi (50 terbaru, bisa disaring status) beserta jumlah per status. */
+    #[Computed]
+    public function runs(): array
+    {
+        $rows = GuideSyncJob::with('user:id,name')->when($this->runStatus !== '', fn ($q) => $q->where('status', $this->runStatus))
+            ->latest('id')->limit(50)->get();
+        $counts = GuideSyncJob::query()->selectRaw('status, count(*) as n')->groupBy('status')->pluck('n', 'status')->map(fn ($n) => (int) $n)->all();
+
+        return ['rows' => $rows, 'counts' => $counts];
     }
 
     /** Versi hasil penyusunan otomatis terbaru (20). */

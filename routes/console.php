@@ -6,7 +6,7 @@ use App\Models\Loan;
 use App\Models\User;
 use App\Services\BackupService;
 use App\Services\CouponService;
-use App\Services\GuideGenerator;
+use App\Services\GuideSyncRecorder;
 use App\Services\HealthCheckService;
 use App\Services\ImpersonationService;
 use App\Services\LoanAuditGuard;
@@ -206,7 +206,7 @@ Schedule::command('impersonasi:tutup-kedaluwarsa')->everyFiveMinutes()->withoutO
 
 // Susun ulang Pusat Panduan dari konfigurasi menu/halaman/izin (panduan yang disunting manual tidak ditimpa).
 Artisan::command('panduan:susun', function () {
-    $s = app(GuideGenerator::class)->sync();
+    ['stats' => $s] = app(GuideSyncRecorder::class)->run('manual', null, 'Disusun ulang lewat perintah panduan:susun');
     $this->info('Panduan disusun: '.count($s['created']).' baru, '.count($s['updated']).' diperbarui, '
         .count($s['unchanged']).' tetap, '.count($s['skipped_manual']).' manual dilewati.');
 })->purpose('Susun ulang panduan otomatis dari konfigurasi menu');
