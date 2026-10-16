@@ -55,7 +55,7 @@ class GuideController extends Controller
         $viewer = $this->viewer($request, $guides);
         $g = $guides->present($key, $all[$key], $guides->allowed($viewer, $all[$key]), $viewer, Menu::sourcesFor($viewer));
         if ($g['restricted']) {
-            return response()->json(['message' => 'Menu '.$g['menu_label'].' tidak termasuk '.(($viewer['mock'] ?? false) ? 'peran yang ditinjau' : 'peran Anda').'.', 'data' => $g], 403);
+            return response()->json(['message' => $g['restriction']['message'], 'reason' => $g['restriction']['reason'], 'data' => $g], 403);
         }
 
         return response()->json(['data' => $g])->header('Cache-Control', 'private, no-store');

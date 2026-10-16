@@ -138,6 +138,7 @@ class GuideService
         $words = array_filter(explode(' ', Str::lower(Str::ascii(trim($search)))));
         $all = $this->all($audience);
         $sources = $viewer ? Menu::sourcesFor($viewer) : [];
+        $grants = $includeRestricted ? $this->grantMap() : [];
         $allowed = array_map(fn ($g) => $this->allowed($viewer, $g), $all);
         $out = [];
         foreach ($this->orderedKeys($all, fn ($k) => $allowed[$k]) as $key) {
@@ -152,18 +153,64 @@ class GuideService
             if ($words && collect($words)->contains(fn ($w) => ! str_contains($hay, $w))) {
                 continue;
             }
-            $out[] = $this->present($key, $g, $allowed[$key], $viewer, $sources);
+            $out[] = $this->present($key, $g, $allowed[$key], $viewer, $sources, $grants);
         }
 
         return $out;
     }
 
+    /** Peran pemegang tiap menu dari roles.permissions dalam satu kueri (hak bawaan bila tabel belum ada). @return array<string, list<string>> */
+    public function grantMap(): array
+    {
+        $map = array_fill_keys(array_keys(Menu::ITEMS), []);
+        try {
+            $perms = Role::query()->pluck('permissions', 'name')->map(fn ($p) => is_array($p) ? $p : (json_decode((string) $p, true) ?: []))->all();
+        } catch (\Throwable) {
+            $perms = Menu::DEFAULT_PERMISSIONS;
+        }
+        foreach (Role::sortNames(array_keys($perms)) as $role) {
+            foreach ((array) $perms[$role] as $menu) {
+                if (is_string($menu) && isset($map[$menu])) {
+                    $map[$menu][] = $role;
+                }
+            }
+        }
+
+        return $map;
+    }
+
     /**
-     * Satu panduan siap dikirim. Terbatas: tanpa langkah/tips/tautan, dengan peran yang dibutuhkan. Terbuka (petugas):
-     * peran pembaca yang membukanya (via), langkah ber-tanda locked_for bila halamannya khusus peran lain, dan halaman
-     * terkait hanya yang bisa dibuka pembaca.
+     * Penanda terbatas: kenapa menu panduan tidak bisa dibuka pembaca, peran yang membukanya, dan pesan siap tampil.
+     * Alasan: akun_nonaktif (akun dinonaktifkan), belum_diberikan (tidak ada peran yang memegang menu), peran (menu milik
+     * peran lain).
+     *
+     * @param  list<string>  $required
+     * @return array{reason: string, message: string, required_roles: list<string>, required_role_labels: list<string>}
      */
-    public function present(string $key, array $g, bool $allowed, ?array $viewer = null, array $sources = []): array
+    public function restriction(?array $viewer, string $menu, array $required): array
+    {
+        $label = Menu::ITEMS[$menu]['label'] ?? $menu;
+        $labels = array_map(fn ($r) => Role::LABELS[$r] ?? $r, $required);
+        $list = collect($labels)->join(', ', ' dan ');
+        [$reason, $message] = match (true) {
+            $viewer !== null && ($viewer['is_active'] ?? true) === false => ['akun_nonaktif', 'Akun nonaktif tidak dapat membuka menu apa pun. Hubungi admin koperasi.'],
+            $required === [] => ['belum_diberikan', "Menu {$label} belum diberikan ke peran mana pun."],
+            default => ['peran', "Menu {$label} hanya untuk peran {$list}.".(($viewer['mock'] ?? false)
+                ? ' Menu ini tidak termasuk peran yang ditinjau.'
+                : ' Bila Anda memerlukannya, minta admin koperasi menambahkan peran tersebut ke akun Anda.')],
+        };
+
+        return ['reason' => $reason, 'message' => $message, 'required_roles' => $required, 'required_role_labels' => $labels];
+    }
+
+    /**
+     * Satu panduan siap dikirim. Terbatas: tanpa langkah/tips/tautan, dengan penanda restriction (alasan, pesan, peran
+     * yang dibutuhkan). Terbuka (petugas): peran pembaca yang membukanya (via), langkah ber-tanda locked_for bila
+     * halamannya khusus peran lain (jumlahnya di locked_steps), dan halaman terkait hanya yang bisa dibuka pembaca.
+     *
+     * @param  array<string, list<string>>  $grants  grantMap() bila sudah dimuat (hemat kueri untuk daftar)
+     */
+    public function present(string $key, array $g, bool $allowed, ?array $viewer = null, array $sources = [], array $grants = []): array
     {
         $base = [
             'key' => $key, 'menu' => $g['menu'], 'menu_label' => $g['menu'] ? (Menu::ITEMS[$g['menu']]['label'] ?? $g['menu']) : ($g['audience'] === 'anggota' ? 'Portal' : 'Akun saya'),
@@ -171,7 +218,9 @@ class GuideService
             'allowed' => $allowed, 'restricted' => ! $allowed, 'overridden' => $g['overridden'] ?? [], 'stale' => (bool) ($g['stale'] ?? false),
         ];
         if (! $allowed) {
-            return $base + ['required_roles' => Menu::grantingRoles($g['menu'])];
+            $required = $grants[$g['menu']] ?? Menu::grantingRoles($g['menu']);
+
+            return $base + ['required_roles' => $required, 'restriction' => $this->restriction($viewer, $g['menu'], $required)];
         }
         $steps = $g['steps'];
         $related = $g['related'] ?? [];
@@ -185,7 +234,8 @@ class GuideService
             $base['via'] = $this->via($viewer, $sources, $g['menu']);
         }
 
-        return $base + ['steps' => $steps, 'tips' => $g['tips'], 'related' => $related, 'step_count' => count($steps)];
+        return $base + ['steps' => $steps, 'tips' => $g['tips'], 'related' => $related, 'step_count' => count($steps),
+            'locked_steps' => count(array_filter($steps, fn ($s) => isset($s['locked_for'])))];
     }
 
     /**

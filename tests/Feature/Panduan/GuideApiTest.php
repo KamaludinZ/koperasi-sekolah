@@ -70,7 +70,7 @@ class GuideApiTest extends TestCase
         $this->actingAs($this->kasir());
         $this->assertSame(['anggota'], array_column($this->getJson('/panduan/data?q=piutang')->json('data'), 'key'));
         $this->getJson('/panduan/data/kasir')->assertOk()->assertJsonPath('data.title', 'Melayani penjualan di layar Kasir');
-        $this->getJson('/panduan/data/pinjaman')->assertForbidden()->assertJsonPath('message', 'Menu Pinjaman tidak termasuk peran Anda.')
+        $this->getJson('/panduan/data/pinjaman')->assertForbidden()->assertJsonPath('message', 'Menu Pinjaman hanya untuk peran Admin dan Pengurus. Bila Anda memerlukannya, minta admin koperasi menambahkan peran tersebut ke akun Anda.')
             ->assertJsonMissingPath('data.steps');
         $this->getJson('/panduan/data/tidak-ada')->assertNotFound();
         $this->getJson('/panduan/data/portal.belanja')->assertNotFound(); // panduan anggota bukan untuk petugas
