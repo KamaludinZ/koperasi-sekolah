@@ -46,17 +46,72 @@ class Updates extends Component
     #[Url(as: 'tab', except: 'ringkasan')]
     public $tab = 'ringkasan';
 
-    public const TABS = ['ringkasan' => 'Ringkasan & penerapan', 'pemindaian' => 'Hasil pemindaian'];
+    public const TABS = ['ringkasan' => 'Ringkasan & penerapan', 'pemindaian' => 'Hasil pemindaian', 'draf' => 'Pratinjau draf'];
+
+    /** Panduan yang dipratinjau di tab draf. */
+    #[Url(as: 'panduan', except: '')]
+    public $draftKey = '';
+
+    /** Ringkasan penerapan satu draf terakhir. */
+    public ?string $draftApplied = null;
 
     public function mount(): void
     {
         Gate::authorize('kelola-panduan');
-        $this->tab = is_string($this->tab) && isset(self::TABS[$this->tab]) ? $this->tab : 'ringkasan';
+        $this->normalize();
     }
 
-    public function updatedTab(): void
+    public function updated(string $property): void
+    {
+        $this->normalize();
+    }
+
+    private function normalize(): void
     {
         $this->tab = is_string($this->tab) && isset(self::TABS[$this->tab]) ? $this->tab : 'ringkasan';
+        if ($this->tab !== 'draf') { // pemindaian draf hanya saat tab dibuka
+            $this->draftKey = is_string($this->draftKey) ? mb_substr($this->draftKey, 0, 60) : '';
+
+            return;
+        }
+        $keys = array_keys($this->draftOptions);
+        $this->draftKey = is_string($this->draftKey) && in_array($this->draftKey, $keys, true) ? $this->draftKey : ($keys[0] ?? '');
+    }
+
+    public function updatedDraftKey(): void
+    {
+        $this->draftApplied = null;
+    }
+
+    /** Pilihan panduan untuk pratinjau draf: kunci → judul draf. @return array<string, string> */
+    #[Computed]
+    public function draftOptions(): array
+    {
+        return array_map(fn ($d) => ($d['menu'] ? (Menu::ITEMS[$d['menu']]['label'] ?? $d['menu']).' — ' : '').$d['title'], app(GuideGenerator::class)->drafts());
+    }
+
+    #[Computed]
+    public function draftPreview(): ?array
+    {
+        return $this->draftKey !== '' ? app(GuideGenerator::class)->preview($this->draftKey) : null;
+    }
+
+    /** Terapkan draf panduan yang sedang dipratinjau saja (panduan manual tetap dilewati). */
+    public function applyDraft(GuideGenerator $generator): void
+    {
+        Gate::authorize('kelola-panduan');
+        $key = $this->draftKey;
+        if ($key === '' || ! isset($this->draftOptions[$key])) {
+            return;
+        }
+        $stats = $generator->sync(Auth::guard('web')->user(), 'Draf panduan diterapkan dari pratinjau', [$key]);
+        $done = $stats['created'] ? 'dibuat' : ($stats['updated'] ? 'diperbarui' : ($stats['skipped_manual'] ? 'dilewati (manual)' : 'sudah sesuai'));
+        if ($stats['created'] || $stats['updated']) {
+            AuditLog::record('guide.synced', 'panduan', "Draf panduan {$key} diterapkan: {$done}", null,
+                ['only' => $key, 'created' => $stats['created'], 'updated' => $stats['updated']], action: 'diubah', reason: 'Diterapkan dari pratinjau draf');
+        }
+        $this->draftApplied = $done;
+        unset($this->draftPreview, $this->stats, $this->history, $this->titles);
     }
 
     /**

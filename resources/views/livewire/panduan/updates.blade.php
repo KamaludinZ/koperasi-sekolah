@@ -16,6 +16,8 @@
 
     @if ($tab === 'pemindaian')
         @include('livewire.panduan.partials.scan-report', ['scan' => $this->scan])
+    @elseif ($tab === 'draf')
+        @include('livewire.panduan.partials.draft-preview', ['p' => $this->draftPreview])
     @else
     <div class="space-y-5 px-4 py-5 sm:px-6">
         {{-- Ringkasan --}}

@@ -86,6 +86,40 @@ class GuideGenerator
         return $drafts;
     }
 
+    /**
+     * Pratinjau satu draf dibanding isi otomatis tersimpan: perbedaan per bagian (teks berubah; langkah/tips/halaman
+     * terkait ditambah/dibuang), bagian yang sedang disunting admin (suntingan tetap dipakai), dan status manual.
+     *
+     * @return ?array{key: string, draft: array, stored: ?array, manual: bool, overridden: list<string>, diff: array<string, array{changed: bool, added: list<string>, removed: list<string>}>}
+     */
+    public function preview(string $key): ?array
+    {
+        $drafts = $this->drafts();
+        if (! isset($drafts[$key])) {
+            return null;
+        }
+        $draft = $drafts[$key];
+        $entry = GuideEntry::where('key', $key)->with('overrides')->first();
+        $stored = $entry?->toGuide();
+        $items = fn (string $field, ?array $g) => match ($field) {
+            'steps' => array_map(fn ($s) => $s['text'].(isset($s['route']) ? " → {$s['route']}" : ''), $g['steps'] ?? []),
+            'tips' => array_values($g['tips'] ?? []),
+            'related' => array_map(fn ($r, $l) => "{$l} ({$r})", array_keys($g['related'] ?? []), $g['related'] ?? []),
+            default => [(string) ($g[$field] ?? '')],
+        };
+        $diff = [];
+        foreach (['title', 'summary', 'steps', 'tips', 'related'] as $field) {
+            $new = $items($field, $draft);
+            $old = $stored ? $items($field, $stored) : [];
+            $diff[$field] = ['changed' => $new !== $old, 'added' => array_values(array_diff($new, $old)), 'removed' => array_values(array_diff($old, $new))];
+        }
+
+        return [
+            'key' => $key, 'draft' => $draft, 'stored' => $stored, 'manual' => $entry?->source === 'manual',
+            'overridden' => $entry ? $entry->overrides->pluck('field')->values()->all() : [], 'diff' => $diff,
+        ];
+    }
+
     /** Nilai kolom guide_entries dari satu draf. */
     private function values(array $d, int $pos): array
     {
@@ -128,16 +162,20 @@ class GuideGenerator
 
     /**
      * Simpan draf ke guide_entries: buat yang baru, perbarui yang otomatis bila berubah, lewati yang manual.
+     * $only membatasi ke kunci panduan tertentu (mis. menerapkan satu draf dari pratinjau).
      *
      * @return array{created: list<string>, updated: list<string>, unchanged: list<string>, skipped_manual: list<string>}
      */
-    public function sync(?User $by = null, string $note = 'Disusun otomatis dari konfigurasi menu'): array
+    public function sync(?User $by = null, string $note = 'Disusun otomatis dari konfigurasi menu', ?array $only = null): array
     {
         $stats = ['created' => [], 'updated' => [], 'unchanged' => [], 'skipped_manual' => []];
         $pos = 0;
-        DB::transaction(function () use (&$stats, &$pos, $by, $note) {
+        DB::transaction(function () use (&$stats, &$pos, $by, $note, $only) {
             foreach ($this->drafts() as $key => $d) {
                 $pos++;
+                if ($only !== null && ! in_array($key, $only, true)) {
+                    continue; // hanya panduan tertentu (posisi tetap dihitung dari urutan lengkap)
+                }
                 $entry = GuideEntry::where('key', $key)->lockForUpdate()->first();
                 if ($entry && $entry->source === 'manual') {
                     $stats['skipped_manual'][] = $key;
