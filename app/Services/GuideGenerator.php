@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\GuideEntry;
+use App\Models\GuideSyncJob;
 use App\Models\Role;
 use App\Models\User;
 use App\Support\AccessPreview;
@@ -166,23 +167,29 @@ class GuideGenerator
      *
      * @return array{created: list<string>, updated: list<string>, unchanged: list<string>, skipped_manual: list<string>}
      */
-    public function sync(?User $by = null, string $note = 'Disusun otomatis dari konfigurasi menu', ?array $only = null): array
+    public function sync(?User $by = null, string $note = 'Disusun otomatis dari konfigurasi menu', ?array $only = null, ?GuideSyncJob $job = null): array
     {
-        $stats = ['created' => [], 'updated' => [], 'unchanged' => [], 'skipped_manual' => []];
+        $stats = ['created' => [], 'updated' => [], 'unchanged' => [], 'skipped_manual' => [], 'drafted' => []];
         $pos = 0;
-        DB::transaction(function () use (&$stats, &$pos, $by, $note, $only) {
+        DB::transaction(function () use (&$stats, &$pos, $by, $note, $only, $job) {
             foreach ($this->drafts() as $key => $d) {
                 $pos++;
                 if ($only !== null && ! in_array($key, $only, true)) {
                     continue; // hanya panduan tertentu (posisi tetap dihitung dari urutan lengkap)
                 }
                 $entry = GuideEntry::where('key', $key)->lockForUpdate()->first();
+                $values = $this->values($d, $pos);
                 if ($entry && $entry->source === 'manual') {
                     $stats['skipped_manual'][] = $key;
+                    // isi otomatis berbeda dari panduan manual → simpan sebagai draf untuk ditinjau, bukan menimpa
+                    $probe = (clone $entry)->fill(array_intersect_key($values, array_flip(GuideDraftService::CONTENT)));
+                    if ($changed = array_keys($probe->getDirty())) {
+                        app(GuideDraftService::class)->stage($key, $d, $changed, 'Panduan manual: isi otomatis terbaru berbeda', $job);
+                        $stats['drafted'][] = $key;
+                    }
 
                     continue;
                 }
-                $values = $this->values($d, $pos);
                 if (! $entry) {
                     $entry = GuideEntry::create(['key' => $key, 'source' => 'auto', 'generated_at' => now()] + $values);
                     $stats['created'][] = $key;
@@ -196,7 +203,7 @@ class GuideGenerator
                     $entry->fill(['generated_at' => now(), 'is_stale' => false, 'stale_reason' => null, 'stale_at' => null])->save();
                     $stats['updated'][] = $key;
                 }
-                $this->guides->recordVersion($entry, 'generate', $note, $by);
+                $this->guides->recordVersion($entry, 'generate', $note, $by, $job?->id);
             }
         });
 

@@ -41,7 +41,7 @@ class GuideSyncRecorder
         $job ??= GuideSyncJob::create(['status' => 'queued', 'trigger' => $trigger, 'triggered_by' => $by?->id, 'scope' => $only, 'note' => $note]);
         $job->update(['status' => 'running', 'started_at' => now(), 'error' => null]);
         try {
-            $stats = $this->generator->sync($by, $note ?? 'Disusun otomatis dari konfigurasi menu', $only);
+            $stats = $this->generator->sync($by, $note ?? 'Disusun otomatis dari konfigurasi menu', $only, $job);
         } catch (\Throwable $e) {
             $job->update(['status' => 'failed', 'finished_at' => now(), 'error' => mb_substr(class_basename($e).': '.$e->getMessage(), 0, 500)]);
             throw $e;

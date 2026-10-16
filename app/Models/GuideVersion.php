@@ -12,7 +12,7 @@ class GuideVersion extends Model
 
     public const TYPES = ['generate' => 'Disusun otomatis', 'override' => 'Disunting manual', 'revert' => 'Dikembalikan ke otomatis', 'restore' => 'Dipulihkan dari versi lama'];
 
-    protected $fillable = ['guide_entry_id', 'version', 'snapshot', 'change_type', 'change_note', 'changed_by', 'created_at'];
+    protected $fillable = ['guide_entry_id', 'version', 'snapshot', 'change_type', 'change_note', 'changed_by', 'sync_job_id', 'created_at'];
 
     protected function casts(): array
     {

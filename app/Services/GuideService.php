@@ -332,9 +332,9 @@ class GuideService
     /**
      * Catat versi baru bila isi efektif berbeda dari versi terakhir (nomor urut dikunci per panduan).
      */
-    public function recordVersion(GuideEntry $entry, string $type, ?string $note, ?User $by): ?GuideVersion
+    public function recordVersion(GuideEntry $entry, string $type, ?string $note, ?User $by, ?int $syncJobId = null): ?GuideVersion
     {
-        return DB::transaction(function () use ($entry, $type, $note, $by) {
+        return DB::transaction(function () use ($entry, $type, $note, $by, $syncJobId) {
             GuideEntry::whereKey($entry->id)->lockForUpdate()->first(); // serialisasi penomoran versi
             $last = GuideVersion::where('guide_entry_id', $entry->id)->orderByDesc('version')->first();
             $snap = $this->snapshot($entry);
@@ -345,7 +345,7 @@ class GuideService
             return GuideVersion::create([
                 'guide_entry_id' => $entry->id, 'version' => ($last->version ?? 0) + 1, 'snapshot' => $snap,
                 'change_type' => $type, 'change_note' => $note !== null ? mb_substr(trim($note), 0, 200) : null,
-                'changed_by' => $by?->id, 'created_at' => now(),
+                'changed_by' => $by?->id, 'sync_job_id' => $syncJobId, 'created_at' => now(),
             ]);
         });
     }
