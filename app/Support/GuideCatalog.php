@@ -337,6 +337,24 @@ class GuideCatalog
      *
      * @return array<string, array>
      */
+    /** Halaman portal yang tidak punya panduan sendiri → topik panduan yang membahasnya. */
+    public const PORTAL_ALIASES = ['portal.checkout' => 'portal.belanja', 'portal.pesanan' => 'portal.belanja', 'portal.pesanan.show' => 'portal.belanja'];
+
+    /** Topik panduan anggota untuk halaman portal yang sedang dibuka (null bila tidak ada). */
+    public static function portalTopicFor(?string $routeName): ?string
+    {
+        if ($routeName === null) {
+            return null;
+        }
+        foreach (self::forAudience('anggota') as $key => $e) {
+            if (($e['portal_route'] ?? null) === $routeName) {
+                return $key;
+            }
+        }
+
+        return self::PORTAL_ALIASES[$routeName] ?? null;
+    }
+
     public static function forAudience(string $audience): array
     {
         return array_filter(self::entries(), fn ($e) => $e['audience'] === $audience);

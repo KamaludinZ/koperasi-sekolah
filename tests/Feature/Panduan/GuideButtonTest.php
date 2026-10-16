@@ -42,7 +42,7 @@ class GuideButtonTest extends TestCase
         auth()->logout();
         $m = Member::factory()->create();
         $this->actingAsMember($m);
-        $this->get('/portal')->assertOk()->assertSeeHtml('data-portal-guide-button')->assertSeeHtml('href="'.route('portal.panduan').'"');
+        $this->get('/portal')->assertOk()->assertSeeHtml('data-portal-guide-button')->assertSeeHtml('href="'.e(route('portal.panduan', ['topik' => 'portal.beranda', 'dari' => 'portal'])).'"');
         $this->get('/portal/panduan')->assertOk()->assertSeeText('Panduan Portal')->assertSeeHtml('data-portal-guide="portal.beranda"');
         Livewire::test(Guide::class)->call('open', 'portal.belanja')->assertSeeText('PIN 6 digit')->call('open', 'kasir')->assertSet('selected', '');
     }

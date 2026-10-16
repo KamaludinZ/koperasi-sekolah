@@ -43,7 +43,12 @@
                                @class(['rounded-lg px-3 py-1.5 text-sm font-medium', 'bg-white/10 text-white' => request()->routeIs($route), 'text-emerald-200 hover:text-white' => ! request()->routeIs($route)])>{{ $label }}@if ($alerts[$route] ?? false)<span class="ml-1 inline-block size-2 rounded-full bg-red-500 align-middle" data-nav-alert="{{ $route }}"></span><span class="sr-only"> (ada tunggakan)</span>@endif</a>
                         @endforeach
                     </nav>
-<a href="{{ route('portal.panduan') }}" wire:navigate data-portal-guide-button @if (request()->routeIs('portal.panduan')) aria-current="page" @endif
+                    @php
+                        $here = request()->route()?->getName();
+                        $topic = \App\Support\GuideCatalog::portalTopicFor($here);
+                        $guideUrl = $topic ? route('portal.panduan', ['topik' => $topic, 'dari' => $here]) : route('portal.panduan');
+                    @endphp
+                    <a href="{{ $guideUrl }}" wire:navigate data-portal-guide-button @if ($topic) data-portal-guide-topic="{{ $topic }}" @endif @if (request()->routeIs('portal.panduan')) aria-current="page" @endif
                        class="flex items-center gap-1 rounded-lg px-2.5 py-1.5 text-sm font-medium text-emerald-200 hover:bg-white/10 hover:text-white" title="Panduan portal">
                         <svg class="size-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .9-1 1.6V14M12 17h.01"/></svg>
                         <span>Panduan</span>
