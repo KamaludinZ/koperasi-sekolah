@@ -164,6 +164,21 @@ class Index extends Component
         return count($this->myRoles) > 1 && $from && count($from) < count($this->myRoles) ? $from : [];
     }
 
+    /**
+     * Langkah yang halamannya tidak terbuka bagi gabungan peran pembaca (mis. halaman khusus Admin di menu milik
+     * bersama): daftar peran yang membukanya, untuk ditandai alih-alih disembunyikan. Null bila terbuka/tanpa tautan.
+     *
+     * @return ?list<string>
+     */
+    public function stepLock(?string $route): ?array
+    {
+        if ($route === null || $route === '' || $this->reach($route)) {
+            return null;
+        }
+
+        return Menu::denial($route, $this->viewer)['suggest'] ?? [];
+    }
+
     /** Jumlah menu yang dibuka tiap peran milik petugas (untuk tombol saring peran). @return array<string, int> */
     #[Computed]
     public function roleCounts(): array

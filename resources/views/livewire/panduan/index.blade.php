@@ -182,7 +182,9 @@
                             </button>
                             <div class="min-w-0 pt-0.5 text-sm text-stone-800" x-bind:class="has({{ $i }}) && 'line-through decoration-stone-300'">
                                 {{ $step['text'] }}
-                                @if (($step['route'] ?? null) && $this->reach($step['route']))
+                                @if (($lock = $this->stepLock($step['route'] ?? null)) !== null)
+                                    <span class="ml-1 rounded bg-stone-100 px-1.5 py-0.5 text-[11px] font-semibold whitespace-nowrap text-stone-600" data-guide-step-locked="{{ $i }}">🔒 {{ $lock ? 'khusus peran '.collect($lock)->map($roleLabel)->join(' / ') : 'tidak tersedia untuk peran Anda' }}</span>
+                                @elseif ($step['route'] ?? null)
                                     <a href="{{ route($step['route']) }}" wire:navigate class="ml-1 font-medium whitespace-nowrap text-emerald-800 hover:underline">Buka →</a>
                                 @endif
                             </div>

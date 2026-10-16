@@ -5,6 +5,7 @@ namespace Tests\Feature\Panduan;
 use App\Livewire\Panduan\Index;
 use App\Models\Role;
 use App\Models\User;
+use App\Support\Menu;
 use Database\Seeders\UserSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
@@ -124,5 +125,33 @@ class RoleGuidePageTest extends TestCase
         $this->actingAs($this->admin(), 'web');
         $c = Livewire::test(Index::class)->call('togglePreview', 'kasir');
         $c->set('showRestricted', true)->call('open', 'pinjaman')->assertSeeHtml('data-restricted-panel')->assertDontSeeHtml('data-guide-steps');
+    }
+
+    public function test_steps_for_other_roles_are_marked_and_unlocked_by_combined_roles(): void
+    {
+        $this->actingAs(User::where('email', 'kasir@koperasi.test')->first(), 'web');
+        $c = Livewire::test(Index::class)->call('open', 'barang');
+        $c->assertSeeHtml('data-guide-step-locked=')->assertSeeText('khusus peran Admin / Pengurus');
+        $this->assertStringNotContainsString(route('barang.impor'), $c->html()); // tanpa tautan ke halaman yang 403
+
+        $this->actingAs($this->kasirPengurus(), 'web');                           // gabungan peran membuka langkah itu
+        Livewire::test(Index::class)->call('open', 'barang')
+            ->assertDontSeeHtml('data-guide-step-locked=')->assertSeeHtml('href="'.route('barang.impor').'"');
+    }
+
+    public function test_union_lists_each_menu_once_in_list_cards_and_search(): void
+    {
+        $u = $this->kasirPengurus();
+        $u->roles()->syncWithoutDetaching([Role::named('admin')->id]);
+        $this->actingAs($u->fresh(), 'web');
+        $html = Livewire::test(Index::class)->html();
+        foreach (array_keys(Menu::ITEMS) as $menu) {
+            $this->assertSame(1, substr_count($html, 'data-guide-card="'.$menu.'"'), "kartu {$menu}");
+            $this->assertSame(1, substr_count($html, 'data-guide-item="'.$menu.'"'), "daftar {$menu}");
+        }
+        $json = $this->getJson('/panduan/data')->assertOk()->json('data');
+        $keys = array_column($json, 'key');
+        $this->assertSame(array_values(array_unique($keys)), $keys);
+        $this->assertContains('pengguna', $keys);
     }
 }
