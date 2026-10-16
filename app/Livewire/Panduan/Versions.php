@@ -5,8 +5,10 @@ namespace App\Livewire\Panduan;
 use App\Models\GuideEntry;
 use App\Models\GuideOverride;
 use App\Models\GuideVersion;
+use App\Services\GuideOverrideService;
 use App\Services\GuideService;
 use App\Support\GuideVersionDiff;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
@@ -65,6 +67,54 @@ class Versions extends Component
         if ($this->key === '') {
             $this->from = $this->to = 0;
         }
+    }
+
+    /** Versi yang sedang dikonfirmasi untuk dipulihkan (null = dialog tertutup) & alasannya. */
+    public ?int $restoring = null;
+
+    public string $reason = '';
+
+    public function startRestore(int $version): void
+    {
+        Gate::authorize('kelola-panduan');
+        $this->restoring = $this->entry && GuideVersion::where('guide_entry_id', $this->entry->id)->where('version', $version)->exists() ? $version : null;
+        $this->reason = '';
+        $this->resetValidation();
+    }
+
+    public function cancelRestore(): void
+    {
+        $this->restoring = null;
+        $this->reason = '';
+        $this->resetValidation();
+    }
+
+    /** Pratinjau pemulihan: isi sekarang dibanding isi versi yang akan dipulihkan. @return ?array */
+    #[Computed]
+    public function restorePreview(): ?array
+    {
+        if (! $this->restoring || ! $this->entry) {
+            return null;
+        }
+        $target = GuideVersion::where('guide_entry_id', $this->entry->id)->where('version', $this->restoring)->first();
+
+        return $target ? ['target' => $target, 'diff' => GuideVersionDiff::compare(app(GuideService::class)->snapshot($this->entry->load('overrides')), $target->snapshot)] : null;
+    }
+
+    public function confirmRestore(GuideOverrideService $overrides): void
+    {
+        Gate::authorize('kelola-panduan');
+        $this->validate(['reason' => ['required', 'string', 'min:5', 'max:200']], ['reason.required' => 'Tulis alasan pemulihan.', 'reason.min' => 'Alasan minimal 5 karakter.']);
+        $target = $this->entry ? GuideVersion::where('guide_entry_id', $this->entry->id)->where('version', $this->restoring)->first() : null;
+        if (! $target) {
+            $this->cancelRestore();
+
+            return;
+        }
+        $r = $overrides->restore($this->entry, $target, Auth::guard('web')->user(), $this->reason);
+        $this->dispatch('toast', type: 'success', message: $r['version'] ? "Panduan dipulihkan ke isi versi {$target->version} (tercatat sebagai versi {$r['version']->version})." : 'Isi panduan sudah sama dengan versi itu.');
+        $this->cancelRestore();
+        unset($this->versions, $this->active, $this->typeCounts, $this->previous, $this->entry);
     }
 
     /** Bandingkan versi ini dengan versi sebelumnya. */

@@ -48,6 +48,39 @@
             </div>
         @endif
 
+        @if ($rp = $this->restorePreview)
+            @php $tv = $rp['target']; $d = $rp['diff']; @endphp
+            <section class="rounded-2xl border-2 border-violet-400 bg-white p-4 text-sm shadow-sm" role="dialog" aria-modal="false" aria-labelledby="restore-title" data-restore-dialog="{{ $tv->version }}">
+                <h2 id="restore-title" class="font-semibold">Pulihkan panduan ke isi versi v{{ $tv->version }}?</h2>
+                <p class="text-xs text-stone-500">Versi ini dari {{ $tv->created_at?->translatedFormat('j M Y H:i') }} ({{ \App\Models\GuideVersion::TYPES[$tv->change_type] ?? $tv->change_type }}, {{ $tv->author?->name ?? 'Sistem' }}). Isi yang tampil akan diganti; riwayat lama tetap tersimpan dan pemulihan dicatat sebagai versi baru & di Audit.</p>
+                @if (! $d['changed'])
+                    <p class="mt-3 rounded-lg bg-stone-50 px-3 py-2 text-stone-600" data-restore-same>Isi panduan sekarang sudah sama dengan versi ini.</p>
+                @else
+                    <p class="mt-3 text-xs font-semibold text-stone-500 uppercase">Yang akan berubah</p>
+                    @foreach ($d['fields'] as $f => $fd)
+                        @continue(! $fd['changed'])
+                        <div class="mt-2" data-restore-field="{{ $f }}">
+                            <p class="text-xs font-semibold">{{ \App\Support\GuideVersionDiff::label($f) }}</p>
+                            @if ($fd['type'] === 'text')
+                                <p class="rounded bg-red-50 px-2 py-1 text-red-800 line-through decoration-red-300">{{ $fd['old'] }}</p>
+                                <p class="mt-1 rounded bg-emerald-50 px-2 py-1 text-emerald-900">{{ $fd['new'] }}</p>
+                            @else
+                                <ul class="space-y-0.5">@foreach ($fd['lines'] as $l)<li @class(['rounded px-2 py-0.5', 'bg-emerald-50 text-emerald-900' => $l['op'] === 'add', 'bg-red-50 text-red-800 line-through' => $l['op'] === 'del', 'text-stone-700' => $l['op'] === 'same'])>{{ ['same' => '  ', 'add' => '+ ', 'del' => '− '][$l['op']] }}{{ $l['text'] }}</li>@endforeach</ul>
+                            @endif
+                        </div>
+                    @endforeach
+                @endif
+                <label class="mt-3 block text-xs text-stone-600">Alasan pemulihan (wajib, tercatat di versi & Audit)
+                    <input type="text" wire:model="reason" maxlength="200" class="mt-1 w-full rounded-lg border border-stone-300 px-3 py-2 text-sm" placeholder="mis. suntingan terakhir keliru, kembali ke versi yang disetujui pengurus" data-restore-reason>
+                </label>
+                @error('reason')<p class="mt-1 text-xs text-red-700" data-restore-error>{{ $message }}</p>@enderror
+                <div class="mt-3 flex justify-end gap-2">
+                    <button type="button" wire:click="cancelRestore" class="rounded-xl px-4 py-2 text-sm font-medium text-stone-600 hover:bg-stone-100" data-restore-cancel>Batal</button>
+                    <button type="button" wire:click="confirmRestore" @disabled(! $d['changed']) class="rounded-xl bg-violet-700 px-4 py-2 text-sm font-semibold text-white hover:bg-violet-800 disabled:opacity-40" data-restore-confirm>Ya, pulihkan v{{ $tv->version }}</button>
+                </div>
+            </section>
+        @endif
+
         @if ($cmp = $this->comparison)
             @php $opClass = ['same' => 'text-stone-700', 'add' => 'bg-emerald-50 text-emerald-900', 'del' => 'bg-red-50 text-red-800 line-through decoration-red-300']; @endphp
             <section class="rounded-2xl border-2 border-sky-300 bg-white p-4 text-sm" aria-labelledby="cmp-title" data-versions-compare="{{ $from }}-{{ $to }}">
@@ -109,6 +142,9 @@
                                 <button type="button" wire:click="compareWithPrevious({{ $v->version }})" class="rounded-lg border border-sky-300 px-2.5 py-1 font-medium text-sky-800 hover:bg-sky-50" data-compare-prev="{{ $v->version }}">Bandingkan dengan v{{ $v->version - 1 }}</button>
                             @endif
                             <button type="button" wire:click="pick('dari', {{ $v->version }})" @class(['rounded-lg border px-2.5 py-1 font-medium', 'border-sky-600 bg-sky-600 text-white' => $from === $v->version, 'border-stone-300 hover:bg-stone-50' => $from !== $v->version]) data-compare-pick-a="{{ $v->version }}">Jadikan A</button>
+                            @if (! $isActive && \Illuminate\Support\Facades\Gate::allows('kelola-panduan'))
+                                <button type="button" wire:click="startRestore({{ $v->version }})" class="rounded-lg border border-violet-300 px-2.5 py-1 font-medium text-violet-800 hover:bg-violet-50" data-restore-start="{{ $v->version }}">Pulihkan versi ini</button>
+                            @endif
                             <button type="button" wire:click="pick('ke', {{ $v->version }})" @class(['rounded-lg border px-2.5 py-1 font-medium', 'border-sky-600 bg-sky-600 text-white' => $to === $v->version, 'border-stone-300 hover:bg-stone-50' => $to !== $v->version]) data-compare-pick-b="{{ $v->version }}">Jadikan B</button>
                         </div>
                     @endif

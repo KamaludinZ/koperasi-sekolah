@@ -148,6 +148,60 @@ class GuideOverrideService
         });
     }
 
+    /**
+     * Pulihkan isi panduan ke versi lama: lapisan override disusun ulang agar isi yang tampil sama dengan cuplikan versi
+     * itu — bagian yang sama dengan isi otomatis sekarang dilepas suntingannya, sisanya disimpan sebagai suntingan.
+     * Satu versi baru berjenis "restore", audit guide.restored & riwayat perubahan per bagian. Alasan wajib (5–200).
+     *
+     * @return array{version: ?GuideVersion, changed: list<string>}
+     *
+     * @throws ValidationException
+     */
+    public function restore(GuideEntry $entry, GuideVersion $target, ?User $by, string $reason): array
+    {
+        $reason = trim(preg_replace('/\s+/u', ' ', $reason));
+        if (mb_strlen($reason) < 5 || mb_strlen($reason) > 200) {
+            throw ValidationException::withMessages(['reason' => 'Tulis alasan pemulihan (5–200 karakter).']);
+        }
+        if ($target->guide_entry_id !== $entry->id) {
+            throw ValidationException::withMessages(['version' => 'Versi bukan milik panduan ini.']);
+        }
+
+        return DB::transaction(function () use ($entry, $target, $by, $reason) {
+            GuideEntry::whereKey($entry->id)->lockForUpdate()->first();
+            $entry->unsetRelation('overrides');
+            $before = $this->guides->effective($entry);
+            $auto = $entry->toGuide();
+            $changed = [];
+            foreach (array_keys(GuideOverride::FIELDS) as $f) {
+                $want = $target->snapshot[$f] ?? $auto[$f];
+                if ($want == $before[$f]) {
+                    continue;
+                }
+                $want == $auto[$f]
+                    ? GuideOverride::where('guide_entry_id', $entry->id)->where('field', $f)->delete()
+                    : GuideOverride::updateOrCreate(['guide_entry_id' => $entry->id, 'field' => $f], [
+                        'value' => $want, 'updated_by' => $by?->id, 'note' => mb_substr("Dipulihkan dari versi {$target->version}: {$reason}", 0, 200), 'base_hash' => GuideOverride::hashOf($auto[$f]),
+                    ]);
+                $changed[] = $f;
+            }
+            if ($changed === []) {
+                return ['version' => null, 'changed' => []];
+            }
+            $entry->unsetRelation('overrides');
+            $version = $this->guides->recordVersion($entry, 'restore', mb_substr("Dipulihkan dari versi {$target->version}: {$reason}", 0, 200), $by);
+            $after = $this->guides->effective($entry);
+            foreach ($changed as $f) {
+                $this->guides->logChange($entry, 'restore', $f, $before[$f], $after[$f], $reason, $by, $version);
+            }
+            AuditLog::record('guide.restored', 'panduan', "Panduan “{$entry->title}” dipulihkan ke versi {$target->version}".($version ? " (menjadi versi {$version->version})" : ''),
+                ['type' => 'guide', 'id' => $entry->id, 'label' => $entry->key], ['from_version' => $target->version, 'new_version' => $version?->version, 'fields' => $changed],
+                action: 'diubah', reason: $reason);
+
+            return ['version' => $version, 'changed' => $changed];
+        });
+    }
+
     /** Rapikan & validasi isi satu bagian. @throws ValidationException (kunci 'value') */
     public function normalize(string $field, mixed $value): mixed
     {
