@@ -715,6 +715,7 @@ Route::middleware('menu:pengaturan')->group(function () {
     Route::get('/pengaturan/keamanan', Pengaturan\Security::class)->name('pengaturan.keamanan');
     Route::get('/pengaturan/bon', Pengaturan\Credit::class)->name('pengaturan.bon');
     Route::get('/pengaturan/retur', Pengaturan\Returns::class)->name('pengaturan.retur');
+    Route::get('/pengaturan/kasir', Pengaturan\Cashier::class)->name('pengaturan.kasir');
 
     Route::get('/pengaturan/data', [SettingsController::class, 'index'])->name('pengaturan.data');
     Route::get('/pengaturan/data/{section}', [SettingsController::class, 'show'])->whereIn('section', SettingsService::SECTIONS)->name('pengaturan.data.show');

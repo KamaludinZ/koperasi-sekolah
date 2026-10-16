@@ -8,6 +8,7 @@
         'pengaturan.keamanan' => 'Keamanan & retensi',
         'pengaturan.bon' => 'Bon anggota',
         'pengaturan.retur' => 'Retur & pembatalan',
+        'pengaturan.kasir' => 'Layar kasir',
     ];
 @endphp
 <nav class="mt-3 -mb-4 flex gap-1 overflow-x-auto" aria-label="Bagian pengaturan">

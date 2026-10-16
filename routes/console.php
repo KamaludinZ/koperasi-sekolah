@@ -188,6 +188,12 @@ Schedule::call(fn () => Cache::put('health:scheduler_heartbeat', now()->toDateTi
 Schedule::command('queue:prune-failed', ['--hours' => config('koperasi.failed_jobs_hours', 720)])->dailyAt('03:00');
 Schedule::command('queue:prune-batches', ['--hours' => 48])->dailyAt('03:05');
 
+// Hosting tanpa pekerja antrean permanen (KOPERASI_QUEUE_VIA_CRON=true): cron `schedule:run` tiap menit sekaligus
+// memproses antrean sampai kosong. Kunci 20 menit > job terlama (cadangan 900 dtk) agar tidak berjalan ganda.
+Schedule::command('queue:work', [config('koperasi.queue_worker'), '--stop-when-empty', '--tries=3', '--max-time=55'])
+    ->everyMinute()->when(fn () => (bool) config('koperasi.queue_via_cron'))
+    ->name('antrean-via-cron')->withoutOverlapping(20);
+
 // Riwayat kesehatan sistem: cuplikan tiap 5 menit (Sistem → Kesehatan: strip 24 jam & gangguan).
 Artisan::command('kesehatan:periksa', function () {
     $row = HealthCheckService::record();

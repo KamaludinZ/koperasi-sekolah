@@ -12,21 +12,37 @@ use Illuminate\Database\Eloquent\Builder;
  */
 class ProductCatalog
 {
+    /** Batas bawaan bila pengaturan layar kasir belum ada; MAX_LIMIT = batas tertinggi yang boleh diminta. */
     public const SEARCH_LIMIT = 60;
 
+    public const MAX_LIMIT = 200;
+
     /**
-     * Cari barang aktif berdasarkan nama/kode, opsional per kategori.
-     * Kode yang cocok persis diletakkan paling atas (alur scan barcode).
+     * Cari barang aktif berdasarkan nama/kode, opsional per kategori. Urutan: kode/barcode yang cocok persis paling
+     * atas (alur scan), lalu barang paling laku (pengaturan Layar kasir: periode hari), lalu nama. Jumlah hasil
+     * dibatasi pengaturan Layar kasir (atau $limit).
      *
      * @return list<array<string, mixed>>
      */
-    public function search(string $term = '', string $category = '', int $limit = self::SEARCH_LIMIT): array
+    public function search(string $term = '', string $category = '', ?int $limit = null): array
     {
+        return $this->searchWithTotal($term, $category, $limit)['items'];
+    }
+
+    /**
+     * Seperti search() ditambah jumlah seluruh barang yang cocok (untuk keterangan "menampilkan N dari M").
+     *
+     * @return array{items: list<array<string, mixed>>, total: int, limit: int}
+     */
+    public function searchWithTotal(string $term = '', string $category = '', ?int $limit = null): array
+    {
+        $cfg = app(SettingsService::class)->cashier();
+        $limit = max(1, min(self::MAX_LIMIT, $limit ?? (int) ($cfg['picker_limit'] ?? self::SEARCH_LIMIT)));
         $term = mb_strtolower(trim($term));
 
-        return Product::query()
+        // kolom ringkas semua barang yang cocok → diurutkan di PHP memakai peringkat terlaris (tersimpan sementara)
+        $rows = Product::query()
             ->active()
-            ->with('category:id,name')
             ->when($category !== '', fn (Builder $q) => $q->whereHas('category', fn (Builder $c) => $c->where('name', $category)))
             ->when($term !== '', function (Builder $q) use ($term) {
                 $like = '%'.str_replace(['\\', '%', '_'], ['\\\\', '\\%', '\\_'], $term).'%';
@@ -35,12 +51,19 @@ class ProductCatalog
                     ->orWhereRaw("LOWER(code) LIKE ? ESCAPE '\\'", [$like])
                     ->orWhereRaw('LOWER(barcode) = ?', [$term])); // barcode dicocokkan persis (hasil scan)
             })
-            ->when($term !== '', fn (Builder $q) => $q->orderByRaw('CASE WHEN LOWER(code) = ? OR LOWER(barcode) = ? THEN 0 ELSE 1 END', [$term, $term]))
-            ->orderBy('name')
-            ->limit($limit)
-            ->get()
-            ->map(fn (Product $p) => self::toArray($p))
-            ->all();
+            ->get(['id', 'name', 'code', 'barcode']);
+        $rank = app(BestSellers::class)->ranking((int) ($cfg['bestseller_days'] ?? 30));
+        $exact = fn ($p) => $term !== '' && (mb_strtolower((string) $p->code) === $term || mb_strtolower((string) $p->barcode) === $term) ? 0 : 1;
+        $ids = $rows->sort(fn ($a, $b) => [$exact($a), -($rank[$a->id] ?? 0), mb_strtolower($a->name), $a->id]
+            <=> [$exact($b), -($rank[$b->id] ?? 0), mb_strtolower($b->name), $b->id])
+            ->take($limit)->pluck('id')->all();
+        $models = Product::with('category:id,name')->whereKey($ids)->get()->keyBy('id');
+
+        return [
+            'items' => array_values(array_filter(array_map(fn ($id) => isset($models[$id]) ? self::toArray($models[$id]) + ['sold' => $rank[$id] ?? 0] : null, $ids))),
+            'total' => $rows->count(),
+            'limit' => $limit,
+        ];
     }
 
     /** Cari satu barang aktif berdasarkan kode persis (tidak peka huruf besar/kecil). */

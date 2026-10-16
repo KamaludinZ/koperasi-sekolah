@@ -1,0 +1,8 @@
+# Tambahan untuk VPS tanpa Coolify: buka port aplikasi di host agar bisa diteruskan reverse proxy
+# (Caddy/Nginx di host yang memegang sertifikat HTTPS). Bawaan hanya 127.0.0.1 — tidak terbuka ke internet.
+#   docker compose -f docker-compose.yml -f docker-compose.vps.yml up -d --build
+# Jangan dipakai di Coolify (Traefik Coolify sudah meneruskan lalu lintas ke port 8080 kontainer).
+services:
+  app:
+    ports:
+      - "${APP_BIND:-127.0.0.1}:${APP_PORT:-8080}:8080"

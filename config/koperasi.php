@@ -47,6 +47,9 @@ return [
         'cadangan' => 'cadangan',
     ],
     'queue_worker' => '--queue=notifikasi,ekspor,default,cadangan',
+    // Hosting tanpa proses latar permanen (shared hosting/cPanel): antrean diproses dari cron penjadwal tiap menit
+    // (`queue:work --stop-when-empty`). Docker/VPS memakai pekerja tetap (supervisord) — biarkan false.
+    'queue_via_cron' => (bool) env('KOPERASI_QUEUE_VIA_CRON', false),
     // Catatan pekerjaan gagal disimpan sekian jam sebelum dibersihkan otomatis.
     'failed_jobs_hours' => (int) env('KOPERASI_FAILED_JOBS_HOURS', 24 * 30),
 ];

@@ -57,7 +57,13 @@
                 <p class="text-xs text-stone-400">Coba kata kunci lain atau periksa kode barang.</p>
             </div>
         @else
-            <p class="mb-3 text-xs text-stone-500">{{ count($this->products) }} barang · tekan Enter untuk memilih hasil tunggal atau kode yang cocok · barcode reader bisa langsung dipakai</p>
+            @php $total = $this->result['total']; $shown = count($this->products); @endphp
+            <p class="mb-1 text-xs text-stone-500" data-picker-count>{{ $shown < $total ? "Menampilkan {$shown} dari {$total} barang" : "{$shown} barang" }} · urut paling laku{{ $search !== '' ? ' (kode yang cocok persis di atas)' : '' }} · tekan Enter untuk memilih hasil tunggal atau kode yang cocok · barcode reader bisa langsung dipakai</p>
+            @if ($shown < $total)
+                <p class="mb-3 rounded-lg bg-amber-50 px-3 py-1.5 text-xs text-amber-900 ring-1 ring-amber-200" data-picker-truncated>{{ $total - $shown }} barang lain tidak ditampilkan — ketik nama/kode, pilih kategori, atau scan barcode untuk menemukannya.</p>
+            @else
+                <div class="mb-3"></div>
+            @endif
             <ul class="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4">
                 @foreach ($this->products as $product)
                     @php
@@ -69,7 +75,12 @@
                                 @class(['group flex h-full w-full flex-col rounded-xl border bg-white p-3.5 text-left shadow-sm transition hover:border-emerald-500 hover:shadow-md active:scale-[.98] disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:border-stone-200 disabled:hover:shadow-sm',
                                         'border-emerald-500 ring-2 ring-emerald-500/20' => $lastPicked === $product['id'],
                                         'border-stone-200' => $lastPicked !== $product['id']])>
-                            <span class="font-mono text-[11px] tracking-wide text-stone-400">{{ $product['code'] }}</span>
+                            <span class="flex items-center justify-between gap-2">
+                                <span class="font-mono text-[11px] tracking-wide text-stone-400">{{ $product['code'] }}</span>
+                                @if (in_array($product['id'], $this->bestSellerIds, true))
+                                    <span class="rounded bg-orange-100 px-1.5 py-0.5 text-[10px] font-semibold text-orange-800" data-best-seller="{{ $product['id'] }}" title="Terjual {{ $product['sold'] ?? 0 }} dalam periode terlaris">Terlaris</span>
+                                @endif
+                            </span>
                             <span class="mt-1 line-clamp-2 text-sm leading-snug font-medium">{{ $product['name'] }}</span>
                             <span class="mt-auto flex items-end justify-between gap-2 pt-3">
                                 <span class="font-semibold text-emerald-800 tabular-nums">@rupiah($product['price'])</span>

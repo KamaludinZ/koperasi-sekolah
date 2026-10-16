@@ -1,6 +1,6 @@
 {
   "repo": "Koperasi Sekolah",
-  "generatedForCommit": "3d1b1e82ec03f327330e57be021b08019f0ecb56",
+  "generatedForCommit": "f9a4fe662512e343c465b5d8fd2a041ad8085990",
   "files": [
     {
       "path": ".claude/skills/ngodingpakeai/SKILL.md",
@@ -190,9 +190,9 @@
     },
     {
       "path": "app/Livewire/Panduan/Updates.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 15884
+      "size": 16209
     },
     {
       "path": "app/Livewire/Pengaturan/Index.php",
@@ -232,7 +232,7 @@
     },
     {
       "path": "app/Models/GuideDraft.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 1021
     },
@@ -262,7 +262,7 @@
     },
     {
       "path": "app/Models/GuideVersion.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 1013
     },
@@ -280,7 +280,7 @@
     },
     {
       "path": "app/Services/GuideDraftService.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 5378
     },
@@ -288,7 +288,7 @@
       "path": "app/Services/GuideGenerator.php",
       "reason": "changed",
       "language": "php",
-      "size": 11401
+      "size": 10147
     },
     {
       "path": "app/Services/GuideMerger.php",
@@ -298,13 +298,19 @@
     },
     {
       "path": "app/Services/GuideMetadataService.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 4289
+      "size": 4281
+    },
+    {
+      "path": "app/Services/GuideScanner.php",
+      "reason": "new",
+      "language": "php",
+      "size": 5430
     },
     {
       "path": "app/Services/GuideService.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 21094
     },
@@ -316,7 +322,7 @@
     },
     {
       "path": "app/Services/GuideSyncRecorder.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 2123
     },
@@ -1042,7 +1048,7 @@
     },
     {
       "path": "database/migrations/2026_10_20_000006_create_guide_drafts_table.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 2499
     },
@@ -2290,9 +2296,9 @@
     },
     {
       "path": "routes/console.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 10745
+      "size": 12071
     },
     {
       "path": "routes/web.php",
@@ -2590,7 +2596,7 @@
     },
     {
       "path": "tests/Feature/Panduan/GuideDraftsTest.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 6765
     },
@@ -2635,6 +2641,12 @@
       "reason": "needs_summary",
       "language": "php",
       "size": 3798
+    },
+    {
+      "path": "tests/Feature/Panduan/GuideScannerTest.php",
+      "reason": "new",
+      "language": "php",
+      "size": 3512
     },
     {
       "path": "tests/Feature/Panduan/GuideSchemaTest.php",

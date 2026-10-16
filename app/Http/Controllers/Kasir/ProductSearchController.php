@@ -20,7 +20,7 @@ class ProductSearchController extends Controller
             'q' => ['nullable', 'string', 'max:100'],
             'kategori' => ['nullable', 'string', 'max:100'],
             'kode' => ['nullable', 'string', 'max:64'], // kode barang atau barcode
-            'limit' => ['nullable', 'integer', 'min:1', 'max:'.ProductCatalog::SEARCH_LIMIT],
+            'limit' => ['nullable', 'integer', 'min:1', 'max:'.ProductCatalog::MAX_LIMIT],
         ]);
 
         if (filled($validated['kode'] ?? null)) {
@@ -34,7 +34,7 @@ class ProductSearchController extends Controller
         $products = $catalog->search(
             $validated['q'] ?? '',
             $validated['kategori'] ?? '',
-            $validated['limit'] ?? ProductCatalog::SEARCH_LIMIT,
+            $validated['limit'] ?? null, // bawaan: pengaturan Layar kasir
         );
 
         return response()->json(['data' => $products, 'meta' => ['count' => count($products)]]);

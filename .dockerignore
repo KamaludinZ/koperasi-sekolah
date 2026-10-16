@@ -1,0 +1,54 @@
+# Konteks build Docker: hanya kode sumber. Dependensi & aset dibangun di dalam Dockerfile.
+.git
+.github
+.claude
+.ngodingpakeai
+.idea
+.vscode
+.fleet
+.zed
+.DS_Store
+*.log
+
+# Rahasia & konfigurasi lokal — env production diisi lewat Coolify/compose, bukan berkas.
+.env
+.env.*
+!.env.example
+!.env.production.example
+auth.json
+
+# Dependensi & hasil build lokal (dibangun ulang di image).
+node_modules
+vendor
+public/build
+public/hot
+public/storage
+
+# Cache & data lokal (bootstrap/cache lokal bisa memuat penyedia paket dev seperti Pail).
+bootstrap/cache/*.php
+storage/app/*
+!storage/app/.gitignore
+!storage/app/private
+!storage/app/public
+storage/app/private/*
+!storage/app/private/.gitignore
+storage/app/public/*
+!storage/app/public/.gitignore
+storage/framework/cache/data/*
+storage/framework/sessions/*
+storage/framework/views/*
+storage/framework/testing
+storage/logs/*
+storage/pail
+database/*.sqlite
+database/*.sqlite-journal
+
+# Tidak dibutuhkan saat runtime.
+tests
+.phpunit.cache
+.phpunit.result.cache
+phpunit.xml
+dist
+docker-compose*.yml
+Dockerfile
+.dockerignore

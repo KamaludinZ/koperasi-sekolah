@@ -19,9 +19,9 @@ use Throwable;
  */
 class SettingsService
 {
-    public const SECTIONS = ['profile', 'receipt', 'tax', 'discount', 'security', 'credit', 'returns'];
+    public const SECTIONS = ['profile', 'receipt', 'tax', 'discount', 'security', 'credit', 'returns', 'cashier'];
 
-    public const SECTION_LABELS = ['profile' => 'Profil koperasi', 'receipt' => 'Pengaturan struk', 'tax' => 'Pajak & pembulatan', 'discount' => 'Diskon manual kasir', 'security' => 'Keamanan & retensi', 'credit' => 'Bon anggota', 'returns' => 'Retur & pembatalan'];
+    public const SECTION_LABELS = ['profile' => 'Profil koperasi', 'receipt' => 'Pengaturan struk', 'tax' => 'Pajak & pembulatan', 'discount' => 'Diskon manual kasir', 'security' => 'Keamanan & retensi', 'credit' => 'Bon anggota', 'returns' => 'Retur & pembatalan', 'cashier' => 'Layar kasir'];
 
     public const CACHE_KEY = 'settings:all';
 
@@ -90,6 +90,18 @@ class SettingsService
             'void_auto_max' => 20000,    // pembatalan ≤ nilai ini oleh kasir yang sama disetujui otomatis (0 = selalu perlu persetujuan)
             'void_auto_minutes' => 30,   // ... dan diajukan paling lama sekian menit setelah transaksi
         ],
+        'cashier' => [
+            'picker_limit' => 60,        // jumlah barang paling banyak di daftar pilih kasir (sisanya lewat cari/kategori/scan)
+            'bestseller_days' => 30,     // periode hitung barang paling laku (hari)
+            'bestseller_badges' => 8,    // jumlah barang teratas yang diberi label "Terlaris" (0 = tanpa label)
+        ],
+    ];
+
+    /** Batas aman angka pengaturan layar kasir: [min, max]. */
+    public const CASHIER_LIMITS = [
+        'picker_limit' => [20, 200],
+        'bestseller_days' => [7, 90],
+        'bestseller_badges' => [0, 20],
     ];
 
     /** Batas aman angka pengaturan retur & pembatalan: [min, max]. */
@@ -130,7 +142,7 @@ class SettingsService
     /**
      * Semua pengaturan + kapan & oleh siapa terakhir diubah.
      *
-     * @return array{profile: array, receipt: array, tax: array, discount: array, security: array, credit: array, returns: array, updated_at: ?string, updated_by: ?string}
+     * @return array{profile: array, receipt: array, tax: array, discount: array, security: array, credit: array, returns: array, cashier: array, updated_at: ?string, updated_by: ?string}
      */
     public function all(): array
     {
@@ -194,6 +206,12 @@ class SettingsService
     public function returns(): array
     {
         return $this->section('returns');
+    }
+
+    /** Pengaturan layar kasir (batas daftar barang & barang terlaris). */
+    public function cashier(): array
+    {
+        return $this->section('cashier');
     }
 
     /** Tarif pajak efektif dalam persen (0 bila pajak dimatikan). */
@@ -304,6 +322,8 @@ class SettingsService
                     'import_types.*' => ['in:'.implode(',', array_keys(self::UPLOAD_TYPES['import']))],
                 ],
             'returns' => collect(self::RETURN_LIMITS)
+                ->map(fn ($l) => ['sometimes', 'required', 'integer', 'min:'.$l[0], 'max:'.$l[1]])->all(),
+            'cashier' => collect(self::CASHIER_LIMITS)
                 ->map(fn ($l) => ['sometimes', 'required', 'integer', 'min:'.$l[0], 'max:'.$l[1]])->all(),
             'credit' => collect(self::CREDIT_LIMITS)
                 ->map(fn ($l) => ['sometimes', 'required', 'integer', 'min:'.$l[0], 'max:'.$l[1]])->all() + [

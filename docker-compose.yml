@@ -1,0 +1,100 @@
+# Docker Compose production — Koperasi Sekolah (aplikasi + PostgreSQL 18).
+#
+# Coolify : Build Pack "Docker Compose", isi variabel di tab Environment Variables, lalu set domain service
+#           "app" ke https://domain-anda:8080 (Coolify/Traefik mengurus sertifikat HTTPS).
+# VPS     : salin .env.production.example → .env, isi, lalu
+#           docker compose -f docker-compose.yml -f docker-compose.vps.yml up -d --build
+# Panduan lengkap: docs/deploy.md
+#
+# Variabel wajib: APP_KEY, APP_URL, DB_PASSWORD. Selain itu punya nilai bawaan yang aman.
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      # all = web + pekerja antrean + penjadwal dalam satu kontainer (lihat Dockerfile untuk peran lain).
+      CONTAINER_ROLE: all
+      APP_NAME: ${APP_NAME:-Koperasi Sekolah}
+      APP_ENV: production
+      APP_DEBUG: "false"
+      APP_KEY: ${APP_KEY:?Isi APP_KEY (lihat docs/deploy.md)}
+      APP_URL: ${APP_URL:?Isi APP_URL, mis. https://koperasi.sekolah.sch.id}
+      APP_TIMEZONE: ${APP_TIMEZONE:-Asia/Jakarta}
+      TZ: ${APP_TIMEZONE:-Asia/Jakarta}
+      APP_LOCALE: id
+      APP_FALLBACK_LOCALE: en
+      APP_FAKER_LOCALE: id_ID
+      APP_MAINTENANCE_DRIVER: file
+      BCRYPT_ROUNDS: 12
+      LOG_CHANNEL: stack
+      LOG_STACK: stderr
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+      LOG_DEPRECATIONS_CHANNEL: "null"
+
+      DB_CONNECTION: pgsql
+      DB_HOST: ${DB_HOST:-db}
+      DB_PORT: ${DB_PORT:-5432}
+      DB_DATABASE: ${DB_DATABASE:-koperasi_sekolah}
+      DB_USERNAME: ${DB_USERNAME:-koperasi}
+      DB_PASSWORD: ${DB_PASSWORD:?Isi DB_PASSWORD (password acak yang kuat)}
+
+      SESSION_DRIVER: database
+      SESSION_LIFETIME: ${SESSION_LIFETIME:-480}
+      SESSION_ENCRYPT: "true"
+      SESSION_PATH: /
+      CACHE_STORE: database
+      QUEUE_CONNECTION: database
+      # Lebih lama dari job terlama (cadangan/uji pemulihan 900 dtk) agar job tidak dijalankan ganda.
+      DB_QUEUE_RETRY_AFTER: ${DB_QUEUE_RETRY_AFTER:-960}
+      FILESYSTEM_DISK: local
+      BROADCAST_CONNECTION: log
+      MAIL_MAILER: ${MAIL_MAILER:-log}
+
+      # HTTPS dipaksa + HSTS; TLS diterminasi proxy (Traefik/Caddy/Nginx) yang mengirim X-Forwarded-Proto.
+      FORCE_HTTPS: ${FORCE_HTTPS:-true}
+      TRUSTED_PROXIES: ${TRUSTED_PROXIES:-*}
+
+      KOPERASI_BACKUP_ENABLED: ${KOPERASI_BACKUP_ENABLED:-true}
+      KOPERASI_BACKUP_TIME: ${KOPERASI_BACKUP_TIME:-23:00}
+      KOPERASI_BACKUP_KEEP: ${KOPERASI_BACKUP_KEEP:-14}
+      KOPERASI_BACKUP_PG_DUMP: ${KOPERASI_BACKUP_PG_DUMP:-true}
+      KOPERASI_PINJAMAN_TOLERANSI_HARI: ${KOPERASI_PINJAMAN_TOLERANSI_HARI:-0}
+
+      QUEUE_WORKERS: ${QUEUE_WORKERS:-1}
+      PHP_FPM_MAX_CHILDREN: ${PHP_FPM_MAX_CHILDREN:-20}
+      PHP_MEMORY_LIMIT: ${PHP_MEMORY_LIMIT:-256M}
+      RUN_MIGRATIONS: ${RUN_MIGRATIONS:-true}
+    volumes:
+      # Unggahan (logo, QRIS, bukti), cadangan, ekspor laporan, struk PDF — WAJIB persisten.
+      - koperasi-storage:/var/www/html/storage
+    expose:
+      - "8080"
+
+  db:
+    image: postgres:18-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${DB_DATABASE:-koperasi_sekolah}
+      POSTGRES_USER: ${DB_USERNAME:-koperasi}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?Isi DB_PASSWORD (password acak yang kuat)}
+      POSTGRES_INITDB_ARGS: --encoding=UTF8
+      TZ: ${APP_TIMEZONE:-Asia/Jakarta}
+    volumes:
+      # PostgreSQL 18+: data di /var/lib/postgresql/18/docker (volume dipasang di induknya).
+      - koperasi-pgdata:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+
+volumes:
+  koperasi-storage:
+  koperasi-pgdata:

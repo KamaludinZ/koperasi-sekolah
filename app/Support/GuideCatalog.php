@@ -35,6 +35,7 @@ class GuideCatalog
                 'tips' => [
                     'Tombol Bayar aman ditekan sekali — transaksi yang sama tidak tercatat dua kali walau jaringan putus.',
                     'Stok berkurang otomatis dan tercatat di riwayat stok barang.',
+                    'Daftar barang diurutkan dari yang paling laku (label Terlaris); barang lain dicari dengan nama/kode, kategori, atau scan barcode. Jumlah & periodenya diatur Admin di Pengaturan → Layar kasir.',
                 ],
                 'related' => ['kas' => 'Kas Harian', 'transaksi' => 'Riwayat transaksi'],
             ],

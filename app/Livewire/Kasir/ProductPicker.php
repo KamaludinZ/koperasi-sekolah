@@ -2,7 +2,9 @@
 
 namespace App\Livewire\Kasir;
 
+use App\Services\BestSellers;
 use App\Services\ProductCatalog;
+use App\Services\SettingsService;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\On;
 use Livewire\Component;
@@ -28,17 +30,34 @@ class ProductPicker extends Component
         $this->category = $this->category === $category ? '' : $category;
     }
 
+    /** Hasil pencarian + jumlah seluruh barang yang cocok (daftar dibatasi pengaturan Layar kasir). */
+    #[Computed]
+    public function result(): array
+    {
+        return app(ProductCatalog::class)->searchWithTotal($this->search, $this->category);
+    }
+
+    /** Barang yang tampil, urut: kode cocok persis → paling laku → nama. */
     #[Computed]
     public function products(): array
     {
-        return app(ProductCatalog::class)->search($this->search, $this->category);
+        return $this->result['items'];
+    }
+
+    /** ID barang berlabel "Terlaris" (N teratas dalam periode pengaturan Layar kasir). @return list<int> */
+    #[Computed]
+    public function bestSellerIds(): array
+    {
+        $cfg = app(SettingsService::class)->cashier();
+
+        return app(BestSellers::class)->top((int) $cfg['bestseller_days'], (int) $cfg['bestseller_badges']);
     }
 
     /** Stok berubah setelah transaksi — muat ulang daftar barang. */
     #[On('transaction-completed')]
     public function refreshStock(): void
     {
-        unset($this->products);
+        unset($this->result, $this->products);
         $this->lastPicked = null;
     }
 
@@ -68,7 +87,7 @@ class ProductPicker extends Component
         }
         if ($this->addByCode($raw, $this->products)) {
             $this->search = '';
-            unset($this->products);
+            unset($this->result, $this->products);
         }
     }
 
@@ -82,7 +101,7 @@ class ProductPicker extends Component
         $this->pick($productId);
         $this->scan = ['type' => 'success', 'text' => "Ditambahkan: {$product['name']}"];
         $this->search = '';
-        unset($this->products);
+        unset($this->result, $this->products);
     }
 
     /**

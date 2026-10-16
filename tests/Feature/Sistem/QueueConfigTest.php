@@ -35,4 +35,17 @@ class QueueConfigTest extends TestCase
         $this->assertStringContainsString('--hours=720', $commands);
         $this->assertStringContainsString('queue:prune-batches', $commands);
     }
+
+    public function test_queue_via_cron_only_runs_when_enabled(): void
+    {
+        $event = collect(app(Schedule::class)->events())->first(fn ($e) => str_contains((string) $e->command, 'queue:work'));
+        $this->assertNotNull($event);
+        $this->assertStringContainsString('--queue=notifikasi,ekspor,default,cadangan', $event->command);
+        $this->assertStringContainsString('--stop-when-empty', $event->command);
+        $this->assertSame('* * * * *', $event->expression);
+
+        $this->assertFalse($event->filtersPass($this->app)); // bawaan: pekerja tetap (supervisord), bukan cron
+        config(['koperasi.queue_via_cron' => true]);
+        $this->assertTrue($event->filtersPass($this->app));
+    }
 }
