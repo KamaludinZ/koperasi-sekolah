@@ -8,6 +8,7 @@ use App\Models\GuideVersion;
 use App\Models\Role;
 use App\Services\AuditLog;
 use App\Services\GuideGenerator;
+use App\Services\GuideScanner;
 use App\Services\GuideService;
 use App\Services\GuideSyncInProgress;
 use App\Services\GuideSyncRecorder;
@@ -142,7 +143,7 @@ class Updates extends Component
     #[Computed]
     public function scan(): array
     {
-        $facts = app(GuideGenerator::class)->scan();
+        $facts = app(GuideScanner::class)->scan();
         $guides = app(GuideService::class)->all('petugas');
         $warnings = [];
         $totals = ['menus' => count($facts), 'pages' => 0, 'role_pages' => 0, 'gated_pages' => 0, 'skipped' => 0, 'uncovered' => 0];
@@ -169,6 +170,11 @@ class Updates extends Component
             }
         }
         unset($f);
+        foreach (app(GuideScanner::class)->issues($facts) as $issue) { // temuan konfigurasi izin & rute
+            if ($issue['code'] !== 'menu_tanpa_peran') {
+                $warnings[] = ['menu' => $issue['menu'] ?? ($issue['role'] ?? ''), 'text' => $issue['text']];
+            }
+        }
 
         return ['menus' => $facts, 'roles' => Role::sortNames(array_keys(Role::LABELS)), 'totals' => $totals, 'warnings' => $warnings];
     }

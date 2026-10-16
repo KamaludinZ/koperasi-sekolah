@@ -1,6 +1,6 @@
 {
   "repo": "Koperasi Sekolah",
-  "generatedForCommit": "5fbb4d796d9411841f9edeb645a620664c00abc1",
+  "generatedForCommit": "3d1b1e82ec03f327330e57be021b08019f0ecb56",
   "files": [
     {
       "path": ".claude/skills/ngodingpakeai/SKILL.md",
@@ -231,6 +231,12 @@
       "size": 874
     },
     {
+      "path": "app/Models/GuideDraft.php",
+      "reason": "new",
+      "language": "php",
+      "size": 1021
+    },
+    {
       "path": "app/Models/GuideEntry.php",
       "reason": "needs_summary",
       "language": "php",
@@ -238,7 +244,7 @@
     },
     {
       "path": "app/Models/GuideMenuSnapshot.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 623
     },
@@ -256,9 +262,9 @@
     },
     {
       "path": "app/Models/GuideVersion.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 998
+      "size": 1013
     },
     {
       "path": "app/Models/Setting.php",
@@ -273,10 +279,16 @@
       "size": 2211
     },
     {
-      "path": "app/Services/GuideGenerator.php",
-      "reason": "needs_summary",
+      "path": "app/Services/GuideDraftService.php",
+      "reason": "new",
       "language": "php",
-      "size": 10793
+      "size": 5378
+    },
+    {
+      "path": "app/Services/GuideGenerator.php",
+      "reason": "changed",
+      "language": "php",
+      "size": 11401
     },
     {
       "path": "app/Services/GuideMerger.php",
@@ -286,15 +298,15 @@
     },
     {
       "path": "app/Services/GuideMetadataService.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 4289
     },
     {
       "path": "app/Services/GuideService.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 21029
+      "size": 21094
     },
     {
       "path": "app/Services/GuideSyncInProgress.php",
@@ -304,9 +316,9 @@
     },
     {
       "path": "app/Services/GuideSyncRecorder.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 2117
+      "size": 2123
     },
     {
       "path": "app/Services/MemberCodeGenerator.php",
@@ -1024,13 +1036,19 @@
     },
     {
       "path": "database/migrations/2026_10_20_000005_create_guide_menu_snapshots_table.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 1373
     },
     {
+      "path": "database/migrations/2026_10_20_000006_create_guide_drafts_table.php",
+      "reason": "new",
+      "language": "php",
+      "size": 2499
+    },
+    {
       "path": "database/seeders/GuideSeeder.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 770
     },
@@ -2571,6 +2589,12 @@
       "size": 4671
     },
     {
+      "path": "tests/Feature/Panduan/GuideDraftsTest.php",
+      "reason": "new",
+      "language": "php",
+      "size": 6765
+    },
+    {
       "path": "tests/Feature/Panduan/GuideGeneratorTest.php",
       "reason": "needs_summary",
       "language": "php",
@@ -2584,7 +2608,7 @@
     },
     {
       "path": "tests/Feature/Panduan/GuideMetadataTest.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 4584
     },

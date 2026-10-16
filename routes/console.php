@@ -6,6 +6,7 @@ use App\Models\Loan;
 use App\Models\User;
 use App\Services\BackupService;
 use App\Services\CouponService;
+use App\Services\GuideScanner;
 use App\Services\GuideSyncRecorder;
 use App\Services\HealthCheckService;
 use App\Services\ImpersonationService;
@@ -210,3 +211,24 @@ Artisan::command('panduan:susun', function () {
     $this->info('Panduan disusun: '.count($s['created']).' baru, '.count($s['updated']).' diperbarui, '
         .count($s['unchanged']).' tetap, '.count($s['skipped_manual']).' manual dilewati.');
 })->purpose('Susun ulang panduan otomatis dari konfigurasi menu');
+
+// Pindai menu, halaman & izin peran (bahan panduan otomatis) dan laporkan temuan konfigurasi. --ketat: gagal bila ada temuan.
+Artisan::command('panduan:pindai {--json : Keluaran JSON (fakta per menu, izin per peran, temuan)} {--ketat : Kode keluar 1 bila ada temuan}', function () {
+    $scanner = app(GuideScanner::class);
+    $facts = $scanner->scan();
+    $issues = $scanner->issues($facts);
+    if ($this->option('json')) {
+        $this->line(json_encode(['menus' => $facts, 'roles' => $scanner->roles(), 'issues' => $issues], JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
+    } else {
+        $this->table(['Menu', 'Peran', 'Halaman', 'Khusus peran', 'Berparameter'], collect($facts)->map(fn ($f) => [
+            $f['label'], implode(', ', $f['roles']) ?: '—', count($f['pages']), count(array_filter($f['pages'], fn ($p) => $p['roles'] !== [])), $f['skipped_pages'],
+        ])->values()->all());
+        $s = $scanner->summary($facts);
+        $this->info("{$s['menus']} menu, {$s['pages']} halaman, {$s['roles']} peran, {$s['issues']} temuan.");
+        foreach ($issues as $i) {
+            $this->warn('- '.$i['text']);
+        }
+    }
+
+    return $this->option('ketat') && $issues ? 1 : 0;
+})->purpose('Pindai menu, halaman & izin peran untuk panduan');

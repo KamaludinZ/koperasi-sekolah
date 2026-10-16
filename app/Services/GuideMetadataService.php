@@ -6,20 +6,20 @@ use App\Models\GuideMenuSnapshot;
 use Illuminate\Support\Facades\DB;
 
 /**
- * Metadata menu & izin untuk panduan otomatis: membaca hasil pemindai (GuideGenerator::scan), menghitung sidik jari
+ * Metadata menu & izin untuk panduan otomatis: membaca hasil pemindai (GuideScanner::scan), menghitung sidik jari
  * per aspek (menu, izin peran, halaman) dan membandingkannya dengan guide_menu_snapshots. capture() menyimpan
  * keadaan terbaru dan mengembalikan perubahan sejak pemindaian sebelumnya (menu baru, dihapus, dan aspek yang
  * berubah per menu) — bahan sinkronisasi saat menu/izin berubah dan penanda panduan usang.
  */
 class GuideMetadataService
 {
-    public function __construct(private GuideGenerator $generator) {}
+    public function __construct(private GuideScanner $scanner) {}
 
     /** @return array<string, array{label: string, route: ?string, roles: list<string>, pages: list<array>, hashes: array{menu: string, roles: string, pages: string}}> */
     public function current(): array
     {
         $out = [];
-        foreach ($this->generator->scan() as $key => $f) {
+        foreach ($this->scanner->scan() as $key => $f) {
             $roles = array_values($f['roles']);
             sort($roles);
             $pages = array_map(fn ($p) => ['name' => $p['name'], 'title' => $p['title'], 'uri' => $p['uri'], 'roles' => array_values($p['roles']), 'ability' => $p['ability']], $f['pages']);

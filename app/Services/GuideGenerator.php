@@ -6,15 +6,14 @@ use App\Models\GuideEntry;
 use App\Models\GuideSyncJob;
 use App\Models\Role;
 use App\Models\User;
-use App\Support\AccessPreview;
 use App\Support\GuideCatalog;
 use App\Support\Menu;
 use Illuminate\Support\Facades\DB;
 
 /**
- * Penyusun panduan otomatis dari konfigurasi sistem: daftar menu (Menu::ITEMS: label, deskripsi, rute), halaman per
- * menu beserta judulnya (dibaca dari rute & middleware menu:/peran: lewat AccessPreview::pages) dan peran pemegang
- * menu (roles.permissions). Menu yang punya isi kurasi di GuideCatalog memakai isi itu lalu dilengkapi daftar halaman
+ * Penyusun panduan otomatis dari konfigurasi sistem yang dibaca GuideScanner: daftar menu (Menu::ITEMS: label,
+ * deskripsi, rute), halaman per menu beserta judulnya (rute & middleware menu:/peran:/can:) dan peran pemegang menu
+ * (roles.permissions). Menu yang punya isi kurasi di GuideCatalog memakai isi itu lalu dilengkapi daftar halaman
  * yang terbaca; menu baru tanpa isi kurasi tetap mendapat draf (ringkasan dari deskripsi menu, langkah per halaman).
  * sync() menyimpan ke guide_entries (sumber auto), mencatat versi bila isi berubah, dan TIDAK menimpa panduan manual.
  */
@@ -24,30 +23,10 @@ class GuideGenerator
 
     public function __construct(private GuideService $guides) {}
 
-    /**
-     * Fakta menu yang terbaca dari sistem.
-     *
-     * Halaman berparameter (mis. /barang/{product}) tidak dijadikan langkah; jumlahnya dicatat di skipped_pages.
-     *
-     * @return array<string, array{label: string, description: string, route: ?string, group: string, roles: list<string>, pages: list<array{name: string, title: string, uri: string, roles: list<string>, ability: ?string}>, skipped_pages: int}>
-     */
+    /** Fakta menu yang terbaca dari sistem (lihat GuideScanner::scan). */
     public function scan(): array
     {
-        $pages = collect((new AccessPreview)->pages())->groupBy('menu');
-        $grants = $this->guides->grantMap(); // satu kueri peran untuk semua menu
-        $facts = [];
-        foreach (Menu::ITEMS as $key => $item) {
-            $mine = $pages[$key] ?? collect();
-            $facts[$key] = [
-                'label' => $item['label'], 'description' => $item['description'], 'route' => $item['route'],
-                'group' => GuideCatalog::groupFor($key), 'roles' => $grants[$key] ?? [],
-                'pages' => $mine->reject(fn ($p) => str_contains($p['uri'], '{'))
-                    ->map(fn ($p) => ['name' => $p['name'], 'title' => $p['title'], 'uri' => $p['uri'], 'roles' => $p['roles'], 'ability' => $p['ability']])->values()->all(),
-                'skipped_pages' => $mine->filter(fn ($p) => str_contains($p['uri'], '{'))->count(),
-            ];
-        }
-
-        return $facts;
+        return app(GuideScanner::class)->scan();
     }
 
     /**
