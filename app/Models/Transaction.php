@@ -2,12 +2,14 @@
 
 namespace App\Models;
 
+use App\Support\ReportCache;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Carbon;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Support\Carbon;
 
 class Transaction extends Model
 {
@@ -16,14 +18,14 @@ class Transaction extends Model
     protected $fillable = [
         'invoice_number', 'client_ref', 'user_id', 'cash_shift_id', 'member_id', 'saving_type_id', 'subtotal', 'tax', 'tax_label', 'tax_rate', 'tax_included',
         'discount', 'rounding', 'total', 'paid', 'change', 'payment_method', 'item_count',
-        'voided_at', 'voided_by', 'void_reason', 'returned_amount',
+        'voided_at', 'voided_by', 'void_reason', 'returned_amount', 'source', 'synced_at',
     ];
 
     /** Data penjualan berubah → cache laporan dibuang (versi naik setelah commit). */
     protected static function booted(): void
     {
-        static::saved(fn () => \App\Support\ReportCache::bump());
-        static::deleted(fn () => \App\Support\ReportCache::bump());
+        static::saved(fn () => ReportCache::bump());
+        static::deleted(fn () => ReportCache::bump());
     }
 
     protected function casts(): array
@@ -40,6 +42,7 @@ class Transaction extends Model
             'change' => 'decimal:2',
             'item_count' => 'integer',
             'voided_at' => 'datetime',
+            'synced_at' => 'datetime',
             'returned_amount' => 'integer',
         ];
     }
@@ -51,7 +54,7 @@ class Transaction extends Model
     }
 
     /** Pengajuan retur/pembatalan yang masih menunggu keputusan. */
-    public function pendingReturn(): \Illuminate\Database\Eloquent\Relations\HasOne
+    public function pendingReturn(): HasOne
     {
         return $this->hasOne(TransactionReturn::class)->where('status', 'menunggu');
     }
@@ -90,13 +93,13 @@ class Transaction extends Model
     }
 
     /** Mutasi pemotongan tabungan untuk transaksi bermetode tabungan. */
-    public function savingsEntry(): \Illuminate\Database\Eloquent\Relations\HasOne
+    public function savingsEntry(): HasOne
     {
         return $this->hasOne(SavingsTransaction::class, 'source_id')->where('source_type', 'transaction')->where('type', SavingsTransaction::TYPE_WITHDRAWAL);
     }
 
     /** Bon yang tercatat dari transaksi bermetode bon. */
-    public function credit(): \Illuminate\Database\Eloquent\Relations\HasOne
+    public function credit(): HasOne
     {
         return $this->hasOne(MemberCredit::class);
     }

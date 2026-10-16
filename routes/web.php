@@ -34,6 +34,7 @@ use App\Http\Controllers\Kas\ShiftHistoryController;
 use App\Http\Controllers\Kasir\CheckoutController;
 use App\Http\Controllers\Kasir\CouponCheckController;
 use App\Http\Controllers\Kasir\MemberPaymentController;
+use App\Http\Controllers\Kasir\OfflineSyncController;
 use App\Http\Controllers\Kasir\ProductSearchController;
 use App\Http\Controllers\Kasir\TransactionReceiptController;
 use App\Http\Controllers\Laporan\SalesExportController;
@@ -283,6 +284,13 @@ Route::middleware('menu:kasir')->group(function () {
     Route::post('/kasir/transaksi', CheckoutController::class)
         ->middleware('throttle:60,1')
         ->name('kasir.checkout');
+    // Kasir offline: salinan katalog untuk dipakai tanpa internet & sinkron antrean penjualan offline
+    Route::get('/kasir/offline/katalog', [OfflineSyncController::class, 'catalog'])
+        ->middleware('throttle:20,1')
+        ->name('kasir.offline.catalog');
+    Route::post('/kasir/offline/sinkron', [OfflineSyncController::class, 'sync'])
+        ->middleware('throttle:30,1')
+        ->name('kasir.offline.sync');
     Route::get('/kasir/transaksi/{transaction}', [TransactionReceiptController::class, 'show'])
         ->whereNumber('transaction')
         ->name('kasir.transactions.show');

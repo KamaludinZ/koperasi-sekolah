@@ -9,6 +9,7 @@ use App\Models\Transaction;
 use App\Models\User;
 use App\Support\PriceCalculator;
 use Illuminate\Database\UniqueConstraintViolationException;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
@@ -47,7 +48,7 @@ class CheckoutService
      * @param  array<int, int>  $items  [productId => quantity]
      * @param  int|null  $paid  uang dibayar; untuk non-tunai otomatis sama dengan total
      * @param  array{type: string, value: int, reason?: ?string}|null  $manualDiscount  diskon manual kasir (persen/rupiah)
-     *                                                                                   atas subtotal, sebelum pajak — dicek batasnya
+     *                                                                                  atas subtotal, sebelum pajak — dicek batasnya
      * @param  string|null  $couponCode  kode kupon/voucher (dipotong setelah promo, sebelum diskon manual)
      * @param  array{due_at?: ?string, note?: ?string}|null  $credit  jatuh tempo & keterangan untuk metode bon
      * @param  string|null  $clientRef  kunci idempoten: bila sudah dipakai, transaksi yang ada dikembalikan
@@ -233,9 +234,9 @@ class CheckoutService
      * Nomor invoice berurutan per hari: INV-YYYYMMDD-0001.
      * Bila bentrok (dua kasir bersamaan), coba nomor berikutnya.
      */
-    public function createWithInvoiceNumber(array $attributes): Transaction
+    public function createWithInvoiceNumber(array $attributes, ?\DateTimeInterface $date = null): Transaction
     {
-        $prefix = 'INV-'.now()->format('Ymd').'-';
+        $prefix = 'INV-'.($date ? Carbon::instance($date) : now())->format('Ymd').'-'; // penjualan offline: tanggal jualnya
 
         for ($attempt = 0; $attempt < 5; $attempt++) {
             $last = Transaction::where('invoice_number', 'like', $prefix.'%')->max('invoice_number');

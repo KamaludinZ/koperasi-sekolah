@@ -27,6 +27,25 @@ class StockService
      *
      * @throws ValidationException bila stok tidak cukup
      */
+    /**
+     * Kurangi stok sebanyak yang tersedia (paling sedikit 0) — untuk penjualan yang SUDAH terjadi di luar sistem
+     * (kasir offline) sehingga tidak boleh ditolak. Mengembalikan pergerakan stok (null bila stok sudah 0) dan
+     * jumlah yang kurang untuk dicocokkan lewat stok opname.
+     *
+     * @return array{movement: ?StockMovement, shortage: int}
+     */
+    public function decreaseAvailable(Product $product, int $quantity, ?string $note = null, ?int $userId = null): array
+    {
+        $this->assertPositive($quantity);
+        $before = (int) Product::whereKey($product->id)->lockForUpdate()->value('stock');
+        $take = min($before, $quantity);
+        if ($take === 0) {
+            return ['movement' => null, 'shortage' => $quantity];
+        }
+
+        return ['movement' => $this->decrease($product, $take, $note.($take < $quantity ? ' (kurang '.($quantity - $take).')' : ''), $userId), 'shortage' => $quantity - $take];
+    }
+
     public function decrease(Product $product, int $quantity, ?string $note = null, ?int $userId = null): StockMovement
     {
         $this->assertPositive($quantity);
