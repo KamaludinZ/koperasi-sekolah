@@ -136,6 +136,24 @@
                         <span class="text-xs text-stone-500">{{ $v->created_at?->translatedFormat('j M Y H:i') }} · {{ $v->author?->name ?? 'Sistem' }}@if ($v->sync_job_id) · sinkronisasi #{{ $v->sync_job_id }}@endif</span>
                     </div>
                     @if ($v->change_note)<p class="mt-1 text-stone-700">{{ $v->change_note }}</p>@endif
+                    @php $trail = $this->audits[$v->guide_entry_id.':'.$v->version] ?? []; @endphp
+                    @if ($trail)
+                        <ul class="mt-2 space-y-0.5 rounded-lg bg-stone-50 px-3 py-2 text-xs text-stone-600" aria-label="Jejak audit versi {{ $v->version }}" data-version-audit="{{ $v->version }}">
+                            @foreach ($trail as $a)
+                                <li class="flex flex-wrap items-center gap-1.5">
+                                    <span @class(['rounded px-1 py-0.5 text-[10px] font-semibold', 'bg-emerald-100 text-emerald-800' => $a['valid'], 'bg-red-100 text-red-800' => ! $a['valid']]) data-audit-integrity="{{ $a['valid'] ? 'utuh' : 'rusak' }}" title="{{ $a['valid'] ? 'Checksum HMAC cocok' : 'Checksum tidak cocok — catatan mungkin diubah' }}">{{ $a['valid'] ? 'HMAC ✓' : 'HMAC ✗' }}</span>
+                                    <span class="font-medium text-stone-800">{{ $a['label'] }}{{ $a['field'] ? ' · '.mb_strtolower(\App\Support\GuideVersionDiff::label($a['field'])) : '' }}</span>
+                                    <span>oleh {{ $a['by'] ?? 'Sistem' }} · {{ $a['at'] }}</span>
+                                    @if ($a['reason'])<span class="text-stone-500">— {{ $a['reason'] }}</span>@endif
+                                </li>
+                            @endforeach
+                            @if (auth()->user()?->canOpen('audit'))
+                                <li><a href="{{ route('audit') }}" wire:navigate class="font-medium text-emerald-800 hover:underline">Buka Audit & Riwayat →</a></li>
+                            @endif
+                        </ul>
+                    @elseif ($v->sync_job_id)
+                        <p class="mt-2 text-xs text-stone-500" data-version-audit-sync="{{ $v->sync_job_id }}">Jejak: disusun oleh sinkronisasi #{{ $v->sync_job_id }} (lihat Riwayat sinkronisasi).</p>
+                    @endif
                     @if ($this->entry)
                         <div class="mt-2 flex flex-wrap gap-2 text-xs">
                             @if ($v->version > 1)

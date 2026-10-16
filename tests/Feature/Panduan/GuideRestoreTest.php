@@ -81,4 +81,17 @@ class GuideRestoreTest extends TestCase
         Livewire::withQueryParams(['panduan' => 'kas'])->test(Versions::class)->assertDontSeeHtml('data-restore-start=')
             ->call('startRestore', 1)->assertForbidden();
     }
+
+    public function test_versions_show_audit_trail_with_integrity(): void
+    {
+        $this->actingAs($this->admin, 'web');
+        $html = Livewire::withQueryParams(['panduan' => 'kas'])->test(Versions::class)
+            ->assertSeeHtml('data-version-audit="2"')->assertSeeHtml('data-version-audit="3"')->assertDontSeeHtml('data-version-audit="1"')
+            ->assertSeeHtml('data-audit-integrity="utuh"')->assertDontSeeHtml('data-audit-integrity="rusak"')
+            ->assertSeeText('Disunting · judul')->html();
+        $this->assertStringContainsString('oleh '.$this->admin->name, $html);
+
+        app(GuideOverrideService::class)->restore($this->kas->fresh(), GuideVersion::where('guide_entry_id', $this->kas->id)->where('version', 1)->first(), $this->admin, 'Kembali ke awal');
+        Livewire::withQueryParams(['panduan' => 'kas'])->test(Versions::class)->assertSeeHtml('data-version-audit="4"')->assertSeeText('Dipulihkan');
+    }
 }

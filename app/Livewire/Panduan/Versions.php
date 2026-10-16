@@ -5,10 +5,13 @@ namespace App\Livewire\Panduan;
 use App\Models\GuideEntry;
 use App\Models\GuideOverride;
 use App\Models\GuideVersion;
+use App\Services\AuditIntegrity;
 use App\Services\GuideOverrideService;
 use App\Services\GuideService;
 use App\Support\GuideVersionDiff;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
@@ -69,6 +72,45 @@ class Versions extends Component
         }
     }
 
+    public const AUDIT_EVENTS = ['guide.overridden' => 'Disunting', 'guide.reverted' => 'Dikembalikan ke otomatis', 'guide.restored' => 'Dipulihkan', 'guide.draft_applied' => 'Draf diterapkan'];
+
+    /**
+     * Jejak audit (activity_logs ber-HMAC) tiap versi di halaman ini, dalam satu kueri: catatan suntingan/pengembalian
+     * (properti version), pemulihan (properti new_version) dan penerapan draf (catatan versi "Draf #n"), beserta status
+     * keutuhan checksum. Versi hasil sinkronisasi menunjuk ke proses sinkronisasinya.
+     *
+     * @return array<string, list<array{event: string, label: string, by: ?string, at: ?string, reason: ?string, valid: bool}>> "entry_id:version" → catatan
+     */
+    #[Computed]
+    public function audits(): array
+    {
+        $items = $this->versions->getCollection();
+        if ($items->isEmpty()) {
+            return [];
+        }
+        // baris mentah sekali ambil: checksum dihitung ulang dari isinya sendiri (tanpa kueri per catatan)
+        $logs = DB::table('activity_logs')->where('subject_type', 'guide')->whereIn('subject_id', $items->pluck('guide_entry_id')->unique())
+            ->whereIn('event', array_keys(self::AUDIT_EVENTS))->orderBy('id')->get();
+        $out = [];
+        foreach ($logs as $log) {
+            $p = (array) json_decode((string) $log->properties, true);
+            $version = $p['new_version'] ?? $p['version'] ?? null;
+            if ($log->event === 'guide.draft_applied') {
+                $version = $items->first(fn ($v) => $v->guide_entry_id === (int) $log->subject_id && str_contains((string) $v->change_note, 'Draf #'.($p['draft_id'] ?? '?')))?->version;
+            }
+            if ($version === null) {
+                continue;
+            }
+            $out[$log->subject_id.':'.$version][] = [
+                'event' => $log->event, 'label' => self::AUDIT_EVENTS[$log->event], 'by' => $log->actor_name,
+                'at' => Carbon::parse($log->created_at)->translatedFormat('j M Y H:i'), 'reason' => $log->reason, 'field' => $p['field'] ?? null,
+                'valid' => $log->checksum !== null && hash_equals($log->checksum, AuditIntegrity::checksum($log)),
+            ];
+        }
+
+        return $out;
+    }
+
     /** Versi yang sedang dikonfirmasi untuk dipulihkan (null = dialog tertutup) & alasannya. */
     public ?int $restoring = null;
 
@@ -114,7 +156,7 @@ class Versions extends Component
         $r = $overrides->restore($this->entry, $target, Auth::guard('web')->user(), $this->reason);
         $this->dispatch('toast', type: 'success', message: $r['version'] ? "Panduan dipulihkan ke isi versi {$target->version} (tercatat sebagai versi {$r['version']->version})." : 'Isi panduan sudah sama dengan versi itu.');
         $this->cancelRestore();
-        unset($this->versions, $this->active, $this->typeCounts, $this->previous, $this->entry);
+        unset($this->versions, $this->active, $this->typeCounts, $this->previous, $this->entry, $this->audits);
     }
 
     /** Bandingkan versi ini dengan versi sebelumnya. */
