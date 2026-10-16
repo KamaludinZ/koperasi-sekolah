@@ -152,12 +152,13 @@ class GuideOverrideService
      * Pulihkan isi panduan ke versi lama: lapisan override disusun ulang agar isi yang tampil sama dengan cuplikan versi
      * itu — bagian yang sama dengan isi otomatis sekarang dilepas suntingannya, sisanya disimpan sebagai suntingan.
      * Satu versi baru berjenis "restore", audit guide.restored & riwayat perubahan per bagian. Alasan wajib (5–200).
+     * $expectedHash (sidik jari isi saat dibuka, GuideVersion::hashOf) menolak pemulihan bila isi sudah diubah orang lain.
      *
      * @return array{version: ?GuideVersion, changed: list<string>}
      *
      * @throws ValidationException
      */
-    public function restore(GuideEntry $entry, GuideVersion $target, ?User $by, string $reason): array
+    public function restore(GuideEntry $entry, GuideVersion $target, ?User $by, string $reason, ?string $expectedHash = null): array
     {
         $reason = trim(preg_replace('/\s+/u', ' ', $reason));
         if (mb_strlen($reason) < 5 || mb_strlen($reason) > 200) {
@@ -167,9 +168,12 @@ class GuideOverrideService
             throw ValidationException::withMessages(['version' => 'Versi bukan milik panduan ini.']);
         }
 
-        return DB::transaction(function () use ($entry, $target, $by, $reason) {
+        return DB::transaction(function () use ($entry, $target, $by, $reason, $expectedHash) {
             GuideEntry::whereKey($entry->id)->lockForUpdate()->first();
             $entry->unsetRelation('overrides');
+            if ($expectedHash !== null && GuideVersion::hashOf($this->guides->snapshot($entry)) !== $expectedHash) {
+                throw ValidationException::withMessages(['sidik' => 'Isi panduan sudah berubah sejak Anda membukanya. Muat ulang lalu ulangi pemulihan.']);
+            }
             $before = $this->guides->effective($entry);
             $auto = $entry->toGuide();
             $changed = [];

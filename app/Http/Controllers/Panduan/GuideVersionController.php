@@ -5,11 +5,13 @@ namespace App\Http\Controllers\Panduan;
 use App\Http\Controllers\Controller;
 use App\Models\GuideEntry;
 use App\Models\GuideVersion;
+use App\Services\GuideOverrideService;
 use App\Services\GuideService;
 use App\Services\GuideVersionQuery;
 use App\Support\GuideVersionDiff;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Validation\ValidationException;
 
 /**
  * Daftar versi panduan (gate lihat-riwayat-panduan: pengelola panduan & pemegang menu Audit, baca saja):
@@ -18,7 +20,9 @@ use Illuminate\Http\Request;
  *   pengubah, waktu, sinkronisasi, sumber pemulihan, aktif, bagian yang berubah dibanding versi sebelumnya + jumlah per jenis;
  * - GET /panduan/versi/data/{key}/{version}             → satu versi lengkap dengan cuplikan isi;
  * - GET /panduan/versi/data/{key}/banding?dari=&ke=      → perbandingan isi dua versi per bagian (ke=sekarang → isi yang
- *   sedang tampil): judul/ringkasan lama & baru, langkah/tips sebagai beda baris berurutan, perubahan penanda suntingan.
+ *   sedang tampil): judul/ringkasan lama & baru, langkah/tips sebagai beda baris berurutan, perubahan penanda suntingan;
+ * - POST /panduan/versi/data/{key}/{version}/pulihkan {alasan, sidik?} → (pengelola panduan) pulihkan isi ke versi itu:
+ *   versi baru "restore", audit & riwayat; sidik = current_hash dari daftar versi (409 bila isi sudah berubah).
  */
 class GuideVersionController extends Controller
 {
@@ -45,6 +49,7 @@ class GuideVersionController extends Controller
         return $this->paged($page, $query, false, [
             'guide' => ['key' => $entry->key, 'title' => $entry->title, 'menu' => $entry->menu_key, 'source' => $entry->source],
             'active_version' => $active, 'latest_version' => (int) GuideVersion::where('guide_entry_id', $entry->id)->max('version'),
+            'current_hash' => GuideVersion::hashOf(app(GuideService::class)->snapshot($entry->load('overrides'))),
             'type_counts' => array_map(fn ($t) => (int) ($counts[$t] ?? 0), array_combine(array_keys(GuideVersion::TYPES), array_keys(GuideVersion::TYPES))),
         ]);
     }
@@ -81,6 +86,27 @@ class GuideVersionController extends Controller
             'guide' => ['key' => $entry->key, 'title' => $entry->title], 'from' => $a, 'to' => $b,
             'identical' => ! $diff['changed'] && ! $diff['overridden']['added'] && ! $diff['overridden']['removed'],
         ] + $diff])->header('Cache-Control', 'private, no-store');
+    }
+
+    public function restore(Request $request, string $key, int $version, GuideOverrideService $overrides, GuideVersionQuery $query): JsonResponse
+    {
+        $entry = $this->entry($key);
+        $data = $request->validate(['alasan' => ['required', 'string', 'min:5', 'max:200'], 'sidik' => ['nullable', 'string', 'size:64']],
+            ['alasan.required' => 'Tulis alasan pemulihan.']);
+        $target = GuideVersion::where('guide_entry_id', $entry->id)->where('version', $version)->firstOrFail();
+        try {
+            $r = $overrides->restore($entry, $target, $request->user('web'), $data['alasan'], $data['sidik'] ?? null);
+        } catch (ValidationException $e) {
+            $conflict = array_key_exists('sidik', $e->errors());
+
+            return response()->json(['message' => collect($e->errors())->flatten()->first(), 'errors' => $e->errors()], $conflict ? 409 : 422);
+        }
+
+        return response()->json(['data' => [
+            'restored_from' => $target->version, 'new_version' => $r['version']?->version, 'changed' => $r['changed'],
+            'message' => $r['version'] ? "Panduan dipulihkan ke isi versi {$target->version} (versi {$r['version']->version})." : 'Isi panduan sudah sama dengan versi itu.',
+            'active_version' => $query->active([$entry->id])[$entry->id],
+        ]])->header('Cache-Control', 'no-store');
     }
 
     private function paged($page, GuideVersionQuery $query, bool $withGuide, array $meta = []): JsonResponse

@@ -85,4 +85,28 @@ class GuideVersionApiTest extends TestCase
         $this->getJson('/panduan/versi/data/kas/banding?dari=1&ke=kemarin')->assertUnprocessable();
         $this->getJson('/panduan/versi/data/barang/banding?dari=1&ke=2')->assertNotFound();      // barang hanya punya v1
     }
+
+    public function test_restore_endpoint(): void
+    {
+        $this->actingAs($this->admin, 'web');
+        $hash = $this->getJson('/panduan/versi/data/kas')->json('meta.current_hash');
+        $this->postJson('/panduan/versi/data/kas/2/pulihkan', [])->assertUnprocessable()->assertJsonValidationErrors('alasan');
+        $this->postJson('/panduan/versi/data/kas/2/pulihkan', ['alasan' => 'Pakai judul lokal lagi', 'sidik' => $hash])->assertOk()
+            ->assertJsonPath('data.restored_from', 2)->assertJsonPath('data.new_version', 4)->assertJsonPath('data.changed', ['title'])
+            ->assertJsonPath('data.active_version', 4);
+        $this->assertSame('Judul kas versi kami', app(GuideService::class)->effective(GuideEntry::where('key', 'kas')->first())['title']);
+        $this->assertSame(2, GuideVersion::where('guide_entry_id', GuideEntry::where('key', 'kas')->value('id'))->where('version', 4)->value('restored_from_version'));
+
+        $this->postJson('/panduan/versi/data/kas/1/pulihkan', ['alasan' => 'Sidik jari lama', 'sidik' => $hash])->assertStatus(409);   // isi sudah berubah
+        $this->postJson('/panduan/versi/data/kas/2/pulihkan', ['alasan' => 'Sudah sama isinya'])->assertOk()->assertJsonPath('data.new_version', null);
+        $this->postJson('/panduan/versi/data/kas/99/pulihkan', ['alasan' => 'Versi tidak ada'])->assertNotFound();
+        $this->postJson('/panduan/versi/data/barang/2/pulihkan', ['alasan' => 'Versi panduan lain'])->assertNotFound();
+    }
+
+    public function test_restore_endpoint_managers_only(): void
+    {
+        $this->actingAs(User::where('email', 'pengurus@koperasi.test')->first(), 'web');      // pemegang Audit: baca saja
+        $this->postJson('/panduan/versi/data/kas/1/pulihkan', ['alasan' => 'Coba pulihkan'])->assertForbidden();
+        $this->assertSame(3, GuideVersion::where('guide_entry_id', GuideEntry::where('key', 'kas')->value('id'))->count());
+    }
 }

@@ -253,6 +253,9 @@ Route::middleware(['menu', 'auth', 'can:lihat-riwayat-panduan', 'throttle:60,1']
     Route::get('/{key}/banding', [GuideVersionController::class, 'compare'])->where('key', '[a-z0-9._-]{1,60}')->name('panduan.versi.compare');
     Route::get('/{key}/{version}', [GuideVersionController::class, 'show'])->where('key', '[a-z0-9._-]{1,60}')->whereNumber('version')->name('panduan.versi.show');
 });
+// Pulihkan versi panduan (pengelola panduan)
+Route::post('/panduan/versi/data/{key}/{version}/pulihkan', [GuideVersionController::class, 'restore'])
+    ->middleware(['menu', 'auth', 'can:kelola-panduan', 'throttle:10,1'])->where('key', '[a-z0-9._-]{1,60}')->whereNumber('version')->name('panduan.versi.restore');
 // Riwayat perubahan panduan untuk audit (pengelola panduan & pemegang menu Audit, baca saja)
 Route::middleware(['menu', 'auth', 'can:lihat-riwayat-panduan', 'throttle:60,1'])->prefix('/panduan/riwayat')->group(function () {
     Route::get('/', [GuideHistoryController::class, 'index'])->name('panduan.riwayat');
