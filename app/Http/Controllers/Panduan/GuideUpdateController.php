@@ -12,6 +12,7 @@ use App\Services\GuideDraftService;
 use App\Services\GuideGenerator;
 use App\Services\GuideMetadataService;
 use App\Services\GuideScanner;
+use App\Services\GuideService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -27,6 +28,13 @@ use Illuminate\Http\Request;
  *   jumlah per status, perubahan menu/izin yang belum disinkronkan, jadwal) + riwayat (?status=, ?per=);
  * - GET  /panduan/pembaruan/sinkron/{id}    → rincian satu proses;
  * - POST /panduan/pembaruan/sinkron         → antre sinkronisasi manual (202; 409 bila sudah ada yang mengantre/berjalan).
+ * Panduan usang:
+ * - GET    /panduan/pembaruan/usang          → panduan bertanda usang (alasan, sejak, bagian disunting, perubahan draf,
+ *   draf menunggu tinjauan);
+ * - POST   /panduan/pembaruan/usang/{key}    → {alasan} tandai perlu ditinjau (409 bila sudah dengan alasan sama);
+ * - DELETE /panduan/pembaruan/usang/{key}    → {catatan?} tandai sudah ditinjau (409 bila tidak sedang usang);
+ * - DELETE /panduan/pembaruan/usang          → {catatan?} tandai semua sudah ditinjau.
+ * Semua penandaan & peninjauan tercatat di audit.
  */
 class GuideUpdateController extends Controller
 {
@@ -112,6 +120,64 @@ class GuideUpdateController extends Controller
         AuditLog::record('guide.sync_queued', 'panduan', "Sinkronisasi panduan diantre (#{$job->id})", null, ['sync_job_id' => $job->id], action: 'diubah');
 
         return response()->json(['data' => $this->presentJob($job->fresh())], 202)->header('Cache-Control', 'no-store');
+    }
+
+    public function staleIndex(GuideGenerator $generator): JsonResponse
+    {
+        $rows = GuideEntry::where('is_stale', true)->with('overrides:id,guide_entry_id,field')->orderBy('stale_at')->orderBy('position')->get();
+        $plan = $rows->isNotEmpty() ? $generator->plan() : ['updated' => []];
+        $drafts = GuideDraft::where('status', 'pending')->whereIn('key', $rows->pluck('key'))->pluck('id', 'key');
+
+        return $this->json([
+            'total' => $rows->count(),
+            'guides' => $rows->map(fn (GuideEntry $e) => [
+                'key' => $e->key, 'title' => $e->title, 'menu' => $e->menu_key, 'source' => $e->source,
+                'reason' => $e->stale_reason, 'stale_at' => $e->stale_at?->toIso8601String(), 'generated_at' => $e->generated_at?->toIso8601String(),
+                'overridden' => $e->overrides->pluck('field')->values(), 'draft_changes' => $plan['updated'][$e->key] ?? [], 'pending_draft_id' => $drafts[$e->key] ?? null,
+            ])->values(),
+        ]);
+    }
+
+    public function staleMark(Request $request, string $key, GuideService $guides): JsonResponse
+    {
+        $data = $request->validate(['alasan' => ['required', 'string', 'min:5', 'max:200']], ['alasan.required' => 'Tulis alasan panduan perlu ditinjau.']);
+        $entry = GuideEntry::where('key', $key)->firstOrFail();
+        $reason = trim(preg_replace('/\s+/u', ' ', $data['alasan']));
+        if ($entry->is_stale && $entry->stale_reason === $reason) {
+            return response()->json(['message' => 'Panduan sudah ditandai dengan alasan yang sama.'], 409);
+        }
+        $guides->markStale($entry, $reason, $request->user('web'));
+
+        return $this->json($this->presentStale($entry->fresh()));
+    }
+
+    public function staleClear(Request $request, string $key, GuideService $guides): JsonResponse
+    {
+        $data = $request->validate(['catatan' => ['nullable', 'string', 'max:200']]);
+        $entry = GuideEntry::where('key', $key)->firstOrFail();
+        if (! $guides->markReviewed($entry, $request->user('web'), $data['catatan'] ?? null)) {
+            return response()->json(['message' => 'Panduan ini tidak sedang ditandai usang.'], 409);
+        }
+
+        return $this->json($this->presentStale($entry->fresh()));
+    }
+
+    public function staleClearAll(Request $request, GuideService $guides): JsonResponse
+    {
+        $data = $request->validate(['catatan' => ['nullable', 'string', 'max:200']]);
+        $keys = [];
+        foreach (GuideEntry::where('is_stale', true)->get() as $entry) {
+            if ($guides->markReviewed($entry, $request->user('web'), $data['catatan'] ?? 'Ditinjau bersamaan')) {
+                $keys[] = $entry->key;
+            }
+        }
+
+        return $this->json(['reviewed' => $keys, 'count' => count($keys)]);
+    }
+
+    private function presentStale(GuideEntry $e): array
+    {
+        return ['key' => $e->key, 'title' => $e->title, 'is_stale' => $e->is_stale, 'reason' => $e->stale_reason, 'stale_at' => $e->stale_at?->toIso8601String()];
     }
 
     private function presentJob(GuideSyncJob $j): array
