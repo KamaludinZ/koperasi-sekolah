@@ -87,6 +87,7 @@
                                         @class(['w-full rounded-lg px-3 py-2 text-left text-sm', 'bg-emerald-50 font-semibold text-emerald-900 ring-1 ring-emerald-200' => $currentKey === $key, 'text-stone-700 hover:bg-stone-100' => $currentKey !== $key && $this->allowed($key), 'text-stone-500 hover:bg-stone-100' => $currentKey !== $key && ! $this->allowed($key)])>
                                     {{ $e['menu'] ? (\App\Support\Menu::ITEMS[$e['menu']]['label'] ?? $e['title']) : 'Akun saya' }}
                                     @if ($via = $this->via($key))<span class="ml-1 rounded bg-sky-50 px-1.5 py-0.5 text-[10px] font-semibold text-sky-800 ring-1 ring-sky-200" data-guide-via="{{ $key }}" title="Terbuka lewat peran {{ collect($via)->map($roleLabel)->join(', ') }}">{{ collect($via)->map($roleLabel)->join(' · ') }}</span>@endif
+                                    @if ($this->canPreview() && ($e['overridden'] ?? []))<span class="ml-1 rounded bg-sky-100 px-1.5 py-0.5 text-[10px] font-semibold text-sky-800" data-guide-edited-badge="{{ $key }}" title="Bagian disunting: {{ collect($e['overridden'])->map(fn ($f) => mb_strtolower(\App\Models\GuideOverride::FIELDS[$f] ?? $f))->join(', ') }}">Disunting</span>@endif
                                     @if ($this->canPreview() && ($e['stale'] ?? false))<span class="ml-1 rounded bg-amber-100 px-1.5 py-0.5 text-[10px] font-semibold text-amber-900" data-guide-stale-badge="{{ $key }}">Perlu ditinjau</span>@endif
                                     @unless ($this->allowed($key))<span class="ml-1 rounded bg-stone-200 px-1.5 py-0.5 text-[10px] font-semibold text-stone-600" data-restricted="{{ $key }}" title="Untuk peran {{ $roleList($this->requiredFor($key)) ?: '—' }}">{!! $lock !!} Terbatas</span>@endunless
                                     <span class="block truncate text-xs font-normal text-stone-500">{{ $e['title'] }}</span>
@@ -188,11 +189,18 @@
                     @endif
                 </div>
                 <p class="text-xs font-semibold tracking-wider text-emerald-700 uppercase">{{ $current['menu'] ? (\App\Support\Menu::ITEMS[$current['menu']]['label'] ?? '') : 'Akun saya' }}</p>
-                <h2 id="guide-title" class="mt-1 text-xl font-semibold text-stone-900">{{ $current['title'] }}</h2>
+                @php
+                    // penanda bagian yang disunting manual: rinci untuk pengelola, catatan umum untuk pembaca lain
+                    $edited = $this->canPreview() ? $this->overrideInfo : [];
+                    $editedBadge = fn (string $f) => isset($edited[$f])
+                        ? '<span class="ml-2 inline-block rounded bg-sky-100 px-1.5 py-0.5 align-middle text-[10px] font-semibold text-sky-800" data-guide-edited="'.$f.'">Disunting'.($edited[$f]['by'] ? ' oleh '.e($edited[$f]['by']) : '').($edited[$f]['at'] ? ' · '.e($edited[$f]['at']) : '').'</span>'
+                        : '';
+                @endphp
+                <h2 id="guide-title" class="mt-1 text-xl font-semibold text-stone-900">{{ $current['title'] }}{!! $editedBadge('title') !!}</h2>
                 @if (! $restricted && ($via = $this->via($currentKey)))
                     <p class="mt-1 text-xs text-sky-800" data-guide-article-via>Menu ini terbuka untuk Anda lewat peran <strong>{{ collect($via)->map($roleLabel)->join(', ', ' dan ') }}</strong>.</p>
                 @endif
-                <p class="mt-2 max-w-prose text-sm leading-relaxed text-stone-700" data-guide-summary>{{ $current['summary'] }}</p>
+                <p class="mt-2 max-w-prose text-sm leading-relaxed text-stone-700" data-guide-summary>{{ $current['summary'] }}{!! $editedBadge('summary') !!}</p>
                 @if (! $restricted && ($current['stale'] ?? false))
                     <p class="mt-3 max-w-prose rounded-xl bg-amber-50 px-3 py-2 text-sm text-amber-900 ring-1 ring-amber-200 print:hidden" role="note" data-guide-stale-note>
                         Panduan ini sedang ditinjau ulang karena ada perubahan fitur — beberapa langkah mungkin belum sesuai tampilan terbaru.
@@ -216,7 +224,7 @@
                 @php $total = count($current['steps']); @endphp
                 <div wire:key="steps-{{ $currentKey }}" x-data="guideProgress(@js('panduan:'.auth()->id().':'.$currentKey), {{ $total }})" data-guide-progress>
                     <div class="mt-6 flex flex-wrap items-center gap-3">
-                        <h3 class="text-sm font-semibold text-stone-900">Langkah-langkah</h3>
+                        <h3 class="text-sm font-semibold text-stone-900">Langkah-langkah{!! $editedBadge('steps') !!}</h3>
                         <span class="text-xs text-stone-500 tabular-nums" aria-live="polite"><span x-text="done.length">0</span> dari {{ $total }} langkah</span>
                         <div class="h-1.5 min-w-24 flex-1 overflow-hidden rounded-full bg-stone-100 print:hidden" aria-hidden="true">
                             <div class="h-full rounded-full bg-emerald-600 transition-all" x-bind:style="`width: ${Math.round(done.length / {{ $total }} * 100)}%`"></div>
@@ -247,7 +255,7 @@
 
                 @if ($current['tips'])
                     <div class="mt-6 rounded-xl bg-amber-50 px-4 py-3 text-sm text-amber-900" data-guide-tips>
-                        <p class="font-semibold">Tips</p>
+                        <p class="font-semibold">Tips{!! $editedBadge('tips') !!}</p>
                         <ul class="mt-1 list-disc space-y-0.5 pl-5">
                             @foreach ($current['tips'] as $tip)<li>{{ $tip }}</li>@endforeach
                         </ul>
@@ -263,6 +271,11 @@
                         @endforeach
                     </div>
                 @endif
+                @endif
+                @if (! $restricted && ($current['overridden'] ?? []) && ! $this->canPreview())
+                    <p class="mt-4 text-xs text-stone-500" data-guide-edited-note>Sebagian isi panduan ini disesuaikan oleh pengelola koperasi.</p>
+                @elseif (! $restricted && $edited)
+                    <p class="mt-4 text-xs text-sky-800" data-guide-edited-summary>{{ count($edited) }} bagian disunting manual — tetap dipakai walau panduan disusun ulang. <a href="{{ route('panduan.sunting', ['panduan' => $currentKey]) }}" wire:navigate class="font-semibold underline">Kelola suntingan</a></p>
                 @endif
                 <nav class="mt-6 flex justify-between gap-3 border-t border-stone-100 pt-4 text-sm print:hidden" aria-label="Panduan lain">
                     @if ($prev)<button type="button" wire:click="open('{{ $prev }}')" class="font-medium text-stone-600 hover:text-stone-900" data-guide-prev="{{ $prev }}">← {{ $name($prev) }}</button>@else<span></span>@endif

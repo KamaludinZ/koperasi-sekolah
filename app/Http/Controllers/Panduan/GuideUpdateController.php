@@ -166,7 +166,7 @@ class GuideUpdateController extends Controller
     {
         $data = $request->validate(['catatan' => ['nullable', 'string', 'max:200']]);
         $keys = [];
-        foreach (GuideEntry::where('is_stale', true)->get() as $entry) {
+        foreach (GuideEntry::where('is_stale', true)->orderBy('position')->orderBy('id')->get() as $entry) {
             if ($guides->markReviewed($entry, $request->user('web'), $data['catatan'] ?? 'Ditinjau bersamaan')) {
                 $keys[] = $entry->key;
             }

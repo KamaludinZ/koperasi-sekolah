@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Panduan;
 
+use App\Models\GuideOverride;
 use App\Models\Role;
 use App\Services\GuideMerger;
 use App\Services\GuideService;
@@ -182,6 +183,22 @@ class Index extends Component
         $menu = $this->entries[$key]['menu'] ?? null;
 
         return $menu !== null ? ($this->grantMap[$menu] ?? []) : [];
+    }
+
+    /**
+     * Rincian suntingan manual panduan yang sedang dibuka (bagian → penyunting & waktu) untuk penanda di isi panduan.
+     *
+     * @return array<string, array{by: ?string, at: ?string}>
+     */
+    #[Computed]
+    public function overrideInfo(): array
+    {
+        if ($this->selected === '') {
+            return [];
+        }
+
+        return GuideOverride::query()->whereHas('entry', fn ($q) => $q->where('key', $this->selected))->with('editor:id,name')->get()
+            ->mapWithKeys(fn ($o) => [$o->field => ['by' => $o->editor?->name, 'at' => $o->updated_at?->translatedFormat('j M Y')]])->all();
     }
 
     /** Jumlah panduan menu yang tersembunyi karena tidak bisa dibuka. */
