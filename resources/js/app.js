@@ -7,6 +7,9 @@ import pinInput from './pin-input';
 import menuWatch from './menu-watch';
 import guideSearch from './guide-search';
 import guideProgress from './guide-progress';
+import offlinePos from './offline-pos';
+import offlineWatch from './offline-watch';
+import { setMeta } from './offline-store';
 
 /** Format rupiah seragam (sama dengan App\Support\Rupiah): Rp12.500, minus memakai "−". */
 window.rupiah = (n, signed = false) => {
@@ -22,6 +25,8 @@ document.addEventListener('alpine:init', () => {
     window.Alpine.data('menuWatch', menuWatch);
     window.Alpine.data('guideSearch', guideSearch);
     window.Alpine.data('guideProgress', guideProgress);
+    window.Alpine.data('offlinePos', offlinePos);
+    window.Alpine.data('offlineWatch', offlineWatch);
     registerCopy(window.Alpine);
 });
 
@@ -31,6 +36,7 @@ document.addEventListener('livewire:init', () => {
         fail(({ status, preventDefault }) => {
             if (status === 419) return; // sesi habis: biarkan Livewire menampilkan halaman 419
             preventDefault();
+            if (status === 0 || status === undefined) window.dispatchEvent(new Event('koneksi-putus')); // kasir: tawarkan mode offline
             const message = status === 403
                 ? 'Gagal: Anda tidak punya akses untuk tindakan ini.'
                 : status === 0 || status === undefined
@@ -40,3 +46,10 @@ document.addEventListener('livewire:init', () => {
         });
     });
 });
+
+// Halaman masuk (setelah keluar / sesi habis): salinan katalog offline & cache halaman kasir offline di perangkat ini
+// dibuang agar orang lain tidak memakai katalog petugas sebelumnya. Antrean penjualan yang belum terkirim TIDAK dibuang.
+if (document.querySelector('[data-clear-offline]')) {
+    setMeta('catalog', null).catch(() => null);
+    navigator.serviceWorker?.getRegistration?.().then((r) => r?.active?.postMessage('clear')).catch(() => null);
+}

@@ -2,7 +2,7 @@
     $profile = \App\Support\MockData::profile();
     $input = 'w-full rounded-xl border bg-white px-3.5 py-2.5 text-[15px] outline-none transition placeholder:text-stone-400 focus:border-emerald-600 focus:ring-4 focus:ring-emerald-600/15';
 @endphp
-<div class="grid min-h-dvh lg:grid-cols-[minmax(0,5fr)_minmax(0,6fr)]">
+<div class="grid min-h-dvh lg:grid-cols-[minmax(0,5fr)_minmax(0,6fr)]" data-clear-offline>
     {{-- Panel identitas --}}
     <aside class="relative isolate flex flex-col justify-between overflow-hidden bg-emerald-950 px-6 py-8 text-emerald-50 sm:px-10 lg:py-12">
         <div class="pattern-madrasah absolute inset-0 -z-10 opacity-[0.12]" aria-hidden="true"></div>

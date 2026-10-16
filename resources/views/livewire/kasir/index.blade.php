@@ -21,6 +21,19 @@
         </div>
     </header>
 
+    {{-- Mode offline: katalog diunduh di latar, antrean penjualan offline dikirim otomatis, tawaran beralih saat koneksi putus --}}
+    <div x-data="offlineWatch({{ (int) auth()->id() }})" wire:ignore class="print:hidden" data-offline-watch>
+        <div x-show="offline" x-cloak class="flex flex-wrap items-center justify-between gap-2 bg-amber-400 px-4 py-2 text-sm text-amber-950 sm:px-6" role="alert" data-offline-banner>
+            <span><strong>Koneksi ke server terputus.</strong> Lanjutkan berjualan di kasir offline — penjualan dikirim otomatis saat tersambung lagi.</span>
+            <a href="{{ route('kasir.offline') }}" class="rounded-lg bg-amber-950 px-3 py-1.5 font-semibold text-white">Buka kasir offline</a>
+        </div>
+        <div x-show="! offline && pending" x-cloak class="flex flex-wrap items-center justify-between gap-2 bg-sky-50 px-4 py-2 text-sm text-sky-900 sm:px-6" data-offline-pending>
+            <span><span x-text="pending"></span> penjualan offline di perangkat ini belum terkirim.</span>
+            <button type="button" x-on:click="sync()" x-bind:disabled="syncing" class="rounded-lg bg-sky-700 px-3 py-1.5 font-semibold text-white disabled:opacity-60" x-text="syncing ? 'Mengirim…' : 'Kirim sekarang'"></button>
+        </div>
+        <p class="hidden px-4 pt-1 text-right text-[11px] text-stone-400 sm:block sm:px-6" data-offline-ready>Siap offline · katalog <span x-text="catalogLabel"></span> · <a href="{{ route('kasir.offline') }}" class="underline hover:text-stone-600">kasir offline</a></p>
+    </div>
+
     @if (\Illuminate\Support\Facades\Route::has('transaksi.retur') && auth()->user()->canOpen('transaksi'))
         <livewire:transaksi.return-status-notice compact />
     @endif

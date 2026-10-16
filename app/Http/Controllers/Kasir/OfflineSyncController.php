@@ -11,6 +11,8 @@ use Illuminate\Validation\ValidationException;
 
 /**
  * Kasir offline (wajib menu kasir):
+ * - GET  /kasir/offline                 → halaman kasir offline mandiri (disimpan service worker, jalan tanpa internet);
+ * - GET  /kasir/offline/sesi            → token CSRF baru (halaman dari cache bisa membawa token lama);
  * - GET  /kasir/offline/katalog?perangkat=  → salinan katalog untuk dipakai tanpa internet (tercatat, berlaku 7 hari);
  * - POST /kasir/offline/sinkron {penjualan: [...]} → kirim antrean penjualan offline (≤ 50 per kiriman); hasil per
  *   penjualan: diterima | perlu_dicek (transaksi dibuat, ada tanda untuk ditinjau) | ditolak | tidak_sah (bentuk data
@@ -18,6 +20,19 @@ use Illuminate\Validation\ValidationException;
  */
 class OfflineSyncController extends Controller
 {
+    public function page(Request $request)
+    {
+        $user = $request->user('web');
+
+        return response()->view('kasir.offline', ['userId' => $user->id, 'userName' => $user->name])
+            ->header('Cache-Control', 'private, no-cache');
+    }
+
+    public function session(Request $request): JsonResponse
+    {
+        return response()->json(['csrf' => csrf_token(), 'user_id' => $request->user('web')->id])->header('Cache-Control', 'no-store');
+    }
+
     public function catalog(Request $request, OfflineCatalogService $catalogs): JsonResponse
     {
         $data = $request->validate(['perangkat' => ['required', 'string', 'regex:/^[A-Za-z0-9_-]{8,64}$/']]);

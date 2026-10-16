@@ -284,7 +284,11 @@ Route::middleware('menu:kasir')->group(function () {
     Route::post('/kasir/transaksi', CheckoutController::class)
         ->middleware('throttle:60,1')
         ->name('kasir.checkout');
-    // Kasir offline: salinan katalog untuk dipakai tanpa internet & sinkron antrean penjualan offline
+    // Kasir offline: halaman mandiri, salinan katalog untuk dipakai tanpa internet & sinkron antrean penjualan offline
+    Route::get('/kasir/offline', [OfflineSyncController::class, 'page'])->name('kasir.offline');
+    Route::get('/kasir/offline/sesi', [OfflineSyncController::class, 'session'])
+        ->middleware('throttle:30,1')
+        ->name('kasir.offline.session');
     Route::get('/kasir/offline/katalog', [OfflineSyncController::class, 'catalog'])
         ->middleware('throttle:20,1')
         ->name('kasir.offline.catalog');
