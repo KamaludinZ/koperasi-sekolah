@@ -3,10 +3,12 @@
 namespace Tests\Feature\Panduan;
 
 use App\Livewire\Panduan\Index;
+use App\Models\GuideEntry;
 use App\Models\Role;
 use App\Models\User;
 use App\Support\GuideCatalog;
 use App\Support\Menu;
+use Database\Seeders\GuideSeeder;
 use Database\Seeders\UserSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
@@ -185,5 +187,31 @@ class RoleGuidePageTest extends TestCase
         Livewire::test(Index::class)->call('togglePreview', 'kasir')->set('showRestricted', true)
             ->assertSeeText('Terbatas — belum diberikan ke peran mana pun')
             ->call('open', 'promo')->assertSeeText('tidak termasuk peran yang ditinjau')->assertSeeText('belum diberikan ke peran mana pun');
+    }
+
+    public function test_order_follows_sidebar_even_when_positions_are_shuffled(): void
+    {
+        $this->seed(GuideSeeder::class);
+        GuideEntry::query()->get()->each(fn ($e) => $e->update(['position' => random_int(1, 1000)]));
+        GuideEntry::where('key', 'akun')->update(['position' => 0]);
+        $this->actingAs($this->admin(), 'web');
+        $html = Livewire::test(Index::class)->html();
+        preg_match_all('/data-guide-item="([^"]+)"/', $html, $m);
+        $this->assertSame([...array_keys(Menu::ITEMS), 'akun'], $m[1]);
+        preg_match_all('/<h2 id="grup-([^"]+)"/', $html, $g);
+        $this->assertSame(['layanan-harian', 'data-koperasi', 'pengurus', 'umum'], $g[1]);
+        $this->assertStringContainsString('href="#grup-data-koperasi"', $html);
+    }
+
+    public function test_reading_view_shows_position_and_collapses_list_on_small_screens(): void
+    {
+        $this->actingAs(User::where('email', 'kasir@koperasi.test')->first(), 'web');
+        $count = count(Role::named('kasir')->permissions) + 1;
+        Livewire::test(Index::class)->assertSeeHtml('data-guide-jump')
+            ->call('open', 'kasir')->assertSeeHtml('data-guide-position')
+            ->assertSeeText('Layanan harian · panduan 1 dari '.$count)
+            ->assertSeeHtml('lg:self-start print:hidden hidden')
+            ->assertDontSeeHtml('data-guide-prev=')->assertSeeHtml('data-guide-next="transaksi"')
+            ->call('open', 'akun')->assertSeeText('Umum · panduan '.$count.' dari '.$count)->assertDontSeeHtml('data-guide-next=');
     }
 }

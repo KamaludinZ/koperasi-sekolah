@@ -270,9 +270,16 @@ class Index extends Component
             }
             $groups[GuideCatalog::groupFor($e['menu'])][$key] = $e;
         }
-        foreach ($groups as $g => $items) { // menu terbatas di belakang tiap kelompok, urutan lain tetap
-            $groups[$g] = array_filter($items, fn ($k) => $this->allowed($k), ARRAY_FILTER_USE_KEY)
-                + array_filter($items, fn ($k) => ! $this->allowed($k), ARRAY_FILTER_USE_KEY);
+        // urutan baku seperti menu samping: kelompok (Layanan harian → Data koperasi → Pengurus → Lainnya → Umum),
+        // di dalamnya urutan menu; menu terbatas di belakang tiap kelompok. Tidak bergantung kolom position di DB.
+        $groupRank = array_flip([...array_values(Menu::GROUPS), 'Lainnya', 'Umum']);
+        $menuRank = array_flip(array_keys(Menu::ITEMS));
+        $entryRank = array_flip(array_keys($this->entries));
+        uksort($groups, fn ($a, $b) => ($groupRank[$a] ?? 99) <=> ($groupRank[$b] ?? 99));
+        foreach ($groups as $g => $items) {
+            uksort($items, fn ($a, $b) => [! $this->allowed($a), $menuRank[$items[$a]['menu'] ?? ''] ?? 999, $entryRank[$a]]
+                <=> [! $this->allowed($b), $menuRank[$items[$b]['menu'] ?? ''] ?? 999, $entryRank[$b]]);
+            $groups[$g] = $items;
         }
 
         return $groups;

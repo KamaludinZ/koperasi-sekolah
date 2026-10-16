@@ -13,7 +13,10 @@
     @endphp
     <div class="grid flex-1 gap-5 px-4 py-5 sm:px-6 lg:grid-cols-[19rem_minmax(0,1fr)]" x-data="guideSearch(@js($search))" data-guide-root>
         {{-- Daftar panduan --}}
-        <aside class="space-y-3 lg:sticky lg:top-0 lg:self-start print:hidden" aria-label="Daftar panduan">
+        {{-- di layar kecil daftar disembunyikan saat membaca satu panduan (kembali lewat "Semua panduan") --}}
+        <aside @class(['space-y-3 lg:sticky lg:top-0 lg:block lg:self-start print:hidden', 'hidden' => $current !== null]) aria-label="Daftar panduan"
+               x-on:keydown.down.prevent="move(1)" x-on:keydown.up.prevent="move(-1)" x-on:keydown.home="if ($event.target.dataset.guideItem) { $event.preventDefault(); move('first') }"
+               x-on:keydown.end="if ($event.target.dataset.guideItem) { $event.preventDefault(); move('last') }">
             {{-- Panduan sesuai peran: gabungan menu semua peran, bisa disaring per peran bila lebih dari satu --}}
             @if ($this->canPreview())
                 <div class="rounded-xl border border-stone-200 bg-white px-3 py-2.5 text-xs text-stone-700" data-guide-preview-controls>
@@ -69,7 +72,7 @@
             </p>
 
             @forelse ($this->groups as $group => $items)
-                <section data-guide-group>
+                <section data-guide-group aria-label="{{ $group }}">
                     <p class="mb-1 px-1 text-[11px] font-semibold tracking-wider text-stone-500 uppercase">{{ $group }}</p>
                     <ul class="space-y-0.5">
                         @foreach ($items as $key => $e)
@@ -117,10 +120,17 @@
                     </div>
                     <button type="button" x-on:click="clear()" class="mt-4 rounded-xl bg-emerald-700 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-800" data-guide-clear>Hapus pencarian</button>
                 </div>
+                @if (count($this->groups) > 1)
+                    <nav class="mb-3 flex flex-wrap gap-1.5 text-xs" aria-label="Lompat ke kelompok" data-guide-jump data-guide-when-noquery @if ($search !== '') hidden @endif>
+                        @foreach ($this->groups as $group => $items)
+                            <a href="#grup-{{ \Illuminate\Support\Str::slug($group) }}" class="rounded-full border border-stone-300 bg-white px-3 py-1 font-medium text-stone-700 hover:border-emerald-600 hover:bg-emerald-50">{{ $group }} <span class="text-stone-400">{{ count($items) }}</span></a>
+                        @endforeach
+                    </nav>
+                @endif
                 <p data-guide-when-results @if ($this->groups === [] && $search !== '') hidden @endif class="mb-3 text-sm text-stone-600">{{ $search !== '' ? 'Hasil pencarian “'.$search.'”' : 'Pilih menu untuk melihat langkah-langkahnya.' }}</p>
                 @foreach ($this->groups as $group => $items)
                     <div data-guide-group>
-                    <h2 class="mt-4 mb-2 text-xs font-semibold tracking-wider text-stone-500 uppercase first:mt-0">{{ $group }}</h2>
+                    <h2 id="grup-{{ \Illuminate\Support\Str::slug($group) }}" class="mt-4 mb-2 scroll-mt-4 text-xs font-semibold tracking-wider text-stone-500 uppercase first:mt-0">{{ $group }}</h2>
                     <div class="grid gap-3 sm:grid-cols-2 2xl:grid-cols-3">
                         @foreach ($items as $key => $e)
                             @php $icon = $e['menu'] ? (\App\Support\Menu::ITEMS[$e['menu']]['icon'] ?? null) : 'M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2M12 11a4 4 0 100-8 4 4 0 000 8z'; @endphp
@@ -151,8 +161,21 @@
                 @endforeach
             </section>
         @else
-            <article class="min-w-0 rounded-2xl border border-stone-200 bg-white p-5 sm:p-6" aria-labelledby="guide-title" data-guide="{{ $currentKey }}">
-                <button type="button" wire:click="closeGuide" class="mb-3 text-xs font-medium text-stone-500 hover:text-stone-800 print:hidden" data-guide-back>← Semua panduan</button>
+            @php
+                $keys = $visible;
+                $pos = array_search($currentKey, $keys, true);
+                $prev = $pos > 0 ? $keys[$pos - 1] : null;
+                $next = $pos !== false && $pos < count($keys) - 1 ? $keys[$pos + 1] : null;
+                $name = fn ($k) => $this->entries[$k]['menu'] ? \App\Support\Menu::ITEMS[$this->entries[$k]['menu']]['label'] : 'Akun saya';
+            @endphp
+            <article wire:key="article-{{ $currentKey }}" x-init="$el.getBoundingClientRect().top < 0 && $el.scrollIntoView({ block: 'start' })"
+                     class="min-w-0 scroll-mt-4 rounded-2xl border border-stone-200 bg-white p-5 sm:p-6" aria-labelledby="guide-title" data-guide="{{ $currentKey }}">
+                <div class="mb-3 flex flex-wrap items-center justify-between gap-2 print:hidden">
+                    <button type="button" wire:click="closeGuide" class="text-xs font-medium text-stone-500 hover:text-stone-800" data-guide-back>← Semua panduan</button>
+                    @if ($pos !== false)
+                        <span class="text-[11px] text-stone-500 tabular-nums" data-guide-position>{{ \App\Support\GuideCatalog::groupFor($current['menu']) }} · panduan {{ $pos + 1 }} dari {{ count($keys) }}</span>
+                    @endif
+                </div>
                 <p class="text-xs font-semibold tracking-wider text-emerald-700 uppercase">{{ $current['menu'] ? (\App\Support\Menu::ITEMS[$current['menu']]['label'] ?? '') : 'Akun saya' }}</p>
                 <h2 id="guide-title" class="mt-1 text-xl font-semibold text-stone-900">{{ $current['title'] }}</h2>
                 @if (! $restricted && ($via = $this->via($currentKey)))
@@ -222,13 +245,6 @@
                     </div>
                 @endif
                 @endif
-                @php
-                    $keys = $visible;
-                    $pos = array_search($currentKey, $keys, true);
-                    $prev = $pos > 0 ? $keys[$pos - 1] : null;
-                    $next = $pos !== false && $pos < count($keys) - 1 ? $keys[$pos + 1] : null;
-                    $name = fn ($k) => $this->entries[$k]['menu'] ? \App\Support\Menu::ITEMS[$this->entries[$k]['menu']]['label'] : 'Akun saya';
-                @endphp
                 <nav class="mt-6 flex justify-between gap-3 border-t border-stone-100 pt-4 text-sm print:hidden" aria-label="Panduan lain">
                     @if ($prev)<button type="button" wire:click="open('{{ $prev }}')" class="font-medium text-stone-600 hover:text-stone-900" data-guide-prev="{{ $prev }}">← {{ $name($prev) }}</button>@else<span></span>@endif
                     @if ($next)<button type="button" wire:click="open('{{ $next }}')" class="font-medium text-stone-600 hover:text-stone-900" data-guide-next="{{ $next }}">{{ $name($next) }} →</button>@endif

@@ -1,6 +1,6 @@
 {
   "repo": "Koperasi Sekolah",
-  "generatedForCommit": "63c42260bacdac7c2853ba82b456e3facf948227",
+  "generatedForCommit": "d99cb156e3339bb23c50ea32a49cbba957724a45",
   "files": [
     {
       "path": ".claude/skills/ngodingpakeai/SKILL.md",
@@ -184,7 +184,7 @@
     },
     {
       "path": "app/Livewire/Panduan/Index.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 12430
     },
@@ -208,9 +208,9 @@
     },
     {
       "path": "app/Livewire/Portal/Guide.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 1263
+      "size": 2851
     },
     {
       "path": "app/Livewire/Transaksi/Index.php",
@@ -292,9 +292,9 @@
     },
     {
       "path": "app/Support/GuideCatalog.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 26361
+      "size": 27100
     },
     {
       "path": "app/Support/MockData.php",
@@ -1216,9 +1216,9 @@
     },
     {
       "path": "resources/views/components/layouts/portal.blade.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 6017
+      "size": 6416
     },
     {
       "path": "resources/views/components/menu-link.blade.php",
@@ -1744,7 +1744,7 @@
     },
     {
       "path": "resources/views/livewire/panduan/index.blade.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 22388
     },
@@ -1966,9 +1966,9 @@
     },
     {
       "path": "resources/views/livewire/portal/guide.blade.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 2336
+      "size": 5389
     },
     {
       "path": "resources/views/livewire/portal/home.blade.php",
@@ -2452,9 +2452,9 @@
     },
     {
       "path": "tests/Feature/Panduan/GuideButtonTest.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 2511
+      "size": 2565
     },
     {
       "path": "tests/Feature/Panduan/GuideCenterPageTest.php",
@@ -2493,6 +2493,12 @@
       "size": 2155
     },
     {
+      "path": "tests/Feature/Panduan/PortalGuideTest.php",
+      "reason": "new",
+      "language": "php",
+      "size": 3760
+    },
+    {
       "path": "tests/Feature/Panduan/RestrictedGuidesTest.php",
       "reason": "needs_summary",
       "language": "php",
@@ -2500,7 +2506,7 @@
     },
     {
       "path": "tests/Feature/Panduan/RoleGuidePageTest.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 10043
     },
