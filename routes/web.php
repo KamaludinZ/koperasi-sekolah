@@ -43,6 +43,7 @@ use App\Http\Controllers\Notifikasi\AnnouncementController;
 use App\Http\Controllers\Notifikasi\NotificationController;
 use App\Http\Controllers\Panduan\GuideAdminController;
 use App\Http\Controllers\Panduan\GuideController;
+use App\Http\Controllers\Panduan\GuideUpdateController;
 use App\Http\Controllers\Pengadaan\GoodsReceiptController;
 use App\Http\Controllers\Pengadaan\PurchaseOrderController;
 use App\Http\Controllers\Pengadaan\SupplierBillController;
@@ -222,6 +223,13 @@ Route::middleware(['menu', 'auth', 'throttle:120,1'])->group(function () {
     Route::get('/panduan/data', [GuideController::class, 'index'])->name('panduan.data');
     Route::get('/panduan/data/{key}', [GuideController::class, 'show'])->where('key', '[a-z0-9._-]{1,60}')->name('panduan.show');
 });
+// Hasil pemindaian & draf panduan (pengelola panduan, baca saja)
+Route::middleware(['menu', 'auth', 'can:kelola-panduan', 'throttle:30,1'])->prefix('/panduan/pembaruan')->group(function () {
+    Route::get('/pemindaian', [GuideUpdateController::class, 'scan'])->name('panduan.pembaruan.scan');
+    Route::get('/draf', [GuideUpdateController::class, 'drafts'])->name('panduan.pembaruan.drafts');
+    Route::get('/draf/{key}', [GuideUpdateController::class, 'draft'])->where('key', '[a-z0-9._-]{1,60}')->name('panduan.pembaruan.draft');
+});
+
 // Edit manual panduan (Admin): lapisan override + versi + audit
 Route::middleware(['menu', 'auth', 'can:kelola-panduan', 'throttle:30,1'])->prefix('/panduan/kelola/{key}')->where(['key' => '[a-z0-9._-]{1,60}'])->group(function () {
     Route::get('/', [GuideAdminController::class, 'show'])->name('panduan.kelola');
