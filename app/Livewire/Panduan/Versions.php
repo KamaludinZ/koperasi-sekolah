@@ -3,11 +3,11 @@
 namespace App\Livewire\Panduan;
 
 use App\Models\GuideEntry;
-use App\Models\GuideOverride;
 use App\Models\GuideVersion;
 use App\Services\AuditIntegrity;
 use App\Services\GuideOverrideService;
 use App\Services\GuideService;
+use App\Services\GuideVersionQuery;
 use App\Support\GuideVersionDiff;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
@@ -156,7 +156,7 @@ class Versions extends Component
         $r = $overrides->restore($this->entry, $target, Auth::guard('web')->user(), $this->reason);
         $this->dispatch('toast', type: 'success', message: $r['version'] ? "Panduan dipulihkan ke isi versi {$target->version} (tercatat sebagai versi {$r['version']->version})." : 'Isi panduan sudah sama dengan versi itu.');
         $this->cancelRestore();
-        unset($this->versions, $this->active, $this->typeCounts, $this->previous, $this->entry, $this->audits);
+        unset($this->versions, $this->active, $this->typeCounts, $this->changes, $this->entry, $this->audits);
     }
 
     /** Bandingkan versi ini dengan versi sebelumnya. */
@@ -234,39 +234,19 @@ class Versions extends Component
         return array_map(fn ($t) => (int) ($counts[$t] ?? 0), array_combine(array_keys(GuideVersion::TYPES), array_keys(GuideVersion::TYPES)));
     }
 
-    /**
-     * Cuplikan versi sebelumnya untuk versi di halaman ini, dalam satu kueri (nomor versi berurutan per panduan).
-     *
-     * @return array<string, array> "entry_id:version" → cuplikan
-     */
+    /** Bagian yang berubah per versi di halaman ini (dimuat sekaligus). @return array<string, ?list<string>> */
     #[Computed]
-    public function previous(): array
+    public function changes(): array
     {
-        $items = $this->versions->getCollection();
-        if ($items->isEmpty()) {
-            return [];
-        }
-
-        return GuideVersion::query()->whereIn('guide_entry_id', $items->pluck('guide_entry_id')->unique())
-            ->whereIn('version', $items->pluck('version')->map(fn ($n) => $n - 1)->filter()->unique())
-            ->get(['guide_entry_id', 'version', 'snapshot'])
-            ->mapWithKeys(fn ($v) => [$v->guide_entry_id.':'.($v->version + 1) => $v->snapshot])->all();
+        return app(GuideVersionQuery::class)->changedFields($this->versions->getCollection());
     }
 
-    /**
-     * Bagian yang berubah dibanding versi sebelumnya panduan yang sama.
-     *
-     * @return ?list<string> null untuk versi pertama
-     */
+    /** Label bagian yang berubah dibanding versi sebelumnya (null untuk versi pertama). @return ?list<string> */
     public function changedFields(GuideVersion $v): ?array
     {
-        $before = $this->previous[$v->guide_entry_id.':'.$v->version] ?? null;
-        if ($before === null) {
-            return null;
-        }
-        $labels = GuideOverride::FIELDS + ['overridden' => 'Penanda suntingan'];
+        $fields = $this->changes[$v->guide_entry_id.':'.$v->version] ?? null;
 
-        return array_values(array_map(fn ($f) => $labels[$f], array_filter(array_keys($labels), fn ($f) => ($before[$f] ?? null) != ($v->snapshot[$f] ?? null))));
+        return $fields === null ? null : array_map(fn ($f) => GuideVersionQuery::CHANGE_LABELS[$f], $fields);
     }
 
     /**
@@ -282,19 +262,8 @@ class Versions extends Component
         if ($ids === []) {
             return [];
         }
-        $guides = app(GuideService::class);
-        $current = GuideEntry::with('overrides')->whereKey($ids)->get()->mapWithKeys(fn ($e) => [$e->id => GuideVersion::hashOf($guides->snapshot($e))]);
-        // versi terbaru yang sidik jarinya sama dengan isi sekarang — satu kueri untuk semua panduan di halaman
-        $matches = GuideVersion::whereIn('guide_entry_id', $ids)->whereIn('content_hash', $current->values()->unique())
-            ->selectRaw('guide_entry_id, content_hash, max(version) as version')->groupBy('guide_entry_id', 'content_hash')->get();
-        $out = array_fill_keys($ids, null);
-        foreach ($matches as $m) {
-            if ($current[$m->guide_entry_id] === $m->content_hash) {
-                $out[$m->guide_entry_id] = (int) $m->version;
-            }
-        }
 
-        return $out;
+        return app(GuideVersionQuery::class)->active($ids);
     }
 
     public function render()

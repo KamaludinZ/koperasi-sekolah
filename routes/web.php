@@ -45,6 +45,7 @@ use App\Http\Controllers\Panduan\GuideAdminController;
 use App\Http\Controllers\Panduan\GuideController;
 use App\Http\Controllers\Panduan\GuideHistoryController;
 use App\Http\Controllers\Panduan\GuideUpdateController;
+use App\Http\Controllers\Panduan\GuideVersionController;
 use App\Http\Controllers\Pengadaan\GoodsReceiptController;
 use App\Http\Controllers\Pengadaan\PurchaseOrderController;
 use App\Http\Controllers\Pengadaan\SupplierBillController;
@@ -245,6 +246,12 @@ Route::middleware(['menu', 'auth', 'can:kelola-panduan', 'throttle:30,1'])->pref
 });
 
 // Edit manual panduan (Admin): lapisan override + versi + audit
+// Daftar versi panduan (pengelola panduan & pemegang menu Audit, baca saja)
+Route::middleware(['menu', 'auth', 'can:lihat-riwayat-panduan', 'throttle:60,1'])->prefix('/panduan/versi/data')->group(function () {
+    Route::get('/', [GuideVersionController::class, 'index'])->name('panduan.versi.data');
+    Route::get('/{key}', [GuideVersionController::class, 'forGuide'])->where('key', '[a-z0-9._-]{1,60}')->name('panduan.versi.guide');
+    Route::get('/{key}/{version}', [GuideVersionController::class, 'show'])->where('key', '[a-z0-9._-]{1,60}')->whereNumber('version')->name('panduan.versi.show');
+});
 // Riwayat perubahan panduan untuk audit (pengelola panduan & pemegang menu Audit, baca saja)
 Route::middleware(['menu', 'auth', 'can:lihat-riwayat-panduan', 'throttle:60,1'])->prefix('/panduan/riwayat')->group(function () {
     Route::get('/', [GuideHistoryController::class, 'index'])->name('panduan.riwayat');
