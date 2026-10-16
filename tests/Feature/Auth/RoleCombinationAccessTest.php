@@ -25,13 +25,13 @@ class RoleCombinationAccessTest extends TestCase
     /** Halaman yang boleh dibuka tiap peran TUNGGAL dengan hak menu bawaan (keputusan produk). */
     private const SPEC = [
         'kasir' => [
-            '/kasir', '/pesanan', '/transaksi', '/transaksi/retur', '/transaksi/retur/riwayat',
+            '/kasir', '/pesanan', '/transaksi', '/transaksi/retur', '/transaksi/retur/riwayat', '/transaksi/offline',
             '/kas', '/kas/rekap', '/kas/shift',
             '/barang', '/barang/barcode', '/barang/barcode/label', '/barang/kategori', '/barang/riwayat-stok', '/barang/saran-restok',
             '/promo', '/promo/jadwal', '/anggota', '/anggota/piutang',
         ],
         'pengurus' => [
-            '/pesanan', '/transaksi', '/transaksi/retur', '/transaksi/retur/riwayat',
+            '/pesanan', '/transaksi', '/transaksi/retur', '/transaksi/retur/riwayat', '/transaksi/offline',
             '/kas', '/kas/rekap', '/kas/shift',
             '/barang', '/barang/barcode', '/barang/barcode/label', '/barang/kategori', '/barang/riwayat-stok', '/barang/saran-restok',
             '/barang/impor', '/barang/impor/riwayat',

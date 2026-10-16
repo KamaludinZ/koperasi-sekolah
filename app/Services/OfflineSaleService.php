@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\CashShift;
+use App\Models\Notification;
 use App\Models\OfflineSale;
 use App\Models\PosOfflineCatalog;
 use App\Models\Product;
@@ -10,6 +11,7 @@ use App\Models\User;
 use App\Support\PriceCalculator;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Route;
 use Illuminate\Validation\ValidationException;
 
 /**
@@ -76,11 +78,40 @@ class OfflineSaleService
             $sale = OfflineSale::create($base + ['status' => 'ditolak', 'reason' => $reason]);
             AuditLog::record('sale.offline_rejected', 'transaksi', "Penjualan offline {$s['local_number']} ditolak: {$reason}",
                 null, ['client_ref' => $s['client_ref'], 'device_id' => $s['device_id'], 'total' => $s['total']], $s['total'], reason: $reason);
+            $this->notifyProblem();
 
             return $sale;
         }
 
-        return DB::transaction(fn () => $this->record($user, $s, $base));
+        $sale = DB::transaction(fn () => $this->record($user, $s, $base));
+        if ($sale->status === 'perlu_dicek') {
+            $this->notifyProblem();
+        }
+
+        return $sale;
+    }
+
+    /** Tandai kiriman bermasalah (perlu dicek / ditolak) sudah ditinjau dengan catatan; dicatat di audit. */
+    public function review(OfflineSale $sale, User $by, string $note): void
+    {
+        $note = mb_substr(trim($note), 0, 300);
+        $sale->update(['reviewed_by' => $by->id, 'reviewed_at' => now(), 'review_note' => $note]);
+        AuditLog::record('sale.offline_reviewed', 'transaksi', "Penjualan offline {$sale->local_number} ditinjau (".OfflineSale::STATUSES[$sale->status].')',
+            $sale->transaction_id ? ['type' => 'transaction', 'id' => $sale->transaction_id, 'label' => $sale->transaction?->invoice_number] : null,
+            ['offline_sale_id' => $sale->id, 'status' => $sale->status, 'flags' => array_keys($sale->flags ?? [])], action: 'diubah', reason: $note);
+    }
+
+    /** Beri tahu Admin & Pengurus bila ada kiriman offline yang perlu ditinjau (satu pemberitahuan per hari, jumlahnya diperbarui). */
+    private function notifyProblem(): void
+    {
+        $open = OfflineSale::whereIn('status', ['perlu_dicek', 'ditolak'])->whereNull('reviewed_at')->count();
+        $url = Route::has('transaksi.offline') ? route('transaksi.offline') : null;
+        foreach (['admin', 'pengurus'] as $target) {
+            Notification::updateOrCreate(['dedupe_key' => "offline-perlu-tinjau-{$target}-".now()->toDateString()], [
+                'type' => 'sistem', 'target' => $target, 'url' => $url, 'title' => 'Penjualan offline perlu ditinjau',
+                'message' => "{$open} kiriman dari kasir offline perlu dicek (stok kurang, tanpa shift, atau ditolak).",
+            ]);
+        }
     }
 
     /** Alasan penolakan (null bila sah). */

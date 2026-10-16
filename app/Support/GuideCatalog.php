@@ -36,6 +36,7 @@ class GuideCatalog
                     'Tombol Bayar aman ditekan sekali — transaksi yang sama tidak tercatat dua kali walau jaringan putus.',
                     'Stok berkurang otomatis dan tercatat di riwayat stok barang.',
                     'Daftar barang diurutkan dari yang paling laku (label Terlaris); barang lain dicari dengan nama/kode, kategori, atau scan barcode. Jumlah & periodenya diatur Admin di Pengaturan → Layar kasir.',
+                    'Sinyal hilang? Tekan Buka kasir offline (atau buka /kasir/offline): tetap bisa berjualan tunai/QRIS dari katalog di perangkat, struk sementara OFF-…; penjualan terkirim otomatis saat tersambung dan muncul di Transaksi → Penjualan offline. Buka layar Kasir sekali tiap hari saat online agar katalog perangkat terbaru.',
                 ],
                 'related' => ['kas' => 'Kas Harian', 'transaksi' => 'Riwayat transaksi'],
             ],

@@ -1,6 +1,6 @@
 {{-- Navigasi bagian Transaksi. `active` = nama route halaman ini. --}}
 @props(['active'])
-@php $items = ['transaksi' => 'Riwayat', 'transaksi.retur' => 'Retur & pembatalan', 'transaksi.retur.riwayat' => 'Riwayat retur', 'pesanan' => 'Pesanan anggota']; @endphp
+@php $items = ['transaksi' => 'Riwayat', 'transaksi.retur' => 'Retur & pembatalan', 'transaksi.retur.riwayat' => 'Riwayat retur', 'transaksi.offline' => 'Penjualan offline', 'pesanan' => 'Pesanan anggota']; @endphp
 <nav class="mt-3 -mb-px flex gap-1 overflow-x-auto" aria-label="Bagian transaksi">
     @foreach ($items as $route => $label)
         <a href="{{ route($route) }}" wire:navigate @if ($active === $route) aria-current="page" @endif

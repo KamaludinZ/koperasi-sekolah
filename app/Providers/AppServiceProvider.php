@@ -136,6 +136,8 @@ class AppServiceProvider extends ServiceProvider
 
         // Retur & pembatalan transaksi disetujui/ditolak oleh Admin & Pengurus pemegang menu Transaksi.
         Gate::define('setujui-retur', fn (User $user) => $user->hasRole(Role::ADMIN, Role::PENGURUS) && $user->canOpen('transaksi'));
+        // Tinjau kiriman kasir offline yang bermasalah (stok kurang, tanpa shift, ditolak).
+        Gate::define('tinjau-penjualan-offline', fn (User $user) => $user->hasRole(Role::ADMIN, Role::PENGURUS) && $user->canOpen('transaksi'));
 
         // Data terhapus lunak bisa dilihat siapa pun yang punya menu Audit; memulihkannya khusus Admin.
         // Masuk sebagai akun lain (impersonasi): hanya Admin aktif pemegang menu Pengguna, tidak berantai.
