@@ -7,7 +7,7 @@
     @php $hay = fn ($k, $e) => \App\Support\GuideCatalog::haystack($k, $e); @endphp
     <div class="grid flex-1 gap-5 px-4 py-5 sm:px-6 lg:grid-cols-[19rem_minmax(0,1fr)]" x-data="guideSearch(@js($search))" data-guide-root>
         {{-- Daftar panduan --}}
-        <aside class="space-y-3 lg:sticky lg:top-0 lg:self-start" aria-label="Daftar panduan">
+        <aside class="space-y-3 lg:sticky lg:top-0 lg:self-start print:hidden" aria-label="Daftar panduan">
             <label class="relative block">
                 <span class="sr-only">Cari panduan</span>
                 <svg class="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-stone-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
@@ -71,17 +71,31 @@
             </section>
         @else
             <article class="min-w-0 rounded-2xl border border-stone-200 bg-white p-5 sm:p-6" aria-labelledby="guide-title" data-guide="{{ $currentKey }}">
-                <button type="button" wire:click="closeGuide" class="mb-3 text-xs font-medium text-stone-500 hover:text-stone-800" data-guide-back>← Semua panduan</button>
+                <button type="button" wire:click="closeGuide" class="mb-3 text-xs font-medium text-stone-500 hover:text-stone-800 print:hidden" data-guide-back>← Semua panduan</button>
                 <p class="text-xs font-semibold tracking-wider text-emerald-700 uppercase">{{ $current['menu'] ? (\App\Support\Menu::ITEMS[$current['menu']]['label'] ?? '') : 'Akun saya' }}</p>
                 <h2 id="guide-title" class="mt-1 text-xl font-semibold text-stone-900">{{ $current['title'] }}</h2>
                 <p class="mt-2 max-w-prose text-sm leading-relaxed text-stone-700" data-guide-summary>{{ $current['summary'] }}</p>
 
-                <h3 class="mt-6 text-sm font-semibold text-stone-900">Langkah-langkah</h3>
+                @php $total = count($current['steps']); @endphp
+                <div wire:key="steps-{{ $currentKey }}" x-data="guideProgress(@js('panduan:'.auth()->id().':'.$currentKey), {{ $total }})" data-guide-progress>
+                    <div class="mt-6 flex flex-wrap items-center gap-3">
+                        <h3 class="text-sm font-semibold text-stone-900">Langkah-langkah</h3>
+                        <span class="text-xs text-stone-500 tabular-nums" aria-live="polite"><span x-text="done.length">0</span> dari {{ $total }} langkah</span>
+                        <div class="h-1.5 min-w-24 flex-1 overflow-hidden rounded-full bg-stone-100 print:hidden" aria-hidden="true">
+                            <div class="h-full rounded-full bg-emerald-600 transition-all" x-bind:style="`width: ${Math.round(done.length / {{ $total }} * 100)}%`"></div>
+                        </div>
+                        <button type="button" x-show="done.length" x-cloak x-on:click="reset()" class="text-xs font-medium text-stone-500 hover:text-stone-800 print:hidden">Ulangi</button>
+                        <button type="button" onclick="window.print()" class="text-xs font-medium text-emerald-800 hover:underline print:hidden" data-guide-print>Cetak</button>
+                    </div>
                 <ol class="mt-3 space-y-3" data-guide-steps>
                     @foreach ($current['steps'] as $i => $step)
-                        <li class="flex gap-3">
-                            <span class="grid size-7 shrink-0 place-items-center rounded-full bg-emerald-700 text-xs font-bold text-white" aria-hidden="true">{{ $i + 1 }}</span>
-                            <div class="min-w-0 pt-0.5 text-sm text-stone-800">
+                        <li class="flex gap-3" x-bind:class="has({{ $i }}) && 'opacity-60'">
+                            <button type="button" x-on:click="toggle({{ $i }})" x-bind:aria-pressed="has({{ $i }})" aria-label="Tandai langkah {{ $i + 1 }} selesai" data-guide-step-toggle="{{ $i }}"
+                                    class="grid size-7 shrink-0 place-items-center rounded-full text-xs font-bold text-white transition print:border print:border-stone-400 print:bg-white print:text-stone-900"
+                                    x-bind:class="has({{ $i }}) ? 'bg-stone-400' : 'bg-emerald-700 hover:bg-emerald-800'">
+                                <span x-show="! has({{ $i }})">{{ $i + 1 }}</span><span x-show="has({{ $i }})" x-cloak aria-hidden="true">✓</span>
+                            </button>
+                            <div class="min-w-0 pt-0.5 text-sm text-stone-800" x-bind:class="has({{ $i }}) && 'line-through decoration-stone-300'">
                                 {{ $step['text'] }}
                                 @if (($step['route'] ?? null) && \App\Support\Menu::canReach($step['route']))
                                     <a href="{{ route($step['route']) }}" wire:navigate class="ml-1 font-medium whitespace-nowrap text-emerald-800 hover:underline">Buka →</a>
@@ -90,6 +104,7 @@
                         </li>
                     @endforeach
                 </ol>
+                </div>
 
                 @if ($current['tips'])
                     <div class="mt-6 rounded-xl bg-amber-50 px-4 py-3 text-sm text-amber-900" data-guide-tips>
@@ -109,6 +124,17 @@
                         @endforeach
                     </div>
                 @endif
+                @php
+                    $keys = array_keys($this->entries);
+                    $pos = array_search($currentKey, $keys, true);
+                    $prev = $pos > 0 ? $keys[$pos - 1] : null;
+                    $next = $pos !== false && $pos < count($keys) - 1 ? $keys[$pos + 1] : null;
+                    $name = fn ($k) => $this->entries[$k]['menu'] ? \App\Support\Menu::ITEMS[$this->entries[$k]['menu']]['label'] : 'Akun saya';
+                @endphp
+                <nav class="mt-6 flex justify-between gap-3 border-t border-stone-100 pt-4 text-sm print:hidden" aria-label="Panduan lain">
+                    @if ($prev)<button type="button" wire:click="open('{{ $prev }}')" class="font-medium text-stone-600 hover:text-stone-900" data-guide-prev="{{ $prev }}">← {{ $name($prev) }}</button>@else<span></span>@endif
+                    @if ($next)<button type="button" wire:click="open('{{ $next }}')" class="font-medium text-stone-600 hover:text-stone-900" data-guide-next="{{ $next }}">{{ $name($next) }} →</button>@endif
+                </nav>
             </article>
         @endif
     </div>

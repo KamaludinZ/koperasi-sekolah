@@ -1,6 +1,6 @@
 {
   "repo": "Koperasi Sekolah",
-  "generatedForCommit": "ecefe8ee45da8952c87f29c439e8a031434d3abb",
+  "generatedForCommit": "f029c7f8a5fd23012a679c9a8b23e47378dc8678",
   "files": [
     {
       "path": ".claude/skills/ngodingpakeai/SKILL.md",
@@ -174,7 +174,7 @@
       "path": "app/Livewire/Panduan/Index.php",
       "reason": "changed",
       "language": "php",
-      "size": 2620
+      "size": 2533
     },
     {
       "path": "app/Livewire/Pengaturan/Index.php",
@@ -250,9 +250,9 @@
     },
     {
       "path": "app/Support/GuideCatalog.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 24097
+      "size": 26135
     },
     {
       "path": "app/Support/MockData.php",
@@ -976,9 +976,9 @@
     },
     {
       "path": "resources/js/app.js",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "javascript",
-      "size": 1736
+      "size": 1830
     },
     {
       "path": "resources/js/barcode-reader.js",
@@ -1003,6 +1003,12 @@
       "reason": "needs_summary",
       "language": "javascript",
       "size": 1289
+    },
+    {
+      "path": "resources/js/guide-search.js",
+      "reason": "new",
+      "language": "javascript",
+      "size": 2506
     },
     {
       "path": "resources/js/menu-watch.js",
@@ -1674,7 +1680,7 @@
       "path": "resources/views/livewire/panduan/index.blade.php",
       "reason": "changed",
       "language": "php",
-      "size": 8175
+      "size": 8961
     },
     {
       "path": "resources/views/livewire/pengadaan/index.blade.php",
@@ -2374,9 +2380,15 @@
     },
     {
       "path": "tests/Feature/Panduan/GuideCenterPageTest.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 4712
+    },
+    {
+      "path": "tests/Feature/Panduan/GuideSearchTest.php",
+      "reason": "new",
+      "language": "php",
+      "size": 1972
     },
     {
       "path": "tests/Feature/Pengaturan/IndexTest.php",

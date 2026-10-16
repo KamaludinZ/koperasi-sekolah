@@ -27,7 +27,7 @@
     {{-- Latar drawer navigasi (layar kecil) --}}
     <div x-show="nav" x-cloak x-transition.opacity x-on:click="nav = false" class="fixed inset-0 z-40 bg-stone-950/50 lg:hidden"></div>
 
-    <aside class="fixed inset-y-0 left-0 z-50 isolate flex w-64 shrink-0 flex-col overflow-hidden bg-emerald-950 text-emerald-50 transition-transform duration-200 max-lg:-translate-x-full lg:relative lg:w-60"
+    <aside class="print:hidden fixed inset-y-0 left-0 z-50 isolate flex w-64 shrink-0 flex-col overflow-hidden bg-emerald-950 text-emerald-50 transition-transform duration-200 max-lg:-translate-x-full lg:relative lg:w-60"
            x-bind:class="nav && 'max-lg:translate-x-0!'">
         <div class="pattern-madrasah absolute inset-0 -z-10 opacity-[0.07]" aria-hidden="true"></div>
         <div class="mx-3 mt-4 mb-2 flex items-center gap-1">
@@ -145,7 +145,7 @@
         <x-impersonation-banner />
 
         {{-- Bar atas (layar kecil) --}}
-        <div class="flex items-center gap-3 bg-emerald-950 px-3 py-2.5 text-white lg:hidden">
+        <div class="flex items-center gap-3 bg-emerald-950 px-3 py-2.5 text-white lg:hidden print:hidden">
             <button type="button" x-on:click="nav = true" aria-label="Buka menu"
                     class="grid size-10 place-items-center rounded-lg hover:bg-emerald-900">
                 <svg class="size-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
