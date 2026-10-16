@@ -2,10 +2,13 @@
 
 namespace App\Livewire\Panduan;
 
+use App\Models\Role;
 use App\Services\GuideService;
+use App\Services\PermissionMerger;
 use App\Support\GuideCatalog;
 use App\Support\Menu;
 use App\Support\Petugas;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
@@ -18,7 +21,8 @@ use Livewire\Component;
  * (judul, ringkasan, langkah, tips), dan isi panduan terpilih berupa ringkasan + langkah praktis berurutan, tips,
  * serta tautan ke halaman terkait. Sumber isi: GuideService (isi otomatis + suntingan admin).
  * Sesuai peran: hanya menu dari gabungan izin semua peran petugas; petugas multi-peran bisa menyaring per peran
- * (?peran=) dan tiap panduan menandai lewat peran mana menunya terbuka.
+ * (?peran=) dan tiap panduan menandai lewat peran mana menunya terbuka. Pengelola panduan (gate kelola-panduan) dapat
+ * meninjau daftar dengan izin tiruan satu/beberapa peran (?sebagai=kasir,pengurus) tanpa mengubah akun apa pun.
  */
 #[Layout('components.layouts.app')]
 #[Title('Pusat Panduan')]
@@ -38,6 +42,10 @@ class Index extends Component
     #[Url(as: 'peran', except: '')]
     public $role = '';
 
+    /** Pratinjau sebagai peran lain (nama peran dipisah koma) — hanya untuk pengelola panduan. */
+    #[Url(as: 'sebagai', except: '')]
+    public $preview = '';
+
     public function mount(): void
     {
         $this->normalize();
@@ -51,6 +59,8 @@ class Index extends Component
     private function normalize(): void
     {
         $this->search = is_string($this->search) ? mb_substr(trim($this->search), 0, 60) : '';
+        $this->preview = $this->canPreview() ? implode(',', $this->previewRoles()) : '';
+        unset($this->viewer, $this->myRoles, $this->sources, $this->roleCounts, $this->restrictedCount);
         $this->selected = is_string($this->selected) && isset($this->entries[$this->selected]) ? $this->selected : '';
         $this->showRestricted = filter_var($this->showRestricted, FILTER_VALIDATE_BOOLEAN);
         $this->role = is_string($this->role) && count($this->myRoles) > 1 && in_array($this->role, $this->myRoles, true) ? $this->role : '';
@@ -60,30 +70,86 @@ class Index extends Component
         }
     }
 
-    /** Petugas boleh membuka menu panduan ini (gabungan izin semua perannya); panduan umum selalu boleh. */
+    /** Pengelola panduan boleh meninjau daftar dengan izin tiruan peran lain. */
+    public function canPreview(): bool
+    {
+        return (bool) Auth::guard('web')->user()?->can('kelola-panduan');
+    }
+
+    /** Nama peran pratinjau yang sah (dikenal, tanpa duplikat, urut prioritas). @return list<string> */
+    private function previewRoles(): array
+    {
+        $names = is_string($this->preview) ? array_map('trim', explode(',', mb_substr($this->preview, 0, 100))) : [];
+
+        return Role::sortNames(array_values(array_unique(array_intersect($names, array_keys(Role::LABELS)))));
+    }
+
+    /**
+     * Pengguna yang izinnya dipakai menyaring panduan: petugas yang masuk, atau pengguna tiruan berizin gabungan
+     * peran pratinjau (dibaca dari roles.permissions saat ini).
+     *
+     * @return array{role: ?string, roles: list<string>, permissions: list<string>, is_active: bool, mock?: bool}
+     */
+    #[Computed]
+    public function viewer(): array
+    {
+        if ($this->preview !== '' && ($names = $this->previewRoles())) {
+            $merged = app(PermissionMerger::class)->mergeNames($names);
+
+            return ['role' => $merged['primary'], 'roles' => $merged['roles'], 'permissions' => $merged['permissions'], 'is_active' => true, 'mock' => true];
+        }
+
+        return Petugas::current() ?? ['role' => null, 'roles' => [], 'permissions' => [], 'is_active' => false];
+    }
+
+    /** Tambah/lepas satu peran dari pratinjau (kosong = kembali ke izin sendiri). */
+    public function togglePreview(string $role): void
+    {
+        if (! $this->canPreview() || ! isset(Role::LABELS[$role])) {
+            return;
+        }
+        $names = $this->previewRoles();
+        $names = in_array($role, $names, true) ? array_diff($names, [$role]) : [...$names, $role];
+        $this->preview = implode(',', $names);
+        $this->role = '';
+        $this->normalize();
+    }
+
+    public function endPreview(): void
+    {
+        $this->preview = '';
+        $this->role = '';
+        $this->normalize();
+    }
+
+    /** Pembaca boleh membuka menu panduan ini (gabungan izin semua perannya); panduan umum selalu boleh. */
     public function allowed(string $key): bool
     {
         $menu = $this->entries[$key]['menu'] ?? null;
 
-        return $menu === null || Menu::userCan(Petugas::current() ?? ['permissions' => []], $menu);
+        return $menu === null || Menu::userCan($this->viewer, $menu);
+    }
+
+    /** Pembaca boleh membuka halaman tujuan tautan langkah/halaman terkait. */
+    public function reach(string $route): bool
+    {
+        return Menu::canReach($route, $this->viewer);
     }
 
     /** Peran petugas yang sedang masuk (urut prioritas). @return list<string> */
     #[Computed]
     public function myRoles(): array
     {
-        $user = Petugas::current();
+        $user = $this->viewer;
 
-        return $user ? array_values($user['roles'] ?: array_filter([$user['role']])) : [];
+        return array_values($user['roles'] ?: array_filter([$user['role']]));
     }
 
     /** Asal peran tiap menu milik petugas: [menu => [peran, …]]. @return array<string, list<string>> */
     #[Computed]
     public function sources(): array
     {
-        $user = Petugas::current();
-
-        return $user ? Menu::sourcesFor($user) : [];
+        return Menu::sourcesFor($this->viewer);
     }
 
     /**

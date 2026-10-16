@@ -12,6 +12,25 @@
         {{-- Daftar panduan --}}
         <aside class="space-y-3 lg:sticky lg:top-0 lg:self-start print:hidden" aria-label="Daftar panduan">
             {{-- Panduan sesuai peran: gabungan menu semua peran, bisa disaring per peran bila lebih dari satu --}}
+            @if ($this->canPreview())
+                <div class="rounded-xl border border-stone-200 bg-white px-3 py-2.5 text-xs text-stone-700" data-guide-preview-controls>
+                    <p class="font-semibold text-stone-900">Pratinjau sebagai peran</p>
+                    <p class="mt-0.5 text-stone-500">Lihat daftar panduan dengan izin peran lain (gabungan bila memilih lebih dari satu).</p>
+                    <div class="mt-2 flex flex-wrap gap-1" role="group" aria-label="Pratinjau izin peran">
+                        @foreach (\App\Models\Role::LABELS as $r => $label)
+                            @php $on = in_array($r, explode(',', $preview), true); @endphp
+                            <button type="button" wire:click="togglePreview('{{ $r }}')" aria-pressed="{{ $on ? 'true' : 'false' }}" data-guide-preview-role="{{ $r }}"
+                                    @class(['rounded-full px-2.5 py-0.5 font-medium', 'bg-sky-700 text-white' => $on, 'border border-stone-300 bg-white text-stone-700 hover:bg-stone-100' => ! $on])>{{ $label }}</button>
+                        @endforeach
+                    </div>
+                </div>
+            @endif
+            @if ($preview !== '')
+                <div class="rounded-xl border border-sky-200 bg-sky-50 px-3 py-2.5 text-xs text-sky-950" role="status" data-guide-preview-banner>
+                    <p><strong>Mode pratinjau</strong> — daftar ini memakai izin tiruan, bukan izin akun Anda.</p>
+                    <button type="button" wire:click="endPreview" class="mt-1 font-semibold text-sky-800 hover:underline" data-guide-preview-end>Kembali ke izin saya</button>
+                </div>
+            @endif
             <div class="rounded-xl border border-emerald-100 bg-emerald-50/60 px-3 py-2.5 text-xs text-emerald-950" data-guide-roles>
                 <p>Panduan untuk peran <strong>{{ collect($this->myRoles)->map($roleLabel)->join(', ', ' & ') ?: '—' }}</strong> · {{ count($this->sources) }} menu</p>
                 @if (count($this->myRoles) > 1)
@@ -163,7 +182,7 @@
                             </button>
                             <div class="min-w-0 pt-0.5 text-sm text-stone-800" x-bind:class="has({{ $i }}) && 'line-through decoration-stone-300'">
                                 {{ $step['text'] }}
-                                @if (($step['route'] ?? null) && \App\Support\Menu::canReach($step['route']))
+                                @if (($step['route'] ?? null) && $this->reach($step['route']))
                                     <a href="{{ route($step['route']) }}" wire:navigate class="ml-1 font-medium whitespace-nowrap text-emerald-800 hover:underline">Buka →</a>
                                 @endif
                             </div>
@@ -181,7 +200,7 @@
                     </div>
                 @endif
 
-                @php $related = collect($current['related'])->filter(fn ($l, $r) => \App\Support\Menu::canReach($r)); @endphp
+                @php $related = collect($current['related'])->filter(fn ($l, $r) => $this->reach($r)); @endphp
                 @if ($related->isNotEmpty())
                     <div class="mt-6 flex flex-wrap items-center gap-2 border-t border-stone-100 pt-4 text-sm">
                         <span class="text-stone-500">Halaman terkait:</span>

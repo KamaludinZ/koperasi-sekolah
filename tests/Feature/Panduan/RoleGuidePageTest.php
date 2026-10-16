@@ -74,4 +74,55 @@ class RoleGuidePageTest extends TestCase
             $this->assertContains($k, [...Role::named('kasir')->permissions, 'akun'], "tautan ke panduan tersembunyi: {$k}");
         }
     }
+
+    private function admin(): User
+    {
+        return User::where('email', 'admin@koperasi.test')->first();
+    }
+
+    public function test_admin_previews_list_with_mock_role_permissions(): void
+    {
+        $this->actingAs($this->admin(), 'web');
+        $c = Livewire::test(Index::class)->assertSeeHtml('data-guide-preview-controls')->assertDontSeeHtml('data-guide-preview-banner')
+            ->assertSeeHtml('data-guide-card="pengguna"')
+            ->call('togglePreview', 'kasir')->assertSet('preview', 'kasir')
+            ->assertSeeHtml('data-guide-preview-banner')->assertSeeText('Panduan untuk peran Kasir');
+        foreach (Role::named('kasir')->permissions as $menu) {
+            $c->assertSeeHtml('data-guide-card="'.$menu.'"');
+        }
+        $c->assertDontSeeHtml('data-guide-card="pengguna"')->assertDontSeeHtml('data-guide-card="pinjaman"')
+            ->assertSeeText('Tampilkan menu terbatas')
+            ->call('togglePreview', 'pengurus')->assertSet('preview', 'pengurus,kasir')                   // gabungan, urut prioritas
+            ->assertSeeHtml('data-guide-card="pinjaman"')->assertSeeHtml('data-guide-via="kasir"')
+            ->assertSeeHtml('data-guide-role="pengurus"')
+            ->call('endPreview')->assertSet('preview', '')->assertSeeHtml('data-guide-card="pengguna"');
+    }
+
+    public function test_preview_follows_current_role_permissions_and_ignores_unknown_names(): void
+    {
+        $kasir = Role::named('kasir');
+        $kasir->update(['permissions' => ['kasir', 'transaksi']]);
+        $this->actingAs($this->admin(), 'web');
+        Livewire::withQueryParams(['sebagai' => 'kasir,superuser,kasir'])->test(Index::class)
+            ->assertSet('preview', 'kasir')
+            ->assertSeeHtml('data-guide-card="transaksi"')->assertDontSeeHtml('data-guide-card="barang"');
+        $this->get('/panduan?sebagai=superuser')->assertOk()->assertDontSeeHtml('data-guide-preview-banner');
+    }
+
+    public function test_non_admin_cannot_preview_other_roles(): void
+    {
+        $this->actingAs(User::where('email', 'kasir@koperasi.test')->first(), 'web');
+        Livewire::withQueryParams(['sebagai' => 'admin'])->test(Index::class)
+            ->assertSet('preview', '')->assertDontSeeHtml('data-guide-preview-controls')
+            ->assertDontSeeHtml('data-guide-card="pengguna"')
+            ->call('togglePreview', 'admin')->assertSet('preview', '')
+            ->assertDontSeeHtml('data-guide-card="pengguna"');
+    }
+
+    public function test_step_links_follow_previewed_permissions(): void
+    {
+        $this->actingAs($this->admin(), 'web');
+        $c = Livewire::test(Index::class)->call('togglePreview', 'kasir');
+        $c->set('showRestricted', true)->call('open', 'pinjaman')->assertSeeHtml('data-restricted-panel')->assertDontSeeHtml('data-guide-steps');
+    }
 }
