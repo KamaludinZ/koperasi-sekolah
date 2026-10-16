@@ -1,7 +1,12 @@
 <div class="flex min-h-0 flex-1 flex-col overflow-y-auto">
-    <header class="border-b border-stone-200 bg-white px-4 py-4 sm:px-6">
-        <h1 class="text-lg font-semibold">Pusat Panduan</h1>
-        <p class="text-xs text-stone-500">Cara memakai tiap menu: ringkasan singkat dan langkah praktis berurutan.</p>
+    <header class="flex flex-wrap items-end justify-between gap-3 border-b border-stone-200 bg-white px-4 py-4 sm:px-6">
+        <div>
+            <h1 class="text-lg font-semibold">Pusat Panduan</h1>
+            <p class="text-xs text-stone-500">Cara memakai tiap menu: ringkasan singkat dan langkah praktis berurutan.</p>
+        </div>
+        @if ($this->canPreview())
+            <a href="{{ route('panduan.pembaruan') }}" wire:navigate class="text-sm font-medium text-emerald-800 hover:underline print:hidden" data-guide-updates-link>Pembaruan panduan →</a>
+        @endif
     </header>
 
     @php

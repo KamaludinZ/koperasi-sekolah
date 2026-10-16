@@ -81,6 +81,46 @@ class GuideGenerator
         return $drafts;
     }
 
+    /** Nilai kolom guide_entries dari satu draf. */
+    private function values(array $d, int $pos): array
+    {
+        return [
+            'menu_key' => $d['menu'], 'audience' => $d['audience'], 'title' => $d['title'], 'summary' => $d['summary'],
+            'steps' => $d['steps'], 'tips' => $d['tips'], 'related' => $d['related'], 'keywords' => $d['keywords'],
+            'required_permissions' => $d['required_permissions'], 'position' => $pos,
+        ];
+    }
+
+    /**
+     * Pratinjau tanpa menyimpan: panduan yang akan dibuat, diperbarui (beserta kolom yang berubah), tetap, dilewati
+     * karena manual, dan panduan otomatis yang menunya sudah tidak ada lagi di sistem.
+     *
+     * @return array{created: list<string>, updated: array<string, list<string>>, unchanged: list<string>, skipped_manual: list<string>, orphaned: list<string>}
+     */
+    public function plan(): array
+    {
+        $plan = ['created' => [], 'updated' => [], 'unchanged' => [], 'skipped_manual' => [], 'orphaned' => []];
+        $drafts = $this->drafts();
+        $entries = GuideEntry::all()->keyBy('key');
+        $pos = 0;
+        foreach ($drafts as $key => $d) {
+            $pos++;
+            $entry = $entries[$key] ?? null;
+            if (! $entry) {
+                $plan['created'][] = $key;
+            } elseif ($entry->source === 'manual') {
+                $plan['skipped_manual'][] = $key;
+            } else {
+                $entry->fill($this->values($d, $pos));
+                $dirty = array_keys($entry->getDirty());
+                $dirty === [] ? $plan['unchanged'][] = $key : $plan['updated'][$key] = $dirty;
+            }
+        }
+        $plan['orphaned'] = $entries->filter(fn ($e) => $e->source === 'auto' && ! isset($drafts[$e->key]))->keys()->values()->all();
+
+        return $plan;
+    }
+
     /**
      * Simpan draf ke guide_entries: buat yang baru, perbarui yang otomatis bila berubah, lewati yang manual.
      *
@@ -99,11 +139,7 @@ class GuideGenerator
 
                     continue;
                 }
-                $values = [
-                    'menu_key' => $d['menu'], 'audience' => $d['audience'], 'title' => $d['title'], 'summary' => $d['summary'],
-                    'steps' => $d['steps'], 'tips' => $d['tips'], 'related' => $d['related'], 'keywords' => $d['keywords'],
-                    'required_permissions' => $d['required_permissions'], 'position' => $pos,
-                ];
+                $values = $this->values($d, $pos);
                 if (! $entry) {
                     $entry = GuideEntry::create(['key' => $key, 'source' => 'auto', 'generated_at' => now()] + $values);
                     $stats['created'][] = $key;
