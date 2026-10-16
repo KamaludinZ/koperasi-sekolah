@@ -159,12 +159,12 @@ class GuideEditorPageTest extends TestCase
 
     public function test_change_history_from_audit_trail(): void
     {
-        $this->editor()->assertSeeHtml('data-changes-empty');
+        $this->editor()->assertSeeHtml('data-change="created"')->assertDontSeeHtml('data-change="override"');   // dibuat oleh seeder
         $this->editor()->set('title', 'Judul kas versi koperasi')->set('note', 'Sesuaikan istilah')->call('save', 'title');
         $this->editor()->call('revert', 'title');
-        $c = $this->editor()->assertSeeHtml('data-change="guide.overridden"')->assertSeeHtml('data-change="guide.reverted"')
+        $c = $this->editor()->assertSeeHtml('data-change="override"')->assertSeeHtml('data-change="revert"')->assertSeeHtml('data-change-field="title"')
             ->assertSeeText('Catatan: Sesuaikan istilah')->assertSeeText('Judul kas versi koperasi');
         $this->assertStringContainsString(User::where('email', 'admin@koperasi.test')->value('name'), $c->html());
-        $this->editor('barang')->assertSeeHtml('data-changes-empty');
+        $this->editor('barang')->assertDontSeeHtml('data-change="override"');
     }
 }

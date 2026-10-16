@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Models\GuideChange;
 use App\Models\GuideEntry;
 use App\Models\GuideOverride;
 use App\Models\GuideVersion;
@@ -282,6 +283,9 @@ class GuideService
             $version = $this->recordVersion($entry, 'override', $note ?? 'Bagian '.mb_strtolower(GuideOverride::FIELDS[$field]).' disunting', $by);
             if ($version) {
                 $this->audit('guide.overridden', $entry, $field, $before, $value, $version, $note);
+                if ($before != $value) { // isi bagian benar-benar berubah (bukan hanya ditandai disunting)
+                    $this->logChange($entry, 'override', $field, $before, $value, $note, $by, $version);
+                }
             }
 
             return $o;
@@ -297,7 +301,9 @@ class GuideService
             if ($deleted) {
                 $entry->unsetRelation('overrides');
                 $version = $this->recordVersion($entry, 'revert', $note ?? 'Bagian '.mb_strtolower(GuideOverride::FIELDS[$field] ?? $field).' dikembalikan ke hasil otomatis', $by);
-                $this->audit('guide.reverted', $entry, $field, $before, $this->effective($entry)[$field], $version, $note);
+                $after = $this->effective($entry)[$field];
+                $this->audit('guide.reverted', $entry, $field, $before, $after, $version, $note);
+                $this->logChange($entry, 'revert', $field, $before, $after, $note, $by, $version);
             }
 
             return $deleted;
@@ -311,7 +317,9 @@ class GuideService
         if (mb_strlen($reason) < 5 || mb_strlen($reason) > 200) {
             throw ValidationException::withMessages(['reason' => 'Alasan 5–200 karakter.']);
         }
+        $old = $entry->is_stale ? $entry->stale_reason : null;
         $entry->forceFill(['is_stale' => true, 'stale_reason' => $reason, 'stale_at' => $entry->is_stale ? ($entry->stale_at ?? now()) : now()])->save();
+        $this->logChange($entry, 'stale', null, $old, $reason, $reason, $by);
         AuditLog::record('guide.stale_marked', 'panduan', "Panduan “{$entry->title}” ditandai perlu ditinjau",
             ['type' => 'guide', 'id' => $entry->id, 'label' => $entry->key], [], actor: $by ? ['id' => $by->id, 'name' => $by->name, 'role' => $by->role?->name] : null,
             action: 'diubah', new: ['stale_reason' => $reason], reason: $reason);
@@ -325,11 +333,22 @@ class GuideService
         }
         $old = $entry->stale_reason;
         $entry->forceFill(['is_stale' => false, 'stale_reason' => null, 'stale_at' => null])->save();
+        $this->logChange($entry, 'review', null, $old, null, $note !== null && trim($note) !== '' ? trim($note) : null, $by);
         AuditLog::record('guide.reviewed', 'panduan', "Panduan “{$entry->title}” sudah ditinjau",
             ['type' => 'guide', 'id' => $entry->id, 'label' => $entry->key], [], actor: $by ? ['id' => $by->id, 'name' => $by->name, 'role' => $by->role?->name] : null,
             action: 'diubah', old: ['stale_reason' => $old], reason: $note !== null && trim($note) !== '' ? mb_substr(trim($note), 0, 200) : null);
 
         return true;
+    }
+
+    /** Catat satu perubahan per bagian di guide_changes (isi sebelum/sesudah utuh). */
+    public function logChange(GuideEntry $entry, string $action, ?string $field, mixed $before, mixed $after, ?string $note = null, ?User $by = null, ?GuideVersion $version = null, ?int $syncJobId = null): GuideChange
+    {
+        return GuideChange::create([
+            'guide_entry_id' => $entry->id, 'guide_version_id' => $version?->id, 'field' => $field, 'action' => $action,
+            'before' => $before, 'after' => $after, 'note' => $note !== null ? mb_substr($note, 0, 200) : null,
+            'changed_by' => $by?->id, 'sync_job_id' => $syncJobId ?? $version?->sync_job_id, 'created_at' => now(),
+        ]);
     }
 
     /**

@@ -146,6 +146,7 @@ class GuideGenerator
 
                     continue;
                 }
+                $fieldChanges = [];
                 if (! $entry) {
                     $entry = GuideEntry::create(['key' => $key, 'source' => 'auto', 'generated_at' => now()] + $values);
                     $stats['created'][] = $key;
@@ -156,10 +157,19 @@ class GuideGenerator
 
                         continue;
                     }
+                    foreach (array_intersect(array_keys($entry->getDirty()), GuideDraftService::CONTENT) as $f) {
+                        $fieldChanges[$f] = [$entry->getOriginal($f), $entry->{$f}];
+                    }
                     $entry->fill(['generated_at' => now(), 'is_stale' => false, 'stale_reason' => null, 'stale_at' => null])->save();
                     $stats['updated'][] = $key;
                 }
-                $this->guides->recordVersion($entry, 'generate', $note, $by, $job?->id);
+                $version = $this->guides->recordVersion($entry, 'generate', $note, $by, $job?->id);
+                if (in_array($key, $stats['created'], true)) {
+                    $this->guides->logChange($entry, 'created', null, null, null, $note, $by, $version, $job?->id);
+                }
+                foreach ($fieldChanges as $f => [$old, $new]) {
+                    $this->guides->logChange($entry, 'generate', $f, $old, $new, $note, $by, $version, $job?->id);
+                }
             }
         });
 

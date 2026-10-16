@@ -66,8 +66,15 @@ class GuideDraftService
                 'is_stale' => false, 'stale_reason' => null, 'stale_at' => null,
             ];
             $entry = GuideEntry::where('key', $draft->key)->lockForUpdate()->first();
+            $before = $entry ? array_intersect_key($entry->toGuide(), array_flip(self::CONTENT)) : [];
             $entry ? $entry->fill($values)->save() : $entry = GuideEntry::create(['key' => $draft->key, 'position' => (int) GuideEntry::max('position') + 1] + $values);
             $version = $this->guides->recordVersion($entry, 'generate', $note ?? "Draf #{$draft->id} diterapkan", $by, $draft->sync_job_id);
+            $after = $entry->toGuide();
+            foreach (self::CONTENT as $f) {
+                if (($before[$f] ?? null) != ($after[$f] ?? null)) {
+                    $this->guides->logChange($entry, 'draft', $f, $before[$f] ?? null, $after[$f] ?? null, $note ?? "Draf #{$draft->id} diterapkan", $by, $version, $draft->sync_job_id);
+                }
+            }
             $draft->update(['status' => 'applied', 'reviewed_by' => $by?->id, 'reviewed_at' => now(), 'guide_entry_id' => $entry->id]);
             AuditLog::record('guide.draft_applied', 'panduan', "Draf panduan “{$entry->title}” diterapkan".($version ? " (versi {$version->version})" : ''),
                 ['type' => 'guide', 'id' => $entry->id, 'label' => $entry->key], ['draft_id' => $draft->id, 'fields' => $draft->changed_fields],

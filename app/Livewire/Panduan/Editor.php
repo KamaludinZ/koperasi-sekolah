@@ -2,7 +2,7 @@
 
 namespace App\Livewire\Panduan;
 
-use App\Models\ActivityLog;
+use App\Models\GuideChange;
 use App\Models\GuideEntry;
 use App\Models\GuideOverride;
 use App\Models\GuideVersion;
@@ -184,8 +184,8 @@ class Editor extends Component
     }
 
     /**
-     * Riwayat perubahan panduan ini dari jejak audit (suntingan, pengembalian, penandaan usang/tinjau): siapa, kapan,
-     * bagian, sebelum → sesudah, alasan.
+     * Riwayat perubahan panduan ini per bagian (guide_changes): jenis, bagian, sebelum → sesudah utuh, catatan,
+     * siapa & kapan, nomor versi yang lahir.
      */
     #[Computed]
     public function changes()
@@ -194,9 +194,7 @@ class Editor extends Component
             return collect();
         }
 
-        return ActivityLog::where('subject_type', 'guide')->where('subject_id', $this->entry->id)
-            ->whereIn('event', ['guide.overridden', 'guide.reverted', 'guide.stale_marked', 'guide.reviewed', 'guide.draft_applied'])
-            ->latest('id')->limit(15)->get(['id', 'event', 'description', 'actor_name', 'created_at', 'old_values', 'new_values', 'reason']);
+        return GuideChange::where('guide_entry_id', $this->entry->id)->with(['author:id,name', 'version:id,version'])->latest('id')->limit(20)->get();
     }
 
     public function save(string $field, GuideService $guides): void

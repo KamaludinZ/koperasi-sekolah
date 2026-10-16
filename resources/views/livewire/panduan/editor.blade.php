@@ -188,17 +188,23 @@
             <div class="rounded-2xl border border-stone-200 bg-white p-4 text-sm" data-editor-changes>
                 <h2 class="font-semibold">Riwayat perubahan</h2>
                 <ul class="mt-2 space-y-2 text-xs">
-                    @forelse ($this->changes as $log)
-                        <li wire:key="chg-{{ $log->id }}" data-change="{{ $log->event }}">
-                            <p class="font-medium text-stone-800">{{ $log->description }}</p>
-                            <p class="text-stone-500">{{ $log->created_at?->translatedFormat('j M Y H:i') }} · {{ $log->actor_name ?? 'Sistem' }}</p>
-                            @foreach ((array) $log->new_values as $k => $new)
-                                @php $old = ((array) $log->old_values)[$k] ?? null; @endphp
-                                @if (is_string($old) || is_string($new))
-                                    <p class="mt-0.5 text-stone-600"><span class="text-red-700 line-through">{{ \Illuminate\Support\Str::limit((string) $old, 80) }}</span> → <span class="text-emerald-800">{{ \Illuminate\Support\Str::limit((string) $new, 80) }}</span></p>
-                                @endif
-                            @endforeach
-                            @if ($log->reason)<p class="text-stone-500">Catatan: {{ $log->reason }}</p>@endif
+                    @forelse ($this->changes as $chg)
+                        @php $before = \App\Models\GuideChange::lines($chg->before); $after = \App\Models\GuideChange::lines($chg->after); @endphp
+                        <li wire:key="chg-{{ $chg->id }}" data-change="{{ $chg->action }}" @if ($chg->field) data-change-field="{{ $chg->field }}" @endif>
+                            <p class="font-medium text-stone-800">{{ \App\Models\GuideChange::ACTIONS[$chg->action] ?? $chg->action }}{{ $chg->field ? ' · '.(\App\Models\GuideChange::FIELD_LABELS[$chg->field] ?? $chg->field) : '' }}{{ $chg->version ? ' · v'.$chg->version->version : '' }}</p>
+                            <p class="text-stone-500">{{ $chg->created_at?->translatedFormat('j M Y H:i') }} · {{ $chg->author?->name ?? 'Sistem' }}</p>
+                            @if ($chg->field && ($before || $after))
+                                <details class="mt-0.5 text-stone-600">
+                                    <summary class="cursor-pointer">Lihat sebelum → sesudah</summary>
+                                    <div class="mt-1 grid gap-1">
+                                        <ul class="list-disc rounded bg-red-50 py-1 pr-1 pl-4 text-red-900">@forelse ($before as $l)<li>{{ $l }}</li>@empty<li>—</li>@endforelse</ul>
+                                        <ul class="list-disc rounded bg-emerald-50 py-1 pr-1 pl-4 text-emerald-900">@forelse ($after as $l)<li>{{ $l }}</li>@empty<li>—</li>@endforelse</ul>
+                                    </div>
+                                </details>
+                            @elseif (in_array($chg->action, ['stale', 'review'], true) && ($after[0] ?? $before[0] ?? null))
+                                <p class="text-stone-600">{{ $after[0] ?? $before[0] }}</p>
+                            @endif
+                            @if ($chg->note && $chg->action !== 'stale')<p class="text-stone-500">Catatan: {{ $chg->note }}</p>@endif
                         </li>
                     @empty
                         <li class="text-stone-500" data-changes-empty>Belum ada perubahan manual.</li>
