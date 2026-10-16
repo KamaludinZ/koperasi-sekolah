@@ -6,6 +6,7 @@ use App\Models\GuideEntry;
 use App\Models\GuideVersion;
 use App\Models\Role;
 use App\Models\User;
+use App\Services\GuideDrafter;
 use App\Services\GuideGenerator;
 use App\Services\UserService;
 use App\Support\GuideCatalog;
@@ -46,7 +47,8 @@ class GuideGeneratorTest extends TestCase
     {
         $d = $this->gen->drafts();
         $this->assertSame(GuideCatalog::entries()['kasir']['steps'], $d['kasir']['steps']);
-        $this->assertSame('Uji Pemulihan', $d['sistem']['related']['sistem.restore']);
+        $linked = [...array_column($d['sistem']['steps'], 'route'), ...array_keys($d['sistem']['related'])];
+        $this->assertContains('sistem.restore', $linked);                          // halaman yang terbaca selalu tertaut (langkah atau terkait)
         $this->assertSame(['kasir'], $d['kasir']['required_permissions']);
         $this->assertSame([], $d['akun']['required_permissions']);
         $this->assertArrayHasKey('portal.belanja', $d);
@@ -60,15 +62,13 @@ class GuideGeneratorTest extends TestCase
     public function test_menu_without_curated_content_still_gets_a_usable_draft(): void
     {
         // simulasikan menu yang belum punya isi kurasi
-        $method = new \ReflectionMethod($this->gen, 'stepsFor');
-        $summary = new \ReflectionMethod($this->gen, 'summaryFor');
-        $f = $this->gen->scan()['pengadaan'];
-        $steps = $method->invoke($this->gen, $f);
+        $d = app(GuideDrafter::class)->draft('pengadaan', $this->gen->scan()['pengadaan']);
+        $steps = $d['steps'];
         $this->assertSame('Buka menu Pengadaan di menu samping.', $steps[0]['text']);
         $this->assertSame('pengadaan', $steps[0]['route']);
         $this->assertTrue(collect($steps)->contains(fn ($s) => str_contains($s['text'], 'Supplier')));
-        $this->assertLessThanOrEqual(GuideGenerator::MAX_PAGES, count($steps));
-        $this->assertStringContainsString('dapat dibuka peran Admin dan Pengurus', $summary->invoke($this->gen, $f));
+        $this->assertLessThanOrEqual(GuideDrafter::MAX_STEP_PAGES + 1, count($steps));
+        $this->assertStringContainsString('dapat dibuka peran Admin dan Pengurus', $d['summary']);
     }
 
     public function test_sync_creates_then_only_updates_what_changed_and_versions_it(): void

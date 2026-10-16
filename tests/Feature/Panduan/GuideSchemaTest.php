@@ -31,7 +31,8 @@ class GuideSchemaTest extends TestCase
         $kasir = GuideEntry::where('key', 'kasir')->first();
         $this->assertSame(array_intersect_key($catalog['kasir'], array_flip(['menu', 'audience', 'title', 'summary', 'steps', 'tips'])),
             array_intersect_key($kasir->toGuide(), array_flip(['menu', 'audience', 'title', 'summary', 'steps', 'tips'])));
-        $this->assertSame([], array_diff_key($catalog['kasir']['related'], $kasir->related)); // terkait kurasi tetap ada (ditambah halaman yang terbaca)
+        $inSteps = array_flip(array_filter(array_column($kasir->steps, 'route')));
+        $this->assertSame([], array_diff_key($catalog['kasir']['related'], $kasir->related, $inSteps)); // terkait kurasi tetap ada kecuali yang sudah di langkah
         $this->assertSame(['kasir'], $kasir->required_permissions);
         $this->assertSame([], GuideEntry::where('key', 'akun')->first()->required_permissions); // panduan umum: tanpa syarat menu
         $this->assertSame('auto', $kasir->source);

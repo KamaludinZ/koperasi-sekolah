@@ -4,7 +4,6 @@ namespace App\Services;
 
 use App\Models\GuideEntry;
 use App\Models\GuideSyncJob;
-use App\Models\Role;
 use App\Models\User;
 use App\Support\GuideCatalog;
 use App\Support\Menu;
@@ -19,8 +18,6 @@ use Illuminate\Support\Facades\DB;
  */
 class GuideGenerator
 {
-    public const MAX_PAGES = 8;
-
     public function __construct(private GuideService $guides) {}
 
     /** Fakta menu yang terbaca dari sistem (lihat GuideScanner::scan). */
@@ -37,33 +34,13 @@ class GuideGenerator
     public function drafts(): array
     {
         $catalog = GuideCatalog::entries();
+        $drafter = app(GuideDrafter::class);
         $drafts = [];
         foreach ($this->scan() as $key => $f) {
-            $base = $catalog[$key] ?? null;
-            $related = $base['related'] ?? [];
-            foreach (array_slice($f['pages'], 0, self::MAX_PAGES) as $p) { // halaman yang terbaca dari rute
-                if ($p['name'] !== $f['route'] && ! isset($related[$p['name']])) {
-                    $related[$p['name']] = $p['title'];
-                }
-            }
-            $drafts[$key] = [
-                'menu' => $key, 'audience' => 'petugas',
-                'title' => $base['title'] ?? 'Panduan menu '.$f['label'],
-                'summary' => $base['summary'] ?? $this->summaryFor($f),
-                'steps' => $base['steps'] ?? $this->stepsFor($f),
-                'tips' => $base['tips'] ?? [],
-                'related' => $related,
-                'keywords' => GuideCatalog::KEYWORDS[$key] ?? mb_strtolower($f['label'].' '.$f['description']),
-                'required_permissions' => [$key],
-            ];
-        }
-        foreach ($catalog as $key => $e) { // panduan umum (akun) & anggota tidak bergantung menu
-            if ($e['menu'] === null) {
-                $drafts[$key] = $e + ['keywords' => GuideCatalog::KEYWORDS[$key] ?? null, 'required_permissions' => []];
-            }
+            $drafts[$key] = $drafter->draft($key, $f, $catalog[$key] ?? null);
         }
 
-        return $drafts;
+        return $drafts + $drafter->general();
     }
 
     /**
@@ -187,30 +164,5 @@ class GuideGenerator
         });
 
         return $stats;
-    }
-
-    private function summaryFor(array $f): string
-    {
-        $roles = collect($f['roles'])->map(fn ($r) => Role::LABELS[$r] ?? $r)->join(', ', ' dan ');
-
-        return rtrim($f['description'], '.').'.'.($roles !== '' ? " Menu ini dapat dibuka peran {$roles}." : '');
-    }
-
-    /** @return list<array{text: string, route?: string}> */
-    private function stepsFor(array $f): array
-    {
-        $steps = [array_filter(['text' => "Buka menu {$f['label']} di menu samping.", 'route' => $f['route']])];
-        foreach (array_slice($f['pages'], 0, self::MAX_PAGES - 1) as $p) {
-            if ($p['name'] === $f['route']) {
-                continue;
-            }
-            $only = $p['roles'] ? ' (khusus '.collect($p['roles'])->map(fn ($r) => Role::LABELS[$r] ?? $r)->join(' / ').')' : '';
-            $steps[] = ['text' => "Buka halaman {$p['title']}{$only}.", 'route' => $p['name']];
-        }
-        if (count($steps) === 1) {
-            $steps[] = ['text' => 'Ikuti petunjuk di halaman tersebut; perubahan penting tercatat di Audit.'];
-        }
-
-        return $steps;
     }
 }
