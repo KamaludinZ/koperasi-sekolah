@@ -195,6 +195,38 @@ class Index extends Component
         return $counts;
     }
 
+    /** Peran pemegang tiap menu (satu kueri untuk seluruh halaman). @return array<string, list<string>> */
+    #[Computed]
+    public function grantMap(): array
+    {
+        $map = [];
+        foreach (array_keys(Menu::ITEMS) as $menu) {
+            $map[$menu] = [];
+        }
+        try {
+            $perms = Role::query()->pluck('permissions', 'name')->map(fn ($p) => is_array($p) ? $p : (json_decode((string) $p, true) ?: []))->all();
+        } catch (\Throwable) {
+            $perms = Menu::DEFAULT_PERMISSIONS;
+        }
+        foreach (Role::sortNames(array_keys($perms)) as $role) {
+            foreach ((array) $perms[$role] as $menu) {
+                if (isset($map[$menu])) {
+                    $map[$menu][] = $role;
+                }
+            }
+        }
+
+        return $map;
+    }
+
+    /** Peran yang membuka menu panduan terbatas ini (kosong bila belum diberikan ke peran mana pun). @return list<string> */
+    public function requiredFor(string $key): array
+    {
+        $menu = $this->entries[$key]['menu'] ?? null;
+
+        return $menu !== null ? ($this->grantMap[$menu] ?? []) : [];
+    }
+
     /** Jumlah panduan menu yang tersembunyi karena tidak bisa dibuka. */
     #[Computed]
     public function restrictedCount(): int
@@ -238,6 +270,10 @@ class Index extends Component
             }
             $groups[GuideCatalog::groupFor($e['menu'])][$key] = $e;
         }
+        foreach ($groups as $g => $items) { // menu terbatas di belakang tiap kelompok, urutan lain tetap
+            $groups[$g] = array_filter($items, fn ($k) => $this->allowed($k), ARRAY_FILTER_USE_KEY)
+                + array_filter($items, fn ($k) => ! $this->allowed($k), ARRAY_FILTER_USE_KEY);
+        }
 
         return $groups;
     }
@@ -277,7 +313,7 @@ class Index extends Component
 
         return view('livewire.panduan.index', [
             'current' => $current, 'currentKey' => $this->selected, 'restricted' => $restricted,
-            'requiredRoles' => $restricted ? Menu::grantingRoles($current['menu']) : [],
+            'requiredRoles' => $restricted ? $this->requiredFor($this->selected) : [],
             'visible' => $visible,
         ]);
     }

@@ -5,6 +5,7 @@ namespace Tests\Feature\Panduan;
 use App\Livewire\Panduan\Index;
 use App\Models\Role;
 use App\Models\User;
+use App\Support\GuideCatalog;
 use App\Support\Menu;
 use Database\Seeders\UserSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -153,5 +154,36 @@ class RoleGuidePageTest extends TestCase
         $keys = array_column($json, 'key');
         $this->assertSame(array_values(array_unique($keys)), $keys);
         $this->assertContains('pengguna', $keys);
+    }
+
+    public function test_restricted_labels_name_owning_roles_and_sit_after_allowed_menus(): void
+    {
+        $this->actingAs(User::where('email', 'kasir@koperasi.test')->first(), 'web');
+        $c = Livewire::test(Index::class)->set('showRestricted', true)
+            ->assertSeeHtml('data-restricted-legend')
+            ->assertSeeText('Terbatas — untuk peran Admin dan Pengurus')            // kartu Pinjaman
+            ->assertSeeText('Terbatas — untuk peran Admin')                         // kartu Pengguna
+            ->assertSeeHtml('aria-label="Pinjaman — terbatas, untuk peran Admin dan Pengurus"');
+        $html = $c->html();
+        preg_match_all('/data-guide-item="([^"]+)"/', $html, $m);
+        $allowed = [...Role::named('kasir')->permissions, 'akun'];
+        $seenRestricted = [];
+        foreach ($m[1] as $k) { // dalam tiap kelompok, tidak ada menu terbuka sesudah menu terbatas
+            $group = GuideCatalog::groupFor(isset(Menu::ITEMS[$k]) ? $k : null);
+            if (! in_array($k, $allowed, true)) {
+                $seenRestricted[$group] = true;
+            } else {
+                $this->assertArrayNotHasKey($group, $seenRestricted, "menu terbuka {$k} muncul sesudah menu terbatas");
+            }
+        }
+    }
+
+    public function test_restricted_menu_with_no_owner_and_preview_wording(): void
+    {
+        Role::query()->get()->each(fn ($r) => $r->update(['permissions' => array_values(array_diff($r->permissions, ['promo']))]));
+        $this->actingAs($this->admin(), 'web');
+        Livewire::test(Index::class)->call('togglePreview', 'kasir')->set('showRestricted', true)
+            ->assertSeeText('Terbatas — belum diberikan ke peran mana pun')
+            ->call('open', 'promo')->assertSeeText('tidak termasuk peran yang ditinjau')->assertSeeText('belum diberikan ke peran mana pun');
     }
 }

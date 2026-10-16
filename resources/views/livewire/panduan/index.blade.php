@@ -7,6 +7,9 @@
     @php
         $hay = fn ($k, $e) => \App\Support\GuideCatalog::haystack($k, $e);
         $roleLabel = fn ($r) => \App\Models\Role::LABELS[$r] ?? $r;
+        $roleList = fn (array $roles, string $glue = ' dan ') => collect($roles)->map($roleLabel)->join(', ', $glue);
+        $whose = $preview !== '' ? 'peran yang ditinjau' : 'peran Anda';
+        $lock = '<svg class="inline size-3 -translate-y-px" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 018 0v4"/></svg>';
     @endphp
     <div class="grid flex-1 gap-5 px-4 py-5 sm:px-6 lg:grid-cols-[19rem_minmax(0,1fr)]" x-data="guideSearch(@js($search))" data-guide-root>
         {{-- Daftar panduan --}}
@@ -57,6 +60,9 @@
                     <input type="checkbox" wire:model.live="showRestricted" class="size-4 rounded border-stone-300 text-emerald-700">
                     Tampilkan menu terbatas ({{ $this->restrictedCount }})
                 </label>
+                @if ($showRestricted)
+                    <p class="px-1 text-[11px] text-stone-500" data-restricted-legend>{!! $lock !!} Terbatas = menu di luar {{ $whose }}; hanya ringkasan & peran pemiliknya yang ditampilkan.</p>
+                @endif
             @endif
             <p id="guide-search-hint" class="px-1 text-[11px] text-stone-500" data-guide-hint @if ($search === '') hidden @endif aria-live="polite">
                 <span data-guide-count>{{ collect($this->groups)->flatten(1)->count() }}</span> panduan cocok · Enter membuka yang pertama · Esc mengosongkan
@@ -69,10 +75,11 @@
                         @foreach ($items as $key => $e)
                             <li wire:key="g-{{ $key }}" data-guide-row>
                                 <button type="button" wire:click="open('{{ $key }}')" data-guide-item="{{ $key }}" data-hay="{{ $hay($key, $e) }}" @if ($currentKey === $key) aria-current="true" @endif
-                                        @class(['w-full rounded-lg px-3 py-2 text-left text-sm', 'bg-emerald-50 font-semibold text-emerald-900 ring-1 ring-emerald-200' => $currentKey === $key, 'text-stone-700 hover:bg-stone-100' => $currentKey !== $key])>
+                                        @unless ($this->allowed($key)) aria-label="{{ $e['menu'] ? \App\Support\Menu::ITEMS[$e['menu']]['label'] : '' }} — terbatas, untuk peran {{ $roleList($this->requiredFor($key)) ?: 'lain' }}" @endunless
+                                        @class(['w-full rounded-lg px-3 py-2 text-left text-sm', 'bg-emerald-50 font-semibold text-emerald-900 ring-1 ring-emerald-200' => $currentKey === $key, 'text-stone-700 hover:bg-stone-100' => $currentKey !== $key && $this->allowed($key), 'text-stone-500 hover:bg-stone-100' => $currentKey !== $key && ! $this->allowed($key)])>
                                     {{ $e['menu'] ? (\App\Support\Menu::ITEMS[$e['menu']]['label'] ?? $e['title']) : 'Akun saya' }}
                                     @if ($via = $this->via($key))<span class="ml-1 rounded bg-sky-50 px-1.5 py-0.5 text-[10px] font-semibold text-sky-800 ring-1 ring-sky-200" data-guide-via="{{ $key }}" title="Terbuka lewat peran {{ collect($via)->map($roleLabel)->join(', ') }}">{{ collect($via)->map($roleLabel)->join(' · ') }}</span>@endif
-                                    @unless ($this->allowed($key))<span class="ml-1 rounded bg-stone-200 px-1.5 py-0.5 text-[10px] font-semibold text-stone-600" data-restricted="{{ $key }}">🔒 Terbatas</span>@endunless
+                                    @unless ($this->allowed($key))<span class="ml-1 rounded bg-stone-200 px-1.5 py-0.5 text-[10px] font-semibold text-stone-600" data-restricted="{{ $key }}" title="Untuk peran {{ $roleList($this->requiredFor($key)) ?: '—' }}">{!! $lock !!} Terbatas</span>@endunless
                                     <span class="block truncate text-xs font-normal text-stone-500">{{ $e['title'] }}</span>
                                 </button>
                             </li>
@@ -118,7 +125,8 @@
                         @foreach ($items as $key => $e)
                             @php $icon = $e['menu'] ? (\App\Support\Menu::ITEMS[$e['menu']]['icon'] ?? null) : 'M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2M12 11a4 4 0 100-8 4 4 0 000 8z'; @endphp
                             <button type="button" wire:click="open('{{ $key }}')" wire:key="card-{{ $key }}" data-guide-card="{{ $key }}" data-hay="{{ $hay($key, $e) }}"
-                                    class="flex flex-col gap-2 rounded-2xl border border-stone-200 bg-white p-4 text-left transition hover:border-emerald-400 hover:shadow-sm focus-visible:ring-2 focus-visible:ring-emerald-600">
+                                    @class(['flex flex-col gap-2 rounded-2xl border p-4 text-left transition hover:shadow-sm focus-visible:ring-2 focus-visible:ring-emerald-600',
+                                        'border-stone-200 bg-white hover:border-emerald-400' => $this->allowed($key), 'border-dashed border-stone-300 bg-stone-50 hover:border-stone-400' => ! $this->allowed($key)])>
                                 <span class="flex items-center gap-2">
                                     <span class="grid size-9 shrink-0 place-items-center rounded-xl bg-emerald-50 text-emerald-800" aria-hidden="true">
                                         <svg class="size-5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="{{ $icon }}"/></svg>
@@ -134,7 +142,7 @@
                                         @if ($via = $this->via($key))<span class="rounded bg-sky-50 px-1.5 py-0.5 font-semibold text-sky-800 ring-1 ring-sky-200" data-guide-card-via="{{ $key }}">lewat peran {{ collect($via)->map($roleLabel)->join(' / ') }}</span>@endif
                                     </span>
                                 @else
-                                    <span class="text-[11px] font-semibold text-stone-500" data-restricted-card="{{ $key }}">🔒 Terbatas — menu ini tidak termasuk peran Anda</span>
+                                    <span class="text-[11px] font-semibold text-stone-500" data-restricted-card="{{ $key }}">{!! $lock !!} Terbatas — {{ ($r = $this->requiredFor($key)) ? 'untuk peran '.$roleList($r) : 'belum diberikan ke peran mana pun' }}</span>
                                 @endif
                             </button>
                         @endforeach
@@ -154,10 +162,12 @@
 
                 @if ($restricted)
                     <div class="mt-6 rounded-xl border border-stone-200 bg-stone-50 px-4 py-4 text-sm text-stone-700" data-restricted-panel>
-                        <p class="font-semibold text-stone-900">🔒 Menu terbatas</p>
-                        <p class="mt-1">Menu {{ \App\Support\Menu::ITEMS[$current['menu']]['label'] }} tidak termasuk peran Anda, jadi langkah-langkahnya tidak ditampilkan.</p>
+                        <p class="font-semibold text-stone-900">{!! $lock !!} Menu terbatas</p>
+                        <p class="mt-1">Menu {{ \App\Support\Menu::ITEMS[$current['menu']]['label'] }} tidak termasuk {{ $whose }}, jadi langkah-langkahnya tidak ditampilkan.</p>
                         @if ($requiredRoles)
-                            <p class="mt-1">Menu ini dimiliki peran <strong>{{ collect($requiredRoles)->map(fn ($r) => \App\Models\Role::LABELS[$r] ?? $r)->join(', ', ' dan ') }}</strong>. Bila Anda memerlukannya, minta admin koperasi menambahkan peran tersebut ke akun Anda.</p>
+                            <p class="mt-1">Menu ini dimiliki peran <strong>{{ $roleList($requiredRoles) }}</strong>. Bila Anda memerlukannya, minta admin koperasi menambahkan peran tersebut ke akun Anda.</p>
+                        @else
+                            <p class="mt-1">Menu ini belum diberikan ke peran mana pun.</p>
                         @endif
                     </div>
                 @else
