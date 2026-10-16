@@ -3,41 +3,63 @@
 namespace App\Http\Controllers\Panduan;
 
 use App\Http\Controllers\Controller;
+use App\Models\Role;
 use App\Services\GuideService;
+use App\Support\Menu;
 use App\Support\Petugas;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
 
 /**
- * API Pusat Panduan (isi efektif: otomatis + suntingan admin), disaring sesuai izin pengguna:
- * - GET /panduan/data?q=&terbatas=1  → panduan petugas yang boleh dibuka (gabungan izin semua peran); terbatas=1 ikut
- *   menyertakan menu lain bertanda restricted tanpa langkah;
- * - GET /panduan/data/{key}          → satu panduan; menu terbatas → 403 dengan peran yang dibutuhkan;
+ * API Pusat Panduan (isi efektif: otomatis + suntingan admin), disaring sesuai izin pengguna dan diurutkan seperti
+ * menu samping:
+ * - GET /panduan/data?q=&terbatas=1&peran=&sebagai=  → panduan petugas yang boleh dibuka (gabungan izin semua peran);
+ *   terbatas=1 ikut menyertakan menu lain bertanda restricted tanpa langkah; peran= menyaring ke satu peran milik
+ *   pengguna; sebagai=kasir,pengurus meninjau dengan izin tiruan (hanya pengelola panduan);
+ * - GET /panduan/data/{key}?sebagai=  → satu panduan; menu terbatas → 403 dengan peran yang dibutuhkan;
  * - GET /portal/panduan/data         → panduan anggota (login portal).
  */
 class GuideController extends Controller
 {
     public function index(Request $request, GuideService $guides): JsonResponse
     {
-        $f = $request->validate(['q' => ['nullable', 'string', 'max:60'], 'terbatas' => ['nullable', 'boolean']]);
-        $user = Petugas::current();
-        $data = $guides->listFor($user, 'petugas', (bool) ($f['terbatas'] ?? false), (string) ($f['q'] ?? ''));
+        $f = $request->validate([
+            'q' => ['nullable', 'string', 'max:60'], 'terbatas' => ['nullable', 'boolean'],
+            'peran' => ['nullable', 'string', 'in:'.implode(',', array_keys(Role::LABELS))], 'sebagai' => ['nullable', 'string', 'max:100'],
+        ]);
+        $viewer = $this->viewer($request, $guides);
+        $mine = $guides->rolesOf($viewer);
+        $role = ($f['peran'] ?? null) && count($mine) > 1 && in_array($f['peran'], $mine, true) ? $f['peran'] : null;
+        abort_if(($f['peran'] ?? null) && $role === null && count($mine) > 1, 422, 'Peran itu tidak dimiliki akun ini.');
+        $q = (string) ($f['q'] ?? '');
+        $restricted = (bool) ($f['terbatas'] ?? false);
+        $data = $guides->listFor($viewer, 'petugas', $restricted, $q, $role);
+        $sources = Menu::sourcesFor($viewer);
+        $roleCounts = array_fill_keys($mine, 0);
+        foreach ($sources as $from) {
+            foreach (array_intersect($from, $mine) as $r) {
+                $roleCounts[$r]++;
+            }
+        }
 
         return response()->json(['data' => $data, 'meta' => [
             'total' => count($data),
             'restricted' => count(array_filter($data, fn ($g) => $g['restricted'])),
-            'hidden_restricted' => ($f['terbatas'] ?? false) ? 0 : count($guides->listFor($user, 'petugas', true, (string) ($f['q'] ?? ''))) - count($data),
+            'hidden_restricted' => $restricted ? 0 : count($guides->listFor($viewer, 'petugas', true, $q, $role)) - count($data),
+            'roles' => $mine, 'role' => $role, 'role_counts' => $roleCounts, 'menus' => count($sources),
+            'preview' => (bool) ($viewer['mock'] ?? false),
         ]])->header('Cache-Control', 'private, no-store');
     }
 
-    public function show(string $key, GuideService $guides): JsonResponse
+    public function show(Request $request, string $key, GuideService $guides): JsonResponse
     {
         $all = $guides->all('petugas');
         abort_unless(isset($all[$key]), 404, 'Panduan tidak ditemukan.');
-        $user = Petugas::current();
-        $g = $guides->present($key, $all[$key], $guides->allowed($user, $all[$key]));
+        $viewer = $this->viewer($request, $guides);
+        $g = $guides->present($key, $all[$key], $guides->allowed($viewer, $all[$key]), $viewer, Menu::sourcesFor($viewer));
         if ($g['restricted']) {
-            return response()->json(['message' => 'Menu '.$g['menu_label'].' tidak termasuk peran Anda.', 'data' => $g], 403);
+            return response()->json(['message' => 'Menu '.$g['menu_label'].' tidak termasuk '.(($viewer['mock'] ?? false) ? 'peran yang ditinjau' : 'peran Anda').'.', 'data' => $g], 403);
         }
 
         return response()->json(['data' => $g])->header('Cache-Control', 'private, no-store');
@@ -48,5 +70,19 @@ class GuideController extends Controller
         $f = $request->validate(['q' => ['nullable', 'string', 'max:60']]);
 
         return response()->json(['data' => $guides->listFor(null, 'anggota', false, (string) ($f['q'] ?? ''))])->header('Cache-Control', 'private, no-store');
+    }
+
+    /** Pembaca: petugas yang masuk, atau izin tiruan ?sebagai= (hanya pengelola panduan; selain itu 403). */
+    private function viewer(Request $request, GuideService $guides): array
+    {
+        $raw = $request->query('sebagai');
+        if ($raw === null || $raw === '') {
+            return $guides->viewer(Petugas::current());
+        }
+        abort_unless(Gate::forUser($request->user('web'))->allows('kelola-panduan'), 403, 'Pratinjau peran hanya untuk pengelola panduan.');
+        $roles = $guides->previewRoles($raw);
+        abort_if($roles === [], 422, 'Peran pratinjau tidak dikenal.');
+
+        return $guides->viewer(Petugas::current(), $roles);
     }
 }

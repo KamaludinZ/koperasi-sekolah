@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\GuideEntry;
 use App\Models\GuideOverride;
 use App\Models\GuideVersion;
+use App\Models\Role;
 use App\Models\User;
 use App\Support\GuideCatalog;
 use App\Support\Menu;
@@ -38,6 +39,84 @@ class GuideService
         return $rows->mapWithKeys(fn (GuideEntry $e) => [$e->key => $this->effective($e) + ['stale' => $e->is_stale]])->all();
     }
 
+    /** Nama peran pratinjau yang sah dari masukan bebas "kasir,pengurus" (dikenal, unik, urut prioritas). @return list<string> */
+    public function previewRoles(mixed $raw): array
+    {
+        $names = is_string($raw) ? array_map('trim', explode(',', mb_substr($raw, 0, 100))) : [];
+
+        return Role::sortNames(array_values(array_unique(array_intersect($names, array_keys(Role::LABELS)))));
+    }
+
+    /**
+     * Pembaca panduan: petugas yang masuk, atau pengguna tiruan berizin gabungan peran pratinjau (roles.permissions
+     * saat ini). Pratinjau hanya dipakai bila diminta & diizinkan pemanggil.
+     *
+     * @param  ?array  $user  bentuk Petugas::current()
+     * @param  list<string>  $previewRoles
+     * @return array{role: ?string, roles: list<string>, permissions: list<string>, is_active: bool, mock?: bool}
+     */
+    public function viewer(?array $user, array $previewRoles = []): array
+    {
+        if ($previewRoles !== []) {
+            $merged = app(PermissionMerger::class)->mergeNames($previewRoles);
+
+            return ['role' => $merged['primary'], 'roles' => $merged['roles'], 'permissions' => $merged['permissions'], 'is_active' => true, 'mock' => true];
+        }
+
+        return $user ?? ['role' => null, 'roles' => [], 'permissions' => [], 'is_active' => false];
+    }
+
+    /** Peran milik pembaca (urut prioritas). @return list<string> */
+    public function rolesOf(array $viewer): array
+    {
+        return array_values(($viewer['roles'] ?? []) ?: array_filter([$viewer['role'] ?? null]));
+    }
+
+    /**
+     * Peran pembaca yang membuka menu ini — hanya bila pembaca multi-peran dan tidak semua perannya memiliki menu itu.
+     *
+     * @param  array<string, list<string>>  $sources  Menu::sourcesFor($viewer)
+     * @return list<string>
+     */
+    public function via(array $viewer, array $sources, ?string $menu): array
+    {
+        $mine = $this->rolesOf($viewer);
+        $from = $menu !== null ? ($sources[$menu] ?? []) : [];
+
+        return count($mine) > 1 && $from && count($from) < count($mine) ? $from : [];
+    }
+
+    /** Peran yang membuka halaman langkah ini bila pembaca tidak bisa (null = terbuka/tanpa tautan). @return ?list<string> */
+    public function stepLock(array $viewer, ?string $route): ?array
+    {
+        if ($route === null || $route === '' || Menu::canReach($route, $viewer)) {
+            return null;
+        }
+
+        return Menu::denial($route, $viewer)['suggest'] ?? [];
+    }
+
+    /**
+     * Urutkan kunci panduan seperti menu samping: kelompok (Layanan harian → Data koperasi → Pengurus → Lainnya →
+     * Umum), lalu urutan menu, menu terbatas di belakang kelompoknya; tidak bergantung kolom position.
+     *
+     * @param  array<string, array>  $guides
+     * @param  callable(string): bool  $allowed
+     * @return list<string>
+     */
+    public function orderedKeys(array $guides, callable $allowed): array
+    {
+        $groupRank = array_flip([...array_values(Menu::GROUPS), 'Lainnya', 'Umum']);
+        $menuRank = array_flip(array_keys(Menu::ITEMS));
+        $entryRank = array_flip(array_keys($guides));
+        $rank = fn (string $k) => [$groupRank[GuideCatalog::groupFor($guides[$k]['menu'] ?? null)] ?? 99,
+            ! $allowed($k), $menuRank[$guides[$k]['menu'] ?? ''] ?? 999, $entryRank[$k]];
+        $keys = array_keys($guides);
+        usort($keys, fn ($a, $b) => $rank($a) <=> $rank($b));
+
+        return $keys;
+    }
+
     /** Petugas/anggota boleh membuka menu panduan ini (panduan umum & anggota selalu boleh). */
     public function allowed(?array $user, array $guide): bool
     {
@@ -45,33 +124,44 @@ class GuideService
     }
 
     /**
-     * Daftar panduan untuk pengguna: hanya menu yang boleh dibuka (gabungan izin semua peran), opsional juga menu
-     * terbatas (ditandai, TANPA langkah/tips/tautan), opsional disaring kata kunci (semua kata harus muncul).
+     * Daftar panduan untuk pembaca (urut seperti menu samping): hanya menu yang boleh dibuka (gabungan izin semua
+     * peran), opsional juga menu terbatas (ditandai, TANPA langkah/tips/tautan), opsional disaring kata kunci (semua
+     * kata harus muncul) dan disaring ke satu peran milik pembaca (menu peran lain disembunyikan; panduan umum tetap).
      *
-     * @param  ?array  $user  bentuk Petugas::current() (null untuk anggota portal)
-     * @return list<array{key: string, menu: ?string, menu_label: string, group: string, title: string, summary: string, steps?: list<array>, tips?: list<string>, related?: array, allowed: bool, restricted: bool, required_roles?: list<string>, overridden: list<string>, stale: bool}>
+     * @param  ?array  $viewer  bentuk Petugas::current() / viewer() (null untuk anggota portal)
+     * @return list<array> lihat present()
      */
-    public function listFor(?array $user, string $audience, bool $includeRestricted = false, string $search = ''): array
+    public function listFor(?array $viewer, string $audience, bool $includeRestricted = false, string $search = '', ?string $role = null): array
     {
         $words = array_filter(explode(' ', Str::lower(Str::ascii(trim($search)))));
+        $all = $this->all($audience);
+        $sources = $viewer ? Menu::sourcesFor($viewer) : [];
+        $allowed = array_map(fn ($g) => $this->allowed($viewer, $g), $all);
         $out = [];
-        foreach ($this->all($audience) as $key => $g) {
-            $allowed = $this->allowed($user, $g);
-            if (! $allowed && ! $includeRestricted) {
+        foreach ($this->orderedKeys($all, fn ($k) => $allowed[$k]) as $key) {
+            $g = $all[$key];
+            if (! $allowed[$key] && ! $includeRestricted) {
+                continue;
+            }
+            if ($role !== null && $role !== '' && $g['menu'] !== null && $allowed[$key] && ! in_array($role, $sources[$g['menu']] ?? [], true)) {
                 continue;
             }
             $hay = GuideCatalog::haystack($key, $g);
             if ($words && collect($words)->contains(fn ($w) => ! str_contains($hay, $w))) {
                 continue;
             }
-            $out[] = $this->present($key, $g, $allowed);
+            $out[] = $this->present($key, $g, $allowed[$key], $viewer, $sources);
         }
 
         return $out;
     }
 
-    /** Satu panduan siap dikirim: panduan terbatas tanpa langkah/tips/tautan, dengan peran yang dibutuhkan. */
-    public function present(string $key, array $g, bool $allowed): array
+    /**
+     * Satu panduan siap dikirim. Terbatas: tanpa langkah/tips/tautan, dengan peran yang dibutuhkan. Terbuka (petugas):
+     * peran pembaca yang membukanya (via), langkah ber-tanda locked_for bila halamannya khusus peran lain, dan halaman
+     * terkait hanya yang bisa dibuka pembaca.
+     */
+    public function present(string $key, array $g, bool $allowed, ?array $viewer = null, array $sources = []): array
     {
         $base = [
             'key' => $key, 'menu' => $g['menu'], 'menu_label' => $g['menu'] ? (Menu::ITEMS[$g['menu']]['label'] ?? $g['menu']) : ($g['audience'] === 'anggota' ? 'Portal' : 'Akun saya'),
@@ -81,8 +171,19 @@ class GuideService
         if (! $allowed) {
             return $base + ['required_roles' => Menu::grantingRoles($g['menu'])];
         }
+        $steps = $g['steps'];
+        $related = $g['related'] ?? [];
+        if ($viewer !== null && $g['audience'] === 'petugas') {
+            $steps = array_map(function ($s) use ($viewer) {
+                $lock = $this->stepLock($viewer, $s['route'] ?? null);
 
-        return $base + ['steps' => $g['steps'], 'tips' => $g['tips'], 'related' => $g['related'] ?? [], 'step_count' => count($g['steps'])];
+                return $lock === null ? $s : $s + ['locked_for' => $lock];
+            }, $steps);
+            $related = array_filter($related, fn ($label, $route) => Menu::canReach($route, $viewer), ARRAY_FILTER_USE_BOTH);
+            $base['via'] = $this->via($viewer, $sources, $g['menu']);
+        }
+
+        return $base + ['steps' => $steps, 'tips' => $g['tips'], 'related' => $related, 'step_count' => count($steps)];
     }
 
     /**

@@ -4,7 +4,6 @@ namespace App\Livewire\Panduan;
 
 use App\Models\Role;
 use App\Services\GuideService;
-use App\Services\PermissionMerger;
 use App\Support\GuideCatalog;
 use App\Support\Menu;
 use App\Support\Petugas;
@@ -79,9 +78,7 @@ class Index extends Component
     /** Nama peran pratinjau yang sah (dikenal, tanpa duplikat, urut prioritas). @return list<string> */
     private function previewRoles(): array
     {
-        $names = is_string($this->preview) ? array_map('trim', explode(',', mb_substr($this->preview, 0, 100))) : [];
-
-        return Role::sortNames(array_values(array_unique(array_intersect($names, array_keys(Role::LABELS)))));
+        return app(GuideService::class)->previewRoles($this->preview);
     }
 
     /**
@@ -93,13 +90,7 @@ class Index extends Component
     #[Computed]
     public function viewer(): array
     {
-        if ($this->preview !== '' && ($names = $this->previewRoles())) {
-            $merged = app(PermissionMerger::class)->mergeNames($names);
-
-            return ['role' => $merged['primary'], 'roles' => $merged['roles'], 'permissions' => $merged['permissions'], 'is_active' => true, 'mock' => true];
-        }
-
-        return Petugas::current() ?? ['role' => null, 'roles' => [], 'permissions' => [], 'is_active' => false];
+        return app(GuideService::class)->viewer(Petugas::current(), $this->preview !== '' ? $this->previewRoles() : []);
     }
 
     /** Tambah/lepas satu peran dari pratinjau (kosong = kembali ke izin sendiri). */
@@ -140,9 +131,7 @@ class Index extends Component
     #[Computed]
     public function myRoles(): array
     {
-        $user = $this->viewer;
-
-        return array_values($user['roles'] ?: array_filter([$user['role']]));
+        return app(GuideService::class)->rolesOf($this->viewer);
     }
 
     /** Asal peran tiap menu milik petugas: [menu => [peran, …]]. @return array<string, list<string>> */
@@ -158,10 +147,7 @@ class Index extends Component
      */
     public function via(string $key): array
     {
-        $menu = $this->entries[$key]['menu'] ?? null;
-        $from = $menu !== null ? ($this->sources[$menu] ?? []) : [];
-
-        return count($this->myRoles) > 1 && $from && count($from) < count($this->myRoles) ? $from : [];
+        return app(GuideService::class)->via($this->viewer, $this->sources, $this->entries[$key]['menu'] ?? null);
     }
 
     /**
@@ -172,11 +158,7 @@ class Index extends Component
      */
     public function stepLock(?string $route): ?array
     {
-        if ($route === null || $route === '' || $this->reach($route)) {
-            return null;
-        }
-
-        return Menu::denial($route, $this->viewer)['suggest'] ?? [];
+        return app(GuideService::class)->stepLock($this->viewer, $route);
     }
 
     /** Jumlah menu yang dibuka tiap peran milik petugas (untuk tombol saring peran). @return array<string, int> */
@@ -257,7 +239,9 @@ class Index extends Component
     {
         $words = array_filter(explode(' ', Str::lower(Str::ascii($search))));
         $groups = [];
-        foreach ($this->entries as $key => $e) {
+        // urutan baku seperti menu samping (GuideService::orderedKeys), menu terbatas di belakang tiap kelompok
+        foreach (app(GuideService::class)->orderedKeys($this->entries, fn ($k) => $this->allowed($k)) as $key) {
+            $e = $this->entries[$key];
             if (! $this->showRestricted && ! $this->allowed($key)) {
                 continue;
             }
@@ -269,17 +253,6 @@ class Index extends Component
                 continue;
             }
             $groups[GuideCatalog::groupFor($e['menu'])][$key] = $e;
-        }
-        // urutan baku seperti menu samping: kelompok (Layanan harian → Data koperasi → Pengurus → Lainnya → Umum),
-        // di dalamnya urutan menu; menu terbatas di belakang tiap kelompok. Tidak bergantung kolom position di DB.
-        $groupRank = array_flip([...array_values(Menu::GROUPS), 'Lainnya', 'Umum']);
-        $menuRank = array_flip(array_keys(Menu::ITEMS));
-        $entryRank = array_flip(array_keys($this->entries));
-        uksort($groups, fn ($a, $b) => ($groupRank[$a] ?? 99) <=> ($groupRank[$b] ?? 99));
-        foreach ($groups as $g => $items) {
-            uksort($items, fn ($a, $b) => [! $this->allowed($a), $menuRank[$items[$a]['menu'] ?? ''] ?? 999, $entryRank[$a]]
-                <=> [! $this->allowed($b), $menuRank[$items[$b]['menu'] ?? ''] ?? 999, $entryRank[$b]]);
-            $groups[$g] = $items;
         }
 
         return $groups;
