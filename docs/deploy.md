@@ -236,6 +236,11 @@ Pembaruan: unggah paket baru lalu `scripts/deploy.sh --no-pull`, atau cukup `scr
 5. **Sistem → Cadangan** → *Cadangkan sekarang*, lalu **Sistem → Uji pemulihan** → *Mulai uji pemulihan* untuk memastikan
    arsip bisa dipulihkan.
 6. Masukkan data barang (impor XLSX di Barang & Stok) dan anggota.
+7. **Kasir offline**: di tiap perangkat kasir, masuk lalu buka **Kasir** sekali saat online. Service worker
+   (`/sw.js` di root web, wajib HTTPS) dan salinan katalog terpasang otomatis; uji dengan mematikan internet, buka
+   `/kasir/offline`, lakukan satu penjualan tunai, nyalakan internet — penjualan terkirim otomatis dan muncul di
+   **Transaksi → Penjualan offline**. Jangan pasang cache/CDN yang menyimpan `/sw.js` lama — `docker/nginx.conf` dan `public/.htaccess` (Apache, butuh
+   `mod_headers`) sudah mengirim `Cache-Control: no-cache` untuknya.
 
 ## 8. Cadangan & pemulihan
 
@@ -296,3 +301,4 @@ Log: Docker/Coolify → tab **Logs** atau `docker compose logs -f app`. Hosting 
 - [ ] Cadangan pertama berhasil dan uji pemulihan lulus; salinan di luar server dijadwalkan
 - [ ] Zona waktu `Asia/Jakarta` (jam transaksi & laporan sesuai)
 - [ ] DNS & sertifikat domain sudah benar; kamera pemindai barcode berfungsi (butuh https)
+- [ ] Kasir offline teruji di perangkat kasir (lihat langkah 7 bagian 7)
