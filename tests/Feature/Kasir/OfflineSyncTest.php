@@ -10,6 +10,7 @@ use App\Models\Product;
 use App\Models\StockMovement;
 use App\Models\Transaction;
 use App\Models\User;
+use App\Services\RetentionService;
 use App\Services\SettingsService;
 use Database\Seeders\UserSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -187,5 +188,17 @@ class OfflineSyncTest extends TestCase
         $this->actingAs(User::where('email', 'pengurus@koperasi.test')->first(), 'web');
         $this->getJson('/kasir/offline/katalog?perangkat='.self::DEVICE)->assertForbidden();
         $this->postJson('/kasir/offline/sinkron', ['penjualan' => [[]]])->assertForbidden();
+    }
+
+    public function test_expired_catalog_snapshots_are_purged_by_retention(): void
+    {
+        $old = $this->catalog()['catalog_id'];
+        $this->travel(40)->days();
+        $this->flushSession();
+        $this->actingAs($this->kasir, 'web');
+        $fresh = $this->catalog()['catalog_id'];
+        $this->assertSame(1, app(RetentionService::class)->run()['katalog_offline']);
+        $this->assertNull(PosOfflineCatalog::find($old));
+        $this->assertNotNull(PosOfflineCatalog::find($fresh));
     }
 }

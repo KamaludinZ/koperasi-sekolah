@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\Category;
 use App\Models\Member;
 use App\Models\Notification;
+use App\Models\PosOfflineCatalog;
 use App\Models\Product;
 use App\Models\ReportExport;
 use Illuminate\Database\Eloquent\Model;
@@ -19,6 +20,7 @@ use Illuminate\Support\Facades\DB;
  * - impor barang yang tak kunjung disimpan > 30 hari → dibatalkan & berkasnya dihapus;
  * - notifikasi lebih dari `notification_days` yang sudah dibaca/ditutup petugas
  *   (pengumuman yang masih berlaku tidak dihapus).
+ * - salinan katalog kasir offline yang kedaluwarsa lebih dari 30 hari.
  * Jejak audit tidak pernah dibersihkan. Dijalankan lewat `php artisan retensi:bersihkan`.
  */
 class RetentionService
@@ -34,6 +36,7 @@ class RetentionService
         'ekspor' => 'Berkas ekspor',
         'impor' => 'Impor barang terbengkalai (dibatalkan)',
         'notifikasi' => 'Notifikasi lama',
+        'katalog_offline' => 'Salinan katalog kasir offline kedaluwarsa',
     ];
 
     /**
@@ -56,6 +59,7 @@ class RetentionService
             'ekspor' => $this->purgeExports($dryRun),
             'impor' => app(ProductImportService::class)->abandonStale($dryRun),
             'notifikasi' => $this->purgeNotifications($dryRun),
+            'katalog_offline' => $this->purgeOfflineCatalogs($dryRun),
         ];
 
         $purged = array_sum(array_diff_key($counts, ['anggota_dilewati' => 0, 'kategori_dilewati' => 0]));
@@ -90,6 +94,14 @@ class RetentionService
         }
 
         return $exports->count();
+    }
+
+    /** Salinan katalog kasir offline yang kedaluwarsa lebih dari 30 hari (penjualan dengan salinan itu sudah tak diterima). */
+    private function purgeOfflineCatalogs(bool $dryRun): int
+    {
+        $query = (new PosOfflineCatalog)->prunable();
+
+        return $dryRun ? $query->count() : $query->delete();
     }
 
     private function purgeNotifications(bool $dryRun): int
