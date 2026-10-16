@@ -1,6 +1,6 @@
 {
   "repo": "Koperasi Sekolah",
-  "generatedForCommit": "85711d2bc5470b2a79b7507cae88925aafad17e2",
+  "generatedForCommit": "fedf55c54376bd859c22585b17690760c32e5043",
   "files": [
     {
       "path": ".claude/skills/ngodingpakeai/SKILL.md",
@@ -166,7 +166,7 @@
     },
     {
       "path": "app/Livewire/Notifikasi/Bell.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 1844
     },
@@ -214,19 +214,19 @@
     },
     {
       "path": "app/Models/GuideEntry.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 2003
     },
     {
       "path": "app/Models/GuideOverride.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 777
     },
     {
       "path": "app/Models/GuideVersion.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 998
     },
@@ -244,7 +244,7 @@
     },
     {
       "path": "app/Services/GuideService.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 6803
     },
@@ -940,13 +940,13 @@
     },
     {
       "path": "database/migrations/2026_10_20_000002_create_guide_overrides_and_versions_tables.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 2375
     },
     {
       "path": "database/seeders/GuideSeeder.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 1416
     },
@@ -1152,7 +1152,7 @@
       "path": "resources/views/components/guide-button.blade.php",
       "reason": "changed",
       "language": "php",
-      "size": 1556
+      "size": 1541
     },
     {
       "path": "resources/views/components/idle-warning.blade.php",
@@ -1188,7 +1188,7 @@
       "path": "resources/views/components/layouts/app.blade.php",
       "reason": "changed",
       "language": "php",
-      "size": 15905
+      "size": 15894
     },
     {
       "path": "resources/views/components/layouts/guest.blade.php",
@@ -1716,7 +1716,7 @@
       "path": "resources/views/livewire/notifikasi/bell.blade.php",
       "reason": "changed",
       "language": "php",
-      "size": 4267
+      "size": 4277
     },
     {
       "path": "resources/views/livewire/notifikasi/index.blade.php",
@@ -2434,7 +2434,7 @@
     },
     {
       "path": "tests/Feature/Panduan/GuideOverrideVersionTest.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 5892
     },

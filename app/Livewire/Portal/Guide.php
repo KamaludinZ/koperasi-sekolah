@@ -2,7 +2,7 @@
 
 namespace App\Livewire\Portal;
 
-use App\Support\GuideCatalog;
+use App\Services\GuideService;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
@@ -33,7 +33,7 @@ class Guide extends Component
     #[Computed]
     public function entries(): array
     {
-        return GuideCatalog::forAudience('anggota');
+        return app(GuideService::class)->all('anggota');
     }
 
     public function render()

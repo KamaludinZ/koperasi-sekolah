@@ -40,6 +40,7 @@ use App\Http\Controllers\Laporan\SalesExportController;
 use App\Http\Controllers\Laporan\SalesReportController;
 use App\Http\Controllers\Notifikasi\AnnouncementController;
 use App\Http\Controllers\Notifikasi\NotificationController;
+use App\Http\Controllers\Panduan\GuideController;
 use App\Http\Controllers\Pengadaan\GoodsReceiptController;
 use App\Http\Controllers\Pengadaan\PurchaseOrderController;
 use App\Http\Controllers\Pengadaan\SupplierBillController;
@@ -193,6 +194,7 @@ Route::middleware('portal')->group(function () { // bukan auth:member — guard 
     Route::get('/portal/pesanan', Orders::class)->name('portal.pesanan');
     Route::get('/portal/pesanan/{order}', OrderShow::class)->whereNumber('order')->name('portal.pesanan.show');
     Route::get('/portal/panduan', Guide::class)->name('portal.panduan');
+    Route::get('/portal/panduan/data', [GuideController::class, 'portal'])->middleware('throttle:120,1')->name('portal.panduan.data');
     Route::post('/portal/keluar', function (Request $request) {
         if (ImpersonationSession::impersonatingMember()) { // admin: kembali ke akunnya, bukan keluar
             $svc = app(ImpersonationService::class);
@@ -211,6 +213,10 @@ Route::post('/impersonasi/selesai', StopController::class)->middleware('throttle
 // Akun sendiri: cukup sudah masuk (semua peran).
 Route::get('/akun/kata-sandi', Akun\Password::class)->middleware(['menu', 'auth'])->name('akun.password');
 Route::get('/panduan', App\Livewire\Panduan\Index::class)->middleware(['menu', 'auth'])->name('panduan');
+Route::middleware(['menu', 'auth', 'throttle:120,1'])->group(function () {
+    Route::get('/panduan/data', [GuideController::class, 'index'])->name('panduan.data');
+    Route::get('/panduan/data/{key}', [GuideController::class, 'show'])->where('key', '[a-z0-9._-]{1,60}')->name('panduan.show');
+});
 Route::get('/akun/sesi', Akun\Sessions::class)->middleware(['menu', 'auth'])->name('akun.sessions');
 Route::get('/notifikasi', Notifikasi\Index::class)->middleware(['menu', 'auth'])->name('notifikasi');
 Route::get('/notifikasi/data', [NotificationController::class, 'index'])->middleware(['menu', 'auth'])->name('notifikasi.data');

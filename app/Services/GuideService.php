@@ -6,8 +6,11 @@ use App\Models\GuideEntry;
 use App\Models\GuideOverride;
 use App\Models\GuideVersion;
 use App\Models\User;
+use App\Support\GuideCatalog;
+use App\Support\Menu;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
 /**
@@ -18,6 +21,69 @@ use Illuminate\Validation\ValidationException;
 class GuideService
 {
     public const MAX = ['title' => 150, 'summary' => 1000, 'step' => 400, 'steps' => 20, 'tip' => 300, 'tips' => 10];
+
+    /**
+     * Semua panduan efektif untuk satu kelompok pembaca (urut posisi), dibaca dari guide_entries + suntingan; bila
+     * tabel belum terisi (mis. sebelum seeder dijalankan) memakai katalog bawaan.
+     *
+     * @return array<string, array> kunci → panduan (bentuk GuideCatalog + overridden, stale)
+     */
+    public function all(string $audience): array
+    {
+        $rows = GuideEntry::for($audience)->with('overrides')->get();
+        if ($rows->isEmpty()) {
+            return array_map(fn ($e) => $e + ['overridden' => [], 'stale' => false], GuideCatalog::forAudience($audience));
+        }
+
+        return $rows->mapWithKeys(fn (GuideEntry $e) => [$e->key => $this->effective($e) + ['stale' => $e->is_stale]])->all();
+    }
+
+    /** Petugas/anggota boleh membuka menu panduan ini (panduan umum & anggota selalu boleh). */
+    public function allowed(?array $user, array $guide): bool
+    {
+        return $guide['menu'] === null || ($user !== null && Menu::userCan($user, $guide['menu']));
+    }
+
+    /**
+     * Daftar panduan untuk pengguna: hanya menu yang boleh dibuka (gabungan izin semua peran), opsional juga menu
+     * terbatas (ditandai, TANPA langkah/tips/tautan), opsional disaring kata kunci (semua kata harus muncul).
+     *
+     * @param  ?array  $user  bentuk Petugas::current() (null untuk anggota portal)
+     * @return list<array{key: string, menu: ?string, menu_label: string, group: string, title: string, summary: string, steps?: list<array>, tips?: list<string>, related?: array, allowed: bool, restricted: bool, required_roles?: list<string>, overridden: list<string>, stale: bool}>
+     */
+    public function listFor(?array $user, string $audience, bool $includeRestricted = false, string $search = ''): array
+    {
+        $words = array_filter(explode(' ', Str::lower(Str::ascii(trim($search)))));
+        $out = [];
+        foreach ($this->all($audience) as $key => $g) {
+            $allowed = $this->allowed($user, $g);
+            if (! $allowed && ! $includeRestricted) {
+                continue;
+            }
+            $hay = GuideCatalog::haystack($key, $g);
+            if ($words && collect($words)->contains(fn ($w) => ! str_contains($hay, $w))) {
+                continue;
+            }
+            $out[] = $this->present($key, $g, $allowed);
+        }
+
+        return $out;
+    }
+
+    /** Satu panduan siap dikirim: panduan terbatas tanpa langkah/tips/tautan, dengan peran yang dibutuhkan. */
+    public function present(string $key, array $g, bool $allowed): array
+    {
+        $base = [
+            'key' => $key, 'menu' => $g['menu'], 'menu_label' => $g['menu'] ? (Menu::ITEMS[$g['menu']]['label'] ?? $g['menu']) : ($g['audience'] === 'anggota' ? 'Portal' : 'Akun saya'),
+            'group' => GuideCatalog::groupFor($g['menu']), 'title' => $g['title'], 'summary' => $g['summary'],
+            'allowed' => $allowed, 'restricted' => ! $allowed, 'overridden' => $g['overridden'] ?? [], 'stale' => (bool) ($g['stale'] ?? false),
+        ];
+        if (! $allowed) {
+            return $base + ['required_roles' => Menu::grantingRoles($g['menu'])];
+        }
+
+        return $base + ['steps' => $g['steps'], 'tips' => $g['tips'], 'related' => $g['related'] ?? [], 'step_count' => count($g['steps'])];
+    }
 
     /**
      * Isi efektif satu panduan (bentuk sama dengan GuideCatalog) + daftar bagian yang sedang disunting manual.

@@ -328,7 +328,7 @@ class GuideCatalog
     {
         return Str::lower(Str::ascii(implode(' ', [
             $entry['menu'] ? (Menu::ITEMS[$entry['menu']]['label'] ?? '') : '', $entry['title'], $entry['summary'],
-            ...array_column($entry['steps'], 'text'), ...$entry['tips'], self::KEYWORDS[$key] ?? '',
+            ...array_column($entry['steps'], 'text'), ...$entry['tips'], $entry['keywords'] ?? self::KEYWORDS[$key] ?? '',
         ])));
     }
 
@@ -345,8 +345,12 @@ class GuideCatalog
     /** Kunci menu → judul grup menu samping (untuk pengelompokan daftar). @return array<string, string> */
     public static function groupOf(string $key): string
     {
-        $menu = self::entries()[$key]['menu'] ?? null;
+        return self::groupFor(self::entries()[$key]['menu'] ?? null);
+    }
 
-        return $menu ? (Menu::GROUPS[Menu::ITEMS[$menu]['group']] ?? 'Lainnya') : 'Umum';
+    /** Judul grup menu samping untuk kunci menu (null = Umum). */
+    public static function groupFor(?string $menu): string
+    {
+        return $menu ? (Menu::GROUPS[Menu::ITEMS[$menu]['group'] ?? ''] ?? 'Lainnya') : 'Umum';
     }
 }

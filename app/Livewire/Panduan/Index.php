@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Panduan;
 
+use App\Services\GuideService;
 use App\Support\GuideCatalog;
 use App\Support\Menu;
 use App\Support\Petugas;
@@ -75,7 +76,7 @@ class Index extends Component
     #[Computed]
     public function entries(): array
     {
-        return GuideCatalog::forAudience('petugas');
+        return app(GuideService::class)->all('petugas'); // isi efektif (otomatis + suntingan admin)
     }
 
     /** Panduan yang cocok dengan kata kunci (semua kata harus muncul), dikelompokkan. @return array<string, array<string, array>> */
@@ -92,7 +93,7 @@ class Index extends Component
             if ($words && collect($words)->contains(fn ($w) => ! str_contains($hay, $w))) {
                 continue;
             }
-            $groups[GuideCatalog::groupOf($key)][$key] = $e;
+            $groups[GuideCatalog::groupFor($e['menu'])][$key] = $e;
         }
 
         return $groups;
