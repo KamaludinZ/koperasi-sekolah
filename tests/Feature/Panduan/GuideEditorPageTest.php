@@ -104,4 +104,24 @@ class GuideEditorPageTest extends TestCase
         $this->get('/panduan/sunting')->assertForbidden();
         Livewire::test(Index::class)->call('open', 'transaksi')->assertDontSeeHtml('data-guide-edit-link');
     }
+
+    public function test_counters_preview_and_unsaved_marker(): void
+    {
+        $this->editor()->assertSeeHtml('data-dirty-count="0"')->assertSeeHtml('data-editor-count="title"')->assertSeeHtml('data-editor-preview')
+            ->set('title', 'Judul baru')->assertSeeText('10/150')->assertSeeHtml('data-dirty-count="1"')->assertSeeHtml('data-editor-unsaved')
+            ->assertSeeText('1 bagian belum disimpan: judul')
+            ->set('steps.0.text', 'Langkah pertama yang diubah')->assertSeeHtml('data-dirty-count="2"')
+            ->assertSeeText('Langkah pertama yang diubah');                                      // pratinjau pembaca ikut berubah
+    }
+
+    public function test_save_all_saves_valid_sections_and_keeps_invalid_input(): void
+    {
+        $c = $this->editor()->set('title', 'Judul kas versi koperasi')->set('summary', 'pendek')->set('tips', ['Tips baru dari admin'])
+            ->set('note', 'Simpan sekaligus')->call('saveAll')
+            ->assertHasErrors('summary')->assertSet('summary', 'pendek')->assertSet('title', 'Judul kas versi koperasi')
+            ->assertSeeText('Judul, Tips disimpan sebagai suntingan.');
+        $this->assertEqualsCanonicalizing(['title', 'tips'], GuideOverride::pluck('field')->all());
+        $this->assertSame(2, ActivityLog::where('event', 'guide.overridden')->where('reason', 'Simpan sekaligus')->count());
+        $c->assertSeeHtml('data-dirty-count="1"');
+    }
 }

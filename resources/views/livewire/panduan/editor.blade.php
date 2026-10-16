@@ -3,7 +3,11 @@
     $input = 'w-full rounded-lg border border-stone-300 bg-white px-3 py-2 text-sm';
     $max = \App\Services\GuideService::MAX;
 @endphp
-<div class="flex min-h-0 flex-1 flex-col overflow-y-auto">
+{{-- Peringatan meninggalkan halaman bila ada bagian belum disimpan: dibaca dari data-dirty-count saat kejadian --}}
+<div class="flex min-h-0 flex-1 flex-col overflow-y-auto" data-editor-root data-dirty-count="{{ count($this->dirtyFields) }}"
+     x-data="{ unsaved() { return document.contains($el) && Number($el.dataset.dirtyCount) > 0 } }"
+     x-init="window.addEventListener('beforeunload', (e) => { if (unsaved()) { e.preventDefault(); e.returnValue = ''; } })"
+     x-on:livewire:navigate.window="if (unsaved() && ! confirm('Ada perubahan panduan yang belum disimpan. Tinggalkan halaman?')) $event.preventDefault()">
     <header class="flex flex-wrap items-end justify-between gap-3 border-b border-stone-200 bg-white px-4 py-4 sm:px-6">
         <div>
             <h1 class="text-lg font-semibold">Sunting Panduan</h1>
@@ -33,6 +37,12 @@
             </div>
             @if ($this->entry?->is_stale)
                 <p class="rounded-xl bg-amber-50 px-3 py-2 text-sm text-amber-900 ring-1 ring-amber-200" data-editor-stale>Panduan ini ditandai perlu ditinjau: {{ $this->entry->stale_reason }}</p>
+            @endif
+            @if ($this->dirtyFields)
+                <div class="sticky top-0 z-10 flex flex-wrap items-center justify-between gap-2 rounded-xl bg-amber-50 px-3 py-2 text-sm text-amber-950 ring-1 ring-amber-200" data-editor-unsaved>
+                    <span>{{ count($this->dirtyFields) }} bagian belum disimpan: {{ collect($this->dirtyFields)->map(fn ($f) => mb_strtolower($fields[$f]))->join(', ') }}.</span>
+                    <button type="button" wire:click="saveAll" class="rounded-lg bg-emerald-700 px-3 py-1 text-xs font-semibold text-white hover:bg-emerald-800" data-editor-save-all>Simpan semua perubahan</button>
+                </div>
             @endif
             @if ($saved)
                 <p class="rounded-xl bg-emerald-50 px-3 py-2 text-sm text-emerald-900 ring-1 ring-emerald-200" role="status" data-editor-saved>{{ $saved }} Versi baru & jejak audit dicatat.</p>
@@ -65,8 +75,10 @@
                         <div class="mt-3">
                             @if ($field === 'title')
                                 <input type="text" wire:model.live.debounce.400ms="title" maxlength="{{ $max['title'] }}" class="{{ $input }}" data-editor-input="title">
+                                <p class="mt-1 text-right text-[11px] tabular-nums text-stone-500" data-editor-count="title">{{ mb_strlen($title) }}/{{ $max['title'] }}</p>
                             @elseif ($field === 'summary')
                                 <textarea wire:model.live.debounce.400ms="summary" rows="3" maxlength="{{ $max['summary'] }}" class="{{ $input }}" data-editor-input="summary"></textarea>
+                                <p class="mt-1 flex justify-between text-[11px] tabular-nums text-stone-500" data-editor-count="summary"><span>Minimal 10 karakter.</span><span>{{ mb_strlen($summary) }}/{{ $max['summary'] }}</span></p>
                             @elseif ($field === 'steps')
                                 <ol class="space-y-2">
                                     @foreach ($steps as $i => $step)
@@ -85,9 +97,14 @@
                                         </li>
                                     @endforeach
                                 </ol>
-                                @if (count($steps) < $max['steps'])
-                                    <button type="button" wire:click="addStep" class="mt-2 text-xs font-semibold text-emerald-800 hover:underline" data-editor-add-step>+ Tambah langkah</button>
-                                @endif
+                                <p class="mt-2 flex flex-wrap items-center justify-between gap-2 text-[11px] text-stone-500">
+                                    @if (count($steps) < $max['steps'])
+                                        <button type="button" wire:click="addStep" class="text-xs font-semibold text-emerald-800 hover:underline" data-editor-add-step>+ Tambah langkah</button>
+                                    @else
+                                        <span>Paling banyak {{ $max['steps'] }} langkah.</span>
+                                    @endif
+                                    <span class="tabular-nums" data-editor-count="steps">{{ count($steps) }}/{{ $max['steps'] }} langkah · tiap langkah ≤ {{ $max['step'] }} karakter · langkah kosong dibuang saat disimpan</span>
+                                </p>
                             @else
                                 <ul class="space-y-2">
                                     @foreach ($tips as $i => $tip)
@@ -123,7 +140,24 @@
             @endif
         </div>
 
-        <aside class="space-y-3 xl:sticky xl:top-0 xl:self-start" aria-label="Riwayat versi">
+        <aside class="space-y-3 xl:sticky xl:top-0 xl:self-start" aria-label="Pratinjau & riwayat versi">
+            @if ($this->entry)
+                <div class="rounded-2xl border border-emerald-200 bg-white p-4 text-sm" data-editor-preview>
+                    <p class="text-[11px] font-semibold tracking-wider text-emerald-700 uppercase">Pratinjau pembaca</p>
+                    <p class="mt-1 font-semibold text-stone-900">{{ $title ?: '—' }}</p>
+                    <p class="mt-1 text-xs text-stone-700">{{ $summary }}</p>
+                    <ol class="mt-2 space-y-1 text-xs">
+                        @foreach (array_filter($steps, fn ($s) => trim($s['text'] ?? '') !== '') as $s)
+                            <li class="flex gap-1.5"><span class="font-semibold text-emerald-800">{{ $loop->iteration }}.</span><span>{{ $s['text'] }}@if (($s['route'] ?? '') !== '') <span class="text-emerald-800">· Buka →</span>@endif</span></li>
+                        @endforeach
+                    </ol>
+                    @if (array_filter($tips, fn ($t) => trim($t) !== ''))
+                        <ul class="mt-2 list-disc rounded-lg bg-amber-50 py-1.5 pr-2 pl-5 text-xs text-amber-900">
+                            @foreach (array_filter($tips, fn ($t) => trim($t) !== '') as $t)<li>{{ $t }}</li>@endforeach
+                        </ul>
+                    @endif
+                </div>
+            @endif
             <div class="rounded-2xl border border-stone-200 bg-white p-4 text-sm">
                 <h2 class="font-semibold">Versi terakhir</h2>
                 <ul class="mt-2 space-y-2 text-xs">
