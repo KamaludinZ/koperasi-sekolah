@@ -5,9 +5,9 @@ namespace App\Services;
 use App\Models\CashMovement;
 use App\Models\CashShift;
 use App\Models\Transaction;
-use Illuminate\Support\Carbon;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 
 /**
@@ -69,7 +69,7 @@ class CashReportService
         }
 
         $shiftsByDay = $this->shiftRows(
-            CashShift::whereBetween('opened_at', [$from, $to->copy()->endOfDay()])->with('user:id,name')->orderBy('opened_at')->get()
+            CashShift::whereBetween('opened_at', [$from, $to->copy()->endOfDay()])->with('user:id,name', 'closer:id,name')->orderBy('opened_at')->get()
         );
         $shiftsByDay = collect($shiftsByDay)->groupBy(fn ($s) => substr($s['opened_at'], 0, 10));
         $sales = Transaction::whereBetween('created_at', [$from, $to->copy()->endOfDay()])->get(['created_at', 'payment_method', 'total'])

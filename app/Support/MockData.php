@@ -2,7 +2,6 @@
 
 namespace App\Support;
 
-use App\Models\Notification;
 use App\Services\AnnouncementService;
 use App\Services\NotificationService;
 use App\Services\SettingsService;
@@ -78,16 +77,6 @@ class MockData
         return AnnouncementService::toArray(app(AnnouncementService::class)->create($data, auth()->user()));
     }
 
-    public static function deleteAnnouncement(int $id): bool
-    {
-        $n = Notification::where('type', 'pengumuman')->find($id);
-        if ($n) {
-            app(AnnouncementService::class)->delete($n, auth()->user());
-        }
-
-        return (bool) $n;
-    }
-
     /** Pengumuman aktif untuk beranda publik. */
     public static function publicAnnouncements(): array
     {
@@ -108,82 +97,6 @@ class MockData
         return $user ? app(NotificationService::class)->unreadCount($user) : 0;
     }
 
-    /** Persentase pajak penjualan efektif (0 bila pajak dimatikan). */
-    public static function taxRate(): float
-    {
-        return app(SettingsService::class)->taxRate();
-    }
-
-    /**
-     * Transaksi tiruan (terbaru dulu) untuk halaman Riwayat Transaksi tahap frontend.
-     * Deterministik: data sama setiap dimuat, tanggal relatif terhadap hari ini.
-     */
-    public static function transactions(int $days = 14): array
-    {
-        mt_srand(20261012);
-        $products = self::seedProducts();
-        $cashiers = ['Bu Rina', 'Pak Dedi', 'Kasir Demo'];
-        $members = [null, null, null, 'Andi (7A)', 'Siti (8B)', 'Pak Budi (Guru)'];
-        $rows = [];
-        $id = 0;
-
-        for ($d = $days - 1; $d >= 0; $d--) {
-            $date = now()->startOfDay()->subDays($d);
-            if ($date->isSunday()) {
-                continue;
-            }
-
-            $count = mt_rand(2, 6);
-            $times = [];
-            for ($i = 0; $i < $count; $i++) {
-                $times[] = $date->copy()->setTime(mt_rand(7, 14), mt_rand(0, 59), mt_rand(0, 59));
-            }
-            sort($times);
-
-            foreach ($times as $seq => $time) {
-                if ($time->isFuture()) {
-                    continue;
-                }
-
-                $items = [];
-                foreach ((array) array_rand($products, mt_rand(1, 4)) as $key) {
-                    $p = $products[$key];
-                    $qty = mt_rand(1, 3);
-                    $items[] = ['product_name' => $p['name'], 'price' => $p['price'], 'quantity' => $qty, 'subtotal' => $p['price'] * $qty];
-                }
-
-                $total = array_sum(array_column($items, 'subtotal'));
-                $method = mt_rand(1, 5) === 1 ? 'qris' : 'tunai';
-                $paid = $method === 'tunai' ? (int) (ceil($total / 5000) * 5000) : $total;
-
-                $rows[] = [
-                    'id' => ++$id,
-                    'invoice_number' => 'INV-'.$time->format('Ymd').'-'.str_pad((string) ($seq + 1), 4, '0', STR_PAD_LEFT),
-                    'created_at' => $time->toDateTimeString(),
-                    'cashier' => $cashiers[array_rand($cashiers)],
-                    'member' => $members[array_rand($members)],
-                    'items' => $items,
-                    'item_count' => array_sum(array_column($items, 'quantity')),
-                    'subtotal' => $total,
-                    'tax' => 0,
-                    'discount' => 0,
-                    'total' => $total,
-                    'paid' => $paid,
-                    'change' => $paid - $total,
-                    'payment_method' => $method,
-                ];
-            }
-        }
-        mt_srand();
-
-        return array_reverse($rows);
-    }
-
-    public static function findTransaction(int $id): ?array
-    {
-        return collect(self::transactions())->firstWhere('id', $id);
-    }
-
     /** Anggota koperasi tiruan (siswa & guru) dengan saldo tabungan, untuk tahap frontend. */
     public static function members(): array
     {
@@ -193,55 +106,6 @@ class MockData
     public static function findMember(int $id): ?array
     {
         return collect(self::members())->firstWhere('id', $id);
-    }
-
-    /** Simpan anggota baru (tanpa id) atau perbarui yang ada ke session. */
-    public static function saveMember(array $data): array
-    {
-        $members = collect(self::members())->keyBy('id');
-        $data['id'] ??= ($members->keys()->max() ?? 0) + 1;
-        $members[$data['id']] = [
-            'balance' => 0,
-            'joined_at' => now()->toDateString(),
-            ...($members[$data['id']] ?? []),
-            ...$data,
-        ];
-        session(['mock.members' => $members->values()->all()]);
-
-        return $members[$data['id']];
-    }
-
-    /**
-     * Mutasi tabungan tiruan satu anggota (lama → baru). Deterministik per anggota,
-     * saldo tidak pernah negatif, dan saldo akhir sama dengan saldo anggota.
-     */
-    public static function savings(int $memberId): array
-    {
-        return session("mock.savings.{$memberId}") ?? self::seedSavings($memberId);
-    }
-
-    /** Catat setor/tarik tiruan: tambah mutasi & perbarui saldo anggota. */
-    public static function recordSaving(int $memberId, string $type, int $amount, ?string $note, string $user = 'Kasir Demo'): array
-    {
-        $member = self::findMember($memberId);
-        $ledger = self::savings($memberId);
-        $balance = $member['balance'] + ($type === 'setor' ? $amount : -$amount);
-
-        $entry = [
-            'id' => $memberId * 100 + count($ledger) + 1,
-            'member_id' => $memberId,
-            'type' => $type,
-            'amount' => $amount,
-            'balance_after' => $balance,
-            'note' => $note ?: ($type === 'setor' ? 'Setoran tabungan' : 'Penarikan tabungan'),
-            'user' => $user,
-            'created_at' => now()->toDateTimeString(),
-        ];
-
-        session(["mock.savings.{$memberId}" => [...$ledger, $entry]]);
-        self::saveMember(['id' => $memberId, 'balance' => $balance]);
-
-        return $entry;
     }
 
     public static function seedSavings(int $memberId): array
@@ -287,19 +151,6 @@ class MockData
             'user' => $staff[$i % 2],
             'created_at' => now()->subDays($r[0])->setTime(9 + $i % 5, (13 * $i) % 60)->toDateTimeString(),
         ], $rows, array_keys($rows));
-    }
-
-    /** Kode anggota berikutnya, mis. S-2026-013 / G-2026-005. */
-    public static function nextMemberCode(string $type): string
-    {
-        $prefix = ($type === 'guru' ? 'G' : 'S').'-'.now()->year.'-';
-        $count = collect(self::members())->filter(fn ($m) => str_starts_with($m['member_code'], $type === 'guru' ? 'G-' : 'S-'))->count();
-
-        do {
-            $code = $prefix.str_pad((string) ++$count, 3, '0', STR_PAD_LEFT);
-        } while (collect(self::members())->contains('member_code', $code));
-
-        return $code;
     }
 
     public static function seedMembers(): array

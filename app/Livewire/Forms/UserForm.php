@@ -4,6 +4,7 @@ namespace App\Livewire\Forms;
 
 use App\Models\User;
 use App\Services\UserService;
+use Livewire\Attributes\Locked;
 use Livewire\Form;
 
 /**
@@ -23,7 +24,7 @@ class UserForm extends Form
     public array $roles = ['kasir'];
 
     /** @var list<string> peran tersimpan saat form dibuka (kosong untuk akun baru) */
-    #[\Livewire\Attributes\Locked]
+    #[Locked]
     public array $rolesSnapshot = [];
 
     public bool $is_active = true;
@@ -64,7 +65,7 @@ class UserForm extends Form
         $service = app(UserService::class);
 
         return $this->id === null
-            ? $service->create($data)
+            ? $service->create($data, $actor)
             : $service->update(User::findOrFail($this->id), $data, $actor);
     }
 }

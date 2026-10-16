@@ -5,11 +5,13 @@ namespace App\Livewire\Anggota;
 use App\Livewire\Forms\MemberForm;
 use App\Models\Member;
 use App\Services\MemberService;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Attributes\Url;
 use Livewire\Component;
+use Livewire\WithPagination;
 
 /**
  * Daftar anggota koperasi (siswa & guru) beserta saldo tabungan.
@@ -19,6 +21,11 @@ use Livewire\Component;
 #[Title('Anggota & Tabungan')]
 class Index extends Component
 {
+    use WithPagination;
+
+    /** Anggota per halaman — daftar tidak dimuat seluruhnya (sekolah bisa punya ribuan anggota). */
+    public const PER_PAGE = 50;
+
     public const TYPES = Member::TYPES;
 
     public MemberForm $form;
@@ -39,6 +46,13 @@ class Index extends Component
     #[Url(as: 'nonaktif', except: false)]
     public bool $showInactive = false;
 
+    public function updating(string $property): void
+    {
+        if (in_array($property, ['search', 'type', 'class', 'showInactive'], true)) {
+            $this->resetPage(); // saringan berubah → kembali ke halaman 1
+        }
+    }
+
     public function updatedType(): void
     {
         if ($this->type === 'guru') {
@@ -47,14 +61,21 @@ class Index extends Component
     }
 
     #[Computed]
-    public function members(): array
+    public function page(): LengthAwarePaginator
     {
-        return app(MemberService::class)->query([
+        return app(MemberService::class)->paginate([
             'search' => $this->search,
             'type' => $this->type,
             'class' => $this->class,
             'include_inactive' => $this->showInactive,
-        ])->get()->map(fn (Member $m) => MemberService::toArray($m))->all();
+        ], self::PER_PAGE, $this->getPage());
+    }
+
+    /** Anggota di halaman ini (bentuk MemberService::toArray). @return list<array> */
+    #[Computed]
+    public function members(): array
+    {
+        return $this->page->items();
     }
 
     #[Computed]
@@ -101,7 +122,7 @@ class Index extends Component
 
         $this->editing = false;
         $this->flash = $isNew ? "{$member['name']} terdaftar sebagai anggota." : "Data {$member['name']} diperbarui.";
-        unset($this->members, $this->stats, $this->classes);
+        unset($this->page, $this->members, $this->stats, $this->classes);
     }
 
     public function cancel(): void

@@ -146,7 +146,7 @@ class Index extends Component
         $role = Role::named($this->permissionsRole);
 
         try {
-            app(UserService::class)->updatePermissions($role, $this->permissions[$role->name] ?? []);
+            app(UserService::class)->updatePermissions($role, $this->permissions[$role->name] ?? [], null, auth()->user());
         } catch (ValidationException $e) {
             $this->addError('permissions', $e->errors()['permissions'][0]);
 

@@ -22,6 +22,10 @@ use Illuminate\Validation\ValidationException;
 class UserService
 {
     /** Pesan tunggal untuk aturan "akun wajib punya minimal satu peran" (form, kotak centang, JSON). */
+    public const MSG_ADMIN_ONLY_GRANT = 'Hanya Admin yang dapat memberikan peran Admin.';
+
+    public const MSG_ADMIN_ONLY_ACCOUNT = 'Hanya Admin yang dapat mengubah akun Admin.';
+
     public const MSG_MIN_ROLE = 'Pilih minimal satu peran — akun tanpa peran tidak bisa membuka menu apa pun.';
 
     public function __construct(private SessionService $sessions) {}
@@ -133,9 +137,12 @@ class UserService
     }
 
     /** @param  array<string, mixed>  $data  data tervalidasi */
-    public function create(array $data): User
+    public function create(array $data, ?User $actor = null): User
     {
         $names = self::roleList($data);
+        if ($actor && ! $actor->hasRole(Role::ADMIN) && in_array(Role::ADMIN, $names, true)) {
+            throw ValidationException::withMessages(['roles' => self::MSG_ADMIN_ONLY_GRANT]); // cegah eskalasi hak oleh pemegang menu Pengguna non-Admin
+        }
         $user = DB::transaction(function () use ($data, $names) {
             $user = User::create([
                 'name' => trim($data['name']),
@@ -330,8 +337,11 @@ class UserService
      *
      * @param  list<string>  $menus
      */
-    public function updatePermissions(Role $role, array $menus, ?string $reason = null): Role
+    public function updatePermissions(Role $role, array $menus, ?string $reason = null, ?User $actor = null): Role
     {
+        if ($actor && ! $actor->hasRole(Role::ADMIN)) {
+            throw ValidationException::withMessages(['permissions' => 'Hanya Admin yang dapat mengubah izin menu peran.']);
+        }
         $menus = array_values(array_intersect(array_keys(Menu::ITEMS), $menus)); // urutan & kunci valid saja
         if ($forbidden = array_intersect($menus, Role::FORBIDDEN[$role->name] ?? [])) {
             $names = implode(', ', array_map(fn ($k) => Menu::ITEMS[$k]['label'] ?? $k, $forbidden));
@@ -409,6 +419,15 @@ class UserService
     private function guardChange(User $user, array $newRoles, bool $newActive, ?User $actor): void
     {
         $errors = [];
+        // pemegang menu Pengguna yang bukan Admin tidak boleh menyentuh akun Admin atau memberikan peran Admin
+        if ($actor && ! $actor->hasRole(Role::ADMIN)) {
+            if (in_array(Role::ADMIN, $user->roleNames(), true)) {
+                throw ValidationException::withMessages(['roles' => self::MSG_ADMIN_ONLY_ACCOUNT]);
+            }
+            if (in_array(Role::ADMIN, $newRoles, true)) {
+                throw ValidationException::withMessages(['roles' => self::MSG_ADMIN_ONLY_GRANT]);
+            }
+        }
         $wasAdmin = in_array(Role::ADMIN, $user->roleNames(), true);
         $staysAdmin = in_array(Role::ADMIN, $newRoles, true);
         if ($actor && $actor->is($user)) {

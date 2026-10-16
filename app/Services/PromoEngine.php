@@ -34,7 +34,7 @@ class PromoEngine
         $day = ($now ?? now())->toDateString();
 
         return $this->cache[$day] ??= Promo::runningOn($day)
-            ->with('targets.category:id,name', 'targets.product:id,name')
+            ->with('targets.category:id,name', 'targets.product:id,name', 'creator:id,name')
             ->orderBy('id')->get()
             ->map(fn (Promo $p) => self::toArray($p))->all();
     }

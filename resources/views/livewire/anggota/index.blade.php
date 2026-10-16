@@ -99,7 +99,8 @@
                     </li>
                 @endforeach
             </ul>
-            <p class="text-xs text-stone-500">Menampilkan {{ count($this->members) }} anggota.</p>
+            <p class="text-xs text-stone-500" data-members-count>Menampilkan {{ $this->page->firstItem() }}–{{ $this->page->lastItem() }} dari {{ $this->page->total() }} anggota.</p>
+            {{ $this->page->links() }}
         @endif
     </div>
 

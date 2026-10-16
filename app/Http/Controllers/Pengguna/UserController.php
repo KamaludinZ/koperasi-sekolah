@@ -82,7 +82,7 @@ class UserController extends Controller
     {
         $data = $request->validate(UserService::rules(), UserService::messages());
 
-        return response()->json(['data' => self::row($users->create($data))], 201);
+        return response()->json(['data' => self::row($users->create($data, $request->user()))], 201);
     }
 
     public function update(Request $request, User $user, UserService $users): JsonResponse
@@ -185,6 +185,6 @@ class UserController extends Controller
             'alasan' => ['nullable', 'string', 'max:200'],
         ]);
 
-        return response()->json(['data' => $users->updatePermissions($role, $data['permissions'], $data['alasan'] ?? null)->only('id', 'name', 'label', 'permissions')]);
+        return response()->json(['data' => $users->updatePermissions($role, $data['permissions'], $data['alasan'] ?? null, $request->user())->only('id', 'name', 'label', 'permissions')]);
     }
 }
