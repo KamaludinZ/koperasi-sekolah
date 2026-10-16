@@ -1,11 +1,14 @@
 <?php
 
 use App\Jobs\DetectOverdueLoans;
+use App\Jobs\SyncGuides;
 use App\Models\Backup;
+use App\Models\GuideSyncJob;
 use App\Models\Loan;
 use App\Models\User;
 use App\Services\BackupService;
 use App\Services\CouponService;
+use App\Services\GuideMetadataService;
 use App\Services\GuideScanner;
 use App\Services\GuideSyncRecorder;
 use App\Services\HealthCheckService;
@@ -217,6 +220,35 @@ Artisan::command('panduan:susun', function () {
     $this->info('Panduan disusun: '.count($s['created']).' baru, '.count($s['updated']).' diperbarui, '
         .count($s['unchanged']).' tetap, '.count($s['skipped_manual']).' manual dilewati.');
 })->purpose('Susun ulang panduan otomatis dari konfigurasi menu');
+
+// Sinkronisasi Pusat Panduan otomatis: periksa perubahan menu/halaman/izin tiap 5 menit (murah, tanpa menulis bila
+// tidak berubah) → antre SyncGuides dengan pemicu menu_changed/permission_changed; penyusunan ulang menyeluruh harian.
+Artisan::command('panduan:periksa {--antre : Antre sinkronisasi bila ada perubahan (bawaan hanya melapor)}', function () {
+    $diff = app(GuideMetadataService::class)->diff();
+    if ($diff['first_scan']) {
+        app(GuideMetadataService::class)->capture();
+        $this->info('Garis dasar metadata menu & izin disimpan.');
+
+        return 0;
+    }
+    $trigger = GuideMetadataService::triggerFor($diff);
+    if (! $trigger) {
+        $this->info('Tidak ada perubahan menu/izin.');
+
+        return 0;
+    }
+    $this->warn('Berubah: '.collect($diff['changed'])->map(fn ($a, $m) => $m.' ('.implode(', ', $a).')')->merge(array_map(fn ($m) => "{$m} (baru)", $diff['added']))
+        ->merge(array_map(fn ($m) => "{$m} (hilang)", $diff['removed']))->join(', '));
+    if ($this->option('antre')) {
+        $pending = GuideSyncJob::whereIn('status', ['queued', 'running'])->where('trigger', $trigger)->exists();
+        $pending ? $this->line('Sinkronisasi serupa sudah mengantre.') : $this->info('Sinkronisasi diantre (#'.SyncGuides::enqueue($trigger, 'Perubahan terdeteksi otomatis')->id.').');
+    }
+
+    return 0;
+})->purpose('Periksa perubahan menu/izin untuk panduan, opsional antre sinkronisasi');
+
+Schedule::command('panduan:periksa', ['--antre'])->everyFiveMinutes()->withoutOverlapping()->name('panduan:periksa');
+Schedule::call(fn () => SyncGuides::enqueue('scheduled', 'Sinkronisasi harian'))->dailyAt('03:30')->name('panduan:sinkron-harian')->withoutOverlapping();
 
 // Pindai menu, halaman & izin peran (bahan panduan otomatis) dan laporkan temuan konfigurasi. --ketat: gagal bila ada temuan.
 Artisan::command('panduan:pindai {--json : Keluaran JSON (fakta per menu, izin per peran, temuan)} {--ketat : Kode keluar 1 bila ada temuan}', function () {

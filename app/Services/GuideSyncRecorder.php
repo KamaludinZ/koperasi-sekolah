@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Cache;
 /**
  * Menjalankan penyusunan ulang panduan (GuideGenerator::sync) sambil mencatat prosesnya di guide_sync_jobs:
  * running → done (dengan hitungan hasil) atau failed (pesan galat dipotong; galat tetap dilempar ulang).
+ * Penyusunan ulang menyeluruh juga memperbarui garis dasar metadata menu & izin (guide_menu_snapshots).
  * Hanya satu penyusunan ulang berjalan pada satu waktu (kunci cache); bila kunci dipegang proses lain → GuideSyncInProgress.
  */
 class GuideSyncRecorder
@@ -45,6 +46,9 @@ class GuideSyncRecorder
         } catch (\Throwable $e) {
             $job->update(['status' => 'failed', 'finished_at' => now(), 'error' => mb_substr(class_basename($e).': '.$e->getMessage(), 0, 500)]);
             throw $e;
+        }
+        if ($only === null) {
+            app(GuideMetadataService::class)->capture(); // panduan sudah sesuai menu/izin saat ini → jadikan garis dasar baru
         }
         $job->update(['status' => 'done', 'finished_at' => now(), 'stats' => array_map('count', $stats)]);
 

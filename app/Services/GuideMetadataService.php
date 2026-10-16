@@ -93,6 +93,22 @@ class GuideMetadataService
         });
     }
 
+    /**
+     * Pemicu sinkronisasi untuk perubahan: izin peran berubah → permission_changed; menu/halaman berubah, menu baru
+     * atau hilang → menu_changed; tidak ada perubahan (atau pemindaian pertama) → null.
+     */
+    public static function triggerFor(array $diff): ?string
+    {
+        if ($diff['first_scan'] ?? false) {
+            return null;
+        }
+        if ($diff['added'] || $diff['removed'] || collect($diff['changed'])->flatten()->intersect(['menu', 'pages'])->isNotEmpty()) {
+            return 'menu_changed';
+        }
+
+        return $diff['changed'] ? 'permission_changed' : null;
+    }
+
     private function hash(mixed $value): string
     {
         return hash('sha256', json_encode($value, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
