@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
  * Satu panduan di Pusat Panduan (tabel guide_entries). Bentuk array-nya (toGuide) sama dengan entri
@@ -26,6 +27,16 @@ class GuideEntry extends Model
             'steps' => 'array', 'tips' => 'array', 'related' => 'array', 'required_permissions' => 'array',
             'is_stale' => 'boolean', 'generated_at' => 'datetime', 'position' => 'integer',
         ];
+    }
+
+    public function overrides(): HasMany
+    {
+        return $this->hasMany(GuideOverride::class);
+    }
+
+    public function versions(): HasMany
+    {
+        return $this->hasMany(GuideVersion::class)->orderByDesc('version');
     }
 
     public function scopeFor(Builder $q, string $audience): void

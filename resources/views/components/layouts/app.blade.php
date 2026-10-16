@@ -30,15 +30,18 @@
     <aside class="print:hidden fixed inset-y-0 left-0 z-50 isolate flex w-64 shrink-0 flex-col overflow-hidden bg-emerald-950 text-emerald-50 transition-transform duration-200 max-lg:-translate-x-full lg:relative lg:w-60"
            x-bind:class="nav && 'max-lg:translate-x-0!'">
         <div class="pattern-madrasah absolute inset-0 -z-10 opacity-[0.07]" aria-hidden="true"></div>
-        <div class="mx-3 mt-4 mb-2 flex items-center gap-1">
-            <a href="{{ route('beranda') }}" class="min-w-0 flex-1 rounded-lg px-2 py-2 outline-none hover:bg-emerald-900/60 focus-visible:ring-2 focus-visible:ring-amber-300" title="Beranda koperasi">
+        <div class="mx-3 mt-4 mb-2">
+            <a href="{{ route('beranda') }}" class="block min-w-0 rounded-lg px-2 py-2 outline-none hover:bg-emerald-900/60 focus-visible:ring-2 focus-visible:ring-amber-300" title="Beranda koperasi">
                 <x-brand.logo size="sm" />
             </a>
-            @if ($user)
-                <x-guide-button />
-                <livewire:notifikasi.bell />
-            @endif
         </div>
+        @if ($user)
+            {{-- Pintasan Panduan & Notifikasi di baris sendiri (di atas menu) agar nama aplikasi tidak terhimpit --}}
+            <div class="mx-3 mb-3 grid grid-cols-2 gap-1 rounded-xl bg-emerald-900/50 p-1 ring-1 ring-emerald-800/70" data-sidebar-shortcuts>
+                <x-guide-button variant="row" />
+                <livewire:notifikasi.bell :labeled="true" />
+            </div>
+        @endif
         <nav class="flex-1 space-y-4 overflow-y-auto px-3 pb-2" aria-label="Menu utama">
             @foreach ($menu as $groupKey => $group)
                 <div>

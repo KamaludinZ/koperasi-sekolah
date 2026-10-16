@@ -18,6 +18,9 @@ class Bell extends Component
 
     public bool $compact = false;
 
+    /** Tombol berlabel "Notifikasi" (baris pintasan di menu samping). */
+    public bool $labeled = false;
+
     #[On('notifications-changed')]
     public function refreshCount(): void
     {

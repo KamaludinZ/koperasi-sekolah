@@ -1,10 +1,15 @@
 <div class="relative" wire:poll.60s x-data="{ open: false }" x-on:keydown.escape.window="open = false" x-on:click.outside="open = false">
     <button type="button" x-on:click="open = !open" x-bind:aria-expanded="open" aria-haspopup="dialog"
-            @class(['relative grid place-items-center rounded-lg text-emerald-200 hover:bg-emerald-800 hover:text-white', 'size-9' => ! $compact, 'size-10' => $compact])
+            @class(['relative rounded-lg text-emerald-200 hover:bg-emerald-800 hover:text-white',
+                    'grid size-9 place-items-center' => ! $compact && ! $labeled, 'grid size-10 place-items-center' => $compact,
+                    'flex h-9 w-full items-center justify-center gap-2 px-2 text-sm font-medium' => $labeled])
             x-bind:class="open && 'bg-emerald-800 text-white'"
             aria-label="Notifikasi{{ $unread ? ", {$unread} belum dibaca" : '' }}" title="Notifikasi">
-        <svg class="size-5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" aria-hidden="true"><path d="M18 8a6 6 0 10-12 0c0 7-3 9-3 9h18s-3-2-3-9M13.7 21a2 2 0 01-3.4 0"/></svg>
-        @if ($unread)
+        <svg class="size-5 shrink-0" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" aria-hidden="true"><path d="M18 8a6 6 0 10-12 0c0 7-3 9-3 9h18s-3-2-3-9M13.7 21a2 2 0 01-3.4 0"/></svg>
+        @if ($labeled)<span aria-hidden="true">Notifikasi</span>@endif
+        @if ($unread && $labeled)
+            <span class="grid min-w-4.5 place-items-center rounded-full bg-amber-400 px-1 text-[10px] leading-4.5 font-bold text-emerald-950 tabular-nums">{{ $unread > 9 ? '9+' : $unread }}</span>
+        @elseif ($unread)
             <span class="absolute -top-0.5 -right-0.5 grid min-w-4.5 place-items-center rounded-full bg-amber-400 px-1 text-[10px] leading-4.5 font-bold text-emerald-950 tabular-nums">{{ $unread > 9 ? '9+' : $unread }}</span>
         @endif
     </button>

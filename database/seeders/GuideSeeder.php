@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use App\Models\GuideEntry;
+use App\Services\GuideService;
 use App\Support\GuideCatalog;
 use Illuminate\Database\Seeder;
 
@@ -21,12 +22,13 @@ class GuideSeeder extends Seeder
             if ($existing && $existing->source === 'manual') {
                 continue;
             }
-            GuideEntry::updateOrCreate(['key' => $key], [
+            $entry = GuideEntry::updateOrCreate(['key' => $key], [
                 'menu_key' => $e['menu'], 'audience' => $e['audience'], 'title' => $e['title'], 'summary' => $e['summary'],
                 'steps' => $e['steps'], 'tips' => $e['tips'], 'related' => $e['related'], 'keywords' => GuideCatalog::KEYWORDS[$key] ?? null,
                 'required_permissions' => $e['menu'] ? [$e['menu']] : [], 'source' => 'auto', 'is_stale' => false, 'stale_reason' => null,
                 'generated_at' => now(), 'position' => $pos,
             ]);
+            app(GuideService::class)->recordVersion($entry, 'generate', 'Disusun dari katalog bawaan', null); // hanya bila isinya berubah
         }
     }
 }
