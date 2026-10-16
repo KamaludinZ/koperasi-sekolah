@@ -196,6 +196,7 @@ Route::middleware('portal')->group(function () { // bukan auth:member — guard 
     Route::get('/portal/pesanan/{order}', OrderShow::class)->whereNumber('order')->name('portal.pesanan.show');
     Route::get('/portal/panduan', Guide::class)->name('portal.panduan');
     Route::get('/portal/panduan/data', [GuideController::class, 'portal'])->middleware('throttle:120,1')->name('portal.panduan.data');
+    Route::get('/portal/panduan/data/{key}', [GuideController::class, 'portalShow'])->where('key', '[a-z0-9._-]{1,60}')->middleware('throttle:120,1')->name('portal.panduan.show');
     Route::post('/portal/keluar', function (Request $request) {
         if (ImpersonationSession::impersonatingMember()) { // admin: kembali ke akunnya, bukan keluar
             $svc = app(ImpersonationService::class);

@@ -26,6 +26,10 @@
             @endif
             <h2 class="text-lg font-semibold">{{ $current['title'] }}</h2>
             <p class="mt-1 text-sm text-stone-700">{{ $current['summary'] }}</p>
+            @foreach ($notices as $n)
+                <p @class(['mt-3 rounded-xl px-3 py-2 text-sm', 'bg-amber-50 text-amber-900 ring-1 ring-amber-200' => $n['type'] === 'warning', 'bg-sky-50 text-sky-900 ring-1 ring-sky-200' => $n['type'] !== 'warning'])
+                   role="{{ $n['type'] === 'warning' ? 'alert' : 'status' }}" data-portal-guide-notice="{{ $n['code'] }}">{{ $n['text'] }}</p>
+            @endforeach
 
             <div wire:key="portal-steps-{{ $currentKey }}" x-data="guideProgress(@js('portal-panduan:'.$memberId.':'.$currentKey), {{ $total }})" data-portal-guide-progress>
                 <div class="mt-4 flex flex-wrap items-center gap-3">

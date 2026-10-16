@@ -3,6 +3,7 @@
 namespace App\Livewire\Portal;
 
 use App\Services\GuideService;
+use App\Services\MemberGuideService;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 use Livewire\Attributes\Computed;
@@ -15,7 +16,8 @@ use Livewire\Component;
  * Portal anggota → Panduan (/portal/panduan): panduan versi anggota (beranda, simpanan, pinjaman, belanja, riwayat)
  * dengan langkah praktis berurutan; dibuka dari tombol Panduan di header portal (menumpang login portal yang ada).
  * Tombol header membawa topik halaman yang sedang dibuka (?topik=) dan halaman asal (?dari=) untuk tautan kembali.
- * Centang langkah tersimpan di peramban per anggota (kemudahan pribadi, bukan data aplikasi).
+ * Centang langkah tersimpan di peramban per anggota (kemudahan pribadi, bukan data aplikasi). Pemberitahuan sesi
+ * (PIN belum diatur/terkunci, angsuran menunggak, mode baca-saja) dari MemberGuideService.
  */
 #[Layout('components.layouts.portal')]
 #[Title('Panduan Portal')]
@@ -62,7 +64,7 @@ class Guide extends Component
         return $route && $route !== 'portal.checkout' && $this->validFrom($route) ? route($route) : null;
     }
 
-    public function render()
+    public function render(MemberGuideService $memberGuides)
     {
         $keys = array_keys($this->entries);
         $key = $this->selected ?: ($keys[0] ?? null);
@@ -73,6 +75,7 @@ class Guide extends Component
             'prev' => $pos > 0 ? $keys[$pos - 1] : null,
             'next' => $pos !== false && $pos < count($keys) - 1 ? $keys[$pos + 1] : null,
             'memberId' => Auth::guard('member')->id(),
+            'notices' => $key !== null ? $memberGuides->notices($key, $memberGuides->context(Auth::guard('member')->user())) : [],
         ]);
     }
 }

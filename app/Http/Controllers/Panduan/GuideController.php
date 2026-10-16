@@ -6,10 +6,12 @@ use App\Http\Controllers\Controller;
 use App\Models\Role;
 use App\Services\GuideMerger;
 use App\Services\GuideService;
+use App\Services\MemberGuideService;
 use App\Support\Menu;
 use App\Support\Petugas;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
 
 /**
@@ -19,7 +21,9 @@ use Illuminate\Support\Facades\Gate;
  *   terbatas=1 ikut menyertakan menu lain bertanda restricted tanpa langkah; peran= menyaring ke satu peran milik
  *   pengguna; sebagai=kasir,pengurus meninjau dengan izin tiruan (hanya pengelola panduan);
  * - GET /panduan/data/{key}?sebagai=  → satu panduan; menu terbatas → 403 dengan peran yang dibutuhkan;
- * - GET /portal/panduan/data         → panduan anggota (login portal).
+ * - GET /portal/panduan/data?q=      → panduan anggota (sesi portal: kata sandi + PIN) beserta pemberitahuan sesi
+ *   (PIN belum diatur/terkunci, angsuran menunggak, mode baca-saja) — lihat MemberGuideService;
+ * - GET /portal/panduan/data/{key}   → satu panduan anggota (404 untuk kunci petugas).
  */
 class GuideController extends Controller
 {
@@ -61,11 +65,19 @@ class GuideController extends Controller
         return response()->json(['data' => $g])->header('Cache-Control', 'private, no-store');
     }
 
-    public function portal(Request $request, GuideService $guides): JsonResponse
+    public function portal(Request $request, MemberGuideService $memberGuides): JsonResponse
     {
         $f = $request->validate(['q' => ['nullable', 'string', 'max:60']]);
 
-        return response()->json(['data' => $guides->listFor(null, 'anggota', false, (string) ($f['q'] ?? ''))])->header('Cache-Control', 'private, no-store');
+        return response()->json($memberGuides->listFor(Auth::guard('member')->user(), (string) ($f['q'] ?? '')))->header('Cache-Control', 'private, no-store');
+    }
+
+    public function portalShow(string $key, MemberGuideService $memberGuides): JsonResponse
+    {
+        $res = $memberGuides->find(Auth::guard('member')->user(), $key);
+        abort_if($res === null, 404, 'Panduan tidak ditemukan.');
+
+        return response()->json($res)->header('Cache-Control', 'private, no-store');
     }
 
     /** Pembaca: petugas yang masuk, atau izin tiruan ?sebagai= (hanya pengelola panduan; selain itu 403). */
