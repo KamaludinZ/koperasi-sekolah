@@ -283,15 +283,14 @@ class Versions extends Component
             return [];
         }
         $guides = app(GuideService::class);
-        $out = [];
-        foreach (GuideEntry::with('overrides')->whereKey($ids)->get() as $e) {
-            $current = $guides->snapshot($e);
-            $out[$e->id] = null;
-            foreach (GuideVersion::where('guide_entry_id', $e->id)->orderByDesc('version')->limit(50)->get(['version', 'snapshot']) as $v) {
-                if ($v->snapshot == $current) {
-                    $out[$e->id] = $v->version;
-                    break;
-                }
+        $current = GuideEntry::with('overrides')->whereKey($ids)->get()->mapWithKeys(fn ($e) => [$e->id => GuideVersion::hashOf($guides->snapshot($e))]);
+        // versi terbaru yang sidik jarinya sama dengan isi sekarang — satu kueri untuk semua panduan di halaman
+        $matches = GuideVersion::whereIn('guide_entry_id', $ids)->whereIn('content_hash', $current->values()->unique())
+            ->selectRaw('guide_entry_id, content_hash, max(version) as version')->groupBy('guide_entry_id', 'content_hash')->get();
+        $out = array_fill_keys($ids, null);
+        foreach ($matches as $m) {
+            if ($current[$m->guide_entry_id] === $m->content_hash) {
+                $out[$m->guide_entry_id] = (int) $m->version;
             }
         }
 

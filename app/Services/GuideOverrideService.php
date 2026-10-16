@@ -189,7 +189,7 @@ class GuideOverrideService
                 return ['version' => null, 'changed' => []];
             }
             $entry->unsetRelation('overrides');
-            $version = $this->guides->recordVersion($entry, 'restore', mb_substr("Dipulihkan dari versi {$target->version}: {$reason}", 0, 200), $by);
+            $version = $this->guides->recordVersion($entry, 'restore', mb_substr("Dipulihkan dari versi {$target->version}: {$reason}", 0, 200), $by, null, $target->version);
             $after = $this->guides->effective($entry);
             foreach ($changed as $f) {
                 $this->guides->logChange($entry, 'restore', $f, $before[$f], $after[$f], $reason, $by, $version);
