@@ -177,7 +177,12 @@
             <article wire:key="article-{{ $currentKey }}" x-init="$el.getBoundingClientRect().top < 0 && $el.scrollIntoView({ block: 'start' })"
                      class="min-w-0 scroll-mt-4 rounded-2xl border border-stone-200 bg-white p-5 sm:p-6" aria-labelledby="guide-title" data-guide="{{ $currentKey }}">
                 <div class="mb-3 flex flex-wrap items-center justify-between gap-2 print:hidden">
-                    <button type="button" wire:click="closeGuide" class="text-xs font-medium text-stone-500 hover:text-stone-800" data-guide-back>← Semua panduan</button>
+                    <span class="flex items-center gap-3">
+                        <button type="button" wire:click="closeGuide" class="text-xs font-medium text-stone-500 hover:text-stone-800" data-guide-back>← Semua panduan</button>
+                        @if ($this->canPreview())
+                            <a href="{{ route('panduan.sunting', ['panduan' => $currentKey]) }}" wire:navigate class="text-xs font-semibold text-emerald-800 hover:underline" data-guide-edit-link>Sunting panduan</a>
+                        @endif
+                    </span>
                     @if ($pos !== false)
                         <span class="text-[11px] text-stone-500 tabular-nums" data-guide-position>{{ \App\Support\GuideCatalog::groupFor($current['menu']) }} · panduan {{ $pos + 1 }} dari {{ count($keys) }}</span>
                     @endif
