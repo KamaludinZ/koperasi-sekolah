@@ -22,8 +22,8 @@
                     Tampilkan menu terbatas ({{ $this->restrictedCount }})
                 </label>
             @endif
-            <p id="guide-search-hint" class="px-1 text-[11px] text-stone-500" x-show="q.trim() !== ''" x-cloak aria-live="polite">
-                <span x-text="count"></span> panduan cocok · Enter membuka yang pertama · Esc mengosongkan
+            <p id="guide-search-hint" class="px-1 text-[11px] text-stone-500" data-guide-hint @if ($search === '') hidden @endif aria-live="polite">
+                <span data-guide-count>{{ collect($this->groups)->flatten(1)->count() }}</span> panduan cocok · Enter membuka yang pertama · Esc mengosongkan
             </p>
 
             @forelse ($this->groups as $group => $items)
@@ -43,14 +43,37 @@
                     </ul>
                 </section>
             @empty
-                <p class="rounded-lg bg-stone-100 px-3 py-6 text-center text-sm text-stone-500" data-guide-empty>Tidak ada panduan yang cocok dengan “{{ $search }}”.</p>
             @endforelse
+            <p data-guide-when-empty @if (! ($this->groups === [] && $search !== '')) hidden @endif
+               class="rounded-lg bg-stone-100 px-3 py-4 text-center text-xs text-stone-500" data-guide-empty-list>Tidak ada di daftar.</p>
         </aside>
 
         {{-- Isi panduan atau ikhtisar --}}
         @if (! $current)
             <section class="min-w-0" aria-label="Ikhtisar panduan" data-guide-overview>
-                <p class="mb-3 text-sm text-stone-600">{{ $search !== '' ? 'Hasil pencarian “'.$search.'”' : 'Pilih menu untuk melihat langkah-langkahnya.' }}</p>
+                {{-- Pencarian tanpa hasil (tampil seketika saat mengetik maupun dari tautan ?q=) --}}
+                <div data-guide-when-empty @if (! ($this->groups === [] && $search !== '')) hidden @endif
+                     class="rounded-2xl border border-dashed border-stone-300 bg-white px-6 py-10 text-center" role="status" data-guide-empty>
+                    <span class="mx-auto grid size-12 place-items-center rounded-full bg-stone-100 text-stone-400" aria-hidden="true">
+                        <svg class="size-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5M8.5 11h5"/></svg>
+                    </span>
+                    <p class="mt-3 font-semibold text-stone-900">Panduan tidak ditemukan</p>
+                    <p class="mt-1 text-sm text-stone-600">Tidak ada panduan yang cocok dengan “<span data-guide-query>{{ $search }}</span>”. Coba kata lain yang lebih umum atau periksa ejaannya.</p>
+                    @if ($this->restrictedMatches > 0)
+                        <p class="mt-3 text-sm text-stone-700" data-guide-empty-restricted>
+                            Ada {{ $this->restrictedMatches }} panduan menu terbatas yang cocok.
+                            <button type="button" wire:click="$set('showRestricted', true)" class="font-semibold text-emerald-800 hover:underline">Tampilkan</button>
+                        </p>
+                    @endif
+                    <div class="mt-4 flex flex-wrap justify-center gap-1.5" aria-label="Saran kata kunci">
+                        @foreach (\App\Livewire\Panduan\Index::SUGGESTIONS as $sugg)
+                            <button type="button" x-on:click="q = @js($sugg); $wire.set('search', @js($sugg))" data-guide-suggestion="{{ $sugg }}"
+                                    class="rounded-full border border-stone-300 px-3 py-1 text-xs text-stone-700 hover:border-emerald-600 hover:bg-emerald-50">{{ $sugg }}</button>
+                        @endforeach
+                    </div>
+                    <button type="button" x-on:click="clear()" class="mt-4 rounded-xl bg-emerald-700 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-800" data-guide-clear>Hapus pencarian</button>
+                </div>
+                <p data-guide-when-results @if ($this->groups === [] && $search !== '') hidden @endif class="mb-3 text-sm text-stone-600">{{ $search !== '' ? 'Hasil pencarian “'.$search.'”' : 'Pilih menu untuk melihat langkah-langkahnya.' }}</p>
                 @foreach ($this->groups as $group => $items)
                     <div data-guide-group>
                     <h2 class="mt-4 mb-2 text-xs font-semibold tracking-wider text-stone-500 uppercase first:mt-0">{{ $group }}</h2>

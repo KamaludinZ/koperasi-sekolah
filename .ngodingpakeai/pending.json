@@ -1,6 +1,6 @@
 {
   "repo": "Koperasi Sekolah",
-  "generatedForCommit": "8b390850a49e18d15aa57857fd2d0d24cb49edc5",
+  "generatedForCommit": "6a661df15aef6335bafc784d12a5eb8726b7add4",
   "files": [
     {
       "path": ".claude/skills/ngodingpakeai/SKILL.md",
@@ -172,9 +172,9 @@
     },
     {
       "path": "app/Livewire/Panduan/Index.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 2533
+      "size": 4011
     },
     {
       "path": "app/Livewire/Pengaturan/Index.php",
@@ -976,7 +976,7 @@
     },
     {
       "path": "resources/js/app.js",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "javascript",
       "size": 1932
     },
@@ -1006,7 +1006,7 @@
     },
     {
       "path": "resources/js/guide-progress.js",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "javascript",
       "size": 1088
     },
@@ -1144,7 +1144,7 @@
     },
     {
       "path": "resources/views/components/layouts/app.blade.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 15628
     },
@@ -1686,7 +1686,7 @@
       "path": "resources/views/livewire/panduan/index.blade.php",
       "reason": "changed",
       "language": "php",
-      "size": 11927
+      "size": 13745
     },
     {
       "path": "resources/views/livewire/pengadaan/index.blade.php",
@@ -2386,9 +2386,9 @@
     },
     {
       "path": "tests/Feature/Panduan/GuideCenterPageTest.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 4712
+      "size": 4692
     },
     {
       "path": "tests/Feature/Panduan/GuideSearchTest.php",
@@ -2398,9 +2398,15 @@
     },
     {
       "path": "tests/Feature/Panduan/GuideStepsTest.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 2155
+    },
+    {
+      "path": "tests/Feature/Panduan/RestrictedGuidesTest.php",
+      "reason": "new",
+      "language": "php",
+      "size": 3194
     },
     {
       "path": "tests/Feature/Pengaturan/IndexTest.php",

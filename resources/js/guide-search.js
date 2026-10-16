@@ -28,6 +28,13 @@ export default (initial) => ({
             g.hidden = ![...g.querySelectorAll('[data-hay]')].some((el) => !(el.closest('[data-guide-row]') || el).hidden);
         });
         this.count = n;
+        // tampilan "tidak ditemukan" vs keterangan hasil — diatur di sini (bukan x-show) agar tetap benar setelah morph Livewire
+        const empty = this.q.trim() !== '' && n === 0;
+        root.querySelectorAll('[data-guide-when-empty]').forEach((el) => (el.hidden = !empty));
+        root.querySelectorAll('[data-guide-when-results]').forEach((el) => (el.hidden = empty));
+        root.querySelectorAll('[data-guide-hint]').forEach((el) => (el.hidden = this.q.trim() === ''));
+        root.querySelectorAll('[data-guide-count]').forEach((el) => (el.textContent = n));
+        root.querySelectorAll('[data-guide-query]').forEach((el) => (el.textContent = this.q.trim()));
     },
     openFirst() {
         const first = [...this.$root.querySelectorAll('[data-guide-item]')].find((el) => this.match(el.dataset.hay || ''));

@@ -98,6 +98,22 @@ class Index extends Component
         return $groups;
     }
 
+    /** Kata kunci populer yang disarankan saat pencarian tidak menemukan apa pun. */
+    public const SUGGESTIONS = ['shift', 'retur', 'bon', 'stok', 'kupon', 'pinjaman', 'kata sandi'];
+
+    /** Jumlah panduan menu terbatas yang sebenarnya cocok dengan kata kunci (saat penandanya disembunyikan). */
+    #[Computed]
+    public function restrictedMatches(): int
+    {
+        if ($this->showRestricted || $this->search === '') {
+            return 0;
+        }
+        $words = array_filter(explode(' ', Str::lower(Str::ascii($this->search))));
+
+        return count(array_filter($this->entries, fn ($e, $k) => ! $this->allowed($k)
+            && ! collect($words)->contains(fn ($w) => ! str_contains(GuideCatalog::haystack($k, $e), $w)), ARRAY_FILTER_USE_BOTH));
+    }
+
     /** Kembali ke ikhtisar daftar panduan. */
     public function closeGuide(): void
     {

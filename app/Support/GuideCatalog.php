@@ -306,7 +306,7 @@ class GuideCatalog
 
     /** Kata kunci tambahan (sinonim/istilah sehari-hari) per panduan agar pencarian tetap menemukan. */
     public const KEYWORDS = [
-        'kasir' => 'jual penjualan bayar pembayaran struk kembalian scan pindai checkout pos',
+        'kasir' => 'jual penjualan bayar pembayaran struk kembalian scan pindai checkout pos printer cetak thermal',
         'transaksi' => 'riwayat penjualan nota struk ulang retur batal pembatalan refund kembalikan',
         'kas' => 'shift laci uang modal setor tarik selisih rekonsiliasi tutup buka',
         'barang' => 'stok produk item harga kategori barcode label impor csv xlsx restok menipis',
@@ -319,7 +319,7 @@ class GuideCatalog
         'audit' => 'riwayat log jejak aktivitas siapa hapus pulihkan',
         'pengguna' => 'akun petugas user peran role izin hak akses impersonasi masuk sebagai kunci sesi',
         'sistem' => 'backup cadangan pemulihan restore antrean queue kesehatan performa',
-        'pengaturan' => 'setting profil logo struk pajak pembulatan keamanan retensi bon retur',
+        'pengaturan' => 'setting profil logo struk printer kertas thermal pajak pembulatan keamanan retensi bon retur',
         'akun' => 'password kata sandi ganti sesi perangkat notifikasi pemberitahuan lonceng',
     ];
 
