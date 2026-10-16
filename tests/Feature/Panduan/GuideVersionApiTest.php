@@ -64,4 +64,25 @@ class GuideVersionApiTest extends TestCase
         $this->getJson('/panduan/versi/data')->assertForbidden();
         $this->getJson('/panduan/versi/data/kas/1')->assertForbidden();
     }
+
+    public function test_compare_two_versions_and_with_current(): void
+    {
+        $this->actingAs($this->admin, 'web');
+        $d = $this->getJson('/panduan/versi/data/kas/banding?dari=1&ke=2')->assertOk()->json('data');
+        $kas = GuideEntry::where('key', 'kas')->first();
+        $this->assertSame([1, 2, false, ['title']], [$d['from']['version'], $d['to']['version'], $d['identical'], $d['changed']]);
+        $this->assertSame([$kas->title, 'Judul kas versi kami'], [$d['fields']['title']['old'], $d['fields']['title']['new']]);
+        $this->assertSame(['added' => ['title'], 'removed' => []], $d['overridden']);
+        $this->assertSame($this->admin->name, $d['to']['by']);
+
+        $this->assertTrue($this->getJson('/panduan/versi/data/kas/banding?dari=1&ke=3')->json('data.identical'));
+        $this->assertTrue($this->getJson('/panduan/versi/data/kas/banding?dari=3&ke=sekarang')->json('data.identical'));
+        $now = $this->getJson('/panduan/versi/data/kas/banding?dari=2&ke=sekarang')->json('data');
+        $this->assertSame([null, 'Isi sekarang', ['title']], [$now['to']['version'], $now['to']['label'], $now['changed']]);
+
+        $this->getJson('/panduan/versi/data/kas/banding?dari=1&ke=99')->assertNotFound();
+        $this->getJson('/panduan/versi/data/kas/banding?dari=1')->assertUnprocessable();
+        $this->getJson('/panduan/versi/data/kas/banding?dari=1&ke=kemarin')->assertUnprocessable();
+        $this->getJson('/panduan/versi/data/barang/banding?dari=1&ke=2')->assertNotFound();      // barang hanya punya v1
+    }
 }

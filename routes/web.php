@@ -250,6 +250,7 @@ Route::middleware(['menu', 'auth', 'can:kelola-panduan', 'throttle:30,1'])->pref
 Route::middleware(['menu', 'auth', 'can:lihat-riwayat-panduan', 'throttle:60,1'])->prefix('/panduan/versi/data')->group(function () {
     Route::get('/', [GuideVersionController::class, 'index'])->name('panduan.versi.data');
     Route::get('/{key}', [GuideVersionController::class, 'forGuide'])->where('key', '[a-z0-9._-]{1,60}')->name('panduan.versi.guide');
+    Route::get('/{key}/banding', [GuideVersionController::class, 'compare'])->where('key', '[a-z0-9._-]{1,60}')->name('panduan.versi.compare');
     Route::get('/{key}/{version}', [GuideVersionController::class, 'show'])->where('key', '[a-z0-9._-]{1,60}')->whereNumber('version')->name('panduan.versi.show');
 });
 // Riwayat perubahan panduan untuk audit (pengelola panduan & pemegang menu Audit, baca saja)

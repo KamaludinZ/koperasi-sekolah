@@ -5,7 +5,9 @@ namespace App\Http\Controllers\Panduan;
 use App\Http\Controllers\Controller;
 use App\Models\GuideEntry;
 use App\Models\GuideVersion;
+use App\Services\GuideService;
 use App\Services\GuideVersionQuery;
+use App\Support\GuideVersionDiff;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -14,7 +16,9 @@ use Illuminate\Http\Request;
  * - GET /panduan/versi/data?jenis=&per=                 → versi terbaru semua panduan (dengan penanda aktif);
  * - GET /panduan/versi/data/{key}?jenis=&per=           → versi satu panduan/menu dari waktu ke waktu: nomor, jenis, catatan,
  *   pengubah, waktu, sinkronisasi, sumber pemulihan, aktif, bagian yang berubah dibanding versi sebelumnya + jumlah per jenis;
- * - GET /panduan/versi/data/{key}/{version}             → satu versi lengkap dengan cuplikan isi.
+ * - GET /panduan/versi/data/{key}/{version}             → satu versi lengkap dengan cuplikan isi;
+ * - GET /panduan/versi/data/{key}/banding?dari=&ke=      → perbandingan isi dua versi per bagian (ke=sekarang → isi yang
+ *   sedang tampil): judul/ringkasan lama & baru, langkah/tips sebagai beda baris berurutan, perubahan penanda suntingan.
  */
 class GuideVersionController extends Controller
 {
@@ -53,6 +57,30 @@ class GuideVersionController extends Controller
 
         return response()->json(['data' => $query->present($v, $query->active([$entry->id])[$entry->id], $changed, true)])
             ->header('Cache-Control', 'private, no-store');
+    }
+
+    public function compare(Request $request, string $key, GuideService $guides): JsonResponse
+    {
+        $entry = $this->entry($key);
+        $f = $request->validate(['dari' => ['required', 'integer', 'min:1'], 'ke' => ['required', 'regex:/^(\d+|sekarang)$/']]);
+        $side = function (string|int $ref) use ($entry, $guides) {
+            if ($ref === 'sekarang') {
+                return ['version' => null, 'label' => 'Isi sekarang', 'snapshot' => $guides->snapshot($entry->load('overrides')), 'type' => null, 'by' => null, 'at' => null];
+            }
+            $v = GuideVersion::with('author:id,name')->where('guide_entry_id', $entry->id)->where('version', (int) $ref)->first();
+            abort_if($v === null, 404, "Versi {$ref} tidak ditemukan pada panduan ini.");
+
+            return ['version' => $v->version, 'label' => "Versi {$v->version}", 'snapshot' => $v->snapshot, 'type' => $v->change_type, 'by' => $v->author?->name, 'at' => $v->created_at?->toIso8601String()];
+        };
+        $a = $side((int) $f['dari']);
+        $b = $side($f['ke'] === 'sekarang' ? 'sekarang' : (int) $f['ke']);
+        $diff = GuideVersionDiff::compare($a['snapshot'], $b['snapshot']);
+        unset($a['snapshot'], $b['snapshot']);
+
+        return response()->json(['data' => [
+            'guide' => ['key' => $entry->key, 'title' => $entry->title], 'from' => $a, 'to' => $b,
+            'identical' => ! $diff['changed'] && ! $diff['overridden']['added'] && ! $diff['overridden']['removed'],
+        ] + $diff])->header('Cache-Control', 'private, no-store');
     }
 
     private function paged($page, GuideVersionQuery $query, bool $withGuide, array $meta = []): JsonResponse
