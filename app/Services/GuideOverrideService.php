@@ -98,21 +98,53 @@ class GuideOverrideService
         });
     }
 
-    /** Lepas suntingan satu bagian sehingga kembali ke isi otomatis; false bila tidak ada suntingan. */
-    public function revert(GuideEntry $entry, string $field, ?User $by, ?string $note = null): bool
+    /**
+     * Lepas suntingan satu bagian sehingga kembali ke isi otomatis; false bila tidak ada suntingan.
+     *
+     * @throws ValidationException bila $expected diberikan dan isi bagian sudah diubah orang lain
+     */
+    public function revert(GuideEntry $entry, string $field, ?User $by, ?string $note = null, ?string $expected = null): bool
     {
-        return DB::transaction(function () use ($entry, $field, $by, $note) {
-            $before = $this->guides->effective($entry)[$field] ?? null;
-            $deleted = GuideOverride::where('guide_entry_id', $entry->id)->where('field', $field)->delete() > 0;
-            if ($deleted) {
-                $entry->unsetRelation('overrides');
-                $version = $this->guides->recordVersion($entry, 'revert', $note ?? 'Bagian '.mb_strtolower(GuideOverride::FIELDS[$field] ?? $field).' dikembalikan ke hasil otomatis', $by);
-                $after = $this->guides->effective($entry)[$field];
-                $this->audit('guide.reverted', $entry, $field, $before, $after, $version, $note);
-                $this->guides->logChange($entry, 'revert', $field, $before, $after, $note, $by, $version);
+        return $this->revertMany($entry, [$field], $by, $note, $expected !== null ? [$field => $expected] : []) !== [];
+    }
+
+    /**
+     * Kembalikan beberapa bagian (bawaan: semua yang disunting) ke hasil otomatis dalam satu transaksi & SATU versi.
+     *
+     * @param  ?list<string>  $fields
+     * @param  array<string, string>  $expected  bagian → sidik jari isi efektif saat dibuka
+     * @return list<string> bagian yang benar-benar dikembalikan
+     *
+     * @throws ValidationException bentrok (kunci = bagian)
+     */
+    public function revertMany(GuideEntry $entry, ?array $fields, ?User $by, ?string $note = null, array $expected = []): array
+    {
+        $note = $note !== null && trim($note) !== '' ? mb_substr(trim($note), 0, 200) : null;
+
+        return DB::transaction(function () use ($entry, $fields, $by, $note, $expected) {
+            GuideEntry::whereKey($entry->id)->lockForUpdate()->first();
+            $entry->unsetRelation('overrides');
+            $before = $this->guides->effective($entry);
+            $conflicts = array_filter($expected, fn ($hash, $f) => GuideOverride::hashOf($before[$f] ?? null) !== $hash, ARRAY_FILTER_USE_BOTH);
+            if ($conflicts) {
+                throw ValidationException::withMessages(array_map(fn () => 'Bagian ini sudah diubah orang lain sejak Anda membukanya. Muat ulang dulu.', $conflicts));
+            }
+            $query = GuideOverride::where('guide_entry_id', $entry->id)->when($fields !== null, fn ($q) => $q->whereIn('field', $fields));
+            $reverted = array_values(array_intersect(array_keys(GuideOverride::FIELDS), $query->pluck('field')->all())); // urutan bagian baku
+            if ($reverted === []) {
+                return [];
+            }
+            GuideOverride::where('guide_entry_id', $entry->id)->whereIn('field', $reverted)->delete();
+            $entry->unsetRelation('overrides');
+            $labels = implode(', ', array_map(fn ($f) => mb_strtolower(GuideOverride::FIELDS[$f] ?? $f), $reverted));
+            $version = $this->guides->recordVersion($entry, 'revert', $note ?? 'Bagian '.$labels.' dikembalikan ke hasil otomatis', $by);
+            $after = $this->guides->effective($entry);
+            foreach ($reverted as $f) {
+                $this->audit('guide.reverted', $entry, $f, $before[$f], $after[$f], $version, $note);
+                $this->guides->logChange($entry, 'revert', $f, $before[$f], $after[$f], $note, $by, $version);
             }
 
-            return $deleted;
+            return $reverted;
         });
     }
 

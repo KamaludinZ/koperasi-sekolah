@@ -270,11 +270,7 @@ class Editor extends Component
         if (! $this->entry) {
             return;
         }
-        $fields = $this->entry->overrides->pluck('field')->all();
-        foreach ($fields as $field) {
-            $overrides->revert($this->entry, $field, Auth::guard('web')->user(), trim($this->note) ?: 'Semua bagian dikembalikan ke hasil otomatis');
-            $this->entry->unsetRelation('overrides');
-        }
+        $fields = $overrides->revertMany($this->entry, null, Auth::guard('web')->user(), trim($this->note) ?: 'Semua bagian dikembalikan ke hasil otomatis');
         $this->saved = $fields ? 'Semua bagian ('.implode(', ', array_map(fn ($f) => mb_strtolower(GuideOverride::FIELDS[$f]), $fields)).') dikembalikan ke hasil otomatis.' : null;
         unset($this->entry, $this->effective, $this->versions, $this->dirtyFields, $this->changes);
         $this->resetValidation();

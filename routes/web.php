@@ -244,6 +244,7 @@ Route::middleware(['menu', 'auth', 'can:kelola-panduan', 'throttle:30,1'])->pref
 // Edit manual panduan (Admin): lapisan override + versi + audit
 Route::middleware(['menu', 'auth', 'can:kelola-panduan', 'throttle:30,1'])->prefix('/panduan/kelola/{key}')->where(['key' => '[a-z0-9._-]{1,60}'])->group(function () {
     Route::get('/', [GuideAdminController::class, 'show'])->name('panduan.kelola');
+    Route::delete('/', [GuideAdminController::class, 'destroyAll'])->name('panduan.kelola.revert-all');
     Route::put('/{field}', [GuideAdminController::class, 'update'])->whereIn('field', ['title', 'summary', 'steps', 'tips'])->name('panduan.kelola.update');
     Route::delete('/{field}', [GuideAdminController::class, 'destroy'])->whereIn('field', ['title', 'summary', 'steps', 'tips'])->name('panduan.kelola.revert');
 });
