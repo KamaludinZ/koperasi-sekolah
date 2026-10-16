@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Panduan;
 
 use App\Http\Controllers\Controller;
 use App\Models\Role;
+use App\Services\GuideMerger;
 use App\Services\GuideService;
 use App\Support\Menu;
 use App\Support\Petugas;
@@ -22,7 +23,7 @@ use Illuminate\Support\Facades\Gate;
  */
 class GuideController extends Controller
 {
-    public function index(Request $request, GuideService $guides): JsonResponse
+    public function index(Request $request, GuideService $guides, GuideMerger $merger): JsonResponse
     {
         $f = $request->validate([
             'q' => ['nullable', 'string', 'max:60'], 'terbatas' => ['nullable', 'boolean'],
@@ -35,19 +36,14 @@ class GuideController extends Controller
         $q = (string) ($f['q'] ?? '');
         $restricted = (bool) ($f['terbatas'] ?? false);
         $data = $guides->listFor($viewer, 'petugas', $restricted, $q, $role);
-        $sources = Menu::sourcesFor($viewer);
-        $roleCounts = array_fill_keys($mine, 0);
-        foreach ($sources as $from) {
-            foreach (array_intersect($from, $mine) as $r) {
-                $roleCounts[$r]++;
-            }
-        }
+        $merged = $merger->merge($viewer, $guides->all('petugas'));
 
         return response()->json(['data' => $data, 'meta' => [
             'total' => count($data),
             'restricted' => count(array_filter($data, fn ($g) => $g['restricted'])),
             'hidden_restricted' => $restricted ? 0 : count($guides->listFor($viewer, 'petugas', true, $q, $role)) - count($data),
-            'roles' => $mine, 'role' => $role, 'role_counts' => $roleCounts, 'menus' => count($sources),
+            'roles' => $mine, 'role' => $role, 'role_counts' => array_map('count', $merged['by_role']), 'menus' => count($merged['sources']),
+            'shared' => $merged['shared'], 'duplicates_merged' => $merged['duplicates'],
             'preview' => (bool) ($viewer['mock'] ?? false),
         ]])->header('Cache-Control', 'private, no-store');
     }

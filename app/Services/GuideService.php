@@ -25,18 +25,20 @@ class GuideService
 
     /**
      * Semua panduan efektif untuk satu kelompok pembaca (urut posisi), dibaca dari guide_entries + suntingan; bila
-     * tabel belum terisi (mis. sebelum seeder dijalankan) memakai katalog bawaan.
+     * tabel belum terisi (mis. sebelum seeder dijalankan) memakai katalog bawaan. Isi dirapikan dari kembaran lewat
+     * GuideMerger::dedupe.
      *
      * @return array<string, array> kunci → panduan (bentuk GuideCatalog + overridden, stale)
      */
     public function all(string $audience): array
     {
         $rows = GuideEntry::for($audience)->with('overrides')->get();
+        $merger = new GuideMerger($this); // isi tampil tanpa kembaran (langkah/tips ganda, tautan terkait yang sudah di langkah)
         if ($rows->isEmpty()) {
-            return array_map(fn ($e) => $e + ['overridden' => [], 'stale' => false], GuideCatalog::forAudience($audience));
+            return array_map(fn ($e) => $merger->dedupe($e) + ['overridden' => [], 'stale' => false], GuideCatalog::forAudience($audience));
         }
 
-        return $rows->mapWithKeys(fn (GuideEntry $e) => [$e->key => $this->effective($e) + ['stale' => $e->is_stale]])->all();
+        return $rows->mapWithKeys(fn (GuideEntry $e) => [$e->key => $merger->dedupe($this->effective($e)) + ['stale' => $e->is_stale]])->all();
     }
 
     /** Nama peran pratinjau yang sah dari masukan bebas "kasir,pengurus" (dikenal, unik, urut prioritas). @return list<string> */

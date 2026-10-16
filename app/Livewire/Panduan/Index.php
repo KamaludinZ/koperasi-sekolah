@@ -3,6 +3,7 @@
 namespace App\Livewire\Panduan;
 
 use App\Models\Role;
+use App\Services\GuideMerger;
 use App\Services\GuideService;
 use App\Support\GuideCatalog;
 use App\Support\Menu;
@@ -165,16 +166,7 @@ class Index extends Component
     #[Computed]
     public function roleCounts(): array
     {
-        $counts = array_fill_keys($this->myRoles, 0);
-        foreach ($this->sources as $from) {
-            foreach ($from as $r) {
-                if (isset($counts[$r])) {
-                    $counts[$r]++;
-                }
-            }
-        }
-
-        return $counts;
+        return array_map('count', app(GuideMerger::class)->merge($this->viewer, $this->entries)['by_role']);
     }
 
     /** Peran pemegang tiap menu (satu kueri untuk seluruh halaman). @return array<string, list<string>> */
