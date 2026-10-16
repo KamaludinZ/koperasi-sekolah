@@ -274,7 +274,10 @@ class GuideService
 
         return DB::transaction(function () use ($entry, $field, $value, $by, $note) {
             $before = $this->effective($entry)[$field];
-            $o = GuideOverride::updateOrCreate(['guide_entry_id' => $entry->id, 'field' => $field], ['value' => $value, 'updated_by' => $by?->id]);
+            $o = GuideOverride::updateOrCreate(['guide_entry_id' => $entry->id, 'field' => $field], [
+                'value' => $value, 'updated_by' => $by?->id, 'note' => $note !== null ? mb_substr(trim($note), 0, 200) : null,
+                'base_hash' => GuideOverride::hashOf($entry->toGuide()[$field] ?? null), // isi otomatis yang menjadi dasar suntingan
+            ]);
             $entry->unsetRelation('overrides');
             $version = $this->recordVersion($entry, 'override', $note ?? 'Bagian '.mb_strtolower(GuideOverride::FIELDS[$field]).' disunting', $by);
             if ($version) {

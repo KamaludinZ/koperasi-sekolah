@@ -60,6 +60,7 @@ class GuideAdminController extends Controller
             'effective' => array_intersect_key($guides->effective($entry), GuideOverride::FIELDS),
             'overrides' => $entry->overrides->mapWithKeys(fn (GuideOverride $o) => [$o->field => [
                 'value' => $o->value, 'updated_by' => $o->editor?->name, 'updated_at' => $o->updated_at?->toIso8601String(),
+                'note' => $o->note, 'auto_changed' => $o->autoChanged($entry),
             ]])->all(),
             'versions' => $entry->versions()->with('author:id,name')->limit(50)->get()->map(fn (GuideVersion $v) => [
                 'version' => $v->version, 'type' => $v->change_type, 'type_label' => GuideVersion::TYPES[$v->change_type] ?? $v->change_type,

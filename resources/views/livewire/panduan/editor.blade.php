@@ -85,6 +85,8 @@
                                     <span class="rounded bg-stone-100 px-1.5 py-0.5 text-[11px] font-semibold text-stone-600">Otomatis</span>
                                 @endif
                                 @if ($dirty)<span class="rounded bg-amber-100 px-1.5 py-0.5 text-[11px] font-semibold text-amber-900" data-editor-dirty="{{ $field }}">Belum disimpan</span>@endif
+                                @if ($o && $o->autoChanged($this->entry))<span class="rounded bg-violet-100 px-1.5 py-0.5 text-[11px] font-semibold text-violet-800" data-editor-auto-changed="{{ $field }}" title="Isi otomatis bagian ini diperbarui setelah disunting — periksa apakah suntingan masih sesuai">Isi otomatis berubah sejak disunting</span>@endif
+                                @if ($o?->note)<span class="text-[11px] font-normal text-stone-500" data-editor-override-note="{{ $field }}">“{{ $o->note }}”</span>@endif
                             </h2>
                             <div class="flex flex-wrap gap-2 text-xs">
                                 @if ($dirty)
