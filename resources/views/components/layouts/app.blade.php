@@ -37,9 +37,9 @@
         </div>
         @if ($user)
             {{-- Pintasan Panduan & Notifikasi di baris sendiri (di atas menu) agar nama aplikasi tidak terhimpit --}}
-            <div class="mx-3 mb-3 grid grid-cols-2 gap-1 rounded-xl bg-emerald-900/50 p-1 ring-1 ring-emerald-800/70" data-sidebar-shortcuts>
-                <x-guide-button variant="row" />
+            <div class="mx-3 mb-3 space-y-0.5 rounded-xl bg-emerald-900/50 p-1 ring-1 ring-emerald-800/70" data-sidebar-shortcuts>
                 <livewire:notifikasi.bell :labeled="true" />
+                <x-guide-button variant="row" />
             </div>
         @endif
         <nav class="flex-1 space-y-4 overflow-y-auto px-3 pb-2" aria-label="Menu utama">
