@@ -228,6 +228,9 @@ Route::middleware(['menu', 'auth', 'can:kelola-panduan', 'throttle:30,1'])->pref
     Route::get('/pemindaian', [GuideUpdateController::class, 'scan'])->name('panduan.pembaruan.scan');
     Route::get('/draf', [GuideUpdateController::class, 'drafts'])->name('panduan.pembaruan.drafts');
     Route::get('/draf/{key}', [GuideUpdateController::class, 'draft'])->where('key', '[a-z0-9._-]{1,60}')->name('panduan.pembaruan.draft');
+    Route::get('/sinkron', [GuideUpdateController::class, 'syncStatus'])->name('panduan.pembaruan.sync');
+    Route::get('/sinkron/{job}', [GuideUpdateController::class, 'syncShow'])->whereNumber('job')->name('panduan.pembaruan.sync.show');
+    Route::post('/sinkron', [GuideUpdateController::class, 'syncNow'])->middleware('throttle:5,1')->name('panduan.pembaruan.sync.now');
 });
 
 // Edit manual panduan (Admin): lapisan override + versi + audit

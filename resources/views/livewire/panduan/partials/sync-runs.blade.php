@@ -5,7 +5,11 @@
         'running' => 'bg-sky-100 text-sky-800', default => 'bg-stone-100 text-stone-700',
     };
 @endphp
-<div class="space-y-4 px-4 py-5 sm:px-6" data-guide-sync-runs>
+@php $active = $runs['rows']->whereIn('status', ['queued', 'running'])->isNotEmpty(); @endphp
+<div class="space-y-4 px-4 py-5 sm:px-6" data-guide-sync-runs @if ($active) wire:poll.5s data-sync-polling @endif>
+    @if ($active)
+        <p class="rounded-lg bg-sky-50 px-3 py-2 text-xs text-sky-900 ring-1 ring-sky-200" role="status">Sinkronisasi sedang mengantre/berjalan — halaman ini diperbarui otomatis.</p>
+    @endif
     <div class="flex flex-wrap gap-1.5 text-xs" role="group" aria-label="Saring status">
         <button type="button" wire:click="$set('runStatus', '')" aria-pressed="{{ $runStatus === '' ? 'true' : 'false' }}" data-run-filter=""
                 @class(['rounded-full px-3 py-1 font-medium', 'bg-emerald-700 text-white' => $runStatus === '', 'border border-stone-300 bg-white text-stone-700 hover:bg-stone-50' => $runStatus !== ''])>Semua ({{ array_sum($runs['counts']) }})</button>
