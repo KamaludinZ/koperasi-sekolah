@@ -7,6 +7,16 @@
         <a href="{{ route('panduan') }}" wire:navigate class="text-sm font-medium text-emerald-800 hover:underline">← Pusat Panduan</a>
     </header>
 
+    <nav class="flex gap-1 border-b border-stone-200 bg-white px-4 sm:px-6" aria-label="Bagian panel">
+        @foreach (\App\Livewire\Panduan\Updates::TABS as $t => $label)
+            <button type="button" wire:click="$set('tab', '{{ $t }}')" @if ($tab === $t) aria-current="page" @endif data-guide-tab="{{ $t }}"
+                    @class(['-mb-px border-b-2 px-3 py-2 text-sm font-medium', 'border-emerald-700 text-emerald-900' => $tab === $t, 'border-transparent text-stone-500 hover:text-stone-800' => $tab !== $t])>{{ $label }}</button>
+        @endforeach
+    </nav>
+
+    @if ($tab === 'pemindaian')
+        @include('livewire.panduan.partials.scan-report', ['scan' => $this->scan])
+    @else
     <div class="space-y-5 px-4 py-5 sm:px-6">
         {{-- Ringkasan --}}
         @php $s = $this->stats; @endphp
@@ -127,4 +137,5 @@
             </section>
         </div>
     </div>
+    @endif
 </div>

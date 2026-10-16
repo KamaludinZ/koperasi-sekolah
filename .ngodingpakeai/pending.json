@@ -1,6 +1,6 @@
 {
   "repo": "Koperasi Sekolah",
-  "generatedForCommit": "e17158fb9b6bb51c4dd896a4c26e21b3de8fd9d0",
+  "generatedForCommit": "56fc7ef676d9fdc424d16fc05c41ad3f3d50896c",
   "files": [
     {
       "path": ".claude/skills/ngodingpakeai/SKILL.md",
@@ -189,6 +189,12 @@
       "size": 10854
     },
     {
+      "path": "app/Livewire/Panduan/Updates.php",
+      "reason": "new",
+      "language": "php",
+      "size": 4850
+    },
+    {
       "path": "app/Livewire/Pengaturan/Index.php",
       "reason": "needs_summary",
       "language": "php",
@@ -256,9 +262,9 @@
     },
     {
       "path": "app/Services/GuideGenerator.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 6788
+      "size": 8261
     },
     {
       "path": "app/Services/GuideMerger.php",
@@ -1756,9 +1762,15 @@
     },
     {
       "path": "resources/views/livewire/panduan/index.blade.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 24130
+      "size": 24456
+    },
+    {
+      "path": "resources/views/livewire/panduan/updates.blade.php",
+      "reason": "new",
+      "language": "php",
+      "size": 9814
     },
     {
       "path": "resources/views/livewire/pengadaan/index.blade.php",
@@ -2194,9 +2206,9 @@
     },
     {
       "path": "routes/web.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 56176
+      "size": 56339
     },
     {
       "path": "tests/Concerns/FakesImpersonation.php",
@@ -2500,7 +2512,7 @@
     },
     {
       "path": "tests/Feature/Panduan/GuideResponseContractTest.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 7801
     },
@@ -2521,6 +2533,12 @@
       "reason": "needs_summary",
       "language": "php",
       "size": 2155
+    },
+    {
+      "path": "tests/Feature/Panduan/GuideUpdatesPanelTest.php",
+      "reason": "new",
+      "language": "php",
+      "size": 5873
     },
     {
       "path": "tests/Feature/Panduan/MemberGuideApiTest.php",

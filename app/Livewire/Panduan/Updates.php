@@ -4,8 +4,10 @@ namespace App\Livewire\Panduan;
 
 use App\Models\GuideEntry;
 use App\Models\GuideVersion;
+use App\Models\Role;
 use App\Services\AuditLog;
 use App\Services\GuideGenerator;
+use App\Services\GuideService;
 use App\Support\Menu;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
@@ -13,13 +15,16 @@ use Illuminate\Support\Facades\Gate;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
+use Livewire\Attributes\Url;
 use Livewire\Component;
 
 /**
  * Panel pembaruan panduan otomatis (/panduan/pembaruan, pengelola panduan): ringkasan isi Pusat Panduan (otomatis vs
  * manual, disunting, usang, terakhir disusun), pratinjau perubahan dari konfigurasi menu/halaman/izin sebelum
  * diterapkan (GuideGenerator::plan, tanpa menyimpan), terapkan penyusunan ulang (versi & jejak audit ber-HMAC),
- * daftar panduan usang yang bisa ditandai sudah ditinjau, dan riwayat penyusunan terakhir.
+ * daftar panduan usang yang bisa ditandai sudah ditinjau, dan riwayat penyusunan terakhir. Tab "Hasil pemindaian"
+ * (?tab=pemindaian) menampilkan bahan panduan yang terbaca dari sistem: menu → halaman (alamat, khusus peran, izin
+ * aksi), matriks peran × menu, cakupan panduan per menu (halaman yang belum disebut), dan peringatan.
  */
 #[Layout('components.layouts.app')]
 #[Title('Pembaruan Panduan')]
@@ -38,9 +43,59 @@ class Updates extends Component
 
     public string $note = '';
 
+    #[Url(as: 'tab', except: 'ringkasan')]
+    public $tab = 'ringkasan';
+
+    public const TABS = ['ringkasan' => 'Ringkasan & penerapan', 'pemindaian' => 'Hasil pemindaian'];
+
     public function mount(): void
     {
         Gate::authorize('kelola-panduan');
+        $this->tab = is_string($this->tab) && isset(self::TABS[$this->tab]) ? $this->tab : 'ringkasan';
+    }
+
+    public function updatedTab(): void
+    {
+        $this->tab = is_string($this->tab) && isset(self::TABS[$this->tab]) ? $this->tab : 'ringkasan';
+    }
+
+    /**
+     * Hasil pemindaian menu, halaman & izin beserta cakupan panduan dan peringatan (dibaca hanya saat tab dibuka).
+     *
+     * @return array{menus: array<string, array>, roles: list<string>, totals: array<string, int>, warnings: list<array{menu: string, text: string}>}
+     */
+    #[Computed]
+    public function scan(): array
+    {
+        $facts = app(GuideGenerator::class)->scan();
+        $guides = app(GuideService::class)->all('petugas');
+        $warnings = [];
+        $totals = ['menus' => count($facts), 'pages' => 0, 'role_pages' => 0, 'gated_pages' => 0, 'skipped' => 0, 'uncovered' => 0];
+        foreach ($facts as $key => &$f) {
+            $g = $guides[$key] ?? null;
+            $covered = array_flip(array_filter([$f['route'], ...array_column($g['steps'] ?? [], 'route'), ...array_keys($g['related'] ?? [])]));
+            $f['guide'] = $g ? $g['title'] : null;
+            $f['uncovered'] = array_values(array_filter($f['pages'], fn ($p) => ! isset($covered[$p['name']])));
+            $totals['pages'] += count($f['pages']);
+            $totals['role_pages'] += count(array_filter($f['pages'], fn ($p) => $p['roles'] !== []));
+            $totals['gated_pages'] += count(array_filter($f['pages'], fn ($p) => $p['ability'] !== null));
+            $totals['skipped'] += $f['skipped_pages'];
+            $totals['uncovered'] += count($f['uncovered']);
+            if ($f['roles'] === []) {
+                $warnings[] = ['menu' => $key, 'text' => "Menu {$f['label']} belum diberikan ke peran mana pun."];
+            }
+            if ($f['pages'] === []) {
+                $warnings[] = ['menu' => $key, 'text' => "Menu {$f['label']} tidak punya halaman yang terbaca dari rute."];
+            }
+            if (! $g) {
+                $warnings[] = ['menu' => $key, 'text' => "Menu {$f['label']} belum punya panduan — jalankan penyusunan ulang."];
+            } elseif ($f['uncovered']) {
+                $warnings[] = ['menu' => $key, 'text' => count($f['uncovered'])." halaman menu {$f['label']} belum disebut di panduannya."];
+            }
+        }
+        unset($f);
+
+        return ['menus' => $facts, 'roles' => Role::sortNames(array_keys(Role::LABELS)), 'totals' => $totals, 'warnings' => $warnings];
     }
 
     /** Periksa perubahan tanpa menyimpan apa pun. */
