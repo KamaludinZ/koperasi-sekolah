@@ -3,6 +3,8 @@
 namespace App\Livewire\Panduan;
 
 use App\Support\GuideCatalog;
+use App\Support\Menu;
+use App\Support\Petugas;
 use Illuminate\Support\Str;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
@@ -25,6 +27,10 @@ class Index extends Component
     #[Url(as: 'q', except: '')]
     public $search = '';
 
+    /** Tampilkan juga menu yang tidak bisa dibuka (ditandai Terbatas, tanpa langkah). */
+    #[Url(as: 'terbatas', except: false)]
+    public $showRestricted = false;
+
     public function mount(): void
     {
         $this->normalize();
@@ -39,11 +45,31 @@ class Index extends Component
     {
         $this->search = is_string($this->search) ? mb_substr(trim($this->search), 0, 60) : '';
         $this->selected = is_string($this->selected) && isset($this->entries[$this->selected]) ? $this->selected : '';
+        $this->showRestricted = filter_var($this->showRestricted, FILTER_VALIDATE_BOOLEAN);
+        // panduan menu terbatas hanya bisa dibuka bila penandanya ditampilkan
+        if ($this->selected !== '' && ! $this->showRestricted && ! $this->allowed($this->selected)) {
+            $this->showRestricted = true;
+        }
+    }
+
+    /** Petugas boleh membuka menu panduan ini (gabungan izin semua perannya); panduan umum selalu boleh. */
+    public function allowed(string $key): bool
+    {
+        $menu = $this->entries[$key]['menu'] ?? null;
+
+        return $menu === null || Menu::userCan(Petugas::current() ?? ['permissions' => []], $menu);
+    }
+
+    /** Jumlah panduan menu yang tersembunyi karena tidak bisa dibuka. */
+    #[Computed]
+    public function restrictedCount(): int
+    {
+        return count(array_filter(array_keys($this->entries), fn ($k) => ! $this->allowed($k)));
     }
 
     public function open(string $key): void
     {
-        $this->selected = isset($this->entries[$key]) ? $key : '';
+        $this->selected = isset($this->entries[$key]) && ($this->showRestricted || $this->allowed($key)) ? $key : '';
     }
 
     #[Computed]
@@ -59,6 +85,9 @@ class Index extends Component
         $words = array_filter(explode(' ', Str::lower(Str::ascii($this->search))));
         $groups = [];
         foreach ($this->entries as $key => $e) {
+            if (! $this->showRestricted && ! $this->allowed($key)) {
+                continue;
+            }
             $hay = GuideCatalog::haystack($key, $e);
             if ($words && collect($words)->contains(fn ($w) => ! str_contains($hay, $w))) {
                 continue;
@@ -79,7 +108,11 @@ class Index extends Component
     {
         // tanpa pilihan → ikhtisar kartu semua panduan (hasil pencarian); dengan pilihan → isi panduan
         $current = $this->selected !== '' ? $this->entries[$this->selected] : null;
+        $restricted = $current && ! $this->allowed($this->selected);
 
-        return view('livewire.panduan.index', ['current' => $current, 'currentKey' => $this->selected]);
+        return view('livewire.panduan.index', [
+            'current' => $current, 'currentKey' => $this->selected, 'restricted' => $restricted,
+            'requiredRoles' => $restricted ? Menu::grantingRoles($current['menu']) : [],
+        ]);
     }
 }

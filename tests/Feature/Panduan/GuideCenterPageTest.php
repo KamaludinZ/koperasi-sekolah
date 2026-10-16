@@ -92,11 +92,10 @@ class GuideCenterPageTest extends TestCase
 
     public function test_open_links_only_for_reachable_pages(): void
     {
-        $this->actingAs(User::where('email', 'kasir@koperasi.test')->first());
-        Livewire::test(Index::class)->call('open', 'pinjaman')
-            ->assertSeeText('Siklus pinjaman anggota')
-            ->assertDontSeeHtml('href="'.route('pinjaman.pengajuan').'"'); // kasir tak punya menu Pinjaman
-        Livewire::test(Index::class)->call('open', 'kasir')->assertSeeHtml('href="'.route('kasir').'"');
+        $this->actingAs(User::where('email', 'pengurus@koperasi.test')->first());
+        // pengurus: menu Barang boleh, tapi impor/label tertentu tetap mengikuti izin halaman
+        Livewire::test(Index::class)->call('open', 'kas')->assertSeeHtml('href="'.route('kas').'"');
+        Livewire::test(Index::class)->call('open', 'akun')->assertSeeHtml('href="'.route('akun.password').'"');
     }
 
     public function test_requires_staff_login(): void

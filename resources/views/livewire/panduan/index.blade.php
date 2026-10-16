@@ -16,6 +16,12 @@
                        maxlength="60" placeholder="Cari, mis. tutup shift, retur, bon…  ( / )" aria-describedby="guide-search-hint"
                        class="w-full rounded-xl border border-stone-300 bg-white py-2 pr-3 pl-9 text-sm" data-guide-search>
             </label>
+            @if ($this->restrictedCount > 0)
+                <label class="flex items-center gap-2 px-1 text-xs text-stone-600" data-restricted-toggle>
+                    <input type="checkbox" wire:model.live="showRestricted" class="size-4 rounded border-stone-300 text-emerald-700">
+                    Tampilkan menu terbatas ({{ $this->restrictedCount }})
+                </label>
+            @endif
             <p id="guide-search-hint" class="px-1 text-[11px] text-stone-500" x-show="q.trim() !== ''" x-cloak aria-live="polite">
                 <span x-text="count"></span> panduan cocok · Enter membuka yang pertama · Esc mengosongkan
             </p>
@@ -29,6 +35,7 @@
                                 <button type="button" wire:click="open('{{ $key }}')" data-guide-item="{{ $key }}" data-hay="{{ $hay($key, $e) }}" @if ($currentKey === $key) aria-current="true" @endif
                                         @class(['w-full rounded-lg px-3 py-2 text-left text-sm', 'bg-emerald-50 font-semibold text-emerald-900 ring-1 ring-emerald-200' => $currentKey === $key, 'text-stone-700 hover:bg-stone-100' => $currentKey !== $key])>
                                     {{ $e['menu'] ? (\App\Support\Menu::ITEMS[$e['menu']]['label'] ?? $e['title']) : 'Akun saya' }}
+                                    @unless ($this->allowed($key))<span class="ml-1 rounded bg-stone-200 px-1.5 py-0.5 text-[10px] font-semibold text-stone-600" data-restricted="{{ $key }}">🔒 Terbatas</span>@endunless
                                     <span class="block truncate text-xs font-normal text-stone-500">{{ $e['title'] }}</span>
                                 </button>
                             </li>
@@ -62,7 +69,11 @@
                                     </span>
                                 </span>
                                 <span class="line-clamp-2 text-xs text-stone-600">{{ $e['summary'] }}</span>
-                                <span class="text-[11px] font-medium text-emerald-800">{{ count($e['steps']) }} langkah →</span>
+                                @if ($this->allowed($key))
+                                    <span class="text-[11px] font-medium text-emerald-800">{{ count($e['steps']) }} langkah →</span>
+                                @else
+                                    <span class="text-[11px] font-semibold text-stone-500" data-restricted-card="{{ $key }}">🔒 Terbatas — menu ini tidak termasuk peran Anda</span>
+                                @endif
                             </button>
                         @endforeach
                     </div>
@@ -76,6 +87,15 @@
                 <h2 id="guide-title" class="mt-1 text-xl font-semibold text-stone-900">{{ $current['title'] }}</h2>
                 <p class="mt-2 max-w-prose text-sm leading-relaxed text-stone-700" data-guide-summary>{{ $current['summary'] }}</p>
 
+                @if ($restricted)
+                    <div class="mt-6 rounded-xl border border-stone-200 bg-stone-50 px-4 py-4 text-sm text-stone-700" data-restricted-panel>
+                        <p class="font-semibold text-stone-900">🔒 Menu terbatas</p>
+                        <p class="mt-1">Menu {{ \App\Support\Menu::ITEMS[$current['menu']]['label'] }} tidak termasuk peran Anda, jadi langkah-langkahnya tidak ditampilkan.</p>
+                        @if ($requiredRoles)
+                            <p class="mt-1">Menu ini dimiliki peran <strong>{{ collect($requiredRoles)->map(fn ($r) => \App\Models\Role::LABELS[$r] ?? $r)->join(', ', ' dan ') }}</strong>. Bila Anda memerlukannya, minta admin koperasi menambahkan peran tersebut ke akun Anda.</p>
+                        @endif
+                    </div>
+                @else
                 @php $total = count($current['steps']); @endphp
                 <div wire:key="steps-{{ $currentKey }}" x-data="guideProgress(@js('panduan:'.auth()->id().':'.$currentKey), {{ $total }})" data-guide-progress>
                     <div class="mt-6 flex flex-wrap items-center gap-3">
@@ -123,6 +143,7 @@
                             <a href="{{ route($r) }}" wire:navigate class="rounded-lg border border-stone-300 px-2.5 py-1 font-medium text-stone-700 hover:bg-stone-50">{{ $label }}</a>
                         @endforeach
                     </div>
+                @endif
                 @endif
                 @php
                     $keys = array_keys($this->entries);

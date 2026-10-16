@@ -1,6 +1,6 @@
 {
   "repo": "Koperasi Sekolah",
-  "generatedForCommit": "f029c7f8a5fd23012a679c9a8b23e47378dc8678",
+  "generatedForCommit": "8b390850a49e18d15aa57857fd2d0d24cb49edc5",
   "files": [
     {
       "path": ".claude/skills/ngodingpakeai/SKILL.md",
@@ -172,7 +172,7 @@
     },
     {
       "path": "app/Livewire/Panduan/Index.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 2533
     },
@@ -250,7 +250,7 @@
     },
     {
       "path": "app/Support/GuideCatalog.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
       "size": 26135
     },
@@ -978,7 +978,7 @@
       "path": "resources/js/app.js",
       "reason": "changed",
       "language": "javascript",
-      "size": 1830
+      "size": 1932
     },
     {
       "path": "resources/js/barcode-reader.js",
@@ -1005,8 +1005,14 @@
       "size": 1289
     },
     {
-      "path": "resources/js/guide-search.js",
+      "path": "resources/js/guide-progress.js",
       "reason": "new",
+      "language": "javascript",
+      "size": 1088
+    },
+    {
+      "path": "resources/js/guide-search.js",
+      "reason": "needs_summary",
       "language": "javascript",
       "size": 2506
     },
@@ -1138,9 +1144,9 @@
     },
     {
       "path": "resources/views/components/layouts/app.blade.php",
-      "reason": "needs_summary",
+      "reason": "changed",
       "language": "php",
-      "size": 15602
+      "size": 15628
     },
     {
       "path": "resources/views/components/layouts/guest.blade.php",
@@ -1680,7 +1686,7 @@
       "path": "resources/views/livewire/panduan/index.blade.php",
       "reason": "changed",
       "language": "php",
-      "size": 8961
+      "size": 11927
     },
     {
       "path": "resources/views/livewire/pengadaan/index.blade.php",
@@ -2386,9 +2392,15 @@
     },
     {
       "path": "tests/Feature/Panduan/GuideSearchTest.php",
-      "reason": "new",
+      "reason": "needs_summary",
       "language": "php",
       "size": 1972
+    },
+    {
+      "path": "tests/Feature/Panduan/GuideStepsTest.php",
+      "reason": "new",
+      "language": "php",
+      "size": 2155
     },
     {
       "path": "tests/Feature/Pengaturan/IndexTest.php",
