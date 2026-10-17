@@ -4,10 +4,10 @@ namespace App\Models;
 
 use App\Models\Concerns\Auditable;
 use App\Models\Concerns\SoftDeletesWithReason;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Auth\Authenticatable;
 use Illuminate\Contracts\Auth\Authenticatable as AuthenticatableContract;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
@@ -17,8 +17,9 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  */
 class Member extends Model implements AuthenticatableContract
 {
-    use Authenticatable; // guard `member` (portal anggota)
+    // guard `member` (portal anggota)
     use Auditable;
+    use Authenticatable;
     use HasFactory;
     use SoftDeletesWithReason;
 
@@ -53,6 +54,8 @@ class Member extends Model implements AuthenticatableContract
             'password' => 'hashed',
             'pin' => 'hashed',
             'portal_last_login_at' => 'datetime',
+            'portal_password_changed_at' => 'datetime',
+            'portal_pin_changed_at' => 'datetime',
         ];
     }
 
@@ -65,6 +68,15 @@ class Member extends Model implements AuthenticatableContract
     public function hasPin(): bool
     {
         return filled($this->getAttributes()['pin'] ?? null);
+    }
+
+    /**
+     * Anggota harus menyiapkan akun dulu (halaman Siapkan akun) sebelum memakai portal: kata sandinya masih
+     * sementara dari pengurus, atau belum punya PIN transaksi (baru diaktifkan / PIN diatur ulang pengurus).
+     */
+    public function needsPortalSetup(): bool
+    {
+        return $this->portal_password_changed_at === null || ! $this->hasPin();
     }
 
     public function hasPortalAccess(): bool

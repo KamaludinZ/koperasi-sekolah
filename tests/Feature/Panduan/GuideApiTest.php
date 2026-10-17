@@ -98,7 +98,7 @@ class GuideApiTest extends TestCase
         $this->getJson('/portal/panduan/data')->assertUnauthorized();
         $this->actingAsMember(Member::factory()->create());
         $data = $this->getJson('/portal/panduan/data')->assertOk()->json('data');
-        $this->assertSame(['portal.beranda', 'portal.simpanan', 'portal.pinjaman', 'portal.belanja', 'portal.riwayat'], array_column($data, 'key'));
+        $this->assertSame(['portal.beranda', 'portal.simpanan', 'portal.pinjaman', 'portal.belanja', 'portal.riwayat', 'portal.akun'], array_column($data, 'key'));
         $this->assertTrue(collect($data)->every(fn ($g) => $g['allowed']));
     }
 

@@ -78,7 +78,7 @@
 
     @php $hasPin = auth('member')->user()->hasPin(); @endphp
     @unless ($hasPin)
-        <p class="rounded-xl bg-amber-50 px-4 py-3 text-sm text-amber-900" data-no-pin>Setiap transaksi diverifikasi dengan PIN, tetapi PIN Anda belum diatur. Minta pengurus koperasi mengaturnya.</p>
+        <p class="rounded-xl bg-amber-50 px-4 py-3 text-sm text-amber-900" data-no-pin>Setiap transaksi diverifikasi dengan PIN, tetapi PIN Anda belum dibuat. <a href="{{ route('portal.mulai') }}" wire:navigate class="font-semibold underline">Buat PIN sekarang</a>.</p>
     @endunless
     <button type="submit" @disabled(! $hasPin) class="w-full rounded-xl bg-emerald-700 py-3 text-base font-semibold text-white hover:bg-emerald-800 disabled:opacity-60">
         Kirim pesanan · {{ $rp($total) }}

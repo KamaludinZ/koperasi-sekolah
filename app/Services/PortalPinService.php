@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\Member;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
 /**
@@ -36,7 +37,7 @@ class PortalPinService
     /** Token sekali pakai (5 menit) setelah PIN benar, disimpan di sesi anggota; dipakai endpoint transaksi. */
     public function issueToken(Member $member): array
     {
-        $token = \Illuminate\Support\Str::random(40);
+        $token = Str::random(40);
         $expires = now()->addSeconds(self::TOKEN_TTL);
         session(['portal.pin_token' => ['hash' => hash('sha256', $token), 'member_id' => $member->id, 'expires' => $expires->timestamp]]);
 
@@ -56,7 +57,7 @@ class PortalPinService
     public function verify(Member $member, string $pin): void
     {
         if (! $member->hasPin()) {
-            throw ValidationException::withMessages(['pin' => 'PIN transaksi belum diatur. Minta pengurus koperasi mengaturnya.']);
+            throw ValidationException::withMessages(['pin' => 'PIN transaksi belum dibuat. Buat PIN Anda di halaman Siapkan akun.']);
         }
         $key = 'portal-pin:'.$member->id;
         if (RateLimiter::tooManyAttempts($key, self::MAX_ATTEMPTS)) {

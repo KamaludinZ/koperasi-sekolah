@@ -11,6 +11,11 @@
         'portal.belanja' => ['Belanja', 'M3 3h2l.4 2M7 13h10l4-8H5.4M7 13 5.4 5M7 13l-2.3 2.3c-.6.6-.2 1.7.7 1.7H17'],
         'portal.pesanan' => ['Pesanan', 'M9 5h10M9 12h10M9 19h10M5 5h.01M5 12h.01M5 19h.01'],
     ]);
+    // Belum menyiapkan akun (kata sandi sementara / tanpa PIN): menu disembunyikan sampai Siapkan akun selesai.
+    $setupPending = $member && $member->needsPortalSetup() && ! \App\Support\ImpersonationSession::impersonatingMember();
+    if ($setupPending) {
+        $nav = collect();
+    }
     // titik merah di menu Pinjaman bila anggota punya pinjaman menunggak
     $alerts = ['portal.pinjaman' => $member && $nav->has('portal.pinjaman') && \App\Livewire\Portal\Loans::overdueCount($member->id) > 0];
 @endphp
@@ -53,6 +58,13 @@
                         <svg class="size-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .9-1 1.6V14M12 17h.01"/></svg>
                         <span>Panduan</span>
                     </a>
+                    @unless ($setupPending)
+                    <a href="{{ route('portal.akun') }}" wire:navigate data-portal-account-button @if (request()->routeIs('portal.akun')) aria-current="page" @endif
+                       class="flex items-center gap-1 rounded-lg px-2.5 py-1.5 text-sm font-medium text-emerald-200 hover:bg-white/10 hover:text-white" title="Akun saya: ganti kata sandi & PIN">
+                        <svg class="size-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>
+                        <span class="max-sm:sr-only">Akun</span>
+                    </a>
+                    @endunless
                     @unless (\App\Support\ImpersonationSession::impersonatingMember()) {{-- saat impersonasi: kembali lewat spanduk --}}
                                         <form method="POST" action="{{ route('portal.logout') }}">
                         @csrf

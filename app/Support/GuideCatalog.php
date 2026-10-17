@@ -245,15 +245,16 @@ class GuideCatalog
             'portal.beranda' => [
                 'menu' => null, 'audience' => 'anggota', 'portal_route' => 'portal',
                 'title' => 'Mengenal portal anggota',
-                'summary' => 'Portal menampilkan saldo tabungan, simpanan, pinjaman, dan pesanan Anda. Masuk dengan kode anggota/email dan kata sandi dari petugas koperasi.',
+                'summary' => 'Portal menampilkan saldo tabungan, simpanan, pinjaman, dan pesanan Anda. Masuk dengan kode anggota/email; pertama kali memakai kata sandi sementara dari petugas koperasi.',
                 'steps' => [
                     ['text' => 'Masuk memakai kode anggota atau email dan kata sandi portal.', 'route' => 'portal'],
+                    ['text' => 'Saat pertama masuk, buat kata sandi dan PIN transaksi 6 angka milik Anda sendiri di halaman Siapkan akun.'],
                     ['text' => 'Beranda menampilkan saldo tabungan, ringkasan simpanan, dan pinjaman aktif.'],
                     ['text' => 'Pakai menu di atas (atau bawah layar HP) untuk berpindah: Simpanan, Pinjaman, Riwayat, Belanja, Pesanan.'],
                     ['text' => 'Tekan Keluar bila memakai perangkat bersama.'],
                 ],
-                'tips' => ['Lupa kata sandi atau PIN? Hubungi petugas koperasi untuk mengaturnya ulang.'],
-                'related' => [],
+                'tips' => ['Kata sandi & PIN hanya Anda yang tahu — petugas tidak pernah melihat PIN Anda.', 'Lupa kata sandi atau PIN? Minta petugas mengatur ulang, lalu buat yang baru saat masuk.'],
+                'related' => ['portal.akun' => 'Akun saya'],
             ],
             'portal.simpanan' => [
                 'menu' => null, 'audience' => 'anggota', 'portal_route' => 'portal.simpanan',
@@ -305,6 +306,19 @@ class GuideCatalog
                 ],
                 'tips' => [],
                 'related' => [],
+            ],
+            'portal.akun' => [
+                'menu' => null, 'audience' => 'anggota', 'portal_route' => 'portal.akun',
+                'title' => 'Mengganti kata sandi & PIN',
+                'summary' => 'Ganti sendiri kata sandi portal dan PIN transaksi Anda kapan saja.',
+                'steps' => [
+                    ['text' => 'Buka menu Akun di bagian atas portal.', 'route' => 'portal.akun'],
+                    ['text' => 'Ganti kata sandi: isi kata sandi sekarang, lalu kata sandi baru (min. 8 karakter, huruf & angka) dua kali.'],
+                    ['text' => 'Ganti PIN: isi PIN baru 6 angka dua kali, lalu kata sandi portal untuk konfirmasi.'],
+                    ['text' => 'Tekan Simpan. Setelah kata sandi diganti, perangkat lain yang masih masuk diminta masuk lagi.'],
+                ],
+                'tips' => ['Lupa PIN? Cukup buat PIN baru di menu Akun dengan kata sandi Anda.', 'Hindari PIN yang angkanya sama semua atau berurutan naik/turun.', 'Salah kata sandi 5 kali → penggantian dikunci 15 menit.'],
+                'related' => ['portal' => 'Beranda portal'],
             ],
         ];
     }

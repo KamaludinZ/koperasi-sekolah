@@ -21,7 +21,7 @@ class LoginTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->member = Member::factory()->create(['member_code' => 'S-2026-001', 'name' => 'Andi', 'email' => 'andi@siswa.test', 'password' => '246810']);
+        $this->member = Member::factory()->create(['member_code' => 'S-2026-001', 'name' => 'Andi', 'email' => 'andi@siswa.test', 'password' => '246810', 'pin' => '135792']);
     }
 
     public function test_guest_is_sent_to_portal_login(): void

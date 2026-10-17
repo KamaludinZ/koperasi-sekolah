@@ -3,6 +3,7 @@
 namespace Tests\Feature\Portal;
 
 use App\Livewire\Portal\Checkout;
+use App\Livewire\Portal\Login;
 use App\Models\ActivityLog;
 use App\Models\Member;
 use App\Models\Order;
@@ -57,9 +58,10 @@ class PinVerificationTest extends TestCase
     public function test_member_without_pin_cannot_checkout(): void
     {
         $this->andi->forceFill(['pin' => null])->save();
-        $this->get('/portal/checkout')->assertOk()->assertSee('data-no-pin', false);
-        Livewire::test(Checkout::class)->call('review')->set('pin', '123456')->call('place')
-            ->assertHasErrors(['pin' => 'PIN transaksi belum diatur. Minta pengurus koperasi mengaturnya.']);
+        $this->get('/portal/checkout')->assertRedirect(route('portal.mulai')); // wajib membuat PIN sendiri dulu
+        $this->getJson('/portal/pesanan/data')->assertStatus(409);
+        Livewire::test(Checkout::class)->assertSee('data-no-pin', false)->call('review')->set('pin', '123456')->call('place')
+            ->assertHasErrors(['pin' => 'PIN transaksi belum dibuat. Buat PIN Anda di halaman Siapkan akun.']);
         $this->assertSame(0, Order::count());
     }
 
@@ -68,6 +70,6 @@ class PinVerificationTest extends TestCase
         $this->assertNotSame('246810', $this->andi->getAttributes()['pin']);
         $this->assertArrayNotHasKey('pin', $this->andi->toArray());
         auth('member')->logout();
-        Livewire::test(\App\Livewire\Portal\Login::class)->set('identifier', $this->andi->member_code)->set('password', '246810')->call('login')->assertHasErrors('identifier');
+        Livewire::test(Login::class)->set('identifier', $this->andi->member_code)->set('password', '246810')->call('login')->assertHasErrors('identifier');
     }
 }

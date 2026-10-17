@@ -17,11 +17,9 @@
         <span @class(['size-2 rounded-full', 'bg-emerald-600' => $open['open'], 'bg-stone-500' => ! $open['open']])></span>
         Koperasi {{ mb_strtolower($open['label']) }}@if ($open['detail']) · {{ $open['detail'] }}@endif
     </p>
-    @if (\Illuminate\Support\Facades\Route::has('portal.simpanan'))
-        <a href="{{ route('portal.simpanan') }}" wire:navigate class="flex items-center justify-between rounded-2xl border border-stone-200 bg-white px-4 py-3 hover:border-emerald-600">
-            <span><span class="block font-medium">Simpanan & tabungan</span><span class="text-sm text-stone-500">Saldo per jenis dan riwayat mutasi</span></span>
-            <span aria-hidden="true" class="text-stone-400">→</span>
-        </a>
-    @endif
+    <a href="{{ route('portal.simpanan') }}" wire:navigate class="flex items-center justify-between rounded-2xl border border-stone-200 bg-white px-4 py-3 hover:border-emerald-600">
+        <span><span class="block font-medium">Simpanan & tabungan</span><span class="text-sm text-stone-500">Saldo per jenis dan riwayat mutasi</span></span>
+        <span aria-hidden="true" class="text-stone-400">→</span>
+    </a>
     <p class="text-sm text-stone-500">Terakhir masuk {{ $m->portal_last_login_at?->translatedFormat('d F Y H:i') ?? 'baru saja' }}.</p>
 </div>

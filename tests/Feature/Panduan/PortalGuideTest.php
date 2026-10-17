@@ -24,7 +24,7 @@ class PortalGuideTest extends TestCase
 
     public function test_header_button_carries_topic_of_current_page(): void
     {
-        foreach (['portal.simpanan' => 'portal.simpanan', 'portal.pinjaman' => 'portal.pinjaman', 'portal.riwayat' => 'portal.riwayat', 'portal.pesanan' => 'portal.belanja', 'portal.belanja' => 'portal.belanja'] as $route => $topic) {
+        foreach (['portal.simpanan' => 'portal.simpanan', 'portal.pinjaman' => 'portal.pinjaman', 'portal.riwayat' => 'portal.riwayat', 'portal.pesanan' => 'portal.belanja', 'portal.belanja' => 'portal.belanja', 'portal.akun' => 'portal.akun'] as $route => $topic) {
             $this->get(route($route))->assertOk()
                 ->assertSeeHtml('data-portal-guide-topic="'.$topic.'"')
                 ->assertSeeHtml('href="'.e(route('portal.panduan', ['topik' => $topic, 'dari' => $route])).'"');
@@ -64,7 +64,7 @@ class PortalGuideTest extends TestCase
             ->assertSeeHtml("portal-panduan:{$this->member->id}:portal.simpanan")
             ->assertSeeHtml('data-portal-step-toggle="0"')
             ->assertSeeHtml('data-portal-guide-prev="portal.beranda"')->assertSeeHtml('data-portal-guide-next="portal.pinjaman"');
-        Livewire::test(Guide::class)->assertDontSeeHtml('data-portal-guide-prev=')->call('open', 'portal.riwayat')->assertDontSeeHtml('data-portal-guide-next=');
+        Livewire::test(Guide::class)->assertDontSeeHtml('data-portal-guide-prev=')->call('open', 'portal.riwayat')->assertSeeHtml('data-portal-guide-next="portal.akun"')->call('open', 'portal.akun')->assertDontSeeHtml('data-portal-guide-next=');
     }
 
     public function test_step_links_skip_checkout_and_parameterized_pages(): void

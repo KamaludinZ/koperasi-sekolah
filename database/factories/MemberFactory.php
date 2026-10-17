@@ -20,6 +20,7 @@ class MemberFactory extends Factory
             'phone' => fake()->optional()->numerify('0812-####-####'),
             'is_active' => true,
             'joined_at' => fake()->dateTimeBetween('-1 year')->format('Y-m-d'),
+            'portal_password_changed_at' => now(), // kata sandi portal (bila diberi) dianggap sudah milik anggota
         ];
     }
 

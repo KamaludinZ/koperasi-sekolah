@@ -44,6 +44,7 @@ class PortalAuthService
 
         RateLimiter::clear($key);
         Auth::guard('member')->login($member);
+        self::rememberCredential($member);
         $member->forceFill(['portal_last_login_at' => now()])->saveQuietly();
         AuditLog::record('portal.login', 'auth', "{$member->name} masuk portal anggota", self::subject($member), actor: self::actor($member));
 
@@ -59,6 +60,21 @@ class PortalAuthService
     {
         session()->forget('portal.pin_token');
         Auth::guard('member')->login($member);
+        self::rememberCredential($member);
+    }
+
+    /** Kunci sesi sidik kata sandi portal: sesi yang sidiknya beda (kata sandi sudah diganti) dikeluarkan middleware portal. */
+    public const CREDENTIAL_KEY = 'portal.credential';
+
+    /** Sidik kata sandi anggota saat ini (bukan kata sandinya): berubah setiap kata sandi diganti/diatur ulang. */
+    public static function credentialFingerprint(Member $member): string
+    {
+        return hash('sha256', 'portal|'.$member->id.'|'.($member->getAttributes()['password'] ?? ''));
+    }
+
+    public static function rememberCredential(Member $member): void
+    {
+        session([self::CREDENTIAL_KEY => self::credentialFingerprint($member)]);
     }
 
     public function logout(): void

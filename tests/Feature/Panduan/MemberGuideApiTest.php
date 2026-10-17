@@ -33,7 +33,7 @@ class MemberGuideApiTest extends TestCase
     public function test_list_and_single_with_session_meta(): void
     {
         $res = $this->getJson('/portal/panduan/data')->assertOk();
-        $this->assertSame(['portal.beranda', 'portal.simpanan', 'portal.pinjaman', 'portal.belanja', 'portal.riwayat'], array_column($res->json('data'), 'key'));
+        $this->assertSame(['portal.beranda', 'portal.simpanan', 'portal.pinjaman', 'portal.belanja', 'portal.riwayat', 'portal.akun'], array_column($res->json('data'), 'key'));
         $this->assertSame(['has_pin' => true, 'locked' => false, 'minutes' => 0, 'attempts_left' => 3], $res->json('meta.pin'));
         $this->assertSame(0, $res->json('meta.overdue_installments'));
         $this->assertFalse($res->json('meta.read_only'));

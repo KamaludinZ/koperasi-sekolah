@@ -76,7 +76,7 @@
 
             <div class="mt-6 rounded-xl border border-stone-200 bg-white px-4 py-3.5 text-sm text-stone-600">
                 <p class="font-semibold text-stone-800">Belum punya akses?</p>
-                <p class="mt-1 leading-relaxed">Minta pengurus koperasi mengaktifkan akun portal Anda — kata sandi & PIN 6 angka diberikan saat itu. PIN dipakai untuk memverifikasi setiap transaksi. Lupa kata sandi atau PIN? Hubungi pengurus untuk mengaturnya ulang.</p>
+                <p class="mt-1 leading-relaxed">Minta pengurus koperasi mengaktifkan akun portal Anda — Anda mendapat kata sandi sementara. Saat pertama masuk, Anda membuat kata sandi dan PIN transaksi 6 angka milik sendiri. Lupa kata sandi atau PIN? Minta pengurus mengatur ulang.</p>
             </div>
 
             <div class="mt-8 flex flex-wrap items-center justify-between gap-3 text-sm">
