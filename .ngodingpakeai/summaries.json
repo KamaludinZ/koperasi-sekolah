@@ -65,8 +65,78 @@
  "app/Http/Middleware/EnsureMenuAccess.php": {
   "summary": "Middleware rute menu dan menu:<kunci>: mewajibkan login (redirect ke /masuk atau 401) dan memeriksa peran boleh membuka menu itu berdasarkan roles.permissions (403 dengan pesan siapa yang boleh); juga dipakai sebagai persistent middleware Livewire."
  },
+ "app/Http/Middleware/EnsurePortalMember.php": {
+  "summary": "Middleware EnsurePortalMember: Wajib masuk sebagai anggota (guard member) untuk halaman portal. Sengaja TIDAK mengganti guard bawaan (beda dengan auth:member), sehingga kode petugas yang memakai auth()->user() tidak pernah menerima Member. Anggota yang dinonaktifkan/akses portalnya dicabut langsung dikeluarkan. Metode publik: handle.",
+  "sections": [
+   {
+    "symbol": "EnsurePortalMember::handle",
+    "startLine": 19,
+    "endLine": 62,
+    "summary": "Metode public handle pada middleware EnsurePortalMember."
+   }
+  ]
+ },
  "app/Livewire/Akun/Password.php": {
   "summary": "Komponen Livewire halaman Ganti Kata Sandi untuk semua peran, menyimpan lewat PasswordService dan memberi tahu bahwa perangkat lain otomatis dikeluarkan."
+ },
+ "app/Livewire/Anggota/PortalAccess.php": {
+  "summary": "Komponen Livewire PortalAccess: Kartu \"Akses portal\" di profil anggota (Admin & Pengurus): aktifkan akses dengan kata sandi sementara (tampil sekali untuk diserahkan), bantu atur ulang kata sandi atau PIN, ubah email, dan cabut akses. Kata sandi tetap & PIN dibuat anggota sendiri saat masuk portal (pengurus tidak pernah tahu PIN). Metode publik: mount, member, canManage, enable, resetPin, saveEmail, disable, dismiss, render.",
+  "sections": [
+   {
+    "symbol": "PortalAccess::mount",
+    "startLine": 33,
+    "endLine": 37,
+    "summary": "Rahasia yang baru dibuat (tampil sekali, tidak disimpan di state Livewire setelah ditutup)."
+   },
+   {
+    "symbol": "PortalAccess::member",
+    "startLine": 40,
+    "endLine": 43,
+    "summary": "Metode public member pada komponen livewire PortalAccess."
+   },
+   {
+    "symbol": "PortalAccess::canManage",
+    "startLine": 46,
+    "endLine": 49,
+    "summary": "Metode public canManage pada komponen livewire PortalAccess."
+   },
+   {
+    "symbol": "PortalAccess::enable",
+    "startLine": 52,
+    "endLine": 69,
+    "summary": "Aktifkan akses, atau atur ulang kata sandi bila sudah aktif — selalu kata sandi SEMENTARA yang ditampilkan sekali."
+   },
+   {
+    "symbol": "PortalAccess::resetPin",
+    "startLine": 72,
+    "endLine": 84,
+    "summary": "PIN dihapus; anggota membuat PIN baru sendiri saat masuk berikutnya (pengurus tidak pernah tahu PIN)."
+   },
+   {
+    "symbol": "PortalAccess::saveEmail",
+    "startLine": 86,
+    "endLine": 101,
+    "summary": "Metode public saveEmail pada komponen livewire PortalAccess."
+   },
+   {
+    "symbol": "PortalAccess::disable",
+    "startLine": 103,
+    "endLine": 110,
+    "summary": "Metode public disable pada komponen livewire PortalAccess."
+   },
+   {
+    "symbol": "PortalAccess::dismiss",
+    "startLine": 112,
+    "endLine": 115,
+    "summary": "Metode public dismiss pada komponen livewire PortalAccess."
+   },
+   {
+    "symbol": "PortalAccess::render",
+    "startLine": 117,
+    "endLine": 120,
+    "summary": "Metode public render pada komponen livewire PortalAccess."
+   }
+  ]
  },
  "app/Livewire/Audit/Index.php": {
   "summary": "Komponen Livewire Audit & Riwayat untuk admin dan pengurus: jejak login, sirkulasi uang/barang, dan perubahan data dengan filter tampilan, periode, kategori, petugas, dan kata kunci; ringkasan, aktivitas per petugas, panel rincian, dan unduh CSV hingga 20.000 baris."
@@ -92,11 +162,212 @@
  "app/Livewire/Pengaturan/Tax.php": {
   "summary": "Komponen Livewire form Pajak & Pembulatan: aktifkan pajak, nama dan tarif desimal berkoma, termasuk harga atau ditambahkan, cara dan kelipatan pembulatan, khusus tunai; kalkulator contoh tunai vs QRIS memakai PriceCalculator dan simpan lewat SettingsService."
  },
+ "app/Livewire/Portal/Account.php": {
+  "summary": "Komponen Livewire Account: Portal → Akun saya: data akun (kode, nama, email, terakhir masuk) serta ganti kata sandi & PIN transaksi sendiri lewat PortalCredentialService (keduanya dikonfirmasi kata sandi sekarang). Admin yang masuk sebagai anggota (impersonasi) hanya melihat — tidak bisa mengganti kredensial anggota. Metode publik: member, lock, changePassword, changePin, render.",
+  "sections": [
+   {
+    "symbol": "Account::member",
+    "startLine": 40,
+    "endLine": 43,
+    "summary": "Metode public member pada komponen livewire Account."
+   },
+   {
+    "symbol": "Account::lock",
+    "startLine": 52,
+    "endLine": 55,
+    "summary": "Metode public lock pada komponen livewire Account."
+   },
+   {
+    "symbol": "Account::changePassword",
+    "startLine": 57,
+    "endLine": 61,
+    "summary": "Metode public changePassword pada komponen livewire Account."
+   },
+   {
+    "symbol": "Account::changePin",
+    "startLine": 63,
+    "endLine": 67,
+    "summary": "Metode public changePin pada komponen livewire Account."
+   },
+   {
+    "symbol": "Account::run",
+    "startLine": 69,
+    "endLine": 93,
+    "summary": "Metode private run pada komponen livewire Account."
+   },
+   {
+    "symbol": "Account::render",
+    "startLine": 95,
+    "endLine": 98,
+    "summary": "Metode public render pada komponen livewire Account."
+   }
+  ]
+ },
+ "app/Livewire/Portal/Setup.php": {
+  "summary": "Komponen Livewire Setup: Portal → Siapkan akun (/portal/mulai): wajib dibuka anggota saat pertama masuk atau setelah pengurus mengatur ulang kata sandi/PIN (middleware portal mengarahkan ke sini). Anggota membuat kata sandi miliknya (mengganti kata sandi sementara) dan/atau PIN transaksi 6 angka sendiri — pengurus tidak pernah mengetahui PIN. Metode publik: mount, member, needPassword, needPin, save, render.",
+  "sections": [
+   {
+    "symbol": "Setup::mount",
+    "startLine": 33,
+    "endLine": 40,
+    "summary": "Metode public mount pada komponen livewire Setup."
+   },
+   {
+    "symbol": "Setup::member",
+    "startLine": 43,
+    "endLine": 46,
+    "summary": "Metode public member pada komponen livewire Setup."
+   },
+   {
+    "symbol": "Setup::needPassword",
+    "startLine": 49,
+    "endLine": 52,
+    "summary": "Metode public needPassword pada komponen livewire Setup."
+   },
+   {
+    "symbol": "Setup::needPin",
+    "startLine": 55,
+    "endLine": 58,
+    "summary": "Metode public needPin pada komponen livewire Setup."
+   },
+   {
+    "symbol": "Setup::save",
+    "startLine": 60,
+    "endLine": 81,
+    "summary": "Metode public save pada komponen livewire Setup."
+   },
+   {
+    "symbol": "Setup::render",
+    "startLine": 83,
+    "endLine": 86,
+    "summary": "Metode public render pada komponen livewire Setup."
+   }
+  ]
+ },
  "app/Livewire/Transaksi/Index.php": {
   "summary": "Komponen Livewire Riwayat Transaksi: penjualan terbaru dikelompokkan per hari dengan total harian, filter preset atau rentang tanggal kustom di URL, ringkasan periode, dan paginasi dari TransactionHistory."
  },
  "app/Livewire/Transaksi/Show.php": {
   "summary": "Komponen Livewire detail satu transaksi dengan navigasi ke transaksi lebih baru/lama, memakai TransactionHistory::detail."
+ },
+ "app/Models/Member.php": {
+  "summary": "Model Eloquent Member: Anggota koperasi (siswa/guru). balance = saldo tabungan saat ini; hanya boleh diubah lewat layanan tabungan agar selalu cocok dengan mutasinya. Metode publik: getRememberTokenName, hasPin, needsPortalSetup, hasPortalAccess, credits, creditPayments, loans, transactions, savingAccounts, savingEntries, savings, scopeActive, scopeOfType, scopeSearch, auditLabel, auditTitle, getDisplayNameAttribute.",
+  "sections": [
+   {
+    "symbol": "Member::casts",
+    "startLine": 47,
+    "endLine": 60,
+    "summary": "Kata sandi portal tidak pernah ikut terserialisasi (JSON/array)."
+   },
+   {
+    "symbol": "Member::getRememberTokenName",
+    "startLine": 63,
+    "endLine": 66,
+    "summary": "Anggota tidak memakai \"ingat saya\" (tidak ada kolom remember_token)."
+   },
+   {
+    "symbol": "Member::hasPin",
+    "startLine": 68,
+    "endLine": 71,
+    "summary": "Metode public hasPin pada model eloquent Member."
+   },
+   {
+    "symbol": "Member::needsPortalSetup",
+    "startLine": 77,
+    "endLine": 80,
+    "summary": "Anggota harus menyiapkan akun dulu (halaman Siapkan akun) sebelum memakai portal: kata sandinya masih sementara dari pengurus, atau belum punya PIN transaksi (baru diaktifkan / PIN diatur ulang pengurus)."
+   },
+   {
+    "symbol": "Member::hasPortalAccess",
+    "startLine": 82,
+    "endLine": 85,
+    "summary": "Metode public hasPortalAccess pada model eloquent Member."
+   },
+   {
+    "symbol": "Member::credits",
+    "startLine": 87,
+    "endLine": 90,
+    "summary": "Metode public credits pada model eloquent Member."
+   },
+   {
+    "symbol": "Member::creditPayments",
+    "startLine": 92,
+    "endLine": 95,
+    "summary": "Metode public creditPayments pada model eloquent Member."
+   },
+   {
+    "symbol": "Member::loans",
+    "startLine": 98,
+    "endLine": 101,
+    "summary": "Pinjaman (simpan pinjam) milik anggota."
+   },
+   {
+    "symbol": "Member::transactions",
+    "startLine": 103,
+    "endLine": 106,
+    "summary": "Metode public transactions pada model eloquent Member."
+   },
+   {
+    "symbol": "Member::savingAccounts",
+    "startLine": 110,
+    "endLine": 113,
+    "summary": "Saldo simpanan per jenis (pokok/wajib/sukarela)."
+   },
+   {
+    "symbol": "Member::savingEntries",
+    "startLine": 115,
+    "endLine": 118,
+    "summary": "Metode public savingEntries pada model eloquent Member."
+   },
+   {
+    "symbol": "Member::savings",
+    "startLine": 120,
+    "endLine": 123,
+    "summary": "Metode public savings pada model eloquent Member."
+   },
+   {
+    "symbol": "Member::scopeActive",
+    "startLine": 125,
+    "endLine": 128,
+    "summary": "Metode public scopeActive pada model eloquent Member."
+   },
+   {
+    "symbol": "Member::scopeOfType",
+    "startLine": 130,
+    "endLine": 133,
+    "summary": "Metode public scopeOfType pada model eloquent Member."
+   },
+   {
+    "symbol": "Member::scopeSearch",
+    "startLine": 136,
+    "endLine": 148,
+    "summary": "Cari nama, kode anggota, atau kelas (tanpa membedakan huruf besar/kecil)."
+   },
+   {
+    "symbol": "Member::auditLabel",
+    "startLine": 151,
+    "endLine": 154,
+    "summary": "Label tampilan, mis. \"Andi Pratama (7A)\" atau \"Pak Budi (Guru)\"."
+   },
+   {
+    "symbol": "Member::auditTitle",
+    "startLine": 156,
+    "endLine": 159,
+    "summary": "Metode public auditTitle pada model eloquent Member."
+   },
+   {
+    "symbol": "Member::getDisplayNameAttribute",
+    "startLine": 161,
+    "endLine": 164,
+    "summary": "Metode public getDisplayNameAttribute pada model eloquent Member."
+   },
+   {
+    "symbol": "Member::setMemberCodeAttribute",
+    "startLine": 167,
+    "endLine": 170,
+    "summary": "Kode harus unik tanpa membedakan huruf: selalu simpan huruf besar."
+   }
+  ]
  },
  "app/Models/Setting.php": {
   "summary": "Model key-value pengaturan (tabel settings) dengan kunci kelompok.nama, kolom group, type, dan updated_by (relasi editor). Helper get/set dengan cache per kunci, group untuk satu kelompok, serta typeOf/encode/decode agar nilai bool/int/float/json terbaca dengan tipe yang benar."
@@ -115,6 +386,211 @@
  },
  "app/Services/PasswordService.php": {
   "summary": "Ganti kata sandi petugas sendiri: validasi sandi lama, sandi baru minimal 8 karakter berisi huruf dan angka serta berbeda dari yang lama, simpan password_changed_at, akhiri sesi di perangkat lain dan reset remember token, lalu catat audit."
+ },
+ "app/Services/PortalAccountService.php": {
+  "summary": "Service domain PortalAccountService: Akun portal anggota dari sisi pengurus/admin. Pengurus hanya MEMBUKA akses dan MEMBANTU: aktifkan akses dengan kata sandi sementara (dibuat acak bila tidak diisi, ditampilkan sekali), atur ulang kata sandi (sementara lagi), atur ulang PIN (PIN lama dihapus — pengurus tidak pernah tahu PIN), ubah email, dan cabut akses. Anggota sendiri yang membuat kata sandi & PIN miliknya saat masuk berikutnya (halaman Siapkan akun, lihat PortalCredentialService). Nilai rahasia tidak pernah disimpan polos dan tidak ikut dicatat di audit. Metode publik: enable, resetPin, updateEmail, disable, randomPassword, weakPin.",
+  "sections": [
+   {
+    "symbol": "PortalAccountService::enable",
+    "startLine": 28,
+    "endLine": 49,
+    "summary": "Aktifkan akses portal (atau atur ulang kata sandinya bila sudah aktif) dengan kata sandi SEMENTARA: anggota wajib menggantinya saat masuk. Aktivasi baru juga mengosongkan PIN agar anggota membuat PIN sendiri."
+   },
+   {
+    "symbol": "PortalAccountService::resetPin",
+    "startLine": 52,
+    "endLine": 61,
+    "summary": "Atur ulang PIN: PIN lama dihapus & kuncinya dilepas; anggota membuat PIN baru sendiri saat masuk berikutnya."
+   },
+   {
+    "symbol": "PortalAccountService::updateEmail",
+    "startLine": 64,
+    "endLine": 75,
+    "summary": "Ubah (atau hapus, bila kosong) email masuk portal anggota. @throws ValidationException"
+   },
+   {
+    "symbol": "PortalAccountService::disable",
+    "startLine": 78,
+    "endLine": 82,
+    "summary": "Cabut akses portal: anggota langsung keluar pada permintaan berikutnya (middleware portal)."
+   },
+   {
+    "symbol": "PortalAccountService::validateEmail",
+    "startLine": 84,
+    "endLine": 89,
+    "summary": "Metode private validateEmail pada service domain PortalAccountService."
+   },
+   {
+    "symbol": "PortalAccountService::normalizeEmail",
+    "startLine": 91,
+    "endLine": 94,
+    "summary": "Metode private normalizeEmail pada service domain PortalAccountService."
+   },
+   {
+    "symbol": "PortalAccountService::randomPassword",
+    "startLine": 96,
+    "endLine": 102,
+    "summary": "Metode public randomPassword pada service domain PortalAccountService."
+   },
+   {
+    "symbol": "PortalAccountService::weakPin",
+    "startLine": 105,
+    "endLine": 108,
+    "summary": "PIN mudah ditebak: satu angka diulang (111111) atau berurutan naik/turun (123456, 987654)."
+   }
+  ]
+ },
+ "app/Services/PortalAuthService.php": {
+  "summary": "Service domain PortalAuthService: Masuk portal anggota (guard member): kode anggota atau email + kata sandi (PIN khusus verifikasi transaksi). Pesan gagal selalu sama (tidak membocorkan apakah akun ada), 5 percobaan gagal per 15 menit per identitas+IP, dan setiap masuk/gagal dicatat di jejak audit. Metode publik: attempt, enterAs, credentialFingerprint, rememberCredential, logout, subject, actor.",
+  "sections": [
+   {
+    "symbol": "PortalAuthService::attempt",
+    "startLine": 23,
+    "endLine": 52,
+    "summary": "Metode public attempt pada service domain PortalAuthService."
+   },
+   {
+    "symbol": "PortalAuthService::enterAs",
+    "startLine": 59,
+    "endLine": 64,
+    "summary": "Jalur masuk portal yang sama (guard member) untuk impersonasi oleh admin: tanpa kata sandi/PIN anggota, tanpa mengubah portal_last_login_at, dan tanpa catatan portal.login (dicatat sebagai impersonasi oleh layanan impersonasi). Sisa token PIN di sesi dibuang agar tak terpakai lintas akun."
+   },
+   {
+    "symbol": "PortalAuthService::credentialFingerprint",
+    "startLine": 70,
+    "endLine": 73,
+    "summary": "Sidik kata sandi anggota saat ini (bukan kata sandinya): berubah setiap kata sandi diganti/diatur ulang."
+   },
+   {
+    "symbol": "PortalAuthService::rememberCredential",
+    "startLine": 75,
+    "endLine": 78,
+    "summary": "Metode public rememberCredential pada service domain PortalAuthService."
+   },
+   {
+    "symbol": "PortalAuthService::logout",
+    "startLine": 80,
+    "endLine": 86,
+    "summary": "Metode public logout pada service domain PortalAuthService."
+   },
+   {
+    "symbol": "PortalAuthService::subject",
+    "startLine": 88,
+    "endLine": 91,
+    "summary": "Metode public subject pada service domain PortalAuthService."
+   },
+   {
+    "symbol": "PortalAuthService::actor",
+    "startLine": 94,
+    "endLine": 97,
+    "summary": "Pelaku audit = anggota (bukan petugas)."
+   }
+  ]
+ },
+ "app/Services/PortalCredentialService.php": {
+  "summary": "Service domain PortalCredentialService: Anggota mengganti sendiri kata sandi & PIN portal (halaman Akun saya). Keduanya wajib dikonfirmasi dengan kata sandi yang sekarang — sehingga PIN yang terlupa tetap bisa diganti sendiri, tetapi sesi yang tertinggal terbuka tidak cukup untuk mengambil alih akun. Salah kata sandi 5 kali → penggantian dikunci 15 menit. Kata sandi baru min. 8 karakter berisi huruf & angka dan berbeda dari yang lama; PIN 6 angka yang tidak mudah ditebak. Setelah kata sandi diganti, sesi portal di perangkat lain berakhir (sidik kata sandi, lihat EnsurePortalMember). Semua kejadian dicatat di audit tanpa nilai rahasianya. Metode publik: changePassword, changePin, completeSetup, lockStatus.",
+  "sections": [
+   {
+    "symbol": "PortalCredentialService::changePassword",
+    "startLine": 26,
+    "endLine": 46,
+    "summary": "Metode public changePassword pada service domain PortalCredentialService."
+   },
+   {
+    "symbol": "PortalCredentialService::changePin",
+    "startLine": 49,
+    "endLine": 72,
+    "summary": "Metode public changePin pada service domain PortalCredentialService."
+   },
+   {
+    "symbol": "PortalCredentialService::completeSetup",
+    "startLine": 81,
+    "endLine": 119,
+    "summary": "Siapkan akun saat pertama masuk (atau setelah pengurus mengatur ulang): ganti kata sandi sementara dengan milik sendiri dan/atau buat PIN transaksi. Hanya bagian yang memang perlu yang diminta; anggota baru saja masuk dengan kata sandi sementaranya sehingga tidak perlu mengetiknya lagi, tetapi kata sandi baru tidak boleh sama."
+   },
+   {
+    "symbol": "PortalCredentialService::lockStatus",
+    "startLine": 122,
+    "endLine": 128,
+    "summary": "Metode public lockStatus pada service domain PortalCredentialService."
+   },
+   {
+    "symbol": "PortalCredentialService::confirm",
+    "startLine": 130,
+    "endLine": 147,
+    "summary": "Metode private confirm pada service domain PortalCredentialService."
+   },
+   {
+    "symbol": "PortalCredentialService::key",
+    "startLine": 149,
+    "endLine": 152,
+    "summary": "Metode private key pada service domain PortalCredentialService."
+   }
+  ]
+ },
+ "app/Services/PortalPinService.php": {
+  "summary": "Service domain PortalPinService: Verifikasi PIN transaksi portal anggota (6 digit, tersandi). Salah 3 kali → transaksi dikunci 15 menit. Setiap percobaan dicatat di jejak audit: benar (pin_verified), salah (pin_failed), dan terkunci (pin_locked). Metode publik: attempts, issueToken, consumeToken, verify.",
+  "sections": [
+   {
+    "symbol": "PortalPinService::attempts",
+    "startLine": 24,
+    "endLine": 33,
+    "summary": "Metode public attempts pada service domain PortalPinService."
+   },
+   {
+    "symbol": "PortalPinService::issueToken",
+    "startLine": 38,
+    "endLine": 45,
+    "summary": "Token sekali pakai (5 menit) setelah PIN benar, disimpan di sesi anggota; dipakai endpoint transaksi."
+   },
+   {
+    "symbol": "PortalPinService::consumeToken",
+    "startLine": 48,
+    "endLine": 54,
+    "summary": "Pakai token: sah bila milik anggota ini & belum kedaluwarsa; selalu dihapus setelah dicek (sekali pakai)."
+   },
+   {
+    "symbol": "PortalPinService::verify",
+    "startLine": 57,
+    "endLine": 81,
+    "summary": "Metode public verify pada service domain PortalPinService."
+   }
+  ]
+ },
+ "app/Support/GuideCatalog.php": {
+  "summary": "Kelas bantu GuideCatalog: Isi panduan bawaan per menu (Pusat Panduan). Kunci = kunci menu App\\Support\\Menu::ITEMS (panduan petugas) atau kunci umum (akun) dan portal.* (panduan anggota). Tiap panduan: judul, ringkasan singkat, langkah praktis berurutan (opsional menunjuk halaman lewat nama rute), tips, dan halaman terkait. Ditulis mengikuti fitur yang benar-benar ada di aplikasi; menjadi bahan dasar sebelum versi tersimpan/hasil generate & suntingan admin. Metode publik: entries, haystack, portalTopicFor, forAudience, groupFor.",
+  "sections": [
+   {
+    "symbol": "GuideCatalog::entries",
+    "startLine": 19,
+    "endLine": 324,
+    "summary": "steps: list<array{text: string, route?: string}>, tips: list<string>, related: array<string, string>}>"
+   },
+   {
+    "symbol": "GuideCatalog::haystack",
+    "startLine": 346,
+    "endLine": 352,
+    "summary": "Teks yang dicari untuk satu panduan (judul, ringkasan, langkah, tips, kata kunci), dinormalkan tanpa huruf besar/aksen."
+   },
+   {
+    "symbol": "GuideCatalog::portalTopicFor",
+    "startLine": 363,
+    "endLine": 375,
+    "summary": "Topik panduan anggota untuk halaman portal yang sedang dibuka (null bila tidak ada)."
+   },
+   {
+    "symbol": "GuideCatalog::forAudience",
+    "startLine": 377,
+    "endLine": 380,
+    "summary": "Metode public forAudience pada kelas bantu GuideCatalog."
+   },
+   {
+    "symbol": "GuideCatalog::groupFor",
+    "startLine": 383,
+    "endLine": 386,
+    "summary": "Judul grup menu samping untuk kunci menu (null = Umum)."
+   }
+  ]
  },
  "app/Support/PriceCalculator.php": {
   "summary": "Kalkulator total belanja dari subtotal dan pengaturan pajak & pembulatan: pajak ditambahkan atau sudah termasuk harga, pembulatan ke atas/terdekat/ke bawah per Rp100/500/1.000 yang bisa khusus tunai. Mengembalikan subtotal, tax, tax_included, total, rounding, dan payable; dipakai kasir, checkout, dan pratinjau pengaturan."
@@ -177,7 +653,33 @@
   "summary": "Factory model Category untuk test yang membuat kategori barang dengan nama unik."
  },
  "database/factories/MemberFactory.php": {
-  "summary": "Factory model Member untuk test: anggota siswa dengan kelas dan kode, state teacher (guru), inactive, dan withBalance untuk saldo awal langsung tanpa mutasi."
+  "summary": "Factory model MemberFactory (database/factories/MemberFactory.php). Metode publik: definition, teacher, inactive, withBalance.",
+  "sections": [
+   {
+    "symbol": "MemberFactory::definition",
+    "startLine": 13,
+    "endLine": 25,
+    "summary": "Metode public definition pada factory model MemberFactory."
+   },
+   {
+    "symbol": "MemberFactory::teacher",
+    "startLine": 27,
+    "endLine": 34,
+    "summary": "Metode public teacher pada factory model MemberFactory."
+   },
+   {
+    "symbol": "MemberFactory::inactive",
+    "startLine": 36,
+    "endLine": 39,
+    "summary": "Metode public inactive pada factory model MemberFactory."
+   },
+   {
+    "symbol": "MemberFactory::withBalance",
+    "startLine": 42,
+    "endLine": 45,
+    "summary": "Saldo awal langsung (tanpa mutasi) — hanya untuk test."
+   }
+  ]
  },
  "database/factories/NotificationFactory.php": {
   "summary": "Factory model Notification untuk test: pengumuman untuk semua secara bawaan dan state stock untuk peringatan stok bersasaran pengurus."
@@ -469,6 +971,9 @@
  },
  "database/migrations/2026_10_21_000004_add_hash_and_restore_source_to_guide_versions.php": {
   "summary": "Migrasi basis data: Riwayat versi panduan dilengkapi: - content_hash: sidik jari kanonis cuplikan isi (kunci diurutkan) — mencari versi aktif & mencegah versi kembar tanpa membandingkan JSON utuh; diisi untuk versi yang sudah ada; - restored_from_version: nomor versi sumber bila versi ini hasil pemulihan; - indeks (guide_entry_id, content_hash) & (guide_entry_id, created_at). Tabel: guide_versions."
+ },
+ "database/migrations/2026_10_22_000001_add_portal_credentials_changed_at_to_members_table.php": {
+  "summary": "Migrasi basis data: Kapan anggota terakhir mengganti sendiri kata sandi & PIN portal. Null = masih memakai yang diberikan pengurus (anggota wajib menggantinya di halaman Siapkan akun); diatur ulang ke null saat pengurus mengaktifkan atau mengatur ulang. PIN yang dulu dibuat pengurus dikosongkan agar setiap anggota membuat PIN miliknya sendiri. Tabel: members."
  },
  "database/seeders/NotificationSeeder.php": {
   "summary": "Seeder notifikasi contoh: sinkron peringatan stok dari barang menipis/habis saat ini lewat NotificationService serta pengumuman dan info sistem demo."
@@ -774,7 +1279,7 @@
   "summary": "Tampilan komponen Livewire livewire/anggota/piutang. Judul: Anggota & Tabungan. Aksi Livewire: more, setTab."
  },
  "resources/views/livewire/anggota/portal-access.blade.php": {
-  "summary": "Tampilan komponen Livewire livewire/anggota/portal-access. Judul: Akses portal anggota. Aksi Livewire: disable, dismiss, enable, resetPin."
+  "summary": "Tampilan komponen Livewire livewire/anggota/portal-access. Judul: Akses portal anggota. Aksi Livewire: disable, dismiss, enable, resetPin, saveEmail."
  },
  "resources/views/livewire/anggota/show.blade.php": {
   "summary": "Tampilan komponen Livewire livewire/anggota/show. Identitas Aksi Livewire: openSaving."
@@ -1037,6 +1542,9 @@
  "resources/views/livewire/pinjaman/show.blade.php": {
   "summary": "Tampilan komponen Livewire livewire/pinjaman/show. Judul: Jadwal angsuran; Riwayat pembayaran; Riwayat perubahan (); Catat angsuran diterima. Aksi Livewire: cancelAttach, cancelDisburse, cancelPayment, closeCorrection, moreChanges, openAttach, openCorrection, openDisburse, openPayment, setChangeKind."
  },
+ "resources/views/livewire/portal/account.blade.php": {
+  "summary": "Tampilan komponen Livewire livewire/portal/account. Judul: Akun saya; Data akun; Ganti kata sandi; Ganti PIN transaksi."
+ },
  "resources/views/livewire/portal/checkout.blade.php": {
   "summary": "Tampilan komponen Livewire livewire/portal/checkout. Terkunci: hitung mundur mm:ss, lalu segarkan dari server begitu waktunya habis. Judul: Checkout; Pesanan ( barang); Pembayaran ditolak; Verifikasi PIN. Aksi Livewire: place, switchPayment."
  },
@@ -1063,6 +1571,9 @@
  },
  "resources/views/livewire/portal/savings.blade.php": {
   "summary": "Tampilan komponen Livewire livewire/portal/savings. Judul: Simpanan & tabungan; Simpanan per jenis; Riwayat. Aksi Livewire: more, setTab."
+ },
+ "resources/views/livewire/portal/setup.blade.php": {
+  "summary": "Tampilan komponen Livewire livewire/portal/setup. Judul: Siapkan akun Anda; . Kata sandi baru; . PIN transaksi."
  },
  "resources/views/livewire/portal/shop.blade.php": {
   "summary": "Tampilan komponen Livewire livewire/portal/shop. Bilah keranjang Judul: Belanja; Keranjang. Aksi Livewire: add, clearCart, setCategory, setQty."
@@ -1226,23 +1737,6 @@
  "tests/Feature/Barang/StockAlertEndpointTest.php": {
   "summary": "Test endpoint stok menipis dan batas minimum: daftar barang menipis, ambil batas dengan nilai bawaan, ubah per barang/kategori/bawaan, dan validasi."
  },
- "tests/Feature/BerandaTest.php": {
-  "summary": "Tes fitur BerandaTest (area aplikasi). Menguji: public home shows profile popular products and hours; open status.",
-  "sections": [
-   {
-    "symbol": "BerandaTest::test_public_home_shows_profile_popular_products_and_hours",
-    "startLine": 24,
-    "endLine": 40,
-    "summary": "Tes: public home shows profile popular products and hours."
-   },
-   {
-    "symbol": "BerandaTest::test_open_status",
-    "startLine": 42,
-    "endLine": 49,
-    "summary": "Tes: open status."
-   }
-  ]
- },
  "tests/Feature/Database/NotificationSchemaTest.php": {
   "summary": "Test skema notifikasi: kolom tabel notifications dan notification_reads, status baca per pengguna, dedupe_key unik, scope forRole/active/public, penghapusan pengguna/barang, dan constraint CHECK PostgreSQL untuk type, target, dan show_public."
  },
@@ -1285,101 +1779,8 @@
  "tests/Feature/Notifikasi/AnnouncementEndpointTest.php": {
   "summary": "Test API pengumuman: pengurus menerbitkan pengumuman untuk anggota yang masuk ke notifikasi petugas lain dan beranda publik, pengumuman khusus petugas tidak pernah publik, validasi, daftar dan ubah milik sendiri, pengurus tidak bisa mengubah milik orang lain sedangkan admin bisa, hanya pengumuman yang bisa dikelola, dan kasir/tamu ditolak."
  },
- "tests/Feature/Notifikasi/AnnouncementTest.php": {
-  "summary": "Tes fitur AnnouncementTest (area Notifikasi). Menguji: pengurus publishes announcement visible in notifications and public home; staff only announcement is not public and targets role; validation and expiry; delete and access.",
-  "sections": [
-   {
-    "symbol": "AnnouncementTest::test_pengurus_publishes_announcement_visible_in_notifications_and_public_home",
-    "startLine": 25,
-    "endLine": 48,
-    "summary": "Tes: pengurus publishes announcement visible in notifications and public home."
-   },
-   {
-    "symbol": "AnnouncementTest::test_staff_only_announcement_is_not_public_and_targets_role",
-    "startLine": 50,
-    "endLine": 66,
-    "summary": "Tes: staff only announcement is not public and targets role."
-   },
-   {
-    "symbol": "AnnouncementTest::test_validation_and_expiry",
-    "startLine": 68,
-    "endLine": 79,
-    "summary": "Tes: validation and expiry."
-   },
-   {
-    "symbol": "AnnouncementTest::test_delete_and_access",
-    "startLine": 81,
-    "endLine": 91,
-    "summary": "Tes: delete and access."
-   }
-  ]
- },
- "tests/Feature/Notifikasi/BellTest.php": {
-  "summary": "Tes fitur BellTest (area Notifikasi). Menguji: badge and preview; badge caps at nine plus; mark read and all; open follows link and marks read; refreshes when page marks all.",
-  "sections": [
-   {
-    "symbol": "BellTest::test_badge_and_preview",
-    "startLine": 25,
-    "endLine": 33,
-    "summary": "Tes: badge and preview."
-   },
-   {
-    "symbol": "BellTest::test_badge_caps_at_nine_plus",
-    "startLine": 35,
-    "endLine": 42,
-    "summary": "Tes: badge caps at nine plus."
-   },
-   {
-    "symbol": "BellTest::test_mark_read_and_all",
-    "startLine": 44,
-    "endLine": 56,
-    "summary": "Tes: mark read and all."
-   },
-   {
-    "symbol": "BellTest::test_open_follows_link_and_marks_read",
-    "startLine": 58,
-    "endLine": 66,
-    "summary": "Tes: open follows link and marks read."
-   },
-   {
-    "symbol": "BellTest::test_refreshes_when_page_marks_all",
-    "startLine": 68,
-    "endLine": 74,
-    "summary": "Tes: refreshes when page marks all."
-   }
-  ]
- },
  "tests/Feature/Notifikasi/MarkReadEndpointTest.php": {
   "summary": "Test API tandai notifikasi: tandai dibaca dan belum dibaca, tandai semua dengan filter opsional, id di luar kotak sendiri diabaikan, validasi, sembunyikan hanya untuk diri sendiri dan bukan peringatan stok, serta wajib login."
- },
- "tests/Feature/Notifikasi/MarkReadTest.php": {
-  "summary": "Tes fitur MarkReadTest (area Notifikasi). Menguji: bulk mark selected read and unread; select all toggles visible items; mark all read can be undone; noop without selection.",
-  "sections": [
-   {
-    "symbol": "MarkReadTest::test_bulk_mark_selected_read_and_unread",
-    "startLine": 24,
-    "endLine": 39,
-    "summary": "Tes: bulk mark selected read and unread."
-   },
-   {
-    "symbol": "MarkReadTest::test_select_all_toggles_visible_items",
-    "startLine": 41,
-    "endLine": 48,
-    "summary": "Tes: select all toggles visible items."
-   },
-   {
-    "symbol": "MarkReadTest::test_mark_all_read_can_be_undone",
-    "startLine": 50,
-    "endLine": 61,
-    "summary": "Tes: mark all read can be undone."
-   },
-   {
-    "symbol": "MarkReadTest::test_noop_without_selection",
-    "startLine": 63,
-    "endLine": 67,
-    "summary": "Tes: noop without selection."
-   }
-  ]
  },
  "tests/Feature/Notifikasi/NotificationEndpointTest.php": {
   "summary": "Test API daftar notifikasi: urutan terbaru dengan jumlah per saringan, filter dan batas, pratinjau lonceng, sasaran per peran, status baca per pengguna, tidak bisa menandai di luar kotak sendiri, sinkron peringatan stok sekali dan hilang saat restok, serta wajib login."
@@ -1389,6 +1790,135 @@
  },
  "tests/Feature/Notifikasi/StockAlertAutomationTest.php": {
   "summary": "Test notifikasi otomatis stok menipis: seeder membuat peringatan awal, penjualan yang menurunkan stok memberi tahu pengurus (menipis lalu habis), restok menghapus peringatan dan kekurangan baru belum dibaca lagi, perubahan batas minimum, nonaktif/hapus barang, barang baru tanpa stok, perubahan yang di-rollback tidak memberi tahu, dan perintah terjadwal notifikasi:stok."
+ },
+ "tests/Feature/Panduan/GuideApiTest.php": {
+  "summary": "Tes fitur GuideApiTest (area Panduan). Menguji: list contains only permitted menus for each role; restricted entries are marked and stripped; multi role union without duplicates; search and single guide; admin edits appear in api and page; falls back to builtin catalog when table empty; portal api for members only; staff api requires staff login.",
+  "sections": [
+   {
+    "symbol": "GuideApiTest::test_list_contains_only_permitted_menus_for_each_role",
+    "startLine": 30,
+    "endLine": 41,
+    "summary": "Tes: list contains only permitted menus for each role."
+   },
+   {
+    "symbol": "GuideApiTest::test_restricted_entries_are_marked_and_stripped",
+    "startLine": 43,
+    "endLine": 54,
+    "summary": "Tes: restricted entries are marked and stripped."
+   },
+   {
+    "symbol": "GuideApiTest::test_multi_role_union_without_duplicates",
+    "startLine": 56,
+    "endLine": 66,
+    "summary": "Tes: multi role union without duplicates."
+   },
+   {
+    "symbol": "GuideApiTest::test_search_and_single_guide",
+    "startLine": 68,
+    "endLine": 78,
+    "summary": "Tes: search and single guide."
+   },
+   {
+    "symbol": "GuideApiTest::test_admin_edits_appear_in_api_and_page",
+    "startLine": 80,
+    "endLine": 87,
+    "summary": "Tes: admin edits appear in api and page."
+   },
+   {
+    "symbol": "GuideApiTest::test_falls_back_to_builtin_catalog_when_table_empty",
+    "startLine": 89,
+    "endLine": 94,
+    "summary": "Tes: falls back to builtin catalog when table empty."
+   },
+   {
+    "symbol": "GuideApiTest::test_portal_api_for_members_only",
+    "startLine": 96,
+    "endLine": 103,
+    "summary": "Tes: portal api for members only."
+   },
+   {
+    "symbol": "GuideApiTest::test_staff_api_requires_staff_login",
+    "startLine": 105,
+    "endLine": 109,
+    "summary": "Tes: staff api requires staff login."
+   }
+  ]
+ },
+ "tests/Feature/Panduan/MemberGuideApiTest.php": {
+  "summary": "Tes fitur MemberGuideApiTest (area Panduan): Endpoint panduan anggota berbasis sesi portal: pemberitahuan PIN, tunggakan, mode baca-saja; tanpa bocor PIN.. Menguji: list and single with session meta; pin not set and locked notices; overdue installments notice; impersonation marks read only; requires portal session.",
+  "sections": [
+   {
+    "symbol": "MemberGuideApiTest::test_list_and_single_with_session_meta",
+    "startLine": 33,
+    "endLine": 49,
+    "summary": "Tes: list and single with session meta."
+   },
+   {
+    "symbol": "MemberGuideApiTest::test_pin_not_set_and_locked_notices",
+    "startLine": 51,
+    "endLine": 69,
+    "summary": "Tes: pin not set and locked notices."
+   },
+   {
+    "symbol": "MemberGuideApiTest::test_overdue_installments_notice",
+    "startLine": 71,
+    "endLine": 81,
+    "summary": "Tes: overdue installments notice."
+   },
+   {
+    "symbol": "MemberGuideApiTest::test_impersonation_marks_read_only",
+    "startLine": 83,
+    "endLine": 95,
+    "summary": "Tes: impersonation marks read only."
+   },
+   {
+    "symbol": "MemberGuideApiTest::test_requires_portal_session",
+    "startLine": 97,
+    "endLine": 104,
+    "summary": "Tes: requires portal session."
+   }
+  ]
+ },
+ "tests/Feature/Panduan/PortalGuideTest.php": {
+  "summary": "Tes fitur PortalGuideTest (area Panduan): Panduan portal anggota dari header: topik sesuai halaman, kembali ke halaman asal, centang langkah, navigasi.. Menguji: header button carries topic of current page; every member topic and alias maps to existing guide; opened from page shows context and back link; back link only for safe portal pages; progress is per member and topic with prev next; step links skip checkout and parameterized pages.",
+  "sections": [
+   {
+    "symbol": "PortalGuideTest::test_header_button_carries_topic_of_current_page",
+    "startLine": 25,
+    "endLine": 34,
+    "summary": "Tes: header button carries topic of current page."
+   },
+   {
+    "symbol": "PortalGuideTest::test_every_member_topic_and_alias_maps_to_existing_guide",
+    "startLine": 36,
+    "endLine": 44,
+    "summary": "Tes: every member topic and alias maps to existing guide."
+   },
+   {
+    "symbol": "PortalGuideTest::test_opened_from_page_shows_context_and_back_link",
+    "startLine": 46,
+    "endLine": 51,
+    "summary": "Tes: opened from page shows context and back link."
+   },
+   {
+    "symbol": "PortalGuideTest::test_back_link_only_for_safe_portal_pages",
+    "startLine": 53,
+    "endLine": 59,
+    "summary": "Tes: back link only for safe portal pages."
+   },
+   {
+    "symbol": "PortalGuideTest::test_progress_is_per_member_and_topic_with_prev_next",
+    "startLine": 61,
+    "endLine": 68,
+    "summary": "Tes: progress is per member and topic with prev next."
+   },
+   {
+    "symbol": "PortalGuideTest::test_step_links_skip_checkout_and_parameterized_pages",
+    "startLine": 70,
+    "endLine": 75,
+    "summary": "Tes: step links skip checkout and parameterized pages."
+   }
+  ]
  },
  "tests/Feature/Pengaturan/IndexTest.php": {
   "summary": "Test halaman ringkasan Pengaturan: render ringkasan, menu khusus admin, contoh hitungan pajak dan pembulatan, dan penanda pengubah terakhir."
@@ -1405,49 +1935,142 @@
  "tests/Feature/Pengaturan/SettingsAuthorizationTest.php": {
   "summary": "Test otorisasi ubah pengaturan: hanya admin lolos gate ubah-pengaturan, peran yang diberi menu bisa membaca tetapi tidak menulis lewat API, form Livewire mode baca saja dengan audit penolakan, admin tetap bisa mengubah, admin nonaktif ditolak, dan peran admin wajib tetap memegang menu Pengaturan."
  },
- "tests/Feature/Pengaturan/SettingsServiceTest.php": {
-  "summary": "Tes fitur SettingsServiceTest (area Pengaturan). Menguji: defaults are used when nothing is saved; save persists only changed known keys and records editor; saved values survive a new request; changes are audited without logo content; reset returns section to defaults; unknown section is rejected.",
+ "tests/Feature/Pinjaman/SeedsRecapLoans.php": {
+  "summary": "Tes fitur SeedsRecapLoans (area Pinjaman): Data uji rekap: guru potong gaji 12 bln (5 angsuran dibayar), siswa tunai 3 bln, guru transfer 1 bln lunas; \"hari ini\" 10 Sep 2026, petugas pengurus masuk.."
+ },
+ "tests/Feature/Portal/LoginTest.php": {
+  "summary": "Tes fitur LoginTest (area Portal). Menguji: guest is sent to portal login; login with code or email; redirects back to intended portal page; failures are generic and rate limited; password is hashed and hidden; portal does not switch default guard and kicks deactivated member.",
   "sections": [
    {
-    "symbol": "SettingsServiceTest::test_defaults_are_used_when_nothing_is_saved",
-    "startLine": 23,
-    "endLine": 32,
-    "summary": "Tes: defaults are used when nothing is saved."
+    "symbol": "LoginTest::test_guest_is_sent_to_portal_login",
+    "startLine": 27,
+    "endLine": 31,
+    "summary": "Tes: guest is sent to portal login."
    },
    {
-    "symbol": "SettingsServiceTest::test_save_persists_only_changed_known_keys_and_records_editor",
-    "startLine": 34,
-    "endLine": 43,
-    "summary": "Tes: save persists only changed known keys and records editor."
+    "symbol": "LoginTest::test_login_with_code_or_email",
+    "startLine": 33,
+    "endLine": 51,
+    "summary": "Tes: login with code or email."
    },
    {
-    "symbol": "SettingsServiceTest::test_saved_values_survive_a_new_request",
-    "startLine": 45,
-    "endLine": 59,
-    "summary": "Tes: saved values survive a new request."
+    "symbol": "LoginTest::test_redirects_back_to_intended_portal_page",
+    "startLine": 53,
+    "endLine": 57,
+    "summary": "Tes: redirects back to intended portal page."
    },
    {
-    "symbol": "SettingsServiceTest::test_changes_are_audited_without_logo_content",
-    "startLine": 61,
-    "endLine": 73,
-    "summary": "Tes: changes are audited without logo content."
+    "symbol": "LoginTest::test_failures_are_generic_and_rate_limited",
+    "startLine": 59,
+    "endLine": 80,
+    "summary": "Tes: failures are generic and rate limited."
    },
    {
-    "symbol": "SettingsServiceTest::test_reset_returns_section_to_defaults",
-    "startLine": 75,
-    "endLine": 85,
-    "summary": "Tes: reset returns section to defaults."
+    "symbol": "LoginTest::test_password_is_hashed_and_hidden",
+    "startLine": 82,
+    "endLine": 86,
+    "summary": "Tes: password is hashed and hidden."
    },
    {
-    "symbol": "SettingsServiceTest::test_unknown_section_is_rejected",
-    "startLine": 87,
-    "endLine": 91,
-    "summary": "Tes: unknown section is rejected."
+    "symbol": "LoginTest::test_portal_does_not_switch_default_guard_and_kicks_deactivated_member",
+    "startLine": 88,
+    "endLine": 97,
+    "summary": "Tes: portal does not switch default guard and kicks deactivated member."
    }
   ]
  },
- "tests/Feature/Pinjaman/SeedsRecapLoans.php": {
-  "summary": "Tes fitur SeedsRecapLoans (area Pinjaman): Data uji rekap: guru potong gaji 12 bln (5 angsuran dibayar), siswa tunai 3 bln, guru transfer 1 bln lunas; \"hari ini\" 10 Sep 2026, petugas pengurus masuk.."
+ "tests/Feature/Portal/MemberCredentialsTest.php": {
+  "summary": "Tes fitur MemberCredentialsTest (area Portal). Menguji: first login must create own password and pin; pin reset by pengurus asks only for new pin; member changes password and other devices are signed out; member changes pin with password and lockout; impersonating admin cannot change credentials and skips setup.",
+  "sections": [
+   {
+    "symbol": "MemberCredentialsTest::test_first_login_must_create_own_password_and_pin",
+    "startLine": 41,
+    "endLine": 74,
+    "summary": "Tes: first login must create own password and pin."
+   },
+   {
+    "symbol": "MemberCredentialsTest::test_pin_reset_by_pengurus_asks_only_for_new_pin",
+    "startLine": 76,
+    "endLine": 84,
+    "summary": "Tes: pin reset by pengurus asks only for new pin."
+   },
+   {
+    "symbol": "MemberCredentialsTest::test_member_changes_password_and_other_devices_are_signed_out",
+    "startLine": 86,
+    "endLine": 106,
+    "summary": "Tes: member changes password and other devices are signed out."
+   },
+   {
+    "symbol": "MemberCredentialsTest::test_member_changes_pin_with_password_and_lockout",
+    "startLine": 108,
+    "endLine": 130,
+    "summary": "Tes: member changes pin with password and lockout."
+   },
+   {
+    "symbol": "MemberCredentialsTest::test_impersonating_admin_cannot_change_credentials_and_skips_setup",
+    "startLine": 132,
+    "endLine": 151,
+    "summary": "Tes: impersonating admin cannot change credentials and skips setup."
+   }
+  ]
+ },
+ "tests/Feature/Portal/PinVerificationTest.php": {
+  "summary": "Tes fitur PinVerificationTest (area Portal). Menguji: review opens pin step then correct pin places order; wrong pin rejected and locked after three; member without pin cannot checkout; pin is hashed hidden and not a login secret.",
+  "sections": [
+   {
+    "symbol": "PinVerificationTest::test_review_opens_pin_step_then_correct_pin_places_order",
+    "startLine": 31,
+    "endLine": 36,
+    "summary": "Tes: review opens pin step then correct pin places order."
+   },
+   {
+    "symbol": "PinVerificationTest::test_wrong_pin_rejected_and_locked_after_three",
+    "startLine": 38,
+    "endLine": 56,
+    "summary": "Tes: wrong pin rejected and locked after three."
+   },
+   {
+    "symbol": "PinVerificationTest::test_member_without_pin_cannot_checkout",
+    "startLine": 58,
+    "endLine": 66,
+    "summary": "Tes: member without pin cannot checkout."
+   },
+   {
+    "symbol": "PinVerificationTest::test_pin_is_hashed_hidden_and_not_a_login_secret",
+    "startLine": 68,
+    "endLine": 74,
+    "summary": "Tes: pin is hashed hidden and not a login secret."
+   }
+  ]
+ },
+ "tests/Feature/Portal/PortalAccessTest.php": {
+  "summary": "Tes fitur PortalAccessTest (area Portal). Menguji: pengurus enables access with temporary password only; reset password keeps pin and reset pin clears it; change email and disable; kasir does not see card.",
+  "sections": [
+   {
+    "symbol": "PortalAccessTest::test_pengurus_enables_access_with_temporary_password_only",
+    "startLine": 18,
+    "endLine": 42,
+    "summary": "Tes: pengurus enables access with temporary password only."
+   },
+   {
+    "symbol": "PortalAccessTest::test_reset_password_keeps_pin_and_reset_pin_clears_it",
+    "startLine": 44,
+    "endLine": 59,
+    "summary": "Tes: reset password keeps pin and reset pin clears it."
+   },
+   {
+    "symbol": "PortalAccessTest::test_change_email_and_disable",
+    "startLine": 61,
+    "endLine": 77,
+    "summary": "Tes: change email and disable."
+   },
+   {
+    "symbol": "PortalAccessTest::test_kasir_does_not_see_card",
+    "startLine": 79,
+    "endLine": 87,
+    "summary": "Tes: kasir does not see card."
+   }
+  ]
  },
  "tests/Feature/Transaksi/DateFilterTest.php": {
   "summary": "Test filter tanggal riwayat transaksi: preset hari ini/kemarin, 7 hari dan bulan ini, rentang kustom dan validasinya, ringkasan mengikuti filter dan reset, query string memulihkan rentang, perbandingan periode sebelumnya per metode, dan tanpa perbandingan bila tanpa rentang."
