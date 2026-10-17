@@ -15,6 +15,7 @@ use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Middleware\SubstituteBindings;
 use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
+use Symfony\Component\HttpKernel\Exception\MethodNotAllowedHttpException;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -50,6 +51,21 @@ return Application::configure(basePath: dirname(__DIR__))
         }
     })
     ->withExceptions(function (Exceptions $exceptions): void {
+        // Alamat khusus kiriman form (POST /keluar, /portal/keluar, …) yang dibuka/dimuat ulang lewat GET — mis. Chrome
+        // di HP yang berganti mode Desktop/Seluler memuat ulang alamat asli sebelum pengalihan — diarahkan ke halaman
+        // yang wajar, bukan galat 405. Aksinya sendiri tidak pernah dijalankan lewat GET (tetap butuh POST + CSRF).
+        $exceptions->render(function (MethodNotAllowedHttpException $e, Request $request) {
+            if (! in_array($request->getMethod(), ['GET', 'HEAD'], true) || $request->expectsJson()) {
+                return null;
+            }
+            if ($request->is('portal', 'portal/*')) {
+                return redirect()->route('portal');
+            }
+
+            // Sesi belum dibaca di sini (rute tidak cocok); /masuk sendiri meneruskan petugas yang masih masuk ke berandanya.
+            return redirect($request->is('keluar') ? route('login') : '/');
+        });
+
         // Catat percobaan akses yang ditolak (403) oleh petugas yang masuk — menu, peran, atau izin.
         $exceptions->render(function (HttpExceptionInterface|AuthorizationException $e, Request $request) {
             $status = $e instanceof AuthorizationException ? 403 : $e->getStatusCode();

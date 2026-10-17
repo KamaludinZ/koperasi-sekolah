@@ -114,7 +114,9 @@ class ReturnToOriginalSessionTest extends TestCase
         $this->post('/impersonasi/selesai')->assertRedirect(route('beranda'));
         $this->assertSame($this->kasir->id, Auth::guard('web')->id());
         $this->postJson('/impersonasi/selesai')->assertOk()->assertJson(['ok' => false]);
-        $this->get('/impersonasi/selesai')->assertStatus(405);
+        // GET tidak menjalankan aksinya: diarahkan ke beranda (bukan galat 405), akun tidak berubah.
+        $this->get('/impersonasi/selesai')->assertRedirect('/');
+        $this->assertSame($this->kasir->id, Auth::guard('web')->id());
     }
 
     public function test_session_id_changes_on_return(): void

@@ -37,4 +37,30 @@ class ErrorPagesTest extends TestCase
         $this->assertStringContainsString('Sedang dalam perawatan', $html);
         $this->assertStringContainsString('http-equiv="refresh"', $html);
     }
+
+    public function test_reloading_post_only_address_with_get_redirects_instead_of_405(): void
+    {
+        // Chrome di HP yang berganti mode Desktop/Seluler memuat ulang alamat asli POST /keluar sebagai GET.
+        $admin = auth()->user();
+        $this->get('/keluar')->assertRedirect(route('login')); // /masuk meneruskan petugas yang masih masuk
+        $this->assertAuthenticatedAs($admin); // GET tidak pernah mengeluarkan
+        $this->get('/impersonasi/selesai')->assertRedirect('/');
+
+        auth()->logout();
+        $this->get('/keluar')->assertRedirect(route('login'));
+        $this->get('/portal/keluar')->assertRedirect(route('portal'));
+
+        $this->getJson('/keluar')->assertStatus(405);
+    }
+
+    public function test_other_4xx_codes_use_themed_fallback(): void
+    {
+        config()->set('app.debug', false);
+        Route::get('/_uji/{code}', fn (int $code) => abort($code));
+
+        $this->put('/keluar')->assertStatus(405)->assertSee('Cara membuka halaman tidak sesuai')->assertDontSee('Oops');
+        $this->get('/_uji/413')->assertStatus(413)->assertSee('Berkas terlalu besar');
+        $this->get('/_uji/400')->assertStatus(400)->assertSee('Permintaan tidak dapat diproses');
+        $this->get('/_uji/502')->assertStatus(502)->assertSee('Terjadi kesalahan');
+    }
 }
