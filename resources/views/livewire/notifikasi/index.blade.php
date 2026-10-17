@@ -97,7 +97,7 @@
             <div class="rounded-xl border border-dashed border-stone-300 bg-white px-6 py-14 text-center" data-empty="{{ $filter }}">
                 <p class="text-sm font-medium text-stone-600">{{ $emptyTitle }}</p>
                 <p class="mt-1 text-xs text-stone-400">{{ $emptyHint }}</p>
-                @if ($filter === 'stok' && \Illuminate\Support\Facades\Route::has('barang.saran-restok') && auth()->user()->canOpen('barang'))
+                @if ($filter === 'stok' && auth()->user()->canOpen('barang'))
                     <a href="{{ route('barang.saran-restok') }}" wire:navigate class="mt-3 inline-block text-sm font-semibold text-emerald-800 hover:underline">Lihat saran restok →</a>
                 @elseif ($filter === 'pengumuman' && auth()->user()->hasRole(\App\Models\Role::ADMIN, \App\Models\Role::PENGURUS))
                     <a href="{{ route('notifikasi.pengumuman') }}" wire:navigate class="mt-3 inline-block text-sm font-semibold text-emerald-800 hover:underline">Kelola pengumuman →</a>

@@ -41,7 +41,7 @@ class SavingsPaymentServiceTest extends TestCase
         $entry = SavingsTransaction::sole();
         $this->assertSame(['tarik', 8000, 20000, 12000, 'transaction', $tx->id], [$entry->type, (int) $entry->amount, (int) $entry->balance_before, (int) $entry->balance_after, $entry->source_type, (int) $entry->source_id]);
         $this->assertStringContainsString($tx->invoice_number, $entry->note);
-        $this->assertSame($entry->id, app(SavingsPaymentService::class)->forTransaction($tx->id)->id);
+        $this->assertSame($entry->id, SavingsTransaction::where('source_type', 'transaction')->where('source_id', $tx->id)->value('id'));
         $this->assertTrue(ActivityLog::where('event', 'savings.purchase')->exists());
         $this->assertStringContainsString('Saldo tabungan', ActivityLog::where('event', 'sale.created')->value('description'));
 

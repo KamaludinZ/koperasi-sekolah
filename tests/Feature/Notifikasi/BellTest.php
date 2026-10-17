@@ -3,6 +3,8 @@
 namespace Tests\Feature\Notifikasi;
 
 use App\Livewire\Notifikasi\Bell;
+use App\Models\Product;
+use App\Services\NotificationService;
 use App\Support\MockData;
 use Database\Seeders\NotificationSeeder;
 use Database\Seeders\ProductSeeder;
@@ -32,9 +34,9 @@ class BellTest extends TestCase
 
     public function test_badge_caps_at_nine_plus(): void
     {
-        \App\Models\Product::where('code', 'ATK001')->update(['stock' => 0]);
-        \App\Models\Product::where('code', 'MNM001')->update(['stock' => 0]);
-        app(\App\Services\NotificationService::class)->syncStockAlerts();
+        Product::where('code', 'ATK001')->update(['stock' => 0]);
+        Product::where('code', 'MNM001')->update(['stock' => 0]);
+        app(NotificationService::class)->syncStockAlerts();
 
         Livewire::test(Bell::class)->assertSee('9+');
     }
@@ -50,7 +52,7 @@ class BellTest extends TestCase
             ->call('markAllRead')
             ->assertDontSee('belum dibaca', false)
             ->assertDontSee('Tandai semua dibaca');
-        $this->assertSame(0, MockData::unreadNotifications());
+        $this->assertSame(0, app(NotificationService::class)->unreadCount(auth()->user()));
     }
 
     public function test_open_follows_link_and_marks_read(): void
@@ -60,13 +62,13 @@ class BellTest extends TestCase
 
         Livewire::test(Bell::class)->call('open', $stock['id'])->assertRedirect($stock['url']);
         Livewire::test(Bell::class)->call('open', $note['id'])->assertRedirect(route('notifikasi'));
-        $this->assertSame(7, MockData::unreadNotifications());
+        $this->assertSame(7, app(NotificationService::class)->unreadCount(auth()->user()));
     }
 
     public function test_refreshes_when_page_marks_all(): void
     {
         $bell = Livewire::test(Bell::class)->assertSee('9 belum dibaca', false);
-        MockData::markNotifications(array_column(MockData::notifications(), 'id'));
+        app(NotificationService::class)->mark(auth()->user(), array_column(MockData::notifications(), 'id'), true);
 
         $bell->dispatch('notifications-changed')->assertDontSee('belum dibaca', false);
     }

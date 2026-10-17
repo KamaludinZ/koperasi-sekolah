@@ -6,9 +6,7 @@
     $t = $s['tax'];
     $done = collect($this->checklist)->where('done', true)->count();
     $total = count($this->checklist);
-    $link = fn (string $route, string $label) => \Illuminate\Support\Facades\Route::has($route)
-        ? '<a href="'.route($route).'" wire:navigate class="text-sm font-semibold text-emerald-800 hover:underline">'.e($label).' →</a>'
-        : '<span class="text-sm text-stone-400" title="Segera hadir">'.e($label).' · segera</span>';
+    $link = fn (string $route, string $label) => '<a href="'.route($route).'" wire:navigate class="text-sm font-semibold text-emerald-800 hover:underline">'.e($label).' →</a>';
     $card = 'rounded-2xl border border-stone-200 bg-white p-5';
 @endphp
 <div class="flex min-h-0 flex-1 flex-col overflow-y-auto">

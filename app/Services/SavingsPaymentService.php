@@ -14,7 +14,6 @@ use Illuminate\Validation\ValidationException;
  *   (mutasi `tarik`, asal = transaction). Dipanggil di dalam transaksi DB checkout sehingga
  *   gagal bayar = transaksi batal seluruhnya.
  * - refund(): kembalikan saldo (mutasi `setor`, asal = return/transaction) untuk retur/pembatalan.
- * - forTransaction(): mutasi pemotongan sebuah transaksi (untuk struk: saldo awal/akhir).
  * Baris anggota dikunci (lockForUpdate) agar dua pembayaran bersamaan tidak membuat saldo minus.
  */
 class SavingsPaymentService
@@ -106,7 +105,7 @@ class SavingsPaymentService
      * Pemeriksaan sebelum bayar (tanpa mengubah data): cukupkah saldo anggota untuk $amount.
      *
      * @return array{can_pay: bool, reason: string, balance: int, amount: int, shortfall: int, balance_after: ?int}
-     *                                                                                                           reason: ok | inactive | insufficient
+     *                                                                                                              reason: ok | inactive | insufficient
      */
     public function check(Member $member, int $amount): array
     {
@@ -126,13 +125,6 @@ class SavingsPaymentService
             'shortfall' => $short,
             'balance_after' => $reason === 'ok' ? $balance - $amount : null,
         ];
-    }
-
-    /** Mutasi pemotongan tabungan untuk sebuah transaksi kasir, bila ada. */
-    public function forTransaction(int $transactionId): ?SavingsTransaction
-    {
-        return SavingsTransaction::where('source_type', 'transaction')->where('source_id', $transactionId)
-            ->where('type', SavingsTransaction::TYPE_WITHDRAWAL)->first();
     }
 
     private function post(Member $locked, string $type, int $amount, string $note, string $source, int $sourceId, ?int $userId): SavingsTransaction

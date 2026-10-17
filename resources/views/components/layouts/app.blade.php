@@ -48,30 +48,20 @@
                     <p class="ornament-divider mx-2 mb-1.5 text-[10px] font-semibold tracking-[0.18em] text-amber-400/80 uppercase">{{ $group['label'] }}</p>
                     <ul class="space-y-0.5">
                         @foreach ($group['items'] as $key => $item)
-                            @php $active = $item['route'] && request()->routeIs($item['route'], $item['route'].'.*'); @endphp
+                            @php $active = request()->routeIs($item['route'], $item['route'].'.*'); @endphp
                             <li>
-                                @if ($item['route'])
-                                    <a href="{{ route($item['route']) }}" wire:navigate @if ($active) aria-current="page" @endif
-                                       @class(['relative flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition',
-                                               'bg-emerald-800 text-white shadow-inner before:absolute before:inset-y-2 before:left-0 before:w-1 before:rounded-full before:bg-amber-400' => $active,
-                                               'text-emerald-200 hover:bg-emerald-900 hover:text-white' => ! $active])>
-                                @else
-                                    <span class="flex cursor-not-allowed items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-emerald-200/50" title="Segera hadir">
-                                @endif
+                                <a href="{{ route($item['route']) }}" wire:navigate @if ($active) aria-current="page" @endif
+                                   @class(['relative flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition',
+                                           'bg-emerald-800 text-white shadow-inner before:absolute before:inset-y-2 before:left-0 before:w-1 before:rounded-full before:bg-amber-400' => $active,
+                                           'text-emerald-200 hover:bg-emerald-900 hover:text-white' => ! $active])>
                                     <svg class="size-5 shrink-0" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" aria-hidden="true"><path d="{{ $item['icon'] }}"/></svg>
                                     <span class="flex-1">{{ $item['label'] }}</span>
                                     @if ($key === 'barang' && ($alerts = app(\App\Services\ProductListing::class)->lowStockCount()) > 0)
                                         <span class="rounded-full bg-amber-400 px-1.5 text-[11px] font-semibold text-emerald-950 tabular-nums" title="{{ $alerts }} barang perlu ditambah stoknya">{{ $alerts }}</span>
                                     @elseif ($multiRole && count($menuSources[$key] ?? []) < count($user['roles']))
                                         <span class="text-[10px] font-medium text-emerald-300/70" data-menu-source="{{ $key }}" title="Terbuka lewat peran {{ $roleList($menuSources[$key] ?? []) }}">{{ collect($menuSources[$key] ?? [])->map(fn ($r) => \App\Models\Role::LABELS[$r] ?? $r)->join('/') }}</span>
-                                    @elseif (! $item['route'])
-                                        <span class="rounded bg-emerald-900 px-1.5 py-0.5 text-[10px] text-emerald-300/70">segera</span>
                                     @endif
-                                @if ($item['route'])
-                                    </a>
-                                @else
-                                    </span>
-                                @endif
+                                </a>
                             </li>
                         @endforeach
                     </ul>

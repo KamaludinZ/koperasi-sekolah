@@ -2,6 +2,12 @@
 
 namespace App\Services;
 
+use App\Models\Backup;
+use App\Models\HealthCheck;
+use App\Models\Notification;
+use App\Models\RestoreTest;
+use App\Support\BackupStatus;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
@@ -47,17 +53,17 @@ class HealthCheckService
     public const RANK = ['ok' => 0, 'peringatan' => 1, 'gangguan' => 2];
 
     /** Simpan cuplikan pemeriksaan saat ini ke riwayat; bersihkan riwayat > 30 hari. */
-    public static function record(): \App\Models\HealthCheck
+    public static function record(): HealthCheck
     {
         $t = microtime(true);
         $r = self::report(withHistory: false);
-        $prev = \App\Models\HealthCheck::orderByDesc('created_at')->orderByDesc('id')->first();
-        $row = \App\Models\HealthCheck::create([
+        $prev = HealthCheck::orderByDesc('created_at')->orderByDesc('id')->first();
+        $row = HealthCheck::create([
             'status' => $r['status'],
             'results' => collect($r['checks'])->mapWithKeys(fn ($c) => [$c['key'] => ['status' => $c['status'], 'detail' => $c['detail']]])->all(),
             'duration_ms' => (int) round((microtime(true) - $t) * 1000),
         ]);
-        \App\Models\HealthCheck::where('created_at', '<', now()->subDays(30))->delete();
+        HealthCheck::where('created_at', '<', now()->subDays(30))->delete();
         self::alert($r['checks'], $prev?->results ?? []);
 
         return $row;
@@ -73,17 +79,17 @@ class HealthCheckService
      */
     private static function alert(array $checks, array $previous): void
     {
-        $url = \Illuminate\Support\Facades\Route::has('sistem') ? route('sistem', [], false) : null;
+        $url = route('sistem', [], false);
         foreach ($checks as $c) {
             $before = $previous[$c['key']]['status'] ?? 'ok';
             $key = "health-alert-{$c['key']}";
             if ($c['status'] !== 'ok' && self::RANK[$c['status']] > self::RANK[$before]) {
-                \App\Models\Notification::where('dedupe_key', $key)->delete();
-                \App\Models\Notification::create(['dedupe_key' => $key, 'type' => 'sistem', 'target' => 'admin', 'url' => $url,
+                Notification::where('dedupe_key', $key)->delete();
+                Notification::create(['dedupe_key' => $key, 'type' => 'sistem', 'target' => 'admin', 'url' => $url,
                     'title' => ($c['status'] === 'gangguan' ? 'Gangguan: ' : 'Perlu perhatian: ').$c['label'], 'message' => $c['detail']]);
             } elseif ($c['status'] === 'ok' && $before !== 'ok') {
-                \App\Models\Notification::where('dedupe_key', $key)->delete();
-                \App\Models\Notification::updateOrCreate(['dedupe_key' => "health-ok-{$c['key']}-".now()->format('YmdHi')],
+                Notification::where('dedupe_key', $key)->delete();
+                Notification::updateOrCreate(['dedupe_key' => "health-ok-{$c['key']}-".now()->format('YmdHi')],
                     ['type' => 'sistem', 'target' => 'admin', 'url' => $url, 'title' => "{$c['label']} kembali normal", 'message' => $c['detail']]);
             }
         }
@@ -100,7 +106,7 @@ class HealthCheckService
             return [];
         }
         $start = now()->startOfHour()->subHours($hours - 1);
-        $rows = \App\Models\HealthCheck::where('created_at', '>=', $start)->orderBy('created_at')->get(['results', 'created_at']);
+        $rows = HealthCheck::where('created_at', '>=', $start)->orderBy('created_at')->get(['results', 'created_at']);
         $out = [];
         foreach ($rows as $row) {
             $h = $row->created_at->format('Y-m-d H:00');
@@ -126,7 +132,7 @@ class HealthCheckService
         }
         $open = [];
         $out = [];
-        foreach (\App\Models\HealthCheck::where('created_at', '>=', now()->subDays(30))->orderBy('created_at')->orderBy('id')->get() as $row) {
+        foreach (HealthCheck::where('created_at', '>=', now()->subDays(30))->orderBy('created_at')->orderBy('id')->get() as $row) {
             foreach ($row->results as $key => $res) {
                 if ($res['status'] !== 'ok' && ! isset($open[$key])) {
                     $open[$key] = ['at' => $row->created_at->toDateTimeString(), 'check' => $key, 'status' => $res['status'], 'message' => $res['detail'], 'resolved_at' => null];
@@ -200,7 +206,7 @@ class HealthCheckService
         $waitMin = $oldest ? (int) floor((time() - (int) $oldest) / 60) : 0;
         $sync = config('queue.default') === 'sync';
         $beat = Cache::get('health:worker_heartbeat');
-        $workerDown = ! $sync && $pending > 0 && (! $beat || \Illuminate\Support\Carbon::parse($beat)->lt(now()->subMinutes(self::HEARTBEAT_MINUTES)));
+        $workerDown = ! $sync && $pending > 0 && (! $beat || Carbon::parse($beat)->lt(now()->subMinutes(self::HEARTBEAT_MINUTES)));
         $status = $workerDown ? 'gangguan' : ($failed > 0 || $waitMin >= 30 ? 'peringatan' : 'ok');
 
         return self::check('queue', 'Antrean latar', $status,
@@ -215,7 +221,7 @@ class HealthCheckService
         if (! $last) {
             return self::check('scheduler', 'Penjadwal tugas', 'peringatan', 'Belum ada denyut penjadwal — pastikan cron `schedule:run` tiap menit sudah dipasang.', ['last_run' => null]);
         }
-        $mins = (int) floor(\Illuminate\Support\Carbon::parse($last)->diffInMinutes(now(), true));
+        $mins = (int) floor(Carbon::parse($last)->diffInMinutes(now(), true));
 
         return self::check('scheduler', 'Penjadwal tugas', $mins > self::HEARTBEAT_MINUTES ? 'gangguan' : 'ok',
             $mins > self::HEARTBEAT_MINUTES ? "Tidak berjalan sejak {$mins} menit lalu — periksa cron server." : 'Berjalan tiap menit (retensi, pengingat hutang, cadangan).',
@@ -224,11 +230,11 @@ class HealthCheckService
 
     private static function backup(): array
     {
-        $s = \App\Support\BackupStatus::summarize(self::backupRows());
+        $s = BackupStatus::summarize(self::backupRows());
         $last = $s['last_ok'];
 
         return self::check('backup', 'Cadangan data', $s['status'],
-            $last ? 'Cadangan terakhir '.\Illuminate\Support\Carbon::parse($last['created_at'])->diffForHumans().', '.self::bytes($last['size']).'.'.($s['failed'] ? " {$s['failed']} gagal dalam 14 malam." : '') : 'Belum ada cadangan yang berhasil.',
+            $last ? 'Cadangan terakhir '.Carbon::parse($last['created_at'])->diffForHumans().', '.self::bytes($last['size']).'.'.($s['failed'] ? " {$s['failed']} gagal dalam 14 malam." : '') : 'Belum ada cadangan yang berhasil.',
             ['last_at' => $last['created_at'] ?? null, 'size' => $last['size'] ?? 0, 'failed' => $s['failed']]);
     }
 
@@ -236,7 +242,7 @@ class HealthCheckService
     public static function backupRows(): array
     {
         return Schema::hasTable('backups')
-            ? \App\Models\Backup::with('creator:id,name')->where('started_at', '>=', now()->subDays(30))->latestFirst()->get()->map->toRow()->all()
+            ? Backup::with('creator:id,name')->where('started_at', '>=', now()->subDays(30))->latestFirst()->get()->map->toRow()->all()
             : [];
     }
 
@@ -270,14 +276,14 @@ class HealthCheckService
         $since = now()->subDays(30);
         $rows = collect();
         if (Schema::hasTable('backups')) {
-            foreach (\App\Models\Backup::where('status', 'gagal')->where('started_at', '>=', $since)->get() as $b) {
-                $ok = \App\Models\Backup::succeeded()->where('started_at', '>', $b->started_at)->min('finished_at');
+            foreach (Backup::where('status', 'gagal')->where('started_at', '>=', $since)->get() as $b) {
+                $ok = Backup::succeeded()->where('started_at', '>', $b->started_at)->min('finished_at');
                 $rows->push(['at' => $b->started_at->toDateTimeString(), 'check' => 'backup', 'status' => 'gangguan',
-                    'message' => 'Cadangan gagal: '.mb_strimwidth((string) strtok((string) $b->error, "\n"), 0, 120, '…'), 'resolved_at' => $ok ? \Illuminate\Support\Carbon::parse($ok)->toDateTimeString() : null]);
+                    'message' => 'Cadangan gagal: '.mb_strimwidth((string) strtok((string) $b->error, "\n"), 0, 120, '…'), 'resolved_at' => $ok ? Carbon::parse($ok)->toDateTimeString() : null]);
             }
         }
         if (Schema::hasTable('restore_tests')) {
-            foreach (\App\Models\RestoreTest::where('status', 'gagal')->where('started_at', '>=', $since)->get() as $t) {
+            foreach (RestoreTest::where('status', 'gagal')->where('started_at', '>=', $since)->get() as $t) {
                 $rows->push(['at' => $t->started_at->toDateTimeString(), 'check' => 'backup', 'status' => 'peringatan',
                     'message' => 'Uji pemulihan gagal: '.mb_strimwidth((string) strtok((string) $t->error, "\n"), 0, 120, '…'), 'resolved_at' => null]);
             }

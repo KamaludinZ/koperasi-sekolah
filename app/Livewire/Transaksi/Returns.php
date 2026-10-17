@@ -6,10 +6,8 @@ use App\Livewire\Concerns\NotifiesSave;
 use App\Models\Transaction;
 use App\Models\TransactionReturn;
 use App\Services\TransactionReturnService;
-use Illuminate\Validation\ValidationException;
-use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Gate;
-use Illuminate\Support\Facades\Route;
+use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
@@ -38,7 +36,6 @@ class Returns extends Component
     public const REFUND_METHODS = TransactionReturn::REFUND_METHODS;
 
     /** Batas hari sejak pembelian untuk retur/pembatalan. */
-
     #[Url(as: 'status', except: 'semua')]
     public string $status = 'semua';
 
@@ -218,14 +215,6 @@ class Returns extends Component
                 'created_at' => $t->created_at->toDateTimeString(),
                 'expired' => TransactionReturnService::expired($t) || $t->isVoided(),
             ])->all();
-    }
-
-    /** Tautan form pengajuan bila sudah tersedia (route menyusul di tugas berikutnya). */
-    public static function formLink(string $kind, int $transactionId): ?string
-    {
-        $route = $kind === 'batal' ? 'transaksi.retur.batal' : 'transaksi.retur.buat';
-
-        return Route::has($route) ? route($route, ['transaction' => $transactionId]) : null;
     }
 
     public function render()

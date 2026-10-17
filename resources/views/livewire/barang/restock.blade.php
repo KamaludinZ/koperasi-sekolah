@@ -12,7 +12,7 @@
                 @can('kelola-katalog')
                 <a href="{{ route('barang') }}" wire:navigate class="rounded-xl border border-stone-300 bg-white px-4 py-2.5 text-sm font-medium text-stone-700 hover:bg-stone-50">Atur batas minimum</a>
                 @endcan
-                @if (\Illuminate\Support\Facades\Route::has('pengadaan.pesanan.buat') && auth()->user()->can('kelola-pengadaan'))
+                @if (auth()->user()->can('kelola-pengadaan'))
                     <a href="{{ route('pengadaan.pesanan.buat') }}" wire:navigate class="rounded-xl bg-emerald-700 px-4 py-2.5 text-sm font-semibold text-white hover:bg-emerald-800">Buat pesanan pembelian</a>
                 @endif
             </div>

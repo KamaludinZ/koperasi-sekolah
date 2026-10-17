@@ -1,8 +1,7 @@
-{{-- Navigasi bagian Pinjaman. `active` = nama route halaman ini; route yang belum ada tidak ditampilkan. --}}
+{{-- Navigasi bagian Pinjaman. `active` = nama route halaman ini. --}}
 @props(['active'])
 @php
     $items = collect(['pinjaman' => 'Konsol', 'pinjaman.pengajuan' => 'Pengajuan', 'pinjaman.pencairan' => 'Pencairan', 'pinjaman.angsuran' => 'Angsuran', 'pinjaman.tunggakan' => 'Tunggakan', 'pinjaman.rekap' => 'Rekap', 'pinjaman.audit' => 'Jejak audit'])
-        ->filter(fn ($label, $route) => \Illuminate\Support\Facades\Route::has($route))
         ->reject(fn ($label, $route) => $route === 'pinjaman.rekap' && \Illuminate\Support\Facades\Gate::denies('lihat-rekap-pinjaman'));
     // lencana jumlah pinjaman yang menunggak saat ini di tab Tunggakan
     $overdueCount = $items->has('pinjaman.tunggakan') ? \App\Models\Loan::query()->effectivelyOverdue()->count() : 0;

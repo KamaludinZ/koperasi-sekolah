@@ -3,6 +3,7 @@
 namespace Tests\Feature\Notifikasi;
 
 use App\Livewire\Notifikasi\Index;
+use App\Services\NotificationService;
 use App\Support\MockData;
 use Database\Seeders\NotificationSeeder;
 use Database\Seeders\ProductSeeder;
@@ -31,10 +32,10 @@ class MarkReadTest extends TestCase
             ->assertSet('selected', [])
             ->assertDispatched('toast', type: 'success', message: '3 notifikasi ditandai sudah dibaca.')
             ->assertDispatched('notifications-changed');
-        $this->assertSame(6, MockData::unreadNotifications());
+        $this->assertSame(6, app(NotificationService::class)->unreadCount(auth()->user()));
 
         $c->set('selected', [$ids[0], 99999])->call('markSelected', false); // id asing diabaikan
-        $this->assertSame(7, MockData::unreadNotifications());
+        $this->assertSame(7, app(NotificationService::class)->unreadCount(auth()->user()));
     }
 
     public function test_select_all_toggles_visible_items(): void
@@ -49,19 +50,19 @@ class MarkReadTest extends TestCase
     public function test_mark_all_read_can_be_undone(): void
     {
         $c = Livewire::test(Index::class)->call('markAllRead');
-        $this->assertSame(0, MockData::unreadNotifications());
+        $this->assertSame(0, app(NotificationService::class)->unreadCount(auth()->user()));
 
         $toast = collect($c->effects['dispatches'])->firstWhere('name', 'toast')['params'];
         $this->assertSame('Urungkan', $toast['action']['label']);
         $this->assertSame('undo-mark-read', $toast['action']['event']);
 
         $c->dispatch('undo-mark-read', ids: $toast['action']['params']['ids']);
-        $this->assertSame(9, MockData::unreadNotifications());
+        $this->assertSame(9, app(NotificationService::class)->unreadCount(auth()->user()));
     }
 
     public function test_noop_without_selection(): void
     {
         Livewire::test(Index::class)->call('markSelected', true)->assertNotDispatched('toast');
-        $this->assertSame(9, MockData::unreadNotifications());
+        $this->assertSame(9, app(NotificationService::class)->unreadCount(auth()->user()));
     }
 }

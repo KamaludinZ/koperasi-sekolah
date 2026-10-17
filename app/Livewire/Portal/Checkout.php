@@ -193,9 +193,7 @@ class Checkout extends Component
         PortalCart::clear();
         session()->flash('toast', ['type' => 'success', 'message' => "Pesanan {$order->code} terkirim. ".($order->payment_status === 'lunas' ? 'Sudah dibayar dari saldo.' : 'Bayar saat '.($order->fulfillment === 'antar' ? 'barang diantar.' : 'mengambil di koperasi.'))]);
 
-        return \Illuminate\Support\Facades\Route::has('portal.pesanan.show')
-            ? $this->redirectRoute('portal.pesanan.show', ['order' => $order->id], navigate: true)
-            : $this->redirectRoute('portal', navigate: true);
+        return $this->redirectRoute('portal.pesanan.show', ['order' => $order->id], navigate: true);
     }
 
     public function render()

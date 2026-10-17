@@ -106,7 +106,7 @@
                         <li class="px-4 py-6 text-center text-sm text-stone-400">Belum ada posting atau koreksi bulan ini.</li>
                     @endforelse
                 </ol>
-                @if (\Illuminate\Support\Facades\Route::has('audit') && auth()->user()?->canOpen('audit'))
+                @if (auth()->user()?->canOpen('audit'))
                     <p class="px-4 pb-3 text-xs"><a href="{{ route('audit') }}" wire:navigate class="font-medium text-emerald-800 hover:underline">Buka Audit & Riwayat →</a></p>
                 @endif
             </section>

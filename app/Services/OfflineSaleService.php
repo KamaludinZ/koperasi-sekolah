@@ -11,7 +11,6 @@ use App\Models\User;
 use App\Support\PriceCalculator;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Route;
 use Illuminate\Validation\ValidationException;
 
 /**
@@ -105,7 +104,7 @@ class OfflineSaleService
     private function notifyProblem(): void
     {
         $open = OfflineSale::whereIn('status', ['perlu_dicek', 'ditolak'])->whereNull('reviewed_at')->count();
-        $url = Route::has('transaksi.offline') ? route('transaksi.offline') : null;
+        $url = route('transaksi.offline');
         foreach (['admin', 'pengurus'] as $target) {
             Notification::updateOrCreate(['dedupe_key' => "offline-perlu-tinjau-{$target}-".now()->toDateString()], [
                 'type' => 'sistem', 'target' => $target, 'url' => $url, 'title' => 'Penjualan offline perlu ditinjau',

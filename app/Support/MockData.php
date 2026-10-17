@@ -72,45 +72,16 @@ class MockData
         return app(AnnouncementService::class)->list();
     }
 
-    public static function saveAnnouncement(array $data): array
-    {
-        return AnnouncementService::toArray(app(AnnouncementService::class)->create($data, auth()->user()));
-    }
-
     /** Pengumuman aktif untuk beranda publik. */
     public static function publicAnnouncements(): array
     {
         return app(AnnouncementService::class)->publicList();
     }
 
-    public static function markNotifications(array $ids, bool $read = true): void
-    {
-        if ($user = auth()->user()) {
-            app(NotificationService::class)->mark($user, $ids, $read);
-        }
-    }
-
-    public static function unreadNotifications(): int
-    {
-        $user = auth()->user();
-
-        return $user ? app(NotificationService::class)->unreadCount($user) : 0;
-    }
-
-    /** Anggota koperasi tiruan (siswa & guru) dengan saldo tabungan, untuk tahap frontend. */
-    public static function members(): array
-    {
-        return session('mock.members') ?? self::seedMembers();
-    }
-
-    public static function findMember(int $id): ?array
-    {
-        return collect(self::members())->firstWhere('id', $id);
-    }
-
+    /** Mutasi tabungan contoh untuk anggota contoh ke-$memberId (MemberSeeder); saldo akhir = saldo anggota contoh. */
     public static function seedSavings(int $memberId): array
     {
-        $member = self::findMember($memberId);
+        $member = collect(self::seedMembers())->firstWhere('id', $memberId);
         if (! $member || $member['balance'] <= 0 && $memberId % 2 === 1) {
             return [];
         }
@@ -153,6 +124,7 @@ class MockData
         ], $rows, array_keys($rows));
     }
 
+    /** Anggota contoh (siswa & guru) dengan saldo tabungan — dipakai MemberSeeder. */
     public static function seedMembers(): array
     {
         $rows = [

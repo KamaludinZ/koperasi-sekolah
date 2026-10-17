@@ -14,11 +14,7 @@
             </div>
             <div class="flex items-center gap-2">
                 @can('kelola-pengadaan')
-                @if ($url = Index::link('pengadaan.supplier.buat'))
-                    <a href="{{ $url }}" wire:navigate class="rounded-xl bg-emerald-700 px-4 py-2.5 text-sm font-semibold text-white hover:bg-emerald-800">Tambah supplier</a>
-                @else
-                    <span title="Segera hadir" class="cursor-not-allowed rounded-xl bg-emerald-700 px-4 py-2.5 text-sm font-semibold text-white opacity-60">Tambah supplier</span>
-                @endif
+                <a href="{{ route('pengadaan.supplier.buat') }}" wire:navigate class="rounded-xl bg-emerald-700 px-4 py-2.5 text-sm font-semibold text-white hover:bg-emerald-800">Tambah supplier</a>
                 @endcan
             </div>
         </div>

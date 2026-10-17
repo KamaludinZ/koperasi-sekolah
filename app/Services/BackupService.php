@@ -4,6 +4,8 @@ namespace App\Services;
 
 use App\Models\Backup;
 use App\Models\Notification;
+use App\Support\BackupStatus;
+use App\Support\SystemHealth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Process;
 use Illuminate\Support\Facades\Schema;
@@ -110,7 +112,7 @@ class BackupService
             ])->save();
             AuditLog::record('backup.failed', 'pengaturan', "Cadangan {$backup->name} gagal: ".mb_strimwidth($e->getMessage(), 0, 150, '…'), null, ['backup_id' => $backup->id]);
             $this->notify('backup-failed-'.now()->toDateString(), 'Cadangan data gagal',
-                mb_strimwidth($e->getMessage(), 0, 160, '…').' Saran: '.\App\Support\BackupStatus::advice($e->getMessage()));
+                mb_strimwidth($e->getMessage(), 0, 160, '…').' Saran: '.BackupStatus::advice($e->getMessage()));
             report($e);
         } finally {
             $this->cleanTmp($tmp);
@@ -127,7 +129,7 @@ class BackupService
     {
         $last = Backup::succeeded()->latestFirst()->first();
         $hours = $last ? (int) floor($last->started_at->diffInHours(now(), true)) : null;
-        if ($hours !== null && $hours < \App\Support\BackupStatus::STALE_HOURS) {
+        if ($hours !== null && $hours < BackupStatus::STALE_HOURS) {
             return false;
         }
 
@@ -141,7 +143,7 @@ class BackupService
     {
         return (bool) Notification::firstOrCreate(['dedupe_key' => $key], [
             'type' => 'sistem', 'target' => 'admin', 'title' => $title, 'message' => $message,
-            'url' => \Illuminate\Support\Facades\Route::has('sistem.cadangan') ? route('sistem.cadangan', [], false) : null,
+            'url' => route('sistem.cadangan', [], false),
         ])->wasRecentlyCreated;
     }
 
@@ -231,6 +233,6 @@ class BackupService
 
     public static function bytes(int $b): string
     {
-        return \App\Support\SystemHealth::bytes($b);
+        return SystemHealth::bytes($b);
     }
 }

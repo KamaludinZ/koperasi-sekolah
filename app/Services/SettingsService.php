@@ -214,14 +214,6 @@ class SettingsService
         return $this->section('cashier');
     }
 
-    /** Tarif pajak efektif dalam persen (0 bila pajak dimatikan). */
-    public function taxRate(): float
-    {
-        $tax = $this->tax();
-
-        return $tax['enabled'] ? (float) $tax['rate'] : 0.0;
-    }
-
     /**
      * Simpan sebagian/seluruh isi satu bagian. Hanya kunci yang dikenal & berubah
      * yang ditulis; perubahan dicatat di audit. Mengembalikan pengaturan terbaru.

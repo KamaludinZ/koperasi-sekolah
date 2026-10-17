@@ -2,11 +2,11 @@
 
 namespace App\Models;
 
+use App\Services\SettingsService;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Prunable;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use App\Services\SettingsService;
 use Illuminate\Support\Facades\Storage;
 
 /**
@@ -39,11 +39,6 @@ class ReportExport extends Model
     public function markDownloaded(): void
     {
         $this->forceFill(['downloaded_at' => now(), 'download_count' => $this->download_count + 1])->save();
-    }
-
-    public function isFinished(): bool
-    {
-        return in_array($this->status, ['done', 'failed'], true);
     }
 
     public function prunable(): Builder

@@ -123,9 +123,7 @@
                 @if ($b['status'] === 'berhasil')
                     <div class="mt-auto space-y-2 border-t border-stone-200 px-5 py-4">
                         <a href="{{ route('sistem.cadangan.unduh', $b['id']) }}" class="block rounded-xl border border-stone-300 px-4 py-2 text-center text-sm font-semibold text-stone-700 hover:bg-stone-50">Unduh cadangan</a>
-                        @if (\Illuminate\Support\Facades\Route::has('sistem.restore'))
-                            <a href="{{ route('sistem.restore', ['cadangan' => $b['id']]) }}" wire:navigate class="block rounded-xl border border-amber-300 bg-amber-50 px-4 py-2 text-center text-sm font-semibold text-amber-900 hover:bg-amber-100">Uji pemulihan dari cadangan ini</a>
-                        @endif
+                        <a href="{{ route('sistem.restore', ['cadangan' => $b['id']]) }}" wire:navigate class="block rounded-xl border border-amber-300 bg-amber-50 px-4 py-2 text-center text-sm font-semibold text-amber-900 hover:bg-amber-100">Uji pemulihan dari cadangan ini</a>
                     </div>
                 @endif
             </div>

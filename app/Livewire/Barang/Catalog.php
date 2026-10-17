@@ -5,9 +5,10 @@ namespace App\Livewire\Barang;
 use App\Livewire\Concerns\NotifiesSave;
 use App\Models\Category;
 use App\Services\CategoryService;
+use App\Services\ProductImportService;
+use App\Support\Menu;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Validation\ValidationException;
-use Illuminate\Support\Facades\Route;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
@@ -220,7 +221,7 @@ class Catalog extends Component
     #[Computed]
     public function imports(): array
     {
-        return app(\App\Services\ProductImportService::class)->history(10);
+        return app(ProductImportService::class)->history(10);
     }
 
     #[Computed]
@@ -242,10 +243,10 @@ class Catalog extends Component
         ];
     }
 
-    /** Tautan ke halaman lanjutan bila sudah tersedia (null = segera hadir). */
+    /** Tautan ke halaman impor bila petugas boleh membukanya (impor khusus Admin & Pengurus); null = tombol disembunyikan. */
     public static function link(string $route, array $params = []): ?string
     {
-        return Route::has($route) ? route($route, $params) : null;
+        return Menu::canReach($route) ? route($route, $params) : null;
     }
 
     public function render()

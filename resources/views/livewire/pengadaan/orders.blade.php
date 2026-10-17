@@ -13,11 +13,7 @@
             </div>
             <div class="flex items-center gap-2">
                 @can('kelola-pengadaan')
-                @if ($url = Index::link('pengadaan.pesanan.buat'))
-                    <a href="{{ $url }}" wire:navigate class="rounded-xl bg-emerald-700 px-4 py-2.5 text-sm font-semibold text-white hover:bg-emerald-800">Buat pesanan</a>
-                @else
-                    <span title="Segera hadir" class="cursor-not-allowed rounded-xl bg-emerald-700 px-4 py-2.5 text-sm font-semibold text-white opacity-60">Buat pesanan</span>
-                @endif
+                <a href="{{ route('pengadaan.pesanan.buat') }}" wire:navigate class="rounded-xl bg-emerald-700 px-4 py-2.5 text-sm font-semibold text-white hover:bg-emerald-800">Buat pesanan</a>
                 @endcan
             </div>
         </div>
@@ -135,8 +131,8 @@
                     <div class="space-y-2 border-t border-stone-200 px-5 py-3">
                         @if ($sel['status'] === 'draf')
                             <button type="button" wire:click="send" class="block w-full rounded-xl bg-emerald-700 px-4 py-2 text-center text-sm font-semibold text-white hover:bg-emerald-800">Tandai sudah dipesan</button>
-                        @elseif ($url = Index::link('pengadaan.penerimaan', ['pesanan' => $sel['id']]))
-                            <a href="{{ $url }}" wire:navigate class="block w-full rounded-xl bg-emerald-700 px-4 py-2 text-center text-sm font-semibold text-white hover:bg-emerald-800">Catat penerimaan barang</a>
+                        @else
+                            <a href="{{ route('pengadaan.penerimaan', ['pesanan' => $sel['id']]) }}" wire:navigate class="block w-full rounded-xl bg-emerald-700 px-4 py-2 text-center text-sm font-semibold text-white hover:bg-emerald-800">Catat penerimaan barang</a>
                         @endif
                         @if (in_array($sel['status'], ['draf', 'dipesan'], true) && $sel['received_qty'] === 0)
                             @if ($cancelling)

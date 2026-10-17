@@ -4,6 +4,8 @@ namespace Tests\Feature\Notifikasi;
 
 use App\Livewire\Notifikasi\Bell;
 use App\Livewire\Notifikasi\Index;
+use App\Models\Notification;
+use App\Services\NotificationService;
 use App\Support\MockData;
 use Database\Seeders\NotificationSeeder;
 use Database\Seeders\ProductSeeder;
@@ -41,17 +43,17 @@ class IndexTest extends TestCase
 
         $id = $c->instance()->items[0]['id'];
         $c->call('toggleRead', $id)->assertDispatched('notifications-changed');
-        $this->assertSame(8, MockData::unreadNotifications());
+        $this->assertSame(8, app(NotificationService::class)->unreadCount(auth()->user()));
 
         $c->call('setFilter', 'belum');
         $this->assertNotContains($id, array_column($c->instance()->items, 'id'));
 
         $c->call('markAllRead')->assertDispatched('toast', type: 'success', message: '8 notifikasi ditandai sudah dibaca.')
             ->assertSee('Semua notifikasi sudah dibaca');
-        $this->assertSame(0, MockData::unreadNotifications());
+        $this->assertSame(0, app(NotificationService::class)->unreadCount(auth()->user()));
 
         $c->call('toggleRead', $id);
-        $this->assertSame(1, MockData::unreadNotifications());
+        $this->assertSame(1, app(NotificationService::class)->unreadCount(auth()->user()));
     }
 
     public function test_open_marks_read_and_goes_to_filtered_products(): void
@@ -81,8 +83,8 @@ class IndexTest extends TestCase
 
     public function test_empty_states_per_filter(): void
     {
-        \App\Models\Notification::query()->delete();
-        $c = \Livewire\Livewire::test(\App\Livewire\Notifikasi\Index::class);
+        Notification::query()->delete();
+        $c = Livewire::test(Index::class);
         $c->assertSeeHtml('data-empty="semua"')->assertSee('Belum ada notifikasi');
         $c->call('setFilter', 'stok')->assertSee('Tidak ada peringatan stok')->assertSee('Lihat saran restok');
         $c->call('setFilter', 'pengumuman')->assertSee('Kelola pengumuman');

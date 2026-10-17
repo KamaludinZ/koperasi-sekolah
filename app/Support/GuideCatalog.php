@@ -365,12 +365,6 @@ class GuideCatalog
         return array_filter(self::entries(), fn ($e) => $e['audience'] === $audience);
     }
 
-    /** Kunci menu → judul grup menu samping (untuk pengelompokan daftar). @return array<string, string> */
-    public static function groupOf(string $key): string
-    {
-        return self::groupFor(self::entries()[$key]['menu'] ?? null);
-    }
-
     /** Judul grup menu samping untuk kunci menu (null = Umum). */
     public static function groupFor(?string $menu): string
     {

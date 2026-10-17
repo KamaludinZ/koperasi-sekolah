@@ -130,11 +130,7 @@
                             @else
                                 <div class="grid grid-cols-2 gap-2">
                                     @foreach (['retur' => 'Retur barang', 'batal' => 'Batalkan'] as $k => $label)
-                                        @if ($url = Returns::formLink($k, $t['id']))
-                                            <a href="{{ $url }}" wire:navigate @class(['rounded-lg px-2 py-1.5 text-center text-xs font-semibold', 'bg-emerald-700 text-white hover:bg-emerald-800' => $k === 'retur', 'border border-red-300 text-red-700 hover:bg-red-50' => $k === 'batal'])>{{ $label }}</a>
-                                        @else
-                                            <span title="Segera hadir" class="cursor-not-allowed rounded-lg border border-stone-200 px-2 py-1.5 text-center text-xs font-semibold text-stone-400">{{ $label }}</span>
-                                        @endif
+                                        <a href="{{ route($k === 'batal' ? 'transaksi.retur.batal' : 'transaksi.retur.buat', $t['id']) }}" wire:navigate @class(['rounded-lg px-2 py-1.5 text-center text-xs font-semibold', 'bg-emerald-700 text-white hover:bg-emerald-800' => $k === 'retur', 'border border-red-300 text-red-700 hover:bg-red-50' => $k === 'batal'])>{{ $label }}</a>
                                     @endforeach
                                 </div>
                             @endif

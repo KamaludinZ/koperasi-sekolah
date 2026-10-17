@@ -7,6 +7,8 @@ use App\Models\Setting;
 use App\Services\SettingsService;
 use App\Support\MockData;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Cache;
+use Symfony\Component\HttpKernel\Exception\HttpException;
 use Tests\TestCase;
 
 class SettingsServiceTest extends TestCase
@@ -26,7 +28,6 @@ class SettingsServiceTest extends TestCase
         $this->assertSame('58mm', $all['receipt']['paper']);
         $this->assertFalse($all['tax']['enabled']);
         $this->assertNull($all['updated_at']);
-        $this->assertSame(0.0, $this->service()->taxRate());
         $this->assertSame(0, Setting::count());
     }
 
@@ -36,7 +37,6 @@ class SettingsServiceTest extends TestCase
 
         $this->assertTrue($all['tax']['enabled']);
         $this->assertSame(2.5, $all['tax']['rate']);
-        $this->assertSame(2.5, $this->service()->taxRate());
         $this->assertSame(['tax.enabled', 'tax.rate'], Setting::orderBy('key')->pluck('key')->all());
         $this->assertSame('Admin Koperasi', $all['updated_by']);
         $this->assertNotNull($all['updated_at']);
@@ -47,7 +47,7 @@ class SettingsServiceTest extends TestCase
         $this->service()->save('profile', ['name' => 'Koperasi Baru', 'schedule' => [1 => ['open' => '07:00', 'close' => '12:00'], 2 => null, 3 => null, 4 => null, 5 => null, 6 => null, 7 => null]]);
         $this->service()->save('receipt', ['footer' => 'Barakallah', 'show_phone' => true]);
         $this->app->forgetInstance(SettingsService::class);
-        \Illuminate\Support\Facades\Cache::flush();
+        Cache::flush();
 
         $profile = MockData::profile();
         $this->assertSame('Koperasi Baru', $profile['name']);
@@ -86,7 +86,7 @@ class SettingsServiceTest extends TestCase
 
     public function test_unknown_section_is_rejected(): void
     {
-        $this->expectException(\Symfony\Component\HttpKernel\Exception\HttpException::class);
+        $this->expectException(HttpException::class);
         $this->service()->save('rahasia', ['x' => 1]);
     }
 }

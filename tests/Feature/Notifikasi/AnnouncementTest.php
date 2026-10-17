@@ -3,6 +3,7 @@
 namespace Tests\Feature\Notifikasi;
 
 use App\Livewire\Notifikasi\Announcements;
+use App\Services\AnnouncementService;
 use App\Support\MockData;
 use Database\Seeders\NotificationSeeder;
 use Database\Seeders\ProductSeeder;
@@ -72,14 +73,14 @@ class AnnouncementTest extends TestCase
             ->assertHasErrors(['title', 'message', 'target', 'expires_at'])
             ->assertDispatched('toast', type: 'error');
 
-        MockData::saveAnnouncement(['title' => 'Lama', 'message' => 'Sudah lewat waktunya.', 'target' => 'semua', 'show_public' => true, 'expires_at' => now()->subDay()->toDateString()]);
+        AnnouncementService::toArray(app(AnnouncementService::class)->create(['title' => 'Lama', 'message' => 'Sudah lewat waktunya.', 'target' => 'semua', 'show_public' => true, 'expires_at' => now()->subDay()->toDateString()], auth()->user()));
         $this->assertSame([], MockData::publicAnnouncements());
         $this->assertFalse(collect(MockData::notifications())->contains('title', 'Lama'));
     }
 
     public function test_delete_and_access(): void
     {
-        $a = MockData::saveAnnouncement(['title' => 'Hapus saya', 'message' => 'Isi pengumuman uji.', 'target' => 'semua', 'show_public' => true, 'expires_at' => null]);
+        $a = AnnouncementService::toArray(app(AnnouncementService::class)->create(['title' => 'Hapus saya', 'message' => 'Isi pengumuman uji.', 'target' => 'semua', 'show_public' => true, 'expires_at' => null], auth()->user()));
 
         Livewire::test(Announcements::class)->call('delete', $a['id'])->assertDispatched('toast', type: 'success', message: 'Pengumuman dihapus.');
         $this->assertSame([], MockData::announcements());

@@ -114,7 +114,7 @@ class SettingsEndpointTest extends TestCase
         // Pajak sudah aktif bertarif 2,5 → mengubah label saja tetap sah.
         $this->putJson('/pengaturan/data/tax', ['label' => 'PPN'])->assertOk();
         $this->putJson('/pengaturan/data/tax', ['rate' => 0])->assertJsonValidationErrors('rate');
-        $this->assertSame(2.5, app(SettingsService::class)->taxRate());
+        $this->assertSame(2.5, app(SettingsService::class)->tax()['rate']);
     }
 
     public function test_reset_section(): void

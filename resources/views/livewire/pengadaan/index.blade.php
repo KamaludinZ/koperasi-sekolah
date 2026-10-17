@@ -14,11 +14,7 @@
             <div class="flex items-center gap-2">
                 @can('kelola-pengadaan')
                 @foreach ([['pengadaan.penerimaan', 'Catat penerimaan', false], ['pengadaan.pesanan.buat', 'Buat pesanan', true]] as [$route, $label, $primary])
-                    @if ($url = Index::link($route))
-                        <a href="{{ $url }}" wire:navigate @class(['rounded-xl px-4 py-2.5 text-sm font-semibold', 'bg-emerald-700 text-white hover:bg-emerald-800' => $primary, 'border border-stone-300 bg-white text-stone-700 hover:bg-stone-50' => ! $primary])>{{ $label }}</a>
-                    @else
-                        <span title="Segera hadir" @class(['cursor-not-allowed rounded-xl px-4 py-2.5 text-sm font-semibold opacity-60', 'bg-emerald-700 text-white' => $primary, 'border border-stone-300 bg-white text-stone-700' => ! $primary])>{{ $label }}</span>
-                    @endif
+                    <a href="{{ route($route) }}" wire:navigate @class(['rounded-xl px-4 py-2.5 text-sm font-semibold', 'bg-emerald-700 text-white hover:bg-emerald-800' => $primary, 'border border-stone-300 bg-white text-stone-700 hover:bg-stone-50' => ! $primary])>{{ $label }}</a>
                 @endforeach
                 @endcan
             </div>
@@ -58,7 +54,7 @@
             <section class="overflow-hidden rounded-xl border border-stone-200 bg-white" aria-labelledby="po-title">
                 <div class="flex items-center justify-between px-4 pt-4">
                     <h2 id="po-title" class="font-semibold">Pesanan berjalan</h2>
-                    @if ($url = Index::link('pengadaan.pesanan'))<a href="{{ $url }}" wire:navigate class="text-sm font-semibold text-emerald-800 hover:underline">Semua pesanan →</a>@endif
+                    <a href="{{ route('pengadaan.pesanan') }}" wire:navigate class="text-sm font-semibold text-emerald-800 hover:underline">Semua pesanan →</a>
                 </div>
                 <ul class="mt-2 divide-y divide-stone-100">
                     @forelse ($this->openOrders as $o)
@@ -89,7 +85,7 @@
                 <section class="overflow-hidden rounded-xl border border-stone-200 bg-white" aria-labelledby="ap-title">
                     <div class="flex items-center justify-between px-4 pt-4">
                         <h2 id="ap-title" class="font-semibold">Hutang jatuh tempo</h2>
-                        @if ($url = Index::link('pengadaan.hutang'))<a href="{{ $url }}" wire:navigate class="text-sm font-semibold text-emerald-800 hover:underline">Semua hutang →</a>@endif
+                        <a href="{{ route('pengadaan.hutang') }}" wire:navigate class="text-sm font-semibold text-emerald-800 hover:underline">Semua hutang →</a>
                     </div>
                     <ul class="mt-2 divide-y divide-stone-100">
                         @forelse ($this->payables as $p)
@@ -139,7 +135,7 @@
         <section class="overflow-hidden rounded-xl border border-stone-200 bg-white" aria-labelledby="sup-title">
             <div class="flex items-center justify-between px-4 pt-4">
                 <h2 id="sup-title" class="font-semibold">Supplier</h2>
-                @if ($url = Index::link('pengadaan.supplier'))<a href="{{ $url }}" wire:navigate class="text-sm font-semibold text-emerald-800 hover:underline">Kelola supplier →</a>@endif
+                <a href="{{ route('pengadaan.supplier') }}" wire:navigate class="text-sm font-semibold text-emerald-800 hover:underline">Kelola supplier →</a>
             </div>
             <div class="mt-3 grid gap-3 px-4 pb-4 sm:grid-cols-2 xl:grid-cols-4">
                 @foreach ($this->suppliers as $sup)

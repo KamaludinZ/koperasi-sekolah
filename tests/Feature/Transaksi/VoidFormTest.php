@@ -5,8 +5,11 @@ namespace Tests\Feature\Transaksi;
 use App\Livewire\Transaksi\Returns;
 use App\Livewire\Transaksi\VoidForm;
 use App\Models\Transaction;
+use App\Models\TransactionReturn;
+use App\Services\TransactionReturnService;
 use Database\Seeders\ProductSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Gate;
 use Livewire\Livewire;
 use Tests\TestCase;
 
@@ -31,8 +34,8 @@ class VoidFormTest extends TestCase
     public function test_links_from_detail_and_returns_lookup(): void
     {
         $this->get(route('transaksi.show', $this->tx))->assertOk()->assertSee(route('transaksi.retur.batal', $this->tx), false);
-        $this->assertSame(route('transaksi.retur.batal', $this->tx), Returns::formLink('batal', $this->tx->id));
-        $this->assertSame(route('transaksi.retur.buat', $this->tx), Returns::formLink('retur', $this->tx->id));
+        Livewire::test(Returns::class)->set('lookup', $this->tx->invoice_number)
+            ->assertSee(route('transaksi.retur.batal', $this->tx), false)->assertSee(route('transaksi.retur.buat', $this->tx), false)->assertDontSee('Segera hadir');
     }
 
     public function test_form_shows_items_and_effects(): void
@@ -52,7 +55,7 @@ class VoidFormTest extends TestCase
         $c->set('note', 'Pembeli berubah pikiran')->set('confirmCode', $this->code($this->tx))->call('submit')
             ->assertHasNoErrors()->assertRedirect(route('transaksi.retur'));
         $this->assertStringContainsString('Pengajuan pembatalan BTL-', session('toast')['message']);
-        $r = \App\Models\TransactionReturn::sole();
+        $r = TransactionReturn::sole();
         $this->assertSame(['batal', 'menunggu', 'lainnya', 'Pembeli berubah pikiran'], [$r->kind, $r->status, $r->reason_key, $r->note]);
         $this->assertFalse($this->tx->fresh()->isVoided());
     }
@@ -64,7 +67,7 @@ class VoidFormTest extends TestCase
         Livewire::test(VoidForm::class, ['transaction' => $old->id])->set('reason', 'ganda')->call('submit')->assertForbidden();
 
         // Transaksi yang punya pengajuan menunggu tidak bisa diajukan lagi.
-        $r = app(\App\Services\TransactionReturnService::class)->requestReturn($this->tx, [$this->tx->items->first()->id => 1], 'rusak', true, 'tunai', null, null);
+        $r = app(TransactionReturnService::class)->requestReturn($this->tx, [$this->tx->items->first()->id => 1], 'rusak', true, 'tunai', null, null);
         $this->get(route('transaksi.retur.batal', $this->tx))->assertOk()->assertSee('sudah punya pengajuan '.$r->number);
     }
 
@@ -96,7 +99,7 @@ class VoidFormTest extends TestCase
         // Pengaju (admin) tidak boleh memutus sendiri.
         $this->postJson(route('transaksi.retur.approve', $id))->assertStatus(422)->assertJsonValidationErrors('decision_note');
         $this->loginAs('pengurus@koperasi.test');
-        if (! \Illuminate\Support\Facades\Gate::allows('setujui-retur')) {
+        if (! Gate::allows('setujui-retur')) {
             $this->markTestSkipped('Pengurus tidak punya menu Transaksi di data awal.');
         }
         $this->postJson(route('transaksi.retur.reject', $id), ['note' => 'no'])->assertStatus(422)->assertJsonValidationErrors('note');

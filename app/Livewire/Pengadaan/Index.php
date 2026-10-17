@@ -3,7 +3,9 @@
 namespace App\Livewire\Pengadaan;
 
 use App\Models\Product;
-use Illuminate\Support\Facades\Route;
+use App\Services\PurchaseOrderService;
+use App\Services\SupplierBillService;
+use App\Services\SupplierService;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
@@ -34,19 +36,19 @@ class Index extends Component
     #[Computed]
     public function suppliers(): array
     {
-        return app(\App\Services\SupplierService::class)->list();
+        return app(SupplierService::class)->list();
     }
 
     #[Computed]
     public function orders(): array
     {
-        return app(\App\Services\PurchaseOrderService::class)->list();
+        return app(PurchaseOrderService::class)->list();
     }
 
     #[Computed]
     public function payables(): array
     {
-        return collect(app(\App\Services\SupplierBillService::class)->list())->where('status', '!=', 'lunas')->values()->all();
+        return collect(app(SupplierBillService::class)->list())->where('status', '!=', 'lunas')->values()->all();
     }
 
     /** Pesanan yang masih berjalan (draf, dipesan, diterima sebagian). */
@@ -89,11 +91,6 @@ class Index extends Component
             'due_soon' => $payables->filter(fn ($p) => $p['due_at'] >= now()->toDateString() && $p['due_at'] <= $soon)->count(),
             'restock' => count($this->restock),
         ];
-    }
-
-    public static function link(string $route, array $params = []): ?string
-    {
-        return Route::has($route) ? route($route, $params) : null;
     }
 
     public function render()

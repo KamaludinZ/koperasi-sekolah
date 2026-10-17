@@ -53,10 +53,14 @@ class CatalogPageTest extends TestCase
         $this->assertSame((int) Product::where('category_id', $atk['id'])->get()->sum(fn ($p) => $p->stock * $p->cost_price), $atk['stock_value']);
     }
 
-    public function test_links_to_pages_not_yet_built_are_marked_soon(): void
+    public function test_import_links_only_for_roles_that_can_open_them(): void
     {
-        $this->assertNull(Catalog::link('barang.halaman-yang-belum-ada'));
-        $this->assertSame(route('barang'), Catalog::link('barang'));
+        $this->assertSame(route('barang.impor'), Catalog::link('barang.impor'));
+        $this->get('/barang/kategori')->assertOk()->assertSee('href="'.route('barang.impor').'"', false)->assertDontSee('Segera hadir');
+
+        $this->loginAs('kasir');
+        $this->assertNull(Catalog::link('barang.impor'));
+        $this->get('/barang/kategori')->assertOk()->assertDontSee('href="'.route('barang.impor').'"', false)->assertDontSee('Segera hadir');
     }
 
     public function test_add_and_edit_category_with_validation(): void

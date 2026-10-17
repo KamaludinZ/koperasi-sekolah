@@ -82,7 +82,7 @@
                     <p class="text-xs text-stone-500">Harga & stok bisa berubah sampai pesanan dikirim.</p>
                     @if ($cart['count'] && \App\Support\ImpersonationSession::impersonatingMember())
                         <p class="rounded-xl bg-stone-100 px-3 py-2.5 text-center text-xs text-stone-600" data-read-only>{{ \App\Support\ImpersonationPolicy::MEMBER_READ_ONLY_MESSAGE }}</p>
-                    @elseif (\Illuminate\Support\Facades\Route::has('portal.checkout') && $cart['count'])
+                    @elseif ($cart['count'])
                         <a href="{{ route('portal.checkout') }}" wire:navigate class="block rounded-xl bg-emerald-700 py-2.5 text-center text-sm font-semibold text-white hover:bg-emerald-800">Lanjut ke pembayaran</a>
                     @endif
                     @if ($cart['count'])<button type="button" wire:click="clearCart" wire:confirm="Kosongkan keranjang?" class="w-full text-sm font-medium text-red-700 hover:underline">Kosongkan keranjang</button>@endif

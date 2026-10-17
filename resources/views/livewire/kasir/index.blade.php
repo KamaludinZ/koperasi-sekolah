@@ -34,7 +34,7 @@
         <p class="hidden px-4 pt-1 text-right text-[11px] text-stone-400 sm:block sm:px-6" data-offline-ready>Siap offline · katalog <span x-text="catalogLabel"></span> · <a href="{{ route('kasir.offline') }}" class="underline hover:text-stone-600">kasir offline</a></p>
     </div>
 
-    @if (\Illuminate\Support\Facades\Route::has('transaksi.retur') && auth()->user()->canOpen('transaksi'))
+    @if (auth()->user()->canOpen('transaksi'))
         <livewire:transaksi.return-status-notice compact />
     @endif
 

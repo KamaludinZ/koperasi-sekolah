@@ -4,7 +4,6 @@
     $s = $this->summary;
     $maxValue = max(1, collect($this->categories)->max('stock_value'));
     $importUrl = Catalog::link('barang.impor');
-    $soon = 'cursor-not-allowed opacity-60';
 @endphp
 <div class="flex min-h-0 flex-1 flex-col overflow-y-auto">
     <header class="border-b border-stone-200 bg-white px-4 pt-4 sm:px-6">
@@ -19,8 +18,6 @@
                         <svg class="size-4" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 16V4m0 0-4 4m4-4 4 4M4 20h16"/></svg>
                         Impor barang
                     </a>
-                @else
-                    <span class="inline-flex items-center gap-2 rounded-xl bg-emerald-700 px-4 py-2.5 text-sm font-semibold text-white {{ $soon }}" title="Segera hadir">Impor barang</span>
                 @endif
             </div>
         </div>
@@ -57,8 +54,6 @@
                 <p><span class="font-semibold">{{ $p['file_name'] }}</span> diunggah {{ $p['user'] }} dan menunggu diperiksa: {{ $p['total_rows'] }} baris, {{ $p['failed'] }} perlu diperbaiki.</p>
                 @if ($url = Catalog::link('barang.impor.pratinjau', ['import' => $p['id']]))
                     <a href="{{ $url }}" wire:navigate class="font-semibold text-sky-800 hover:underline">Lanjutkan pemeriksaan →</a>
-                @else
-                    <span class="text-xs text-sky-700">Pratinjau segera hadir</span>
                 @endif
             </div>
         @endif
@@ -158,8 +153,6 @@
                         @foreach (['csv' => 'Templat CSV', 'xlsx' => 'Templat Excel'] as $fmt => $label)
                             @if ($url = Catalog::link('barang.impor.templat', ['format' => $fmt]))
                                 <a href="{{ $url }}" class="rounded-lg bg-white/10 px-3 py-1.5 text-sm font-medium text-white ring-1 ring-white/20 hover:bg-white/20">{{ $label }}</a>
-                            @else
-                                <span class="rounded-lg bg-white/5 px-3 py-1.5 text-sm text-emerald-300 ring-1 ring-white/10" title="Segera hadir">{{ $label }}</span>
                             @endif
                         @endforeach
                     </div>
