@@ -59,95 +59,6 @@
  "app/Http/Controllers/Pengaturan/SettingsController.php": {
   "summary": "Endpoint JSON pengaturan koperasi khusus admin: GET /pengaturan/data, GET /pengaturan/data/{profile|receipt|tax}, PUT untuk simpan sebagian dengan validasi SettingsService::rules dan crossCheck, serta POST reset ke bawaan; menyertakan meta updated_at, updated_by, dan defaults."
  },
- "app/Http/Controllers/Pengguna/UserController.php": {
-  "summary": "Controller HTTP UserController: Kelola pengguna & peran (JSON, khusus admin): - GET /pengguna/daftar?q=&peran=&status=&multi= → akun petugas beserta SELURUH perannya (label, peran utama, izin gabungan, penanda multi-peran / tanpa peran) + ringkasan per peran. peran: admin|kasir|pengurus|tanpa; status: aktif|nonaktif; multi=1 → hanya akun multi-peran. - GET /pengguna/{user}/data → satu akun beserta peran & izin gabungannya - POST /pengguna → akun baru (201) - PUT /pengguna/{user} → ubah akun / peran / status; password diisi = atur ulang - POST /pengguna/{user}/status → aktifkan / nonaktifkan - PUT /pengguna/{user}/peran → simpan seluruh peran {roles: [...] (min. 1), expected_roles?: [...]} — bila expected_roles dikirim dan peran tersimpan sudah berbeda (diubah admin lain) → 409 tanpa menyimpan - POST /pengguna/{user}/peran/{role} → tambah satu peran; DELETE … → cabut satu peran (peran terakhir ditolak) Respons ketiganya: akun (format daftar) + added/removed + changed. - GET /pengguna/peran → peran & menu yang boleh dibuka - PUT /pengguna/peran/{role} → ubah hak menu peran {permissions: [...]} Metode publik: index, show, row, store, update, toggle, saveRoles, addRole, removeRole, permissions, simulate, roles, updateRole.",
-  "sections": [
-   {
-    "symbol": "UserController::index",
-    "startLine": 35,
-    "endLine": 55,
-    "summary": "Metode public index pada controller http UserController."
-   },
-   {
-    "symbol": "UserController::show",
-    "startLine": 57,
-    "endLine": 60,
-    "summary": "Metode public show pada controller http UserController."
-   },
-   {
-    "symbol": "UserController::row",
-    "startLine": 63,
-    "endLine": 79,
-    "summary": "Baris akun untuk JSON: data akun + seluruh peran berlabel, peran utama, izin gabungan & penanda."
-   },
-   {
-    "symbol": "UserController::store",
-    "startLine": 81,
-    "endLine": 86,
-    "summary": "Metode public store pada controller http UserController."
-   },
-   {
-    "symbol": "UserController::update",
-    "startLine": 88,
-    "endLine": 93,
-    "summary": "Metode public update pada controller http UserController."
-   },
-   {
-    "symbol": "UserController::toggle",
-    "startLine": 95,
-    "endLine": 98,
-    "summary": "Metode public toggle pada controller http UserController."
-   },
-   {
-    "symbol": "UserController::saveRoles",
-    "startLine": 100,
-    "endLine": 119,
-    "summary": "Metode public saveRoles pada controller http UserController."
-   },
-   {
-    "symbol": "UserController::addRole",
-    "startLine": 121,
-    "endLine": 128,
-    "summary": "Metode public addRole pada controller http UserController."
-   },
-   {
-    "symbol": "UserController::removeRole",
-    "startLine": 130,
-    "endLine": 137,
-    "summary": "Metode public removeRole pada controller http UserController."
-   },
-   {
-    "symbol": "UserController::roleResult",
-    "startLine": 139,
-    "endLine": 145,
-    "summary": "Metode private roleResult pada controller http UserController."
-   },
-   {
-    "symbol": "UserController::permissions",
-    "startLine": 148,
-    "endLine": 151,
-    "summary": "Hak akses efektif akun: gabungan izin semua perannya beserta asal peran, halaman awal & hak aksi."
-   },
-   {
-    "symbol": "UserController::simulate",
-    "startLine": 157,
-    "endLine": 170,
-    "summary": "Simulasi kombinasi peran tiruan (tanpa akun, tanpa menyimpan): ?peran=pengurus,kasir atau peran[]=… Peran yang tidak dikenal ditolak 422 agar salah ketik tidak diam-diam diabaikan."
-   },
-   {
-    "symbol": "UserController::roles",
-    "startLine": 172,
-    "endLine": 178,
-    "summary": "Metode public roles pada controller http UserController."
-   },
-   {
-    "symbol": "UserController::updateRole",
-    "startLine": 180,
-    "endLine": 189,
-    "summary": "Metode public updateRole pada controller http UserController."
-   }
-  ]
- },
  "app/Http/Controllers/Transaksi/TransactionDetailController.php": {
   "summary": "Controller GET /transaksi/{transaction}/rincian yang mengembalikan detail lengkap satu transaksi (item, pembayaran, kasir, anggota, navigasi lebih baru/lama, tautan struk) dari TransactionHistory."
  },
@@ -156,226 +67,6 @@
  },
  "app/Livewire/Akun/Password.php": {
   "summary": "Komponen Livewire halaman Ganti Kata Sandi untuk semua peran, menyimpan lewat PasswordService dan memberi tahu bahwa perangkat lain otomatis dikeluarkan."
- },
- "app/Livewire/Anggota/Index.php": {
-  "summary": "Komponen Livewire Index: Daftar anggota koperasi (siswa & guru) beserta saldo tabungan. Data dari MemberService (sama dengan GET /anggota/daftar). Metode publik: updating, updatedType, page, members, stats, classes, create, edit, updatedFormType, save, cancel, resetFilters, render.",
-  "sections": [
-   {
-    "symbol": "Index::updating",
-    "startLine": 49,
-    "endLine": 54,
-    "summary": "Anggota per halaman — daftar tidak dimuat seluruhnya (sekolah bisa punya ribuan anggota)."
-   },
-   {
-    "symbol": "Index::updatedType",
-    "startLine": 56,
-    "endLine": 61,
-    "summary": "Metode public updatedType pada komponen livewire Index."
-   },
-   {
-    "symbol": "Index::page",
-    "startLine": 64,
-    "endLine": 72,
-    "summary": "Metode public page pada komponen livewire Index."
-   },
-   {
-    "symbol": "Index::members",
-    "startLine": 76,
-    "endLine": 79,
-    "summary": "Anggota di halaman ini (bentuk MemberService::toArray). @return list<array>"
-   },
-   {
-    "symbol": "Index::stats",
-    "startLine": 82,
-    "endLine": 85,
-    "summary": "Metode public stats pada komponen livewire Index."
-   },
-   {
-    "symbol": "Index::classes",
-    "startLine": 89,
-    "endLine": 92,
-    "summary": "Metode public classes pada komponen livewire Index."
-   },
-   {
-    "symbol": "Index::create",
-    "startLine": 94,
-    "endLine": 99,
-    "summary": "Metode public create pada komponen livewire Index."
-   },
-   {
-    "symbol": "Index::edit",
-    "startLine": 101,
-    "endLine": 111,
-    "summary": "Metode public edit pada komponen livewire Index."
-   },
-   {
-    "symbol": "Index::updatedFormType",
-    "startLine": 113,
-    "endLine": 116,
-    "summary": "Metode public updatedFormType pada komponen livewire Index."
-   },
-   {
-    "symbol": "Index::save",
-    "startLine": 118,
-    "endLine": 126,
-    "summary": "Metode public save pada komponen livewire Index."
-   },
-   {
-    "symbol": "Index::cancel",
-    "startLine": 128,
-    "endLine": 131,
-    "summary": "Metode public cancel pada komponen livewire Index."
-   },
-   {
-    "symbol": "Index::resetFilters",
-    "startLine": 133,
-    "endLine": 136,
-    "summary": "Metode public resetFilters pada komponen livewire Index."
-   },
-   {
-    "symbol": "Index::render",
-    "startLine": 138,
-    "endLine": 141,
-    "summary": "Metode public render pada komponen livewire Index."
-   }
-  ]
- },
- "app/Livewire/Audit/Changes.php": {
-  "summary": "Komponen Livewire Changes: Audit → Perubahan data (admin & pengurus): riwayat dibuat/diubah/dihapus/dipulihkan untuk barang, kategori, anggota, dan pengaturan beserta kolom sebelum → sesudah. Filter jenis data, aksi, petugas, periode, kata kunci, perubahan sensitif, dan riwayat satu objek. Data dari activity_logs lewat AuditChangeQuery (kontrak sama dengan GET /audit/perubahan/data). Alamat IP hanya ditampilkan kepada Admin. Metode publik: label, updated, setEntity, setAction, setPeriod, followSubject, resetFilters, more, show, closeDetail, isSensitive, format, range, canSeeIp, total, rows, days, summary, subjectLabel, selected.",
-  "sections": [
-   {
-    "symbol": "Changes::label",
-    "startLine": 78,
-    "endLine": 81,
-    "summary": "Label kolom; kolom tanpa label dibaca dari namanya (mis. \"show_logo\" → \"Show logo\")."
-   },
-   {
-    "symbol": "Changes::updated",
-    "startLine": 111,
-    "endLine": 116,
-    "summary": "Riwayat satu objek, format \"entitas:id\"."
-   },
-   {
-    "symbol": "Changes::setEntity",
-    "startLine": 118,
-    "endLine": 123,
-    "summary": "Metode public setEntity pada komponen livewire Changes."
-   },
-   {
-    "symbol": "Changes::setAction",
-    "startLine": 125,
-    "endLine": 129,
-    "summary": "Metode public setAction pada komponen livewire Changes."
-   },
-   {
-    "symbol": "Changes::setPeriod",
-    "startLine": 131,
-    "endLine": 137,
-    "summary": "Metode public setPeriod pada komponen livewire Changes."
-   },
-   {
-    "symbol": "Changes::followSubject",
-    "startLine": 139,
-    "endLine": 144,
-    "summary": "Metode public followSubject pada komponen livewire Changes."
-   },
-   {
-    "symbol": "Changes::resetFilters",
-    "startLine": 146,
-    "endLine": 149,
-    "summary": "Metode public resetFilters pada komponen livewire Changes."
-   },
-   {
-    "symbol": "Changes::more",
-    "startLine": 151,
-    "endLine": 154,
-    "summary": "Metode public more pada komponen livewire Changes."
-   },
-   {
-    "symbol": "Changes::show",
-    "startLine": 156,
-    "endLine": 159,
-    "summary": "Metode public show pada komponen livewire Changes."
-   },
-   {
-    "symbol": "Changes::closeDetail",
-    "startLine": 161,
-    "endLine": 164,
-    "summary": "Metode public closeDetail pada komponen livewire Changes."
-   },
-   {
-    "symbol": "Changes::isSensitive",
-    "startLine": 166,
-    "endLine": 169,
-    "summary": "Metode public isSensitive pada komponen livewire Changes."
-   },
-   {
-    "symbol": "Changes::format",
-    "startLine": 172,
-    "endLine": 181,
-    "summary": "Nilai kolom untuk ditampilkan: Rupiah, Ya/Tidak, atau \"—\" bila kosong."
-   },
-   {
-    "symbol": "Changes::range",
-    "startLine": 185,
-    "endLine": 188,
-    "summary": "Metode public range pada komponen livewire Changes."
-   },
-   {
-    "symbol": "Changes::filters",
-    "startLine": 190,
-    "endLine": 198,
-    "summary": "Metode private filters pada komponen livewire Changes."
-   },
-   {
-    "symbol": "Changes::canSeeIp",
-    "startLine": 201,
-    "endLine": 204,
-    "summary": "Metode public canSeeIp pada komponen livewire Changes."
-   },
-   {
-    "symbol": "Changes::total",
-    "startLine": 208,
-    "endLine": 211,
-    "summary": "Jumlah perubahan yang cocok dengan saringan."
-   },
-   {
-    "symbol": "Changes::rows",
-    "startLine": 215,
-    "endLine": 219,
-    "summary": "Metode public rows pada komponen livewire Changes."
-   },
-   {
-    "symbol": "Changes::days",
-    "startLine": 223,
-    "endLine": 226,
-    "summary": "Baris yang ditampilkan, dikelompokkan per tanggal."
-   },
-   {
-    "symbol": "Changes::summary",
-    "startLine": 229,
-    "endLine": 232,
-    "summary": "Metode public summary pada komponen livewire Changes."
-   },
-   {
-    "symbol": "Changes::subjectLabel",
-    "startLine": 235,
-    "endLine": 238,
-    "summary": "Metode public subjectLabel pada komponen livewire Changes."
-   },
-   {
-    "symbol": "Changes::selected",
-    "startLine": 241,
-    "endLine": 246,
-    "summary": "Metode public selected pada komponen livewire Changes."
-   },
-   {
-    "symbol": "Changes::render",
-    "startLine": 248,
-    "endLine": 251,
-    "summary": "Metode public render pada komponen livewire Changes."
-   }
-  ]
  },
  "app/Livewire/Audit/Index.php": {
   "summary": "Komponen Livewire Audit & Riwayat untuk admin dan pengurus: jejak login, sirkulasi uang/barang, dan perubahan data dengan filter tampilan, periode, kategori, petugas, dan kata kunci; ringkasan, aktivitas per petugas, panel rincian, dan unduh CSV hingga 20.000 baris."
@@ -386,99 +77,11 @@
  "app/Livewire/Concerns/NotifiesSave.php": {
   "summary": "Trait Livewire saveWithToast dan toast yang mengirim event browser toast: hijau bila berhasil, merah dengan jumlah isian salah dan fokus ke isian pertama bila validasi gagal."
  },
- "app/Livewire/Forms/UserForm.php": {
-  "summary": "Komponen Livewire UserForm: Form tambah/ubah akun petugas (aturan sama dengan endpoint JSON, UserService::rules). Satu akun bisa memegang beberapa peran sekaligus (kotak centang, minimal satu). Kata sandi wajib untuk akun baru; saat mengubah, diisi = atur ulang kata sandi. Metode publik: blank, load, save.",
-  "sections": [
-   {
-    "symbol": "UserForm::rules",
-    "startLine": 36,
-    "endLine": 42,
-    "summary": "Metode protected rules pada komponen livewire UserForm."
-   },
-   {
-    "symbol": "UserForm::messages",
-    "startLine": 44,
-    "endLine": 47,
-    "summary": "Metode protected messages pada komponen livewire UserForm."
-   },
-   {
-    "symbol": "UserForm::blank",
-    "startLine": 49,
-    "endLine": 53,
-    "summary": "Metode public blank pada komponen livewire UserForm."
-   },
-   {
-    "symbol": "UserForm::load",
-    "startLine": 55,
-    "endLine": 60,
-    "summary": "Metode public load pada komponen livewire UserForm."
-   },
-   {
-    "symbol": "UserForm::save",
-    "startLine": 62,
-    "endLine": 70,
-    "summary": "Metode public save pada komponen livewire UserForm."
-   }
-  ]
- },
  "app/Livewire/Kasir/Index.php": {
   "summary": "Komponen Livewire halaman Layar Kasir yang menyusun pemilih barang dan keranjang."
  },
  "app/Livewire/Notifikasi/Announcements.php": {
   "summary": "Komponen Livewire Buat Pengumuman untuk admin dan pengurus: form judul, isi, sasaran, tampil di beranda publik, dan tanggal berakhir dengan pratinjau; menerbitkan dan menghapus lewat AnnouncementService dengan hak hapus per pembuat."
- },
- "app/Livewire/Pengaturan/Discount.php": {
-  "summary": "Komponen Livewire Discount: Form Diskon manual kasir: boleh/tidaknya kasir memberi potongan manual, batas persen & rupiah per transaksi tanpa admin, dan wajib/tidaknya alasan. Dipakai ManualDiscountService di kasir; disimpan ke tabel settings bagian discount lewat SettingsService (tercatat di audit). Metode publik: mount, updated, current, save, restoreDefaults, render.",
-  "sections": [
-   {
-    "symbol": "Discount::mount",
-    "startLine": 34,
-    "endLine": 37,
-    "summary": "Metode public mount pada komponen livewire Discount."
-   },
-   {
-    "symbol": "Discount::rules",
-    "startLine": 39,
-    "endLine": 45,
-    "summary": "Metode protected rules pada komponen livewire Discount."
-   },
-   {
-    "symbol": "Discount::messages",
-    "startLine": 47,
-    "endLine": 50,
-    "summary": "Metode protected messages pada komponen livewire Discount."
-   },
-   {
-    "symbol": "Discount::updated",
-    "startLine": 52,
-    "endLine": 57,
-    "summary": "Metode public updated pada komponen livewire Discount."
-   },
-   {
-    "symbol": "Discount::current",
-    "startLine": 59,
-    "endLine": 63,
-    "summary": "Metode public current pada komponen livewire Discount."
-   },
-   {
-    "symbol": "Discount::save",
-    "startLine": 65,
-    "endLine": 74,
-    "summary": "Metode public save pada komponen livewire Discount."
-   },
-   {
-    "symbol": "Discount::restoreDefaults",
-    "startLine": 76,
-    "endLine": 84,
-    "summary": "Metode public restoreDefaults pada komponen livewire Discount."
-   },
-   {
-    "symbol": "Discount::render",
-    "startLine": 86,
-    "endLine": 89,
-    "summary": "Metode public render pada komponen livewire Discount."
-   }
-  ]
  },
  "app/Livewire/Pengaturan/Index.php": {
   "summary": "Komponen Livewire ringkasan Pengaturan Koperasi: profil, contoh struk, pajak & pembulatan dengan contoh hitungan PriceCalculator, jam buka, batas stok bawaan, dan daftar kelengkapan profil; data dari SettingsService."
@@ -489,697 +92,17 @@
  "app/Livewire/Pengaturan/Tax.php": {
   "summary": "Komponen Livewire form Pajak & Pembulatan: aktifkan pajak, nama dan tarif desimal berkoma, termasuk harga atau ditambahkan, cara dan kelipatan pembulatan, khusus tunai; kalkulator contoh tunai vs QRIS memakai PriceCalculator dan simpan lewat SettingsService."
  },
- "app/Livewire/Pengguna/Index.php": {
-  "summary": "Komponen Livewire Index: Kelola pengguna (khusus admin): daftar akun petugas, peran & status, tambah/ubah akun, atur ulang kata sandi, aktif/nonaktifkan, dan atur hak menu tiap peran. Data dari UserService. Metode publik: updatedRole, users, stats, roles, currentUserId, create, edit, save, toggleActive, editPermissions, savePermissions, cancelPermissions, editRoles, roleDiff, saveRoles, addRole, removeRole, cancelRoles, cancel, render.",
-  "sections": [
-   {
-    "symbol": "Index::updatedRole",
-    "startLine": 46,
-    "endLine": 49,
-    "summary": "Editor hak akses: [roleName => [menuKey, ...]]"
-   },
-   {
-    "symbol": "Index::users",
-    "startLine": 52,
-    "endLine": 55,
-    "summary": "Metode public users pada komponen livewire Index."
-   },
-   {
-    "symbol": "Index::stats",
-    "startLine": 58,
-    "endLine": 61,
-    "summary": "Metode public stats pada komponen livewire Index."
-   },
-   {
-    "symbol": "Index::roles",
-    "startLine": 64,
-    "endLine": 67,
-    "summary": "Metode public roles pada komponen livewire Index."
-   },
-   {
-    "symbol": "Index::currentUserId",
-    "startLine": 69,
-    "endLine": 72,
-    "summary": "Metode public currentUserId pada komponen livewire Index."
-   },
-   {
-    "symbol": "Index::create",
-    "startLine": 74,
-    "endLine": 79,
-    "summary": "Metode public create pada komponen livewire Index."
-   },
-   {
-    "symbol": "Index::edit",
-    "startLine": 81,
-    "endLine": 88,
-    "summary": "Metode public edit pada komponen livewire Index."
-   },
-   {
-    "symbol": "Index::save",
-    "startLine": 90,
-    "endLine": 114,
-    "summary": "Metode public save pada komponen livewire Index."
-   },
-   {
-    "symbol": "Index::toggleActive",
-    "startLine": 116,
-    "endLine": 134,
-    "summary": "Metode public toggleActive pada komponen livewire Index."
-   },
-   {
-    "symbol": "Index::editPermissions",
-    "startLine": 136,
-    "endLine": 142,
-    "summary": "Metode public editPermissions pada komponen livewire Index."
-   },
-   {
-    "symbol": "Index::savePermissions",
-    "startLine": 144,
-    "endLine": 159,
-    "summary": "Metode public savePermissions pada komponen livewire Index."
-   },
-   {
-    "symbol": "Index::cancelPermissions",
-    "startLine": 161,
-    "endLine": 164,
-    "summary": "Metode public cancelPermissions pada komponen livewire Index."
-   },
-   {
-    "symbol": "Index::editRoles",
-    "startLine": 179,
-    "endLine": 191,
-    "summary": "Alasan (opsional) perubahan peran — ikut tercatat di jejak audit."
-   },
-   {
-    "symbol": "Index::roleDiff",
-    "startLine": 195,
-    "endLine": 208,
-    "summary": "Pratinjau perubahan: peran ditambah/dicabut & menu yang bertambah/hilang."
-   },
-   {
-    "symbol": "Index::saveRoles",
-    "startLine": 210,
-    "endLine": 240,
-    "summary": "Metode public saveRoles pada komponen livewire Index."
-   },
-   {
-    "symbol": "Index::addRole",
-    "startLine": 243,
-    "endLine": 246,
-    "summary": "Aksi cepat di daftar: tambah satu peran."
-   },
-   {
-    "symbol": "Index::removeRole",
-    "startLine": 249,
-    "endLine": 252,
-    "summary": "Aksi cepat di daftar: cabut satu peran."
-   },
-   {
-    "symbol": "Index::quickRole",
-    "startLine": 254,
-    "endLine": 278,
-    "summary": "Metode private quickRole pada komponen livewire Index."
-   },
-   {
-    "symbol": "Index::cancelRoles",
-    "startLine": 280,
-    "endLine": 283,
-    "summary": "Metode public cancelRoles pada komponen livewire Index."
-   },
-   {
-    "symbol": "Index::cancel",
-    "startLine": 285,
-    "endLine": 288,
-    "summary": "Metode public cancel pada komponen livewire Index."
-   },
-   {
-    "symbol": "Index::render",
-    "startLine": 290,
-    "endLine": 293,
-    "summary": "Metode public render pada komponen livewire Index."
-   }
-  ]
- },
- "app/Livewire/Promo/CouponForm.php": {
-  "summary": "Komponen Livewire CouponForm: Diskon & Promo → Buat/Ubah kupon (Admin & Pengurus, gate kelola-promo): kode (huruf besar tanpa spasi, unik), nama, potongan persen (dengan batas maksimal) atau rupiah, minimal belanja, kuota total & per anggota, masa berlaku, dan saklar aktif. Kupon yang belum pernah dipakai bisa dihapus. Disimpan lewat PromoManager (tercatat di audit). Metode publik: mount, used, updatedCode, save, delete, render.",
-  "sections": [
-   {
-    "symbol": "CouponForm::mount",
-    "startLine": 51,
-    "endLine": 67,
-    "summary": "Metode public mount pada komponen livewire CouponForm."
-   },
-   {
-    "symbol": "CouponForm::used",
-    "startLine": 70,
-    "endLine": 73,
-    "summary": "Metode public used pada komponen livewire CouponForm."
-   },
-   {
-    "symbol": "CouponForm::updatedCode",
-    "startLine": 75,
-    "endLine": 78,
-    "summary": "Metode public updatedCode pada komponen livewire CouponForm."
-   },
-   {
-    "symbol": "CouponForm::rules",
-    "startLine": 80,
-    "endLine": 95,
-    "summary": "Metode protected rules pada komponen livewire CouponForm."
-   },
-   {
-    "symbol": "CouponForm::messages",
-    "startLine": 97,
-    "endLine": 115,
-    "summary": "Metode protected messages pada komponen livewire CouponForm."
-   },
-   {
-    "symbol": "CouponForm::save",
-    "startLine": 117,
-    "endLine": 140,
-    "summary": "Metode public save pada komponen livewire CouponForm."
-   },
-   {
-    "symbol": "CouponForm::delete",
-    "startLine": 142,
-    "endLine": 156,
-    "summary": "Metode public delete pada komponen livewire CouponForm."
-   },
-   {
-    "symbol": "CouponForm::render",
-    "startLine": 158,
-    "endLine": 161,
-    "summary": "Metode public render pada komponen livewire CouponForm."
-   }
-  ]
- },
- "app/Livewire/Promo/Index.php": {
-  "summary": "Komponen Livewire Index: Diskon & Promo: ringkasan promo otomatis (per barang/kategori/semua, beli X gratis Y, harga grosir, jam tertentu), kupon & voucher dengan kuota, serta batas diskon manual kasir. Kasir melihat promo yang berlaku; admin & pengurus mengelolanya. Data dari database lewat PromoService (status, pemakaian & potongan sungguhan). Metode publik: mount, setStatus, canManage, togglePromo, toggleCoupon, allPromos, promos, counts, coupons, stats, manual, describe, schedule, daysLeft, render.",
-  "sections": [
-   {
-    "symbol": "Index::mount",
-    "startLine": 43,
-    "endLine": 48,
-    "summary": "Metode public mount pada komponen livewire Index."
-   },
-   {
-    "symbol": "Index::setStatus",
-    "startLine": 50,
-    "endLine": 55,
-    "summary": "Metode public setStatus pada komponen livewire Index."
-   },
-   {
-    "symbol": "Index::canManage",
-    "startLine": 59,
-    "endLine": 62,
-    "summary": "Admin & pengurus boleh membuat/mengubah promo dan kupon; kasir hanya melihat."
-   },
-   {
-    "symbol": "Index::togglePromo",
-    "startLine": 65,
-    "endLine": 72,
-    "summary": "Nyalakan/matikan promo dari daftar (tercatat di audit)."
-   },
-   {
-    "symbol": "Index::toggleCoupon",
-    "startLine": 75,
-    "endLine": 82,
-    "summary": "Nyalakan/matikan kupon dari daftar (tercatat di audit)."
-   },
-   {
-    "symbol": "Index::allPromos",
-    "startLine": 86,
-    "endLine": 89,
-    "summary": "Semua promo dari database (PromoService), sekali per permintaan."
-   },
-   {
-    "symbol": "Index::promos",
-    "startLine": 92,
-    "endLine": 98,
-    "summary": "Metode public promos pada komponen livewire Index."
-   },
-   {
-    "symbol": "Index::counts",
-    "startLine": 102,
-    "endLine": 107,
-    "summary": "Jumlah promo per status, untuk label saringan."
-   },
-   {
-    "symbol": "Index::coupons",
-    "startLine": 110,
-    "endLine": 113,
-    "summary": "Metode public coupons pada komponen livewire Index."
-   },
-   {
-    "symbol": "Index::stats",
-    "startLine": 116,
-    "endLine": 119,
-    "summary": "Metode public stats pada komponen livewire Index."
-   },
-   {
-    "symbol": "Index::manual",
-    "startLine": 122,
-    "endLine": 125,
-    "summary": "Metode public manual pada komponen livewire Index."
-   },
-   {
-    "symbol": "Index::describe",
-    "startLine": 128,
-    "endLine": 145,
-    "summary": "Ringkasan aturan promo dalam satu kalimat, mis. \"Potongan 10% · kategori Alat Tulis\"."
-   },
-   {
-    "symbol": "Index::schedule",
-    "startLine": 148,
-    "endLine": 158,
-    "summary": "Hari & jam berlaku, mis. \"Sen–Jum · 13.00–14.30\" atau \"Setiap hari buka\"."
-   },
-   {
-    "symbol": "Index::daysLeft",
-    "startLine": 161,
-    "endLine": 168,
-    "summary": "Sisa hari promo/kupon berlaku (untuk status aktif), atau hari menuju mulai (terjadwal)."
-   },
-   {
-    "symbol": "Index::render",
-    "startLine": 170,
-    "endLine": 173,
-    "summary": "Metode public render pada komponen livewire Index."
-   }
-  ]
- },
- "app/Livewire/Promo/PromoForm.php": {
-  "summary": "Komponen Livewire PromoForm: Diskon & Promo → Buat/Ubah promo otomatis (Admin & Pengurus, gate kelola-promo): jenis (potongan persen, potongan rupiah per barang, beli X gratis Y, harga grosir), cakupan (semua barang, kategori, atau barang tertentu), syarat minimal jumlah & belanja, periode, hari & jam berlaku, dan saklar aktif. Promo yang belum pernah dipakai bisa dihapus. Disimpan lewat PromoManager (tercatat di audit). Metode publik: mount, categoryOptions, selectedProducts, productResults, usage, addProduct, removeProduct, save, delete, render.",
-  "sections": [
-   {
-    "symbol": "PromoForm::mount",
-    "startLine": 70,
-    "endLine": 94,
-    "summary": "Metode public mount pada komponen livewire PromoForm."
-   },
-   {
-    "symbol": "PromoForm::categoryOptions",
-    "startLine": 97,
-    "endLine": 100,
-    "summary": "Metode public categoryOptions pada komponen livewire PromoForm."
-   },
-   {
-    "symbol": "PromoForm::selectedProducts",
-    "startLine": 104,
-    "endLine": 108,
-    "summary": "Barang terpilih (id → nama, harga), urut nama."
-   },
-   {
-    "symbol": "PromoForm::productResults",
-    "startLine": 112,
-    "endLine": 124,
-    "summary": "Hasil cari barang aktif (nama/kode/barcode), di luar yang sudah dipilih."
-   },
-   {
-    "symbol": "PromoForm::usage",
-    "startLine": 128,
-    "endLine": 131,
-    "summary": "Sudah dipakai di transaksi → tidak bisa dihapus, hanya dinonaktifkan."
-   },
-   {
-    "symbol": "PromoForm::addProduct",
-    "startLine": 133,
-    "endLine": 145,
-    "summary": "Metode public addProduct pada komponen livewire PromoForm."
-   },
-   {
-    "symbol": "PromoForm::removeProduct",
-    "startLine": 147,
-    "endLine": 150,
-    "summary": "Metode public removeProduct pada komponen livewire PromoForm."
-   },
-   {
-    "symbol": "PromoForm::rules",
-    "startLine": 152,
-    "endLine": 185,
-    "summary": "Metode protected rules pada komponen livewire PromoForm."
-   },
-   {
-    "symbol": "PromoForm::messages",
-    "startLine": 187,
-    "endLine": 213,
-    "summary": "Metode protected messages pada komponen livewire PromoForm."
-   },
-   {
-    "symbol": "PromoForm::save",
-    "startLine": 215,
-    "endLine": 234,
-    "summary": "Metode public save pada komponen livewire PromoForm."
-   },
-   {
-    "symbol": "PromoForm::delete",
-    "startLine": 236,
-    "endLine": 250,
-    "summary": "Metode public delete pada komponen livewire PromoForm."
-   },
-   {
-    "symbol": "PromoForm::render",
-    "startLine": 252,
-    "endLine": 255,
-    "summary": "Metode public render pada komponen livewire PromoForm."
-   }
-  ]
- },
  "app/Livewire/Transaksi/Index.php": {
   "summary": "Komponen Livewire Riwayat Transaksi: penjualan terbaru dikelompokkan per hari dengan total harian, filter preset atau rentang tanggal kustom di URL, ringkasan periode, dan paginasi dari TransactionHistory."
  },
  "app/Livewire/Transaksi/Show.php": {
   "summary": "Komponen Livewire detail satu transaksi dengan navigasi ke transaksi lebih baru/lama, memakai TransactionHistory::detail."
  },
- "app/Models/ActivityLog.php": {
-  "summary": "Model Eloquent ActivityLog: Satu baris jejak audit. Tambahkan lewat App\\Services\\AuditLog; tidak pernah diubah/dihapus. Perubahan data master menyimpan action, old_values, new_values, dan reason. Setiap baris ditandai checksum (AuditIntegrity) saat dibuat; database menolak ubah/hapus (AuditGuard). Metode publik: getCategoryLabelAttribute, getFieldChangesAttribute, scopeMasterChanges, scopeLatestFirst, scopeBetweenDates, save, delete.",
-  "sections": [
-   {
-    "symbol": "ActivityLog::booted",
-    "startLine": 58,
-    "endLine": 73,
-    "summary": "Kategori yang termasuk sirkulasi uang/barang."
-   },
-   {
-    "symbol": "ActivityLog::casts",
-    "startLine": 75,
-    "endLine": 84,
-    "summary": "Metode protected casts pada model eloquent ActivityLog."
-   },
-   {
-    "symbol": "ActivityLog::getCategoryLabelAttribute",
-    "startLine": 86,
-    "endLine": 89,
-    "summary": "Metode public getCategoryLabelAttribute pada model eloquent ActivityLog."
-   },
-   {
-    "symbol": "ActivityLog::getFieldChangesAttribute",
-    "startLine": 96,
-    "endLine": 104,
-    "summary": "Perubahan per kolom {kolom: {from, to}} dari old_values/new_values."
-   },
-   {
-    "symbol": "ActivityLog::scopeMasterChanges",
-    "startLine": 107,
-    "endLine": 110,
-    "summary": "Hanya baris perubahan data master (punya aksi)."
-   },
-   {
-    "symbol": "ActivityLog::scopeLatestFirst",
-    "startLine": 112,
-    "endLine": 115,
-    "summary": "Metode public scopeLatestFirst pada model eloquent ActivityLog."
-   },
-   {
-    "symbol": "ActivityLog::scopeBetweenDates",
-    "startLine": 117,
-    "endLine": 121,
-    "summary": "Metode public scopeBetweenDates pada model eloquent ActivityLog."
-   },
-   {
-    "symbol": "ActivityLog::save",
-    "startLine": 124,
-    "endLine": 127,
-    "summary": "Model ini hanya-tambah."
-   },
-   {
-    "symbol": "ActivityLog::delete",
-    "startLine": 129,
-    "endLine": 132,
-    "summary": "Metode public delete pada model eloquent ActivityLog."
-   }
-  ]
- },
- "app/Models/Coupon.php": {
-  "summary": "Model Eloquent Coupon: Kupon/voucher: kode (huruf besar tanpa spasi), potongan persen (dengan batas maks.) atau rupiah, minimal belanja, kuota total & per anggota, masa berlaku. Pemakaian dicatat di transaction_discounts (source = kupon) dan penghitung used_count (sisa kuota). Status: aktif | terjadwal | berakhir | habis | nonaktif. Setiap perubahan tercatat di audit. Metode publik: setCodeAttribute, normalize, auditLabel, auditTitle, auditValues, redemptions, creator, usedCount, remaining, getStatusAttribute.",
-  "sections": [
-   {
-    "symbol": "Coupon::casts",
-    "startLine": 34,
-    "endLine": 47,
-    "summary": "Metode protected casts pada model eloquent Coupon."
-   },
-   {
-    "symbol": "Coupon::setCodeAttribute",
-    "startLine": 50,
-    "endLine": 53,
-    "summary": "Kode selalu disimpan huruf besar tanpa spasi."
-   },
-   {
-    "symbol": "Coupon::normalize",
-    "startLine": 55,
-    "endLine": 58,
-    "summary": "Metode public normalize pada model eloquent Coupon."
-   },
-   {
-    "symbol": "Coupon::auditLabel",
-    "startLine": 60,
-    "endLine": 63,
-    "summary": "Metode public auditLabel pada model eloquent Coupon."
-   },
-   {
-    "symbol": "Coupon::auditTitle",
-    "startLine": 65,
-    "endLine": 68,
-    "summary": "Metode public auditTitle pada model eloquent Coupon."
-   },
-   {
-    "symbol": "Coupon::auditValues",
-    "startLine": 70,
-    "endLine": 73,
-    "summary": "Metode public auditValues pada model eloquent Coupon."
-   },
-   {
-    "symbol": "Coupon::redemptions",
-    "startLine": 75,
-    "endLine": 78,
-    "summary": "Metode public redemptions pada model eloquent Coupon."
-   },
-   {
-    "symbol": "Coupon::creator",
-    "startLine": 80,
-    "endLine": 83,
-    "summary": "Metode public creator pada model eloquent Coupon."
-   },
-   {
-    "symbol": "Coupon::usedCount",
-    "startLine": 86,
-    "endLine": 89,
-    "summary": "Jumlah pemakaian (penghitung used_count, dinaikkan/dikembalikan oleh CouponService)."
-   },
-   {
-    "symbol": "Coupon::remaining",
-    "startLine": 92,
-    "endLine": 95,
-    "summary": "Sisa kuota; null = tanpa batas."
-   },
-   {
-    "symbol": "Coupon::getStatusAttribute",
-    "startLine": 97,
-    "endLine": 102,
-    "summary": "Metode public getStatusAttribute pada model eloquent Coupon."
-   }
-  ]
- },
- "app/Models/Promo.php": {
-  "summary": "Model Eloquent Promo: Promo otomatis di kasir. Jenis: persen (potongan % per barang), nominal (potongan rupiah per barang), beli_gratis (beli X gratis Y), grosir (harga per pcs mulai min_qty). Cakupan: semua barang, kategori, atau barang tertentu (promo_targets). Status dihitung dari saklar aktif & periode: aktif | terjadwal | berakhir | nonaktif. Setiap perubahan tercatat di audit. Metode publik: targets, categories, products, creator, discounts, scopeRunningOn, auditValues, readable, getStatusAttribute, periodStatus.",
-  "sections": [
-   {
-    "symbol": "Promo::casts",
-    "startLine": 45,
-    "endLine": 58,
-    "summary": "Metode protected casts pada model eloquent Promo."
-   },
-   {
-    "symbol": "Promo::targets",
-    "startLine": 60,
-    "endLine": 63,
-    "summary": "Metode public targets pada model eloquent Promo."
-   },
-   {
-    "symbol": "Promo::categories",
-    "startLine": 65,
-    "endLine": 68,
-    "summary": "Metode public categories pada model eloquent Promo."
-   },
-   {
-    "symbol": "Promo::products",
-    "startLine": 70,
-    "endLine": 73,
-    "summary": "Metode public products pada model eloquent Promo."
-   },
-   {
-    "symbol": "Promo::creator",
-    "startLine": 75,
-    "endLine": 78,
-    "summary": "Metode public creator pada model eloquent Promo."
-   },
-   {
-    "symbol": "Promo::discounts",
-    "startLine": 81,
-    "endLine": 84,
-    "summary": "Potongan yang sudah diberikan promo ini di transaksi."
-   },
-   {
-    "symbol": "Promo::scopeRunningOn",
-    "startLine": 87,
-    "endLine": 91,
-    "summary": "Aktif dan dalam periode pada tanggal tertentu (hari & jam dicek terpisah)."
-   },
-   {
-    "symbol": "Promo::auditValues",
-    "startLine": 94,
-    "endLine": 97,
-    "summary": "Nilai audit terbaca: tanggal Y-m-d, hari \"Sen, Sel\", jam H:i, angka bulat, jenis & cakupan berlabel."
-   },
-   {
-    "symbol": "Promo::readable",
-    "startLine": 100,
-    "endLine": 114,
-    "summary": "Metode public readable pada model eloquent Promo."
-   },
-   {
-    "symbol": "Promo::getStatusAttribute",
-    "startLine": 116,
-    "endLine": 119,
-    "summary": "Metode public getStatusAttribute pada model eloquent Promo."
-   },
-   {
-    "symbol": "Promo::periodStatus",
-    "startLine": 121,
-    "endLine": 129,
-    "summary": "Metode public periodStatus pada model eloquent Promo."
-   }
-  ]
- },
  "app/Models/Setting.php": {
   "summary": "Model key-value pengaturan (tabel settings) dengan kunci kelompok.nama, kolom group, type, dan updated_by (relasi editor). Helper get/set dengan cache per kunci, group untuk satu kelompok, serta typeOf/encode/decode agar nilai bool/int/float/json terbaca dengan tipe yang benar."
  },
  "app/Observers/ProductObserver.php": {
   "summary": "Observer model Product: mencatat StockMovement otomatis bila stok berubah lewat model (bukan StockService), mengantre pemeriksaan peringatan stok saat barang dibuat atau stok/batas minimum/status/nama berubah, dan menghapus peringatan stok barang yang dihapus."
- },
- "app/Providers/AppServiceProvider.php": {
-  "summary": "Service provider AppServiceProvider (app/Providers/AppServiceProvider.php). Metode publik: register, boot.",
-  "sections": [
-   {
-    "symbol": "AppServiceProvider::register",
-    "startLine": 42,
-    "endLine": 47,
-    "summary": "Register any application services."
-   },
-   {
-    "symbol": "AppServiceProvider::boot",
-    "startLine": 52,
-    "endLine": 155,
-    "summary": "Bootstrap any application services."
-   }
-  ]
- },
- "app/Services/AuditChangeQuery.php": {
-  "summary": "Service domain AuditChangeQuery: Riwayat perubahan data master (baris activity_logs yang punya action) untuk halaman Audit → Perubahan data & endpoint GET /audit/perubahan/data: filter jenis data, aksi, petugas, periode, kata kunci, satu objek (\"jenis:id\"), dan perubahan sensitif; ringkasan per periode; bentuk baris {id, at, entity, action, subject_id, subject_label, actor_name, actor_role, changes, reason, ip_address}. Metode publik: query, isSensitive, summary, subjectLabel, toArray, actors.",
-  "sections": [
-   {
-    "symbol": "AuditChangeQuery::query",
-    "startLine": 38,
-    "endLine": 60,
-    "summary": "Metode public query pada service domain AuditChangeQuery."
-   },
-   {
-    "symbol": "AuditChangeQuery::sensitive",
-    "startLine": 63,
-    "endLine": 72,
-    "summary": "Penghapusan, atau perubahan (bukan pembuatan) yang menyentuh kolom sensitif."
-   },
-   {
-    "symbol": "AuditChangeQuery::isSensitive",
-    "startLine": 74,
-    "endLine": 78,
-    "summary": "Metode public isSensitive pada service domain AuditChangeQuery."
-   },
-   {
-    "symbol": "AuditChangeQuery::summary",
-    "startLine": 81,
-    "endLine": 99,
-    "summary": "Metode public summary pada service domain AuditChangeQuery."
-   },
-   {
-    "symbol": "AuditChangeQuery::subjectLabel",
-    "startLine": 102,
-    "endLine": 105,
-    "summary": "Label terbaru satu objek (\"jenis:id\"), mis. untuk judul riwayat objek."
-   },
-   {
-    "symbol": "AuditChangeQuery::toArray",
-    "startLine": 108,
-    "endLine": 125,
-    "summary": "Metode public toArray pada service domain AuditChangeQuery."
-   },
-   {
-    "symbol": "AuditChangeQuery::actors",
-    "startLine": 128,
-    "endLine": 132,
-    "summary": "Nama petugas yang pernah mengubah data master (untuk saringan)."
-   }
-  ]
- },
- "app/Services/CashReportService.php": {
-  "summary": "Service domain CashReportService: Rekap kas harian dari data shift, penjualan, dan transaksi kas laci: - day(): shift-shift satu hari (modal, penjualan tunai/non-tunai, kas masuk/keluar, kas seharusnya, dihitung, selisih), setoran/penarikan, penjualan per metode, ringkasan, serta penjualan tunai yang terjadi tanpa shift terbuka. - range(): ringkasan per hari untuk satu periode (maks. 92 hari). - history() / perCashier() / shiftDetail(): riwayat shift berpaginasi dengan saringan petugas & status selisih, ringkasan selisih per petugas, dan rincian satu shift. Angka shift dihitung dengan query terkelompok (bukan per baris). Kas seharusnya shift yang sudah ditutup memakai snapshot saat tutup; shift berjalan dihitung dari data terkini. Metode publik: day, range, shiftRows, history, perCashier, shiftDetail.",
-  "sections": [
-   {
-    "symbol": "CashReportService::day",
-    "startLine": 30,
-    "endLine": 56,
-    "summary": "Metode public day pada service domain CashReportService."
-   },
-   {
-    "symbol": "CashReportService::range",
-    "startLine": 63,
-    "endLine": 99,
-    "summary": "Ringkasan per hari (lama → baru) dari $from sampai $to (tidak melewati hari ini)."
-   },
-   {
-    "symbol": "CashReportService::shiftRows",
-    "startLine": 107,
-    "endLine": 152,
-    "summary": "Baris shift lengkap (lihat ShiftService::toArray) untuk banyak shift sekaligus, dengan penjualan & kas laci dijumlahkan lewat dua query terkelompok."
-   },
-   {
-    "symbol": "CashReportService::history",
-    "startLine": 163,
-    "endLine": 179,
-    "summary": "Shift dalam rentang (terbaru dulu), disaring petugas (user_id) & status selisih, berpaginasi. Item paginator sudah berupa baris shift (shiftRows)."
-   },
-   {
-    "symbol": "CashReportService::perCashier",
-    "startLine": 185,
-    "endLine": 214,
-    "summary": "Ringkasan per petugas pada rentang (tanpa saringan status): jumlah shift, transaksi, total selisih, dan banyaknya shift pas/kurang/lebih; selisih terbesar (paling kurang) dulu."
-   },
-   {
-    "symbol": "CashReportService::shiftDetail",
-    "startLine": 217,
-    "endLine": 232,
-    "summary": "Rincian satu shift: baris shift + setoran/penarikan + daftar penjualannya."
-   },
-   {
-    "symbol": "CashReportService::historyQuery",
-    "startLine": 234,
-    "endLine": 237,
-    "summary": "Metode private historyQuery pada service domain CashReportService."
-   },
-   {
-    "symbol": "CashReportService::summarize",
-    "startLine": 240,
-    "endLine": 258,
-    "summary": "Ringkasan kas dari baris shift (format sama dengan rekap tahap frontend)."
-   },
-   {
-    "symbol": "CashReportService::isClosedDay",
-    "startLine": 261,
-    "endLine": 264,
-    "summary": "Hari tutup menurut jadwal buka di pengaturan profil."
-   }
-  ]
  },
  "app/Services/GuideSyncInProgress.php": {
   "summary": "Service domain GuideSyncInProgress: Penyusunan ulang panduan lain sedang berjalan (kunci guide sync dipegang proses lain)."
@@ -1192,402 +115,6 @@
  },
  "app/Services/PasswordService.php": {
   "summary": "Ganti kata sandi petugas sendiri: validasi sandi lama, sandi baru minimal 8 karakter berisi huruf dan angka serta berbeda dari yang lama, simpan password_changed_at, akhiri sesi di perangkat lain dan reset remember token, lalu catat audit."
- },
- "app/Services/PromoEngine.php": {
-  "summary": "Service domain PromoEngine: Mesin promo otomatis: mengambil promo yang berjalan hari ini dari database (aktif & dalam periode), lalu mencocokkannya dengan baris belanja lewat PromoMatcher (hari & jam berlaku, cakupan semua/kategori/barang, minimal belanja & jumlah; satu promo terbaik per barang, tidak bertumpuk). Dipakai keranjang kasir (pratinjau hemat) dan CheckoutService (potongan nyata). Metode publik: evaluate, livePromos, flush, toArray.",
-  "sections": [
-   {
-    "symbol": "PromoEngine::evaluate",
-    "startLine": 24,
-    "endLine": 29,
-    "summary": "Metode public evaluate pada service domain PromoEngine."
-   },
-   {
-    "symbol": "PromoEngine::livePromos",
-    "startLine": 32,
-    "endLine": 40,
-    "summary": "Promo yang berjalan pada tanggal $now, dalam bentuk array PromoMatcher."
-   },
-   {
-    "symbol": "PromoEngine::flush",
-    "startLine": 42,
-    "endLine": 45,
-    "summary": "Metode public flush pada service domain PromoEngine."
-   },
-   {
-    "symbol": "PromoEngine::toArray",
-    "startLine": 48,
-    "endLine": 73,
-    "summary": "Bentuk array promo (sama dengan data tahap frontend) + id barang sasaran."
-   }
-  ]
- },
- "app/Services/PromoManager.php": {
-  "summary": "Service domain PromoManager: Membuat, mengubah, menyalakan/mematikan, dan menghapus promo otomatis & kupon (form Diskon & Promo). Aturan bentuk data diperiksa di form; di sini dijaga aturan bisnis yang tidak boleh lolos dari jalur mana pun: sasaran promo sesuai cakupan (kategori/barang yang ada), beli X gratis Y memakai min_qty = X + Y, kode kupon unik, kuota tidak di bawah pemakaian, dan promo/kupon yang sudah dipakai di transaksi tidak bisa dihapus (cukup dinonaktifkan) agar laporan diskon tetap utuh. Perubahan kolom tercatat lewat MasterDataObserver; perubahan sasaran promo dicatat terpisah. Metode publik: savePromo, saveCoupon, toggle, delete.",
-  "sections": [
-   {
-    "symbol": "PromoManager::savePromo",
-    "startLine": 29,
-    "endLine": 93,
-    "summary": "category_ids?: list<int>, product_ids?: list<int>, starts_on: string, ends_on: string, days: list<int>, time_from?: ?string, time_to?: ?string, is_active: bool} $data"
-   },
-   {
-    "symbol": "PromoManager::saveCoupon",
-    "startLine": 99,
-    "endLine": 134,
-    "summary": "starts_on: string, ends_on: string, is_active: bool} $data"
-   },
-   {
-    "symbol": "PromoManager::toggle",
-    "startLine": 136,
-    "endLine": 140,
-    "summary": "Metode public toggle pada service domain PromoManager."
-   },
-   {
-    "symbol": "PromoManager::delete",
-    "startLine": 143,
-    "endLine": 151,
-    "summary": "Hapus promo/kupon yang belum pernah dipakai; yang sudah dipakai cukup dinonaktifkan."
-   },
-   {
-    "symbol": "PromoManager::targetNames",
-    "startLine": 154,
-    "endLine": 158,
-    "summary": "Metode private targetNames pada service domain PromoManager."
-   }
-  ]
- },
- "app/Services/UserService.php": {
-  "summary": "Service domain UserService: Kelola akun petugas & peran (khusus admin): daftar & ringkasan, tambah/ubah akun, atur ulang kata sandi (sesi akun itu diakhiri), aktif/nonaktifkan (akun nonaktif langsung keluar), serta hak menu tiap peran. Penjaga: tidak bisa menonaktifkan / menurunkan akun sendiri, selalu ada minimal satu admin aktif, dan admin tetap memegang menu Pengguna. Semua perubahan tercatat di audit. Metode publik: rules, messages, query, stats, roleList, create, update, updateRoles, roleConsistency, addRole, removeRole, toggleActive, updatePermissions, toArray, subjectFor.",
-  "sections": [
-   {
-    "symbol": "UserService::__construct",
-    "startLine": 31,
-    "endLine": 31,
-    "summary": "Pesan tunggal untuk aturan \"akun wajib punya minimal satu peran\" (form, kotak centang, JSON)."
-   },
-   {
-    "symbol": "UserService::rules",
-    "startLine": 33,
-    "endLine": 51,
-    "summary": "Metode public rules pada service domain UserService."
-   },
-   {
-    "symbol": "UserService::messages",
-    "startLine": 53,
-    "endLine": 69,
-    "summary": "Metode public messages pada service domain UserService."
-   },
-   {
-    "symbol": "UserService::query",
-    "startLine": 72,
-    "endLine": 86,
-    "summary": "Metode public query pada service domain UserService."
-   },
-   {
-    "symbol": "UserService::stats",
-    "startLine": 88,
-    "endLine": 101,
-    "summary": "Metode public stats pada service domain UserService."
-   },
-   {
-    "symbol": "UserService::roleList",
-    "startLine": 108,
-    "endLine": 116,
-    "summary": "Daftar peran dari data tervalidasi (roles atau role tunggal), urut prioritas; peran pertama = peran utama."
-   },
-   {
-    "symbol": "UserService::assignRoles",
-    "startLine": 119,
-    "endLine": 137,
-    "summary": "Pasang peran akun: role_id = peran utama, pivot = seluruh peran."
-   },
-   {
-    "symbol": "UserService::create",
-    "startLine": 140,
-    "endLine": 165,
-    "summary": "Metode public create pada service domain UserService."
-   },
-   {
-    "symbol": "UserService::update",
-    "startLine": 168,
-    "endLine": 208,
-    "summary": "Metode public update pada service domain UserService."
-   },
-   {
-    "symbol": "UserService::updateRoles",
-    "startLine": 217,
-    "endLine": 247,
-    "summary": "Ubah HANYA peran akun (form kotak centang \"Ubah peran\"): minimal satu peran, aturan admin sama dengan update(), jejak user.role_changed dengan peran ditambah/dicabut. Tidak ada perubahan → tidak dicatat."
-   },
-   {
-    "symbol": "UserService::roleConsistency",
-    "startLine": 257,
-    "endLine": 290,
-    "summary": "Periksa (dan bila $fix, perbaiki) konsistensi peran akun: - peran utama (role_id) belum tercatat di pivot → ditambahkan ke pivot; - peran utama bukan prioritas tertinggi dari peran yang dipegang → role_id disesuaikan; - akun tanpa peran sama sekali → hanya dilaporkan (admin harus memilih perannya)."
-   },
-   {
-    "symbol": "UserService::addRole",
-    "startLine": 293,
-    "endLine": 298,
-    "summary": "Tambah satu peran ke akun (peran lain tetap)."
-   },
-   {
-    "symbol": "UserService::removeRole",
-    "startLine": 301,
-    "endLine": 313,
-    "summary": "Cabut satu peran dari akun; peran terakhir tidak bisa dicabut (akun wajib punya minimal satu peran)."
-   },
-   {
-    "symbol": "UserService::toggleActive",
-    "startLine": 315,
-    "endLine": 333,
-    "summary": "Metode public toggleActive pada service domain UserService."
-   },
-   {
-    "symbol": "UserService::updatePermissions",
-    "startLine": 340,
-    "endLine": 365,
-    "summary": "Ubah daftar menu yang boleh dibuka sebuah peran."
-   },
-   {
-    "symbol": "UserService::notifyRolesChanged",
-    "startLine": 372,
-    "endLine": 392,
-    "summary": "Beri tahu akun yang perannya berubah (notifikasi pribadi): peran ditambah/dicabut dan dampaknya pada menu gabungan. Tidak dikirim bila admin mengubah perannya sendiri. Satu notifikasi per akun (yang lama diganti) agar lonceng tidak menumpuk saat peran diubah berkali-kali."
-   },
-   {
-    "symbol": "UserService::notifyRolePermissionsChanged",
-    "startLine": 395,
-    "endLine": 406,
-    "summary": "Beri tahu semua pemegang peran ini bahwa hak menu perannya berubah (berlaku pada menu gabungan mereka)."
-   },
-   {
-    "symbol": "UserService::toArray",
-    "startLine": 408,
-    "endLine": 415,
-    "summary": "Metode public toArray pada service domain UserService."
-   },
-   {
-    "symbol": "UserService::guardChange",
-    "startLine": 419,
-    "endLine": 450,
-    "summary": "Metode private guardChange pada service domain UserService."
-   },
-   {
-    "symbol": "UserService::subjectFor",
-    "startLine": 453,
-    "endLine": 456,
-    "summary": "Subjek jejak audit untuk akun petugas (dipakai juga RoleAuditService)."
-   },
-   {
-    "symbol": "UserService::subject",
-    "startLine": 458,
-    "endLine": 461,
-    "summary": "Metode private subject pada service domain UserService."
-   }
-  ]
- },
- "app/Support/AccessPreview.php": {
-  "summary": "Kelas bantu AccessPreview: Simulasi hak akses gabungan untuk kombinasi peran tiruan (tanpa akun & tanpa menyimpan apa pun): menu gabungan beserta asal perannya, halaman awal setelah masuk, hak aksi (gate) dan halaman Livewire yang terbuka. Dihitung dengan User tiruan di memori sehingga memakai aturan yang sama persis dengan akun sungguhan (User::permissions, hasRole, canOpen, Gate). Metode publik: roles, normalize, fakeUser, simulate, pages, usedCombinations.",
-  "sections": [
-   {
-    "symbol": "AccessPreview::roles",
-    "startLine": 49,
-    "endLine": 52,
-    "summary": "Semua peran yang ada, urut prioritas. @return Collection<string, Role>"
-   },
-   {
-    "symbol": "AccessPreview::normalize",
-    "startLine": 55,
-    "endLine": 58,
-    "summary": "Nama peran yang valid saja, urut prioritas, tanpa duplikat. @return list<string>"
-   },
-   {
-    "symbol": "AccessPreview::fakeUser",
-    "startLine": 61,
-    "endLine": 69,
-    "summary": "Akun tiruan di memori dengan kombinasi peran ini (peran utama = prioritas tertinggi)."
-   },
-   {
-    "symbol": "AccessPreview::simulate",
-    "startLine": 78,
-    "endLine": 114,
-    "summary": "Hasil simulasi lengkap untuk satu kombinasi peran. home: string, menu: array, abilities: array<string, array{label: string, allowed: bool, combined: bool}>, pages: list<array{name: string, title: string, uri: string, menu: string, roles: list<string>, ability: ?string, allowed: bool, reason: ?string}>}"
-   },
-   {
-    "symbol": "AccessPreview::pages",
-    "startLine": 122,
-    "endLine": 164,
-    "summary": "Halaman Livewire petugas yang dijaga menu (GET bernama), dibaca dari daftar rute sehingga selalu mengikuti middleware menu:/peran:/can: yang sebenarnya."
-   },
-   {
-    "symbol": "AccessPreview::pageAccess",
-    "startLine": 167,
-    "endLine": 185,
-    "summary": "Metode private pageAccess pada kelas bantu AccessPreview."
-   },
-   {
-    "symbol": "AccessPreview::usedCombinations",
-    "startLine": 192,
-    "endLine": 202,
-    "summary": "Kombinasi peran yang dipegang akun petugas sungguhan, dengan jumlah akunnya (terbanyak dulu)."
-   }
-  ]
- },
- "app/Support/GuideCatalog.php": {
-  "summary": "Kelas bantu GuideCatalog: Isi panduan bawaan per menu (Pusat Panduan). Kunci = kunci menu App\\Support\\Menu::ITEMS (panduan petugas) atau kunci umum (akun) dan portal.* (panduan anggota). Tiap panduan: judul, ringkasan singkat, langkah praktis berurutan (opsional menunjuk halaman lewat nama rute), tips, dan halaman terkait. Ditulis mengikuti fitur yang benar-benar ada di aplikasi; menjadi bahan dasar sebelum versi tersimpan/hasil generate & suntingan admin. Metode publik: entries, haystack, portalTopicFor, forAudience, groupOf, groupFor.",
-  "sections": [
-   {
-    "symbol": "GuideCatalog::entries",
-    "startLine": 19,
-    "endLine": 310,
-    "summary": "steps: list<array{text: string, route?: string}>, tips: list<string>, related: array<string, string>}>"
-   },
-   {
-    "symbol": "GuideCatalog::haystack",
-    "startLine": 332,
-    "endLine": 338,
-    "summary": "Teks yang dicari untuk satu panduan (judul, ringkasan, langkah, tips, kata kunci), dinormalkan tanpa huruf besar/aksen."
-   },
-   {
-    "symbol": "GuideCatalog::portalTopicFor",
-    "startLine": 349,
-    "endLine": 361,
-    "summary": "Topik panduan anggota untuk halaman portal yang sedang dibuka (null bila tidak ada)."
-   },
-   {
-    "symbol": "GuideCatalog::forAudience",
-    "startLine": 363,
-    "endLine": 366,
-    "summary": "Metode public forAudience pada kelas bantu GuideCatalog."
-   },
-   {
-    "symbol": "GuideCatalog::groupOf",
-    "startLine": 369,
-    "endLine": 372,
-    "summary": "Kunci menu → judul grup menu samping (untuk pengelompokan daftar). @return array<string, string>"
-   },
-   {
-    "symbol": "GuideCatalog::groupFor",
-    "startLine": 375,
-    "endLine": 378,
-    "summary": "Judul grup menu samping untuk kunci menu (null = Umum)."
-   }
-  ]
- },
- "app/Support/MockData.php": {
-  "summary": "Kelas bantu MockData: Data contoh & pengaturan sementara. Barang/kategori kini ada di database (lihat ProductSeeder); pengaturan koperasi diteruskan ke SettingsService (tabel settings). Metode publik: categories, profile, settings, defaultReceipt, tax, receipt, saveSettings, notifications, announcements, saveAnnouncement, publicAnnouncements, markNotifications, unreadNotifications, members, findMember, seedSavings, seedMembers, seedProducts.",
-  "sections": [
-   {
-    "symbol": "MockData::categories",
-    "startLine": 15,
-    "endLine": 18,
-    "summary": "Metode public categories pada kelas bantu MockData."
-   },
-   {
-    "symbol": "MockData::profile",
-    "startLine": 21,
-    "endLine": 24,
-    "summary": "Identitas koperasi, jam buka & tulisan penutup struk (tabel settings, lihat SettingsService)."
-   },
-   {
-    "symbol": "MockData::settings",
-    "startLine": 27,
-    "endLine": 30,
-    "summary": "Pengaturan koperasi dari tabel settings: profile, receipt, tax, updated_at, updated_by."
-   },
-   {
-    "symbol": "MockData::defaultReceipt",
-    "startLine": 33,
-    "endLine": 36,
-    "summary": "Pengaturan struk bawaan. Judul/sub-judul kosong = ikut nama koperasi & madrasah."
-   },
-   {
-    "symbol": "MockData::tax",
-    "startLine": 38,
-    "endLine": 41,
-    "summary": "Metode public tax pada kelas bantu MockData."
-   },
-   {
-    "symbol": "MockData::receipt",
-    "startLine": 43,
-    "endLine": 46,
-    "summary": "Metode public receipt pada kelas bantu MockData."
-   },
-   {
-    "symbol": "MockData::saveSettings",
-    "startLine": 48,
-    "endLine": 51,
-    "summary": "Metode public saveSettings pada kelas bantu MockData."
-   },
-   {
-    "symbol": "MockData::notifications",
-    "startLine": 58,
-    "endLine": 63,
-    "summary": "Kotak notifikasi petugas yang sedang masuk (tabel notifications, lihat NotificationService)."
-   },
-   {
-    "symbol": "MockData::announcements",
-    "startLine": 70,
-    "endLine": 73,
-    "summary": "Pengumuman buatan petugas, terbaru dulu (lihat AnnouncementService)."
-   },
-   {
-    "symbol": "MockData::saveAnnouncement",
-    "startLine": 75,
-    "endLine": 78,
-    "summary": "Metode public saveAnnouncement pada kelas bantu MockData."
-   },
-   {
-    "symbol": "MockData::publicAnnouncements",
-    "startLine": 81,
-    "endLine": 84,
-    "summary": "Pengumuman aktif untuk beranda publik."
-   },
-   {
-    "symbol": "MockData::markNotifications",
-    "startLine": 86,
-    "endLine": 91,
-    "summary": "Metode public markNotifications pada kelas bantu MockData."
-   },
-   {
-    "symbol": "MockData::unreadNotifications",
-    "startLine": 93,
-    "endLine": 98,
-    "summary": "Metode public unreadNotifications pada kelas bantu MockData."
-   },
-   {
-    "symbol": "MockData::members",
-    "startLine": 101,
-    "endLine": 104,
-    "summary": "Anggota koperasi tiruan (siswa & guru) dengan saldo tabungan, untuk tahap frontend."
-   },
-   {
-    "symbol": "MockData::findMember",
-    "startLine": 106,
-    "endLine": 109,
-    "summary": "Metode public findMember pada kelas bantu MockData."
-   },
-   {
-    "symbol": "MockData::seedSavings",
-    "startLine": 111,
-    "endLine": 154,
-    "summary": "Metode public seedSavings pada kelas bantu MockData."
-   },
-   {
-    "symbol": "MockData::seedMembers",
-    "startLine": 156,
-    "endLine": 188,
-    "summary": "Metode public seedMembers pada kelas bantu MockData."
-   },
-   {
-    "symbol": "MockData::seedProducts",
-    "startLine": 191,
-    "endLine": 209,
-    "summary": "Data contoh awal — juga dipakai ProductSeeder."
-   }
-  ]
  },
  "app/Support/PriceCalculator.php": {
   "summary": "Kalkulator total belanja dari subtotal dan pengaturan pajak & pembulatan: pajak ditambahkan atau sudah termasuk harga, pembulatan ke atas/terdekat/ke bawah per Rp100/500/1.000 yang bisa khusus tunai. Mengembalikan subtotal, tax, tax_included, total, rounding, dan payable; dipakai kasir, checkout, dan pratinjau pengaturan."
@@ -1946,17 +473,6 @@
  "database/seeders/NotificationSeeder.php": {
   "summary": "Seeder notifikasi contoh: sinkron peringatan stok dari barang menipis/habis saat ini lewat NotificationService serta pengumuman dan info sistem demo."
  },
- "database/seeders/PromoSeeder.php": {
-  "summary": "Seeder PromoSeeder: Promo & kupon contoh (sama dengan contoh di tahap frontend), tanggalnya relatif terhadap hari ini. Hanya untuk pengembangan/demo; dilewati bila sudah ada promo atau kupon. Metode publik: run.",
-  "sections": [
-   {
-    "symbol": "PromoSeeder::run",
-    "startLine": 20,
-    "endLine": 67,
-    "summary": "Metode public run pada seeder PromoSeeder."
-   }
-  ]
- },
  "database/seeders/TransactionSeeder.php": {
   "summary": "Seeder riwayat penjualan contoh sekitar 90 hari terakhir oleh beberapa kasir demo tanpa mengubah stok, khusus pengembangan; dilewati bila tabel transaksi sudah berisi."
  },
@@ -2126,10 +642,10 @@
   "summary": "Komponen Blade components/menu-link. Tautan ke halaman lain yang dijaga menu/peran: hanya jadi tautan bila petugas boleh membukanya (gabungan semua perannya, lihat Menu::canReach); bila tidak, teksnya tampil tanpa tautan — tak ada jalan ke 403."
  },
  "resources/views/components/pengadaan/nav.blade.php": {
-  "summary": "Komponen Blade components/pengadaan/nav. Navigasi bagian Pengadaan. active = nama route halaman ini. Halaman yang belum dibuat tampil \"segera\"."
+  "summary": "Komponen Blade components/pengadaan/nav. Navigasi bagian Pengadaan. active = nama route halaman ini."
  },
  "resources/views/components/pengaturan/nav.blade.php": {
-  "summary": "Komponen Blade components/pengaturan/nav. Navigasi bagian Pengaturan Koperasi. Halaman yang belum dibuat tampil \"segera\"."
+  "summary": "Komponen Blade components/pengaturan/nav. Navigasi bagian Pengaturan Koperasi."
  },
  "resources/views/components/pengguna/nav.blade.php": {
   "summary": "Komponen Blade components/pengguna/nav. Navigasi bagian Kelola Pengguna. active = nama route halaman ini."
@@ -2138,7 +654,7 @@
   "summary": "Komponen Blade components/pin-input. Input PIN 6 angka (logika di resources/js/pin-input.js). model = properti Livewire, submit = aksi saat Enter & lengkap."
  },
  "resources/views/components/pinjaman/nav.blade.php": {
-  "summary": "Komponen Blade components/pinjaman/nav. Navigasi bagian Pinjaman. active = nama route halaman ini; route yang belum ada tidak ditampilkan."
+  "summary": "Komponen Blade components/pinjaman/nav. Navigasi bagian Pinjaman. active = nama route halaman ini."
  },
  "resources/views/components/pinjaman/recap-cards.blade.php": {
   "summary": "Komponen Blade components/pinjaman/recap-cards. Kartu ringkasan posisi pinjaman (tidak bergantung periode): pinjaman aktif & sisanya, dana tercairkan kumulatif & yang sudah kembali."
@@ -2168,13 +684,13 @@
   "summary": "Komponen Blade components/promo/nav. Navigasi bagian Diskon & Promo. active = nama route halaman ini."
  },
  "resources/views/components/simpanan/nav.blade.php": {
-  "summary": "Komponen Blade components/simpanan/nav. Navigasi bagian Simpanan. active = nama route halaman ini; route yang belum ada tidak ditampilkan."
+  "summary": "Komponen Blade components/simpanan/nav. Navigasi bagian Simpanan. active = nama route halaman ini."
  },
  "resources/views/components/sistem/backup-status.blade.php": {
   "summary": "Komponen Blade components/sistem/backup-status. Panel status cadangan: strip malam terakhir, rangkaian berhasil, umur cadangan terakhir, kegagalan terbaru + saran. Butuh: $status (BackupStatus::summarize). retry = nama aksi Livewire untuk \"Coba lagi\" (opsional)."
  },
  "resources/views/components/sistem/nav.blade.php": {
-  "summary": "Komponen Blade components/sistem/nav. Navigasi bagian Sistem. active = nama route halaman ini. Halaman yang belum dibuat tampil \"segera\"."
+  "summary": "Komponen Blade components/sistem/nav. Navigasi bagian Sistem. active = nama route halaman ini."
  },
  "resources/views/components/stock-badge.blade.php": {
   "summary": "Komponen x-stock-badge yang menampilkan status stok barang (habis, menipis, aman) berdasarkan stok, batas minimum, dan satuan."
@@ -2534,7 +1050,7 @@
   "summary": "Tampilan komponen Livewire livewire/portal/loans. Judul: Pinjaman saya. Aksi Livewire: setTab."
  },
  "resources/views/livewire/portal/login.blade.php": {
-  "summary": "Tampilan komponen Livewire livewire/portal/login. Judul: Masuk portal anggota."
+  "summary": "Tampilan komponen Livewire livewire/portal/login. Panel identitas Judul: Koperasi di genggamansiswa & guru.; Masuk portal anggota."
  },
  "resources/views/livewire/portal/order-show.blade.php": {
   "summary": "Tampilan komponen Livewire livewire/portal/order-show. Judul: Pembayaran berhasil; Barang; Riwayat status. Aksi Livewire: cancel."
@@ -2665,17 +1181,6 @@
  "tests/Feature/Anggota/MemberFormTest.php": {
   "summary": "Test form Livewire anggota: tambah siswa dengan saran kode, beralih ke guru memperbarui kode dan mengosongkan kelas, siswa wajib kelas dan kode unik, serta ubah anggota tanpa mengubah saldo."
  },
- "tests/Feature/Anggota/MemberPaginationTest.php": {
-  "summary": "Tes fitur MemberPaginationTest (area Anggota): Daftar anggota berhalaman (tidak memuat seluruh anggota sekaligus).. Menguji: member list is paginated and filters reset page.",
-  "sections": [
-   {
-    "symbol": "MemberPaginationTest::test_member_list_is_paginated_and_filters_reset_page",
-    "startLine": 16,
-    "endLine": 26,
-    "summary": "Tes: member list is paginated and filters reset page."
-   }
-  ]
- },
  "tests/Feature/Anggota/SavingFormTest.php": {
   "summary": "Test dialog setor/tarik di profil anggota: setoran memperbarui saldo dan riwayat, penarikan tidak boleh melebihi saldo, nominal minimum dan anggota nonaktif ditolak, serta daftar menampilkan saldo terbaru."
  },
@@ -2691,78 +1196,8 @@
  "tests/Feature/Audit/AuditPageTest.php": {
   "summary": "Test halaman Audit & Riwayat: admin dan pengurus bisa membuka sedangkan kasir tidak, ringkasan dan filter tampilan, panel rincian perubahan, unduh CSV yang ikut diaudit, dan seeder demo yang mengisi riwayat."
  },
- "tests/Feature/Audit/ChangesPageTest.php": {
-  "summary": "Tes fitur ChangesPageTest (area Audit). Menguji: admin and pengurus can open but kasir cannot; period entity action and search filters; sensitive filter subject history and detail; load more and value format.",
-  "sections": [
-   {
-    "symbol": "ChangesPageTest::test_admin_and_pengurus_can_open_but_kasir_cannot",
-    "startLine": 49,
-    "endLine": 59,
-    "summary": "Tes: admin and pengurus can open but kasir cannot."
-   },
-   {
-    "symbol": "ChangesPageTest::test_period_entity_action_and_search_filters",
-    "startLine": 61,
-    "endLine": 88,
-    "summary": "Tes: period entity action and search filters."
-   },
-   {
-    "symbol": "ChangesPageTest::test_sensitive_filter_subject_history_and_detail",
-    "startLine": 90,
-    "endLine": 113,
-    "summary": "Tes: sensitive filter subject history and detail."
-   },
-   {
-    "symbol": "ChangesPageTest::test_load_more_and_value_format",
-    "startLine": 115,
-    "endLine": 129,
-    "summary": "Tes: load more and value format."
-   }
-  ]
- },
  "tests/Feature/Auth/ChangePasswordTest.php": {
   "summary": "Test ganti kata sandi: wajib login, halaman untuk semua peran, endpoint JSON yang mengakhiri sesi lain, aturan validasi sandi, dan tautan di sidebar."
- },
- "tests/Feature/Auth/RoleCombinationAccessTest.php": {
-  "summary": "Tes fitur RoleCombinationAccessTest (area Auth): Uji akses per peran dan per kombinasi peran, terhadap SPESIFIKASI tertulis (bukan dihitung dari kode yang diuji): setiap halaman petugas tanpa parameter dicoba lewat HTTP untuk ketujuh kombinasi peran (admin, kasir, pengurus dan semua gabungannya). Kombinasi = gabungan: halaman terbuka bila salah satu perannya membuka halaman itu, dan tidak ada peran yang \"mengurangi\" akses peran lain.. Menguji: spec covers every page and every page is reachable by someone; every role and combination opens exactly the specified pages; combination never has less access than any of its roles; abilities per role and combination; page open only through the combination; simulator agrees with real http access for every combination.",
-  "sections": [
-   {
-    "symbol": "RoleCombinationAccessTest::test_spec_covers_every_page_and_every_page_is_reachable_by_someone",
-    "startLine": 98,
-    "endLine": 105,
-    "summary": "Tes: spec covers every page and every page is reachable by someone."
-   },
-   {
-    "symbol": "RoleCombinationAccessTest::test_every_role_and_combination_opens_exactly_the_specified_pages",
-    "startLine": 107,
-    "endLine": 122,
-    "summary": "Tes: every role and combination opens exactly the specified pages."
-   },
-   {
-    "symbol": "RoleCombinationAccessTest::test_combination_never_has_less_access_than_any_of_its_roles",
-    "startLine": 124,
-    "endLine": 138,
-    "summary": "Tes: combination never has less access than any of its roles."
-   },
-   {
-    "symbol": "RoleCombinationAccessTest::test_abilities_per_role_and_combination",
-    "startLine": 140,
-    "endLine": 149,
-    "summary": "Tes: abilities per role and combination."
-   },
-   {
-    "symbol": "RoleCombinationAccessTest::test_page_open_only_through_the_combination",
-    "startLine": 151,
-    "endLine": 170,
-    "summary": "Tes: page open only through the combination."
-   },
-   {
-    "symbol": "RoleCombinationAccessTest::test_simulator_agrees_with_real_http_access_for_every_combination",
-    "startLine": 172,
-    "endLine": 182,
-    "summary": "Tes: simulator agrees with real http access for every combination."
-   }
-  ]
  },
  "tests/Feature/Auth/RoleMiddlewareTest.php": {
   "summary": "Test middleware akses: hak menu dibaca dari tabel roles, endpoint JSON dijaga per menu, middleware peran, aksi Livewire menjalankan ulang pembatas rute, dan halaman akun cukup login."
@@ -2792,7 +1227,21 @@
   "summary": "Test endpoint stok menipis dan batas minimum: daftar barang menipis, ambil batas dengan nilai bawaan, ubah per barang/kategori/bawaan, dan validasi."
  },
  "tests/Feature/BerandaTest.php": {
-  "summary": "Test beranda publik: profil koperasi, barang populer, dan jam buka tampil, serta perhitungan status buka/tutup."
+  "summary": "Tes fitur BerandaTest (area aplikasi). Menguji: public home shows profile popular products and hours; open status.",
+  "sections": [
+   {
+    "symbol": "BerandaTest::test_public_home_shows_profile_popular_products_and_hours",
+    "startLine": 24,
+    "endLine": 40,
+    "summary": "Tes: public home shows profile popular products and hours."
+   },
+   {
+    "symbol": "BerandaTest::test_open_status",
+    "startLine": 42,
+    "endLine": 49,
+    "summary": "Tes: open status."
+   }
+  ]
  },
  "tests/Feature/Database/NotificationSchemaTest.php": {
   "summary": "Test skema notifikasi: kolom tabel notifications dan notification_reads, status baca per pengguna, dedupe_key unik, scope forRole/active/public, penghapusan pengguna/barang, dan constraint CHECK PostgreSQL untuk type, target, dan show_public."
@@ -2830,29 +1279,6 @@
  "tests/Feature/Kasir/TransactionReceiptTest.php": {
   "summary": "Test struk transaksi: detail JSON berisi data struk, halaman struk siap cetak, struk mempertahankan snapshot setelah barang berubah, dan transaksi tidak ada menghasilkan 404."
  },
- "tests/Feature/Keamanan/UserAdminEscalationTest.php": {
-  "summary": "Tes fitur UserAdminEscalationTest (area Keamanan): Eskalasi hak lewat kelola pengguna: area Pengguna khusus peran Admin di tingkat rute (walau menunya diberikan ke peran lain), dan sebagai pertahanan berlapis UserService menolak pelaku non-Admin memberi peran Admin, mengubah akun Admin, membuat akun Admin, atau mengubah izin menu peran.. Menguji: user management routes stay admin only; service rejects non admin actor escalation; non admin actor can still manage non admin accounts and admin unaffected.",
-  "sections": [
-   {
-    "symbol": "UserAdminEscalationTest::test_user_management_routes_stay_admin_only",
-    "startLine": 40,
-    "endLine": 47,
-    "summary": "Tes: user management routes stay admin only."
-   },
-   {
-    "symbol": "UserAdminEscalationTest::test_service_rejects_non_admin_actor_escalation",
-    "startLine": 49,
-    "endLine": 72,
-    "summary": "Tes: service rejects non admin actor escalation."
-   },
-   {
-    "symbol": "UserAdminEscalationTest::test_non_admin_actor_can_still_manage_non_admin_accounts_and_admin_unaffected",
-    "startLine": 74,
-    "endLine": 82,
-    "summary": "Tes: non admin actor can still manage non admin accounts and admin unaffected."
-   }
-  ]
- },
  "tests/Feature/Laporan/SalesReportTest.php": {
   "summary": "Test SalesReport: ringkasan dengan laba kotor dan margin, laba memakai snapshot harga modal, perbandingan periode setara, kartu hari ini, barang terlaris dan rekap harian, serta titik grafik yang mengisi hari kosong dan mengelompokkan minggu."
  },
@@ -2860,16 +1286,100 @@
   "summary": "Test API pengumuman: pengurus menerbitkan pengumuman untuk anggota yang masuk ke notifikasi petugas lain dan beranda publik, pengumuman khusus petugas tidak pernah publik, validasi, daftar dan ubah milik sendiri, pengurus tidak bisa mengubah milik orang lain sedangkan admin bisa, hanya pengumuman yang bisa dikelola, dan kasir/tamu ditolak."
  },
  "tests/Feature/Notifikasi/AnnouncementTest.php": {
-  "summary": "Test halaman Buat Pengumuman: pengurus menerbitkan pengumuman yang tampil di notifikasi dan beranda publik, pengumuman khusus petugas tidak publik dan bersasaran peran, validasi dan masa berlaku, serta hapus dan pembatasan akses."
+  "summary": "Tes fitur AnnouncementTest (area Notifikasi). Menguji: pengurus publishes announcement visible in notifications and public home; staff only announcement is not public and targets role; validation and expiry; delete and access.",
+  "sections": [
+   {
+    "symbol": "AnnouncementTest::test_pengurus_publishes_announcement_visible_in_notifications_and_public_home",
+    "startLine": 25,
+    "endLine": 48,
+    "summary": "Tes: pengurus publishes announcement visible in notifications and public home."
+   },
+   {
+    "symbol": "AnnouncementTest::test_staff_only_announcement_is_not_public_and_targets_role",
+    "startLine": 50,
+    "endLine": 66,
+    "summary": "Tes: staff only announcement is not public and targets role."
+   },
+   {
+    "symbol": "AnnouncementTest::test_validation_and_expiry",
+    "startLine": 68,
+    "endLine": 79,
+    "summary": "Tes: validation and expiry."
+   },
+   {
+    "symbol": "AnnouncementTest::test_delete_and_access",
+    "startLine": 81,
+    "endLine": 91,
+    "summary": "Tes: delete and access."
+   }
+  ]
  },
  "tests/Feature/Notifikasi/BellTest.php": {
-  "summary": "Test lonceng notifikasi: badge dan pratinjau, badge maksimal 9+, tandai dibaca dan tandai semua, buka tautan sekaligus menandai dibaca, dan memuat ulang saat halaman menandai semua."
+  "summary": "Tes fitur BellTest (area Notifikasi). Menguji: badge and preview; badge caps at nine plus; mark read and all; open follows link and marks read; refreshes when page marks all.",
+  "sections": [
+   {
+    "symbol": "BellTest::test_badge_and_preview",
+    "startLine": 25,
+    "endLine": 33,
+    "summary": "Tes: badge and preview."
+   },
+   {
+    "symbol": "BellTest::test_badge_caps_at_nine_plus",
+    "startLine": 35,
+    "endLine": 42,
+    "summary": "Tes: badge caps at nine plus."
+   },
+   {
+    "symbol": "BellTest::test_mark_read_and_all",
+    "startLine": 44,
+    "endLine": 56,
+    "summary": "Tes: mark read and all."
+   },
+   {
+    "symbol": "BellTest::test_open_follows_link_and_marks_read",
+    "startLine": 58,
+    "endLine": 66,
+    "summary": "Tes: open follows link and marks read."
+   },
+   {
+    "symbol": "BellTest::test_refreshes_when_page_marks_all",
+    "startLine": 68,
+    "endLine": 74,
+    "summary": "Tes: refreshes when page marks all."
+   }
+  ]
  },
  "tests/Feature/Notifikasi/MarkReadEndpointTest.php": {
   "summary": "Test API tandai notifikasi: tandai dibaca dan belum dibaca, tandai semua dengan filter opsional, id di luar kotak sendiri diabaikan, validasi, sembunyikan hanya untuk diri sendiri dan bukan peringatan stok, serta wajib login."
  },
  "tests/Feature/Notifikasi/MarkReadTest.php": {
-  "summary": "Test aksi massal di halaman Notifikasi: tandai notifikasi terpilih dibaca/belum, pilih semua yang terlihat, tandai semua dibaca bisa diurungkan, dan tanpa pilihan tidak terjadi apa-apa."
+  "summary": "Tes fitur MarkReadTest (area Notifikasi). Menguji: bulk mark selected read and unread; select all toggles visible items; mark all read can be undone; noop without selection.",
+  "sections": [
+   {
+    "symbol": "MarkReadTest::test_bulk_mark_selected_read_and_unread",
+    "startLine": 24,
+    "endLine": 39,
+    "summary": "Tes: bulk mark selected read and unread."
+   },
+   {
+    "symbol": "MarkReadTest::test_select_all_toggles_visible_items",
+    "startLine": 41,
+    "endLine": 48,
+    "summary": "Tes: select all toggles visible items."
+   },
+   {
+    "symbol": "MarkReadTest::test_mark_all_read_can_be_undone",
+    "startLine": 50,
+    "endLine": 61,
+    "summary": "Tes: mark all read can be undone."
+   },
+   {
+    "symbol": "MarkReadTest::test_noop_without_selection",
+    "startLine": 63,
+    "endLine": 67,
+    "summary": "Tes: noop without selection."
+   }
+  ]
  },
  "tests/Feature/Notifikasi/NotificationEndpointTest.php": {
   "summary": "Test API daftar notifikasi: urutan terbaru dengan jumlah per saringan, filter dan batas, pratinjau lonceng, sasaran per peran, status baca per pengguna, tidak bisa menandai di luar kotak sendiri, sinkron peringatan stok sekali dan hilang saat restok, serta wajib login."
@@ -2879,35 +1389,6 @@
  },
  "tests/Feature/Notifikasi/StockAlertAutomationTest.php": {
   "summary": "Test notifikasi otomatis stok menipis: seeder membuat peringatan awal, penjualan yang menurunkan stok memberi tahu pengurus (menipis lalu habis), restok menghapus peringatan dan kekurangan baru belum dibaca lagi, perubahan batas minimum, nonaktif/hapus barang, barang baru tanpa stok, perubahan yang di-rollback tidak memberi tahu, dan perintah terjadwal notifikasi:stok."
- },
- "tests/Feature/Pengaturan/DiscountSettingsTest.php": {
-  "summary": "Tes fitur DiscountSettingsTest (area Pengaturan). Menguji: page in settings nav and saves; validation and defaults; settings drive cashier limits; non admin read only.",
-  "sections": [
-   {
-    "symbol": "DiscountSettingsTest::test_page_in_settings_nav_and_saves",
-    "startLine": 19,
-    "endLine": 30,
-    "summary": "Tes: page in settings nav and saves."
-   },
-   {
-    "symbol": "DiscountSettingsTest::test_validation_and_defaults",
-    "startLine": 32,
-    "endLine": 42,
-    "summary": "Tes: validation and defaults."
-   },
-   {
-    "symbol": "DiscountSettingsTest::test_settings_drive_cashier_limits",
-    "startLine": 44,
-    "endLine": 61,
-    "summary": "Tes: settings drive cashier limits."
-   },
-   {
-    "symbol": "DiscountSettingsTest::test_non_admin_read_only",
-    "startLine": 63,
-    "endLine": 73,
-    "summary": "Tes: non admin read only."
-   }
-  ]
  },
  "tests/Feature/Pengaturan/IndexTest.php": {
   "summary": "Test halaman ringkasan Pengaturan: render ringkasan, menu khusus admin, contoh hitungan pajak dan pembulatan, dan penanda pengubah terakhir."
@@ -2925,51 +1406,48 @@
   "summary": "Test otorisasi ubah pengaturan: hanya admin lolos gate ubah-pengaturan, peran yang diberi menu bisa membaca tetapi tidak menulis lewat API, form Livewire mode baca saja dengan audit penolakan, admin tetap bisa mengubah, admin nonaktif ditolak, dan peran admin wajib tetap memegang menu Pengaturan."
  },
  "tests/Feature/Pengaturan/SettingsServiceTest.php": {
-  "summary": "Test SettingsService: bawaan dipakai bila belum ada yang disimpan, hanya kunci dikenal yang berubah disimpan beserta pengubah, nilai bertahan antar permintaan, perubahan diaudit tanpa isi logo, reset ke bawaan, dan bagian tak dikenal ditolak."
+  "summary": "Tes fitur SettingsServiceTest (area Pengaturan). Menguji: defaults are used when nothing is saved; save persists only changed known keys and records editor; saved values survive a new request; changes are audited without logo content; reset returns section to defaults; unknown section is rejected.",
+  "sections": [
+   {
+    "symbol": "SettingsServiceTest::test_defaults_are_used_when_nothing_is_saved",
+    "startLine": 23,
+    "endLine": 32,
+    "summary": "Tes: defaults are used when nothing is saved."
+   },
+   {
+    "symbol": "SettingsServiceTest::test_save_persists_only_changed_known_keys_and_records_editor",
+    "startLine": 34,
+    "endLine": 43,
+    "summary": "Tes: save persists only changed known keys and records editor."
+   },
+   {
+    "symbol": "SettingsServiceTest::test_saved_values_survive_a_new_request",
+    "startLine": 45,
+    "endLine": 59,
+    "summary": "Tes: saved values survive a new request."
+   },
+   {
+    "symbol": "SettingsServiceTest::test_changes_are_audited_without_logo_content",
+    "startLine": 61,
+    "endLine": 73,
+    "summary": "Tes: changes are audited without logo content."
+   },
+   {
+    "symbol": "SettingsServiceTest::test_reset_returns_section_to_defaults",
+    "startLine": 75,
+    "endLine": 85,
+    "summary": "Tes: reset returns section to defaults."
+   },
+   {
+    "symbol": "SettingsServiceTest::test_unknown_section_is_rejected",
+    "startLine": 87,
+    "endLine": 91,
+    "summary": "Tes: unknown section is rejected."
+   }
+  ]
  },
  "tests/Feature/Pinjaman/SeedsRecapLoans.php": {
   "summary": "Tes fitur SeedsRecapLoans (area Pinjaman): Data uji rekap: guru potong gaji 12 bln (5 angsuran dibayar), siswa tunai 3 bln, guru transfer 1 bln lunas; \"hari ini\" 10 Sep 2026, petugas pengurus masuk.."
- },
- "tests/Feature/Promo/PromoManagementTest.php": {
-  "summary": "Tes fitur PromoManagementTest (area Promo). Menguji: create category promo applies at cashier and is audited; product picker and buy get free rules; promo validation; coupon create edit and rules; toggle and delete only when unused; cashier cannot manage.",
-  "sections": [
-   {
-    "symbol": "PromoManagementTest::test_create_category_promo_applies_at_cashier_and_is_audited",
-    "startLine": 39,
-    "endLine": 63,
-    "summary": "Tes: create category promo applies at cashier and is audited."
-   },
-   {
-    "symbol": "PromoManagementTest::test_product_picker_and_buy_get_free_rules",
-    "startLine": 65,
-    "endLine": 82,
-    "summary": "Tes: product picker and buy get free rules."
-   },
-   {
-    "symbol": "PromoManagementTest::test_promo_validation",
-    "startLine": 84,
-    "endLine": 96,
-    "summary": "Tes: promo validation."
-   },
-   {
-    "symbol": "PromoManagementTest::test_coupon_create_edit_and_rules",
-    "startLine": 98,
-    "endLine": 120,
-    "summary": "Tes: coupon create edit and rules."
-   },
-   {
-    "symbol": "PromoManagementTest::test_toggle_and_delete_only_when_unused",
-    "startLine": 122,
-    "endLine": 145,
-    "summary": "Tes: toggle and delete only when unused."
-   },
-   {
-    "symbol": "PromoManagementTest::test_cashier_cannot_manage",
-    "startLine": 147,
-    "endLine": 161,
-    "summary": "Tes: cashier cannot manage."
-   }
-  ]
  },
  "tests/Feature/Transaksi/DateFilterTest.php": {
   "summary": "Test filter tanggal riwayat transaksi: preset hari ini/kemarin, 7 hari dan bulan ini, rentang kustom dan validasinya, ringkasan mengikuti filter dan reset, query string memulihkan rentang, perbandingan periode sebelumnya per metode, dan tanpa perbandingan bila tanpa rentang."
