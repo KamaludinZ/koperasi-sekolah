@@ -26,6 +26,7 @@ class LoginTest extends TestCase
         $this->get('/masuk')
             ->assertOk()
             ->assertSee('Masuk petugas')
+            ->assertSee(route('portal.login'))
             ->assertSee('Kata sandi')
             ->assertSee('kasir@koperasi.test')
             ->assertSee('Kembali ke beranda koperasi');

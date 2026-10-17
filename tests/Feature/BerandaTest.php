@@ -35,6 +35,7 @@ class BerandaTest extends TestCase
             ->assertSee('Air Mineral 600 ml')
             ->assertSee('Jam buka')
             ->assertSee('Masuk petugas')
+            ->assertSee('Masuk anggota')->assertSee(route('portal.login'))
             ->assertDontSee('Rp0'); // tidak menampilkan data keuangan anggota
     }
 

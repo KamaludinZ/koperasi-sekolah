@@ -19,7 +19,7 @@
 </head>
 <body class="relative isolate flex min-h-full flex-col overflow-x-hidden bg-emerald-950 text-emerald-50 antialiased">
     <div class="pattern-madrasah absolute inset-0 -z-10 opacity-[0.09]" aria-hidden="true"></div>
-    <div class="absolute top-1/3 left-1/2 -z-10 size-[36rem] -translate-x-1/2 rounded-full bg-emerald-700/25 blur-3xl" aria-hidden="true"></div>
+    <div class="pointer-events-none absolute inset-0 -z-10 overflow-hidden" aria-hidden="true"><div class="absolute top-1/3 left-1/2 size-[36rem] -translate-x-1/2 rounded-full bg-emerald-700/25 blur-3xl"></div></div>
 
     <header class="px-5 py-5 sm:px-8">
         <a href="/" class="inline-block rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-amber-300"><x-brand.logo /></a>

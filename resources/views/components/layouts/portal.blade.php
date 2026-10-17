@@ -10,7 +10,7 @@
         'portal.riwayat' => ['Riwayat', 'M12 8v4l3 2M3.05 11a9 9 0 11.5 4M3 4v5h5'],
         'portal.belanja' => ['Belanja', 'M3 3h2l.4 2M7 13h10l4-8H5.4M7 13 5.4 5M7 13l-2.3 2.3c-.6.6-.2 1.7.7 1.7H17'],
         'portal.pesanan' => ['Pesanan', 'M9 5h10M9 12h10M9 19h10M5 5h.01M5 12h.01M5 19h.01'],
-    ])->filter(fn ($item, $route) => \Illuminate\Support\Facades\Route::has($route));
+    ]);
     // titik merah di menu Pinjaman bila anggota punya pinjaman menunggak
     $alerts = ['portal.pinjaman' => $member && $nav->has('portal.pinjaman') && \App\Livewire\Portal\Loans::overdueCount($member->id) > 0];
 @endphp
@@ -65,7 +65,7 @@
     @endif
     </div>
 
-    <main @class(['mx-auto max-w-5xl', 'px-4 pt-5 pb-28 sm:pb-10' => $member])>
+    <main @class(['mx-auto max-w-5xl px-4 pt-5 pb-28 sm:pb-10' => $member])>
         {{ $slot }}
     </main>
 

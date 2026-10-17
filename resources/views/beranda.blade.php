@@ -7,6 +7,7 @@
         'habis' => ['Habis', 'bg-stone-200 text-stone-600'],
     ];
     $loggedIn = \App\Support\Petugas::current();
+    $memberIn = auth('member')->check();
 @endphp
 <x-layouts.guest title="Beranda">
     {{-- Hero --}}
@@ -21,8 +22,12 @@
                 <a href="#layanan" class="hidden rounded-lg px-3 py-2 text-sm text-emerald-100 hover:text-white md:block">Layanan</a>
                 <a href="{{ route('pengumuman.publik') }}" class="hidden rounded-lg px-3 py-2 text-sm text-emerald-100 hover:text-white md:block">Pengumuman</a>
                 <a href="#kunjungi" class="hidden rounded-lg px-3 py-2 text-sm text-emerald-100 hover:text-white md:block">Jam buka</a>
+                @unless ($loggedIn)
+                    <a href="{{ $memberIn ? route('portal') : route('portal.login') }}" data-member-login
+                       class="shrink-0 rounded-xl border border-amber-300/70 px-3 py-2 text-sm font-semibold text-amber-200 hover:bg-emerald-900 hover:text-amber-100 sm:px-4"><span class="max-sm:hidden">{{ $memberIn ? 'Portal saya' : 'Masuk anggota' }}</span><span class="sm:hidden">{{ $memberIn ? 'Portal' : 'Anggota' }}</span></a>
+                @endunless
                 <a href="{{ $loggedIn ? route(\App\Support\Menu::homeRoute($loggedIn['role'], $loggedIn['permissions'] ?? null)) : route('login') }}"
-                   class="shrink-0 rounded-xl bg-amber-400 px-4 py-2 text-sm font-semibold text-emerald-950 shadow-sm hover:bg-amber-300">{{ $loggedIn ? 'Buka aplikasi' : 'Masuk petugas' }}</a>
+                   class="shrink-0 rounded-xl bg-amber-400 px-3 py-2 text-sm font-semibold text-emerald-950 shadow-sm hover:bg-amber-300 sm:px-4"><span class="max-sm:hidden">{{ $loggedIn ? 'Buka aplikasi' : 'Masuk petugas' }}</span><span class="sm:hidden">{{ $loggedIn ? 'Buka' : 'Petugas' }}</span></a>
             </div>
         </nav>
 

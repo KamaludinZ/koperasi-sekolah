@@ -116,6 +116,11 @@
 
             <p class="mt-5 text-center text-sm text-stone-500">Lupa kata sandi? Hubungi admin koperasi untuk mengaturnya ulang.</p>
 
+            <a href="{{ route('portal.login') }}" data-member-login class="mt-6 flex items-center justify-between gap-3 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm hover:bg-emerald-100">
+                <span><span class="block font-semibold text-emerald-900">Anggota koperasi (siswa/guru)?</span><span class="block text-xs text-emerald-800/80">Cek saldo, simpanan, pinjaman & pesan barang di portal anggota.</span></span>
+                <span class="shrink-0 font-semibold text-emerald-800">Masuk anggota →</span>
+            </a>
+
             @if ($demoUsers)
                 <details class="group mt-8 rounded-xl border border-dashed border-amber-300 bg-amber-50/60 text-sm">
                     <summary class="flex cursor-pointer list-none items-center justify-between px-4 py-3 font-medium text-amber-900">
